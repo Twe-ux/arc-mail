@@ -42,9 +42,9 @@ export function InstallHint() {
   };
 
   return (
-    <div className="glass relative shrink-0 rounded-xl p-3 pr-8 text-xs leading-relaxed text-white/90">
+    <div className="relative shrink-0 rounded-xl bg-muted p-3 pr-8 text-xs leading-relaxed text-foreground">
       <p className="font-semibold">Installer Arc Mail</p>
-      <p className="mt-0.5 text-white/70">
+      <p className="mt-0.5 text-muted-foreground">
         Touche <Share className="inline size-3.5 align-[-2px]" aria-label="Partager" /> puis « Sur l&apos;écran
         d&apos;accueil » pour l&apos;ouvrir en plein écran.
       </p>
@@ -52,7 +52,7 @@ export function InstallHint() {
         type="button"
         onClick={dismiss}
         aria-label="Fermer"
-        className="absolute top-2 right-2 rounded p-1 text-white/60 hover:bg-white/20 hover:text-white"
+        className="absolute top-2 right-2 rounded p-1 text-muted-foreground hover:bg-background hover:text-foreground"
       >
         <X className="size-3.5" />
       </button>

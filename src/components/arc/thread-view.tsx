@@ -55,8 +55,8 @@ export function ThreadView({ className }: { className?: string }) {
 
   return (
     <article className={cn("min-w-0 flex-1 flex-col", className)}>
-      {/* Mobile: back, actions and subject on the space gradient */}
-      <div className="shrink-0 px-2 pt-0.5 pb-3 text-white md:hidden [&_button]:text-white [&_button:hover]:bg-white/15 [&_button:hover]:text-white [&_button]:size-9 [&_svg]:size-5">
+      {/* Mobile: back, actions and subject on the tinted backdrop */}
+      <div className="shrink-0 px-2 pt-0.5 pb-3 md:hidden [&_button]:size-9 [&_svg]:size-5">
         <div className="flex items-center">
           <Button variant="ghost" size="icon-xs" onClick={() => selectThread(null)} aria-label="Retour">
             <ArrowLeft />
@@ -67,7 +67,7 @@ export function ThreadView({ className }: { className?: string }) {
         {thread.labels.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-1.5 px-2">
             {thread.labels.map((label) => (
-              <LabelChip key={label} label={label} tone="glass" />
+              <LabelChip key={label} label={label} />
             ))}
           </div>
         )}
@@ -89,7 +89,7 @@ export function ThreadView({ className }: { className?: string }) {
       </header>
 
       {/* Messages: a floating card on mobile, plain column on desktop */}
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-t-[28px] bg-background shadow-[0_-10px_40px_rgb(0_0_0/0.18)] md:rounded-none md:shadow-none">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-t-[28px] bg-card shadow-[0_-8px_30px_rgb(0_0_0/0.06)] ring-1 ring-black/[0.05] md:rounded-none md:bg-transparent md:shadow-none md:ring-0 dark:ring-white/[0.06]">
         <ScrollArea className="min-h-0 flex-1">
           <div className="mx-auto flex w-full max-w-3xl flex-col gap-3 p-4 md:gap-4 md:p-6">
             <div className="hidden flex-wrap items-center gap-2 md:flex">
@@ -135,7 +135,7 @@ function Action({
 
 function MessageCard({ message }: { message: Message }) {
   return (
-    <div className="rounded-2xl bg-muted/50 p-4 dark:bg-muted/30">
+    <div className="rounded-2xl bg-muted/50 p-4 dark:bg-white/[0.04]">
       <div className="flex items-start gap-3">
         <ContactAvatar contact={message.from} />
         <div className="min-w-0 flex-1">
@@ -204,7 +204,7 @@ function MobileReply({ thread }: { thread: Thread }) {
   };
 
   return (
-    <div className="shrink-0 border-t border-border/50 bg-background px-3 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:hidden">
+    <div className="shrink-0 border-t border-border/50 bg-card px-3 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:hidden">
       <div className="flex items-end gap-2 rounded-[22px] bg-muted/60 py-1.5 pr-1.5 pl-4">
         <textarea
           rows={1}

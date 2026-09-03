@@ -81,6 +81,9 @@
   body {
     height: 100%;
   }
+  html {
+    background: var(--background);
+  }
   body {
     @apply bg-background text-foreground antialiased;
     /* Installed on a phone: no rubber-banding, no tap flash, no double-tap zoom. */
@@ -100,4 +103,15 @@
   &:hover {
     background-color: rgb(255 255 255 / 0.18);
   }
+}
+
+/* Mobile backdrop: the space colour as a soft wash at the top, not a full gradient. */
+@utility space-wash {
+  background:
+    radial-gradient(
+      140% 55% at 50% -15%,
+      color-mix(in oklch, var(--space-accent) 26%, var(--background)),
+      transparent 75%
+    ),
+    var(--background);
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import {
   Archive,
   Clock,
@@ -42,6 +43,46 @@ const FOLDER_ICONS: Record<FolderId, LucideIcon> = {
 /** The four "favorite" tiles under the address bar, like Arc's pinned favorites. */
 const PINNED: FolderId[] = ["inbox", "starred", "sent", "drafts"];
 
+type Tone = "gradient" | "surface";
+
+/** Desktop sits on the space gradient (white ink); the mobile drawer sits on a frosted surface. */
+const TONES: Record<Tone, Record<string, string>> = {
+  gradient: {
+    text: "text-white",
+    sub: "text-white/60",
+    faint: "text-white/40",
+    heading: "text-white/50",
+    bar: "glass text-white/80 hover:bg-white/20 hover:text-white",
+    kbd: "bg-white/15 text-white/70",
+    tile: "bg-white/5 text-white/70 hover:bg-white/15 hover:text-white",
+    tileActive: "glass text-white",
+    item: "text-white/80 hover:bg-white/15 hover:text-white",
+    itemActive: "glass font-medium text-white",
+    count: "bg-white/20",
+    sep: "bg-white/15",
+    close: "hover:bg-white/20",
+    icon: "text-white/70 hover:bg-white/15 hover:text-white",
+    hover: "hover:text-white",
+  },
+  surface: {
+    text: "text-foreground",
+    sub: "text-muted-foreground",
+    faint: "text-muted-foreground/70",
+    heading: "text-muted-foreground",
+    bar: "bg-muted text-muted-foreground hover:bg-muted/70",
+    kbd: "",
+    tile: "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground",
+    tileActive: "bg-muted text-foreground",
+    item: "text-foreground/85 hover:bg-muted",
+    itemActive: "bg-muted font-medium text-foreground",
+    count: "bg-foreground/10",
+    sep: "bg-border",
+    close: "hover:bg-background",
+    icon: "text-muted-foreground hover:bg-muted hover:text-foreground",
+    hover: "hover:text-foreground",
+  },
+};
+
 /** Desktop sidebar, inline on the space gradient. */
 export function Sidebar() {
   return (
@@ -68,13 +109,13 @@ export function MobileSidebar() {
       <SheetContent
         side="left"
         showCloseButton={false}
-        className="w-[85vw] max-w-sm gap-0 border-0 px-2 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] text-white md:hidden"
-        style={{ background: space.theme.gradient }}
+        className="space-wash w-[85vw] max-w-sm gap-0 border-r border-border/50 px-2 pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(0.75rem,env(safe-area-inset-bottom))] md:hidden"
+        style={{ "--space-accent": space.theme.accent } as CSSProperties}
       >
         <SheetTitle className="sr-only">Menu</SheetTitle>
         <SheetDescription className="sr-only">Espaces, dossiers et conversations récentes</SheetDescription>
         <div className="flex min-h-0 flex-1 flex-col gap-3">
-          <SidebarContent onNavigate={() => setOpen(false)} />
+          <SidebarContent tone="surface" onNavigate={() => setOpen(false)} />
           <InstallHint />
         </div>
       </SheetContent>
@@ -82,7 +123,8 @@ export function MobileSidebar() {
   );
 }
 
-function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
+function SidebarContent({ onNavigate, tone = "gradient" }: { onNavigate?: () => void; tone?: Tone }) {
+  const tn = TONES[tone];
   const space = useMail(selectSpace);
   const folder = useMail(selectFolder);
   const folderId = useMail((s) => s.folderId);
@@ -114,11 +156,11 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
       <button
         type="button"
         onClick={go(() => setCommandOpen(true))}
-        className="glass flex h-9 shrink-0 items-center gap-2 rounded-lg px-3 text-sm text-white/80 transition-colors hover:bg-white/20 hover:text-white"
+        className={cn("flex h-9 shrink-0 items-center gap-2 rounded-lg px-3 text-sm transition-colors", tn.bar)}
       >
         <Search className="size-4 shrink-0" />
         <span className="min-w-0 flex-1 truncate text-left">{folder.name}</span>
-        <Kbd className="hidden bg-white/15 text-white/70 md:inline-flex">⌘K</Kbd>
+        <Kbd className={cn("hidden md:inline-flex", tn.kbd)}>⌘K</Kbd>
       </button>
 
       {/* Pinned favorites */}
@@ -138,11 +180,11 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
                   aria-current={active ? "page" : undefined}
                   className={cn(
                     "relative flex h-12 items-center justify-center rounded-xl transition-colors",
-                    active ? "glass text-white" : "bg-white/5 text-white/70 hover:bg-white/15 hover:text-white",
+                    active ? tn.tileActive : tn.tile,
                   )}
                 >
                   <Icon className="size-5" />
-                  {dot && <span className="absolute top-1.5 right-1.5 size-1.5 rounded-full bg-white" />}
+                  {dot && <span className="absolute top-1.5 right-1.5 size-1.5 rounded-full bg-current" />}
                 </button>
               </TooltipTrigger>
               <TooltipContent side="bottom">{name}</TooltipContent>
@@ -155,8 +197,8 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
       <div className="flex shrink-0 items-center gap-2 px-2 pt-1">
         <span className="text-lg leading-none">{space.emoji}</span>
         <div className="min-w-0">
-          <p className="truncate text-sm font-semibold">{space.name}</p>
-          <p className="truncate text-xs text-white/60">{space.email}</p>
+          <p className={cn("truncate text-sm font-semibold", tn.text)}>{space.name}</p>
+          <p className={cn("truncate text-xs", tn.sub)}>{space.email}</p>
         </div>
       </div>
 
@@ -170,25 +212,26 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
             active={f.id === folderId}
             folderId={f.id}
             onClick={go(() => setFolder(f.id))}
+            tone={tone}
           />
         ))}
       </nav>
 
-      <Separator className="bg-white/15" />
+      <Separator className={tn.sep} />
 
       {/* Today — recently opened threads, like Arc's tabs */}
       <div className="flex min-h-0 flex-1 flex-col gap-1">
-        <div className="flex items-center justify-between px-2.5 text-[11px] font-semibold tracking-wider text-white/50 uppercase">
+        <div className={cn("flex items-center justify-between px-2.5 text-[11px] font-semibold tracking-wider uppercase", tn.heading)}>
           <span>Aujourd&apos;hui</span>
           {recentThreads.length > 0 && (
-            <button type="button" onClick={clearRecent} className="normal-case tracking-normal hover:text-white">
+            <button type="button" onClick={clearRecent} className={cn("normal-case tracking-normal", tn.hover)}>
               Effacer
             </button>
           )}
         </div>
         <ScrollArea className="min-h-0 flex-1">
           {recentThreads.length === 0 ? (
-            <p className="px-2.5 py-2 text-xs leading-relaxed text-white/40">
+            <p className={cn("px-2.5 py-2 text-xs leading-relaxed", tn.faint)}>
               Les conversations que tu ouvres s&apos;affichent ici, comme les onglets d&apos;Arc.
             </p>
           ) : (
@@ -201,7 +244,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
                     key={t.id}
                     className={cn(
                       "group flex h-8 items-center gap-1 rounded-lg pr-1 pl-2 text-sm transition-colors",
-                      active ? "glass" : "text-white/80 hover:bg-white/15 hover:text-white",
+                      active ? tn.itemActive : tn.item,
                     )}
                   >
                     <button
@@ -216,7 +259,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
                       type="button"
                       onClick={() => removeRecent(t.id)}
                       aria-label="Fermer"
-                      className="rounded p-1 transition-opacity hover:bg-white/20 md:opacity-0 md:group-hover:opacity-100 md:focus-visible:opacity-100"
+                      className={cn("rounded p-1 transition-opacity md:opacity-0 md:group-hover:opacity-100 md:focus-visible:opacity-100", tn.close)}
                     >
                       <X className="size-3.5" />
                     </button>
@@ -230,7 +273,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
 
       {/* Bottom bar: spaces + quick actions */}
       <div className="flex shrink-0 items-center justify-between gap-1 pt-1">
-        <SpaceSwitcher onSelect={onNavigate} />
+        <SpaceSwitcher onSelect={onNavigate} tone={tone} />
         <div className="flex items-center gap-0.5">
           <Tooltip>
             <TooltipTrigger asChild>
@@ -238,7 +281,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
                 type="button"
                 onClick={toggleDark}
                 aria-label="Basculer le thème"
-                className="flex size-8 items-center justify-center rounded-lg text-white/70 transition-colors hover:bg-white/15 hover:text-white"
+                className={cn("flex size-8 items-center justify-center rounded-lg transition-colors", tn.icon)}
               >
                 {dark ? <Sun className="size-4" /> : <Moon className="size-4" />}
               </button>
@@ -251,7 +294,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
                 type="button"
                 onClick={go(() => setComposeOpen(true))}
                 aria-label="Nouveau message"
-                className="flex size-8 items-center justify-center rounded-lg text-white/70 transition-colors hover:bg-white/15 hover:text-white"
+                className={cn("flex size-8 items-center justify-center rounded-lg transition-colors", tn.icon)}
               >
                 <Plus className="size-4" />
               </button>
@@ -270,13 +313,16 @@ function FolderRow({
   active,
   folderId,
   onClick,
+  tone,
 }: {
   icon: LucideIcon;
   name: string;
   active: boolean;
   folderId: FolderId;
   onClick: () => void;
+  tone: Tone;
 }) {
+  const tn = TONES[tone];
   const count = useMail((s) => selectUnreadCount(s, s.spaceId, folderId));
   return (
     <button
@@ -285,13 +331,13 @@ function FolderRow({
       aria-current={active ? "page" : undefined}
       className={cn(
         "flex h-8 items-center gap-2.5 rounded-lg px-2.5 text-sm transition-colors",
-        active ? "glass font-medium text-white" : "text-white/80 hover:bg-white/15 hover:text-white",
+        active ? tn.itemActive : tn.item,
       )}
     >
       <Icon className="size-4 shrink-0" />
       <span className="min-w-0 flex-1 truncate text-left">{name}</span>
       {count > 0 && (
-        <span className="rounded-full bg-white/20 px-1.5 text-[11px] font-semibold tabular-nums">{count}</span>
+        <span className={cn("rounded-full px-1.5 text-[11px] font-semibold tabular-nums", tn.count)}>{count}</span>
       )}
     </button>
   );

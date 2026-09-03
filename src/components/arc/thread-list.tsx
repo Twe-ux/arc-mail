@@ -28,11 +28,11 @@ export function ThreadList({ className }: { className?: string }) {
 
   return (
     <section className={cn("min-w-0 flex-col", className)} aria-label={folder.name}>
-      {/* Mobile: large title on the space gradient, iOS style */}
-      <div className="shrink-0 px-5 pt-1 pb-3 text-white md:hidden">
+      {/* Mobile: large title on the tinted backdrop, iOS style */}
+      <div className="shrink-0 px-5 pt-1 pb-3 md:hidden">
         <h1 className="truncate text-[30px] leading-tight font-bold tracking-tight">{folder.name}</h1>
         <div className="mt-1.5 flex items-center justify-between gap-3">
-          <p className="min-w-0 truncate text-[13px] text-white/75">
+          <p className="min-w-0 truncate text-[13px] text-muted-foreground">
             {space.emoji} {space.name} · {plural(threads.length, "conversation")}
             {unread > 0 && ` · ${unread} non lue${unread > 1 ? "s" : ""}`}
           </p>
@@ -58,7 +58,7 @@ export function ThreadList({ className }: { className?: string }) {
       </header>
 
       {/* The list: a floating card on mobile, plain column on desktop */}
-      <div className="min-h-0 flex-1 overflow-hidden rounded-t-[28px] bg-background shadow-[0_-10px_40px_rgb(0_0_0/0.18)] md:rounded-none md:shadow-none">
+      <div className="min-h-0 flex-1 overflow-hidden rounded-t-[28px] bg-card shadow-[0_-8px_30px_rgb(0_0_0/0.06)] ring-1 ring-black/[0.05] md:rounded-none md:bg-transparent md:shadow-none md:ring-0 dark:ring-white/[0.06]">
         <ScrollArea className="h-full">
           {threads.length === 0 ? (
             <div className="flex flex-col items-center gap-2 px-6 py-16 text-center text-muted-foreground">
@@ -92,7 +92,7 @@ function Segmented({ tone }: { tone: "glass" | "muted" }) {
     <div
       role="tablist"
       aria-label="Filtre"
-      className={cn("flex shrink-0 rounded-full p-0.5 text-xs", tone === "glass" ? "bg-white/15" : "bg-muted")}
+      className={cn("flex shrink-0 rounded-full p-0.5 text-xs", tone === "glass" ? "bg-foreground/[0.06]" : "bg-muted")}
     >
       <Tab tone={tone} active={!unreadOnly} onClick={() => setUnreadOnly(false)}>
         Tous
@@ -125,8 +125,8 @@ function Tab({
         "rounded-full px-3 py-1 font-medium transition-colors",
         tone === "glass"
           ? active
-            ? "bg-white text-neutral-900 shadow-sm"
-            : "text-white/80"
+            ? "bg-card text-foreground shadow-sm ring-1 ring-black/[0.04] dark:ring-white/[0.08]"
+            : "text-muted-foreground"
           : active
             ? "bg-background text-foreground shadow-xs"
             : "text-muted-foreground hover:text-foreground",

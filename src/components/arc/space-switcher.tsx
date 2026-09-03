@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 /** The row of space dots at the bottom of the Arc sidebar. */
-export function SpaceSwitcher({ onSelect }: { onSelect?: () => void }) {
+export function SpaceSwitcher({ onSelect, tone = "gradient" }: { onSelect?: () => void; tone?: "gradient" | "surface" }) {
   const spaceId = useMail((s) => s.spaceId);
   const setSpace = useMail((s) => s.setSpace);
 
@@ -27,7 +27,13 @@ export function SpaceSwitcher({ onSelect }: { onSelect?: () => void }) {
                 aria-current={active ? "true" : undefined}
                 className={cn(
                   "flex h-8 max-w-40 items-center gap-1.5 rounded-lg px-2 text-sm whitespace-nowrap transition-all",
-                  active ? "glass text-white" : "text-white/60 hover:text-white glass-hover",
+                  tone === "gradient"
+                    ? active
+                      ? "glass text-white"
+                      : "text-white/60 hover:bg-white/15 hover:text-white"
+                    : active
+                      ? "bg-muted text-foreground"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
                 )}
               >
                 <span className="text-base leading-none">{space.emoji}</span>

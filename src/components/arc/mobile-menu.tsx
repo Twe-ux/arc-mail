@@ -152,8 +152,14 @@ function MenuBody({
           </button>
         </div>
 
-        {/* Spaces as chips */}
-        <div className="-mx-4 mt-1 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none]">
+        {/* Spaces as chips. `py-1` rather than `mt-1 pb-1`: a horizontal
+            scroller clips vertically too (CSS turns the other axis' `visible`
+            into `auto`), and the active chip's ring is a box-shadow painted
+            *outside* its border box — flush against the top of the rail, that
+            edge of the ring was being shaved off. Padding inside the scroller
+            is the room it needs; the margin it replaces kept the chips at the
+            same height. */}
+        <div className="-mx-4 flex gap-2 overflow-x-auto px-4 py-1 [scrollbar-width:none]">
           {spaces.map((sp) => {
             const active = sp.id === spaceId;
             return (

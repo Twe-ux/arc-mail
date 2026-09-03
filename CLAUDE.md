@@ -133,6 +133,12 @@ d'Arc (espaces colorés, sidebar translucide, favoris épinglés, onglets « Auj
   au milieu d'un trait de ligne neutre. `SPACE_ICONS` (la table Lucide, exportée depuis
   `space-icon.tsx`) permet d'y dessiner le même glyphe en trait seul (`SpaceGlyph`), avec le même
   poids que les deux autres, sans la tuile ni le dégradé.
+- **Un rail horizontal (`overflow-x-auto`) rogne aussi verticalement.** CSS transforme le `visible`
+  de l'autre axe en `auto` dès qu'un axe défile : le rail des espaces coupait donc le haut du ring
+  de la pastille active, qui est un `box-shadow` peint *hors* de la boîte, collé au ras du bord du
+  rail. Ce qu'il faut, c'est du `padding` **dans** le conteneur défilant (`py-1`), pas de la marge
+  autour — et on retire d'autant la marge qu'il remplace pour que rien ne bouge (mesuré : le chip
+  garde exactement le même `top`/`bottom`). Vaut pour tout ring, ombre ou halo dans un rail.
 - **La barre du bas espace ses deux groupes vers les bords (`justify-between`), pas au centre.** La
   pilule des trois icônes et le bouton composer centrés ensemble laissaient de grandes marges vides
   aux deux bords ; `justify-between` (+ `px-5`) les tire chacun vers son côté.

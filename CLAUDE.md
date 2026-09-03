@@ -46,9 +46,11 @@ d'Arc (espaces colorés, sidebar translucide, favoris épinglés, onglets « Auj
   distance ; un ressort suit, qu'on peut rattraper. Retour par glissement depuis le bord gauche
   (`BackSwipe` + `useEdgeSwipeBack`), fermeture des feuilles par glissement vers le bas (`useSheetDismiss`).
 - Les fenêtres du téléphone (menu, composeur) sont des **cartes flottantes** : détachées des quatre
-  bords (8 px sur les côtés, 12 px en bas — mesuré sur la référence, la carte descend jusqu'au ras de
-  l'indicateur d'accueil plutôt que de laisser la safe area entière), arrondies à 36 px tout autour,
-  pas de poignée. Leur en-tête (compte, espaces) est **hors du conteneur de défilement** : sinon il
+  bords (8 px sur les côtés), arrondies à 36 px tout autour, pas de poignée. En bas, même plancher
+  que la barre du bas (`safe-area − 18px`, jamais sous 14 px — voir plus bas) : la safe area complète
+  seule les faisait flotter nettement plus haut que la barre juste à côté, les deux bords ne lisant
+  plus comme la même ligne « dégagée de l'indicateur d'accueil ». Leur en-tête (compte, espaces) est
+  **hors du conteneur de défilement** : sinon il
   glisse sous le coin arrondi de la carte et on croit que le contenu en sort. En sombre elles sont des
   surfaces *au-dessus* de la page (`#26262a` pour le
   composeur) : peintes en `--background`, plus foncé que le sol de la fenêtre, elles se lisaient comme

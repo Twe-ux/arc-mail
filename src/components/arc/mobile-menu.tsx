@@ -70,7 +70,10 @@ export function MobileMenu() {
            actual safe area or the rounded corner sits under the gesture zone.
            `transition-none`: see `useSheetDismiss`, the primitive's own
            duration would interpolate the transform the drag writes. */
-        className="inset-x-2 top-auto bottom-[max(0.75rem,env(safe-area-inset-bottom))] flex h-auto max-h-[86dvh] w-auto flex-col gap-0 rounded-[36px] border-0 bg-[#f2f2f7] p-0 text-foreground shadow-2xl transition-none md:hidden dark:bg-black dark:ring-1 dark:ring-white/12"
+        /* Same floor as the nav bar (safe-area − 18px, never under 12px):
+           the full safe-area inset left this card visibly higher than the
+           bar right beside it once closed. */
+        className="inset-x-2 top-auto bottom-[max(14px,calc(env(safe-area-inset-bottom)-18px))] flex h-auto max-h-[86dvh] w-auto flex-col gap-0 rounded-[36px] border-0 bg-[#f2f2f7] p-0 text-foreground shadow-2xl transition-none md:hidden dark:bg-black dark:ring-1 dark:ring-white/12"
       >
         <SheetTitle className="sr-only">Menu</SheetTitle>
         <SheetDescription className="sr-only">

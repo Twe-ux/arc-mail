@@ -100,7 +100,14 @@ d'Arc (espaces colorés, sidebar translucide, favoris épinglés, onglets « Auj
   le composeur — la position peut bouger avec le clavier ici sans risque.
 - Les espaces ont une icône Lucide sur une tuile dégradée (`SpaceIcon`), pas d'emoji. Lire les
   espaces via `useSpace()` / `useSpaces()` (couleur personnalisée résolue), jamais `SPACES` en direct
-  dans un composant.
+  dans un composant. **Exception : la barre du bas du téléphone (`MobileNav`).** À côté des glyphes
+  nus de Réception et Rechercher, la tuile colorée de `SpaceIcon` détonnait — une icône d'appli posée
+  au milieu d'un trait de ligne neutre. `SPACE_ICONS` (la table Lucide, exportée depuis
+  `space-icon.tsx`) permet d'y dessiner le même glyphe en trait seul (`SpaceGlyph`), avec le même
+  poids que les deux autres, sans la tuile ni le dégradé.
+- **La barre du bas espace ses deux groupes vers les bords (`justify-between`), pas au centre.** La
+  pilule des trois icônes et le bouton composer centrés ensemble laissaient de grandes marges vides
+  aux deux bords ; `justify-between` (+ `px-5`) les tire chacun vers son côté.
 - Textes de l'interface en français.
 - Commits conventionnels (`feat:`, `fix:`, `docs:`, `chore:`).
 

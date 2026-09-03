@@ -3,8 +3,9 @@
 import { Inbox, PenSquare, Search } from "lucide-react";
 
 import { selectUnreadCount, useMail, useSpace } from "@/lib/store";
+import type { Space } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { SpaceIcon } from "./space-icon";
+import { SPACE_ICONS } from "./space-icon";
 
 const ITEM = 56; // px, the width of one slot; the capsule slides by whole slots
 
@@ -26,14 +27,22 @@ export function MobileNav({ className }: { className?: string }) {
   const openCompose = useMail((s) => s.openCompose);
   const inboxUnread = useMail((s) => selectUnreadCount(s, s.spaceId, "inbox"));
 
-  const active = sidebarOpen ? 0 : commandOpen ? 2 : folderId === "inbox" && selectedThreadId === null ? 1 : -1;
+  const active = sidebarOpen
+    ? 0
+    : commandOpen
+      ? 2
+      : folderId === "inbox" && selectedThreadId === null
+        ? 1
+        : -1;
 
   return (
     <nav
       aria-label="Navigation"
       className={cn(
         // Clear of the home indicator, not a thumb's travel above it.
-        "flex shrink-0 items-center justify-center gap-3 px-4 pt-2.5 pb-[max(14px,calc(env(safe-area-inset-bottom)-18px))] md:hidden",
+        // Space-between, not centred: the pill and the compose button sit
+        // toward their own edge rather than huddling together in the middle.
+        "flex shrink-0 items-center justify-between gap-3 px-5 pt-2.5 pb-[max(14px,calc(env(safe-area-inset-bottom)-18px))] md:hidden",
         className,
       )}
     >
@@ -41,10 +50,18 @@ export function MobileNav({ className }: { className?: string }) {
         <span
           aria-hidden
           className="absolute top-1.5 bottom-1.5 left-1.5 rounded-full bg-[color-mix(in_oklch,var(--space-accent)_18%,transparent)] transition-[transform,opacity] duration-300 ease-[cubic-bezier(.2,.8,.2,1)]"
-          style={{ width: ITEM, transform: `translateX(${Math.max(active, 0) * ITEM}px)`, opacity: active < 0 ? 0 : 1 }}
+          style={{
+            width: ITEM,
+            transform: `translateX(${Math.max(active, 0) * ITEM}px)`,
+            opacity: active < 0 ? 0 : 1,
+          }}
         />
-        <Slot label={`Espace ${space.name}`} active={active === 0} onClick={() => setSidebarOpen(true)}>
-          <SpaceIcon space={space} size="md" />
+        <Slot
+          label={`Espace ${space.name}`}
+          active={active === 0}
+          onClick={() => setSidebarOpen(true)}
+        >
+          <SpaceGlyph space={space} active={active === 0} />
         </Slot>
         <Slot
           label="Réception"
@@ -61,7 +78,11 @@ export function MobileNav({ className }: { className?: string }) {
             </span>
           )}
         </Slot>
-        <Slot label="Rechercher" active={active === 2} onClick={() => setCommandOpen(true)}>
+        <Slot
+          label="Rechercher"
+          active={active === 2}
+          onClick={() => setCommandOpen(true)}
+        >
           <Search className="size-6" strokeWidth={active === 2 ? 2.25 : 1.75} />
         </Slot>
       </div>
@@ -76,6 +97,21 @@ export function MobileNav({ className }: { className?: string }) {
       </button>
     </nav>
   );
+}
+
+/* A bare stroke, coloured and weighted exactly like Inbox and Search: the
+   space's own filled-tile glyph (`SpaceIcon`, used everywhere else) reads as
+   an app icon dropped in beside two plain outlines — one saturated colour
+   among otherwise neutral line art. */
+function SpaceGlyph({
+  space,
+  active,
+}: {
+  space: Space;
+  active: boolean;
+}) {
+  const Icon = SPACE_ICONS[space.icon];
+  return <Icon className="size-6" strokeWidth={active ? 2.25 : 1.75} />;
 }
 
 function Slot({
@@ -98,7 +134,9 @@ function Slot({
       style={{ width: ITEM }}
       className={cn(
         "relative z-10 flex h-11 items-center justify-center rounded-full transition-colors",
-        active ? "text-[var(--space-accent)]" : "text-muted-foreground active:text-foreground",
+        active
+          ? "text-[var(--space-accent)]"
+          : "text-muted-foreground active:text-foreground",
       )}
     >
       {children}

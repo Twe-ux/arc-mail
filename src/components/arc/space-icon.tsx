@@ -3,7 +3,10 @@ import { Briefcase, FlaskConical, House, type LucideIcon } from "lucide-react";
 import type { Space } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-const ICONS: Record<Space["icon"], LucideIcon> = {
+/** Exported so surfaces that draw every other icon as a bare stroke (the
+ * phone's bottom bar) can render a space's glyph the same way, instead of
+ * `SpaceIcon`'s own filled tile. */
+export const SPACE_ICONS: Record<Space["icon"], LucideIcon> = {
   house: House,
   briefcase: Briefcase,
   flask: FlaskConical,
@@ -26,7 +29,7 @@ export function SpaceIcon({
   size?: keyof typeof SIZES;
   className?: string;
 }) {
-  const Icon = ICONS[space.icon];
+  const Icon = SPACE_ICONS[space.icon];
   const s = SIZES[size];
   return (
     <span

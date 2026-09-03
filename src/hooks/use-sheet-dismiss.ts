@@ -71,6 +71,21 @@ export function useSheetDismiss(onDismiss: () => void) {
     element.style.transform = "";
     element.style.animation = "";
 
+    /* The one moment `animation:none` should let go: the primitive itself is
+       closing (Annuler, the X, sending — none of which go through this
+       hook), and its exit keyframe deserves to play rather than snap. Every
+       other time control is handed back, per the note in `settle` above,
+       replays the entrance instead. */
+    const onStateChange = () => {
+      if (element.getAttribute("data-state") === "closed")
+        element.style.animation = "";
+    };
+    const observer = new MutationObserver(onStateChange);
+    observer.observe(element, {
+      attributes: true,
+      attributeFilter: ["data-state"],
+    });
+
     let origin: { x: number; y: number } | null = null;
     let claimed = false;
     let travelled = 0;
@@ -94,9 +109,13 @@ export function useSheetDismiss(onDismiss: () => void) {
         onFrame: draw,
         onRest: () => {
           settling = null;
-          /* Back at rest and closable by a button again, so give the primitive
-             its exit animation back. */
-          element.style.animation = "";
+          /* Left at "none", not reset to "": the sheet is still open, and
+             clearing the override here would restart its own entrance
+             keyframe — measured with the animation replaying start to finish,
+             opacity 0 back up to 1, right after every settle. Every nudge
+             that didn't dismiss looked exactly like a close-then-reopen. The
+             observer below gives the exit animation back at the one moment
+             it's actually needed: closing for real. */
         },
       });
     };
@@ -230,6 +249,7 @@ export function useSheetDismiss(onDismiss: () => void) {
     element.addEventListener("touchend", onEnd);
     element.addEventListener("touchcancel", onCancel);
     return () => {
+      observer.disconnect();
       settling?.stop();
       element.removeEventListener("touchstart", onStart);
       element.removeEventListener("touchmove", onMove);

@@ -73,6 +73,18 @@ function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
       <DialogContent
         ref={sheetRef}
         showCloseButton={false}
+        /* This sheet already has three explicit ways to close: Annuler, the
+           swipe-down gesture, sending. Radix's own default — a pointerdown
+           outside the content also closes it — is one more, undeclared one,
+           and it fires from a raw `pointerdown` before our gesture code ever
+           sees the touch: a drag that starts on the card is judged "inside"
+           at that first pointerdown regardless of where it travels, but the
+           very next tap (the one right after a small drag settles back) can
+           land on the sliver of page around the card's rounded corners and
+           silently dismiss it — no swipe involved, nothing our own code
+           could have caught. */
+        onPointerDownOutside={(e) => e.preventDefault()}
+        onInteractOutside={(e) => e.preventDefault()}
         /* The box itself never moves for the keyboard — see the note on
            `ComposeFields`'s scroll container below. Moving it here as well
            fights iOS's own scroll-into-view and the card ends up mid-screen,

@@ -56,6 +56,13 @@ export function MobileMenu() {
         ref={sheetRef}
         side="bottom"
         showCloseButton={false}
+        /* Same reasoning as the composer's DialogContent: this card already
+           closes via its own X button and the swipe-down gesture, so Radix's
+           default pointerdown-outside dismiss is a fourth, silent way in —
+           and the one most likely to fire right after a small drag, on
+           whatever tap follows it. */
+        onPointerDownOutside={(e) => e.preventDefault()}
+        onInteractOutside={(e) => e.preventDefault()}
         /* A card that floats clear of every edge, not a sheet welded to the
            bottom one — hence rounded all round and inset. Flat 12px undershot
            the home indicator on a Face ID phone: this is a web box, not a

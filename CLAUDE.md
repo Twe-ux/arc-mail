@@ -73,6 +73,18 @@ d'Arc (espaces colorés, sidebar translucide, favoris épinglés, onglets « Auj
   où le doigt s'est levé — sur la page qui apparaît dessous, souvent le bouton qui rouvre la même
   fenêtre. `swallowNextClick()` (`src/lib/gesture.ts`) avale ce clic, appelé uniquement au moment du
   vrai commit (jamais quand le geste ressort), pour ne pas manger un tap légitime après un ressort.
+- **Un ressort qui reste ouvert ne doit jamais rendre la main sur `animation`.** `useSheetDismiss`
+  force `animation: none` pendant le geste ; la remettre à `""` une fois le ressort terminé (au lieu
+  de la laisser à `none`) relance le mot-clé d'entrée de la primitive puisque l'élément est toujours à
+  `data-state="open"` — mesuré : l'opacité retombe à 0 et remonte, ce qui se voit exactement comme une
+  fermeture suivie d'une réouverture, sur un simple petit mouvement qui n'était pourtant pas censé
+  fermer quoi que ce soit. `animation` reste à `none` tant que la feuille est ouverte ; un
+  `MutationObserver` sur `data-state` ne la relâche qu'au moment où l'élément passe réellement à
+  `"closed"`, pour que la sortie garde son animation sans jamais rejouer l'entrée.
+- **Ces deux fenêtres n'ont pas besoin du clic-en-dehors de Radix.** Elles ont déjà trois façons
+  explicites de se fermer (bouton, croix, geste) ; `onPointerDownOutside` / `onInteractOutside` sont
+  neutralisés (`preventDefault`) pour qu'aucune interaction hors de notre propre code ne les ferme
+  en silence.
 - **Le clavier ne déplace jamais la carte.** `bottom` reste fixe (`max(0.75rem, safe-area-inset-bottom)`),
   jamais `+ var(--keyboard-inset)` : Kairos l'a documenté le premier — faire remonter la feuille ET
   laisser iOS faire défiler la page pour révéler le champ, ce sont deux compensations pour un seul

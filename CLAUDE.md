@@ -141,7 +141,14 @@ feuille d'avant la refonte en carte flottante, encore servie par un service work
 rafraîchi. Avant de corriger un défaut visuel signalé sur iPhone, vérifier d'abord que le code sur
 `preview`/`main` produit déjà le bon rendu (capture en émulation) ; si oui, bumper `VERSION` dans
 `public/sw.js` suffit, et demander à l'utilisateur de fermer complètement l'app installée (pas juste
-la mettre en arrière-plan) avant de rouvrir, ou de la réinstaller si le doute persiste.
+la mettre en arrière-plan) avant de rouvrir, ou de la réinstaller si le doute persiste. Revu deux
+fois de suite (composeur/menu à nouveau signalés « collés en bas, coins carrés » alors que le rendu
+mesuré en émulation — coins ronds à 36 px tout autour, marge de 34 px sous le composeur avec de vrais
+insets d'iPhone à encoche — est correct) : le service worker fait pourtant du réseau d'abord pour la
+navigation, donc l'écran figé n'est probablement pas un cache jamais purgé mais une PWA installée
+*reprise* depuis l'arrière-plan (WebView suspendue, jamais rechargée) plutôt que relancée — d'où
+l'importance du « fermer complètement », pas d'un simple bump de `VERSION` qui ne changera rien tant
+que l'app n'a pas fait une vraie navigation réseau.
 
 ## Commandes
 

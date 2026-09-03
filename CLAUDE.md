@@ -113,6 +113,16 @@ d'Arc (espaces colorés, sidebar translucide, favoris épinglés, onglets « Auj
 5. **Autres fournisseurs** : IMAP/SMTP générique, puis Microsoft Graph (Outlook).
 6. Pièces jointes, recherche serveur, notifications push, PWA.
 
+## Note pour la suite
+
+Beaucoup de retours utilisateur sur le mobile se sont révélés être du cache PWA périmé plutôt que
+des bugs de code (`public/sw.js`, `VERSION`) : le composeur collé au bord, coins carrés, c'était la
+feuille d'avant la refonte en carte flottante, encore servie par un service worker pas encore
+rafraîchi. Avant de corriger un défaut visuel signalé sur iPhone, vérifier d'abord que le code sur
+`preview`/`main` produit déjà le bon rendu (capture en émulation) ; si oui, bumper `VERSION` dans
+`public/sw.js` suffit, et demander à l'utilisateur de fermer complètement l'app installée (pas juste
+la mettre en arrière-plan) avant de rouvrir, ou de la réinstaller si le doute persiste.
+
 ## Commandes
 
 ```bash

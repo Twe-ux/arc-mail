@@ -57,7 +57,7 @@ export function InstallHint() {
       <button
         type="button"
         onClick={dismiss}
-        aria-label="Fermer"
+        aria-label="Masquer ce conseil"
         className="absolute top-2 right-2 rounded p-1 text-muted-foreground hover:bg-background hover:text-foreground"
       >
         <X className="size-3.5" />

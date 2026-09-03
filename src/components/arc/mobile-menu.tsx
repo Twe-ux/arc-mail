@@ -41,8 +41,8 @@ const FOLDER_TILES: Record<FolderId, { icon: LucideIcon; tint: string }> = {
 };
 
 /**
- * The phone's menu: a sheet from the bottom, the way iOS presents anything
- * you dip into and leave. Spaces as chips up top, then grouped lists in the
+ * The phone's menu: a card that rises clear of the edges, the way iOS presents
+ * anything you dip into and leave. Spaces as chips up top, then grouped lists in the
  * idiom of Mail and Settings — a tile per mailbox, counts on the right.
  */
 export function MobileMenu() {
@@ -56,25 +56,33 @@ export function MobileMenu() {
         ref={sheetRef}
         side="bottom"
         showCloseButton={false}
-        className="inset-x-0 bottom-0 flex h-[88dvh] flex-col gap-0 rounded-t-[22px] border-0 bg-[#f2f2f7] p-0 text-foreground transition-none md:hidden dark:bg-black"
+        /* A card that floats clear of every edge, not a sheet welded to the
+           bottom one — hence rounded all round and inset. `transition-none`:
+           see `useSheetDismiss`, the primitive's own duration would
+           interpolate the transform the drag writes. */
+        className="inset-x-2.5 top-auto bottom-[max(0.625rem,calc(env(safe-area-inset-bottom)-10px))] flex h-auto max-h-[86dvh] flex-col gap-0 rounded-[26px] border-0 bg-[#f2f2f7] p-0 text-foreground shadow-2xl transition-none md:hidden dark:bg-black"
       >
         <SheetTitle className="sr-only">Menu</SheetTitle>
         <SheetDescription className="sr-only">
           Espaces, boîtes et conversations récentes
         </SheetDescription>
-        <div className="shrink-0 pt-2 pb-1">
-          <div
-            className="mx-auto h-1 w-9 rounded-full bg-foreground/15"
-            aria-hidden
-          />
-        </div>
-        <MenuBody onNavigate={() => setOpen(false)} />
+
+        <MenuBody
+          onNavigate={() => setOpen(false)}
+          onClose={() => setOpen(false)}
+        />
       </SheetContent>
     </Sheet>
   );
 }
 
-function MenuBody({ onNavigate }: { onNavigate: () => void }) {
+function MenuBody({
+  onNavigate,
+  onClose,
+}: {
+  onNavigate: () => void;
+  onClose: () => void;
+}) {
   const space = useSpace();
   const spaces = useSpaces();
   const spaceId = useMail((s) => s.spaceId);
@@ -100,9 +108,9 @@ function MenuBody({ onNavigate }: { onNavigate: () => void }) {
   };
 
   return (
-    <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-[max(1rem,calc(env(safe-area-inset-bottom)-10px))]">
+    <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pt-3 pb-4">
       {/* Account */}
-      <div className="flex items-center gap-3 py-2">
+      <div className="flex items-center gap-3 pb-2">
         <SpaceIcon
           space={space}
           size="lg"
@@ -121,6 +129,14 @@ function MenuBody({ onNavigate }: { onNavigate: () => void }) {
           tone="surface"
           className="size-9 rounded-full bg-white dark:bg-neutral-900"
         />
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Fermer"
+          className="flex size-9 shrink-0 items-center justify-center rounded-full bg-black/[0.06] text-foreground/60 active:bg-black/10 dark:bg-white/10 dark:active:bg-white/20"
+        >
+          <X className="size-5" strokeWidth={2.25} />
+        </button>
       </div>
 
       {/* Spaces as chips */}

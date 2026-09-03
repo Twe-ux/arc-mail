@@ -45,6 +45,9 @@ d'Arc (espaces colorés, sidebar translucide, favoris épinglés, onglets « Auj
   chaque frame, jamais via un état React ni une transition CSS ; le relâchement lit la vitesse, pas la
   distance ; un ressort suit, qu'on peut rattraper. Retour par glissement depuis le bord gauche
   (`BackSwipe` + `useEdgeSwipeBack`), fermeture des feuilles par glissement vers le bas (`useSheetDismiss`).
+- Les fenêtres du téléphone (menu, composeur) sont des **cartes flottantes** : détachées des quatre
+  bords (`inset-x-2.5`, bas à `safe-area − 10px`), arrondies tout autour, pas de poignée. Le clavier
+  remonte la carte (`bottom: … + var(--keyboard-inset)`) au lieu de la rembourrer par le bas.
 - **Une feuille se prend n'importe où**, pas par sa poignée : `useSheetDismiss` s'attache à la feuille
   entière et cède au conteneur défilable sous le doigt tant qu'il lui reste de la course
   (`scrollTopUnder`). Elle doit porter `transition-none` : les primitives de dialogue embarquent une
@@ -60,7 +63,7 @@ d'Arc (espaces colorés, sidebar translucide, favoris épinglés, onglets « Auj
 
 ## Feuille de route
 
-1. **UI Arc avec données mock** — fait, responsive (menu en feuille basse façon iOS `MobileMenu` + barre du bas sous `md`) et installable en PWA
+1. **UI Arc avec données mock** — fait, responsive (menu en carte flottante `MobileMenu` + barre du bas sous `md`) et installable en PWA
    sur iPhone (`src/app/manifest.ts`, `public/sw.js` en production seulement, icônes dans `public/icons`).
 2. **Persistance légère** — fait : `zustand/persist` (clé `arc-mail`, `skipHydration` puis
    `rehydrate()` dans `AppShell`) pour les couleurs d'espace, le thème sombre, la vue partagée et

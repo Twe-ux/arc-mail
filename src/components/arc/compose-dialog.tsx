@@ -39,7 +39,7 @@ import { RecipientField } from "./recipient-field";
 import { SpaceIcon } from "./space-icon";
 
 /**
- * Two chromes around one form. On phones an Apple Mail sheet: grabber, Annuler,
+ * Two chromes around one form. On phones a card that floats clear of the edges: Annuler,
  * a round send button, rows that fold Cc/Cci/De away. On desktop a Gmail-style
  * floating window pinned bottom-right, non-modal so the mailbox stays usable,
  * with minimise and expand. The form state lives in the store so closing by
@@ -73,16 +73,9 @@ function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
       <DialogContent
         ref={sheetRef}
         showCloseButton={false}
-        className="inset-x-0 top-[max(env(safe-area-inset-top),0.75rem)] bottom-0 flex h-auto max-w-none translate-x-0 translate-y-0 flex-col gap-0 rounded-t-[22px] rounded-b-none border-0 p-0 transition-none data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom"
-        style={{ paddingBottom: "var(--keyboard-inset, 0px)" }}
+        className="inset-x-2.5 top-[calc(var(--safe-top)+0.625rem)] bottom-[calc(max(0.625rem,calc(env(safe-area-inset-bottom)-10px))+var(--keyboard-inset,0px))] flex h-auto max-w-none translate-x-0 translate-y-0 flex-col gap-0 rounded-[26px] border-0 p-0 shadow-2xl transition-none data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom"
       >
-        {/* Decorative now: the whole sheet is the grip, and the content's own
-            scroll gets the finger first while it has anywhere to go. */}
-        <div
-          className="mx-auto mt-2 h-1 w-9 shrink-0 rounded-full bg-foreground/15"
-          aria-hidden
-        />
-        <header className="flex h-12 shrink-0 items-center px-2">
+        <header className="flex h-14 shrink-0 items-center px-2">
           <Button
             variant="ghost"
             size="sm"
@@ -112,10 +105,7 @@ function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
         {draft && (
           <ComposeFields key={draft.draftId ?? "new"} draft={draft} compact />
         )}
-        <Toolbar
-          draft={draft}
-          className="border-t border-border/60 pb-[max(0.5rem,calc(env(safe-area-inset-bottom)-10px))]"
-        />
+        <Toolbar draft={draft} className="border-t border-border/60" />
       </DialogContent>
     </Dialog>
   );

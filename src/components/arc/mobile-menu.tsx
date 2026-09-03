@@ -290,7 +290,16 @@ function Section({
 /** The inset grouped card of iOS lists. */
 function Group({ children }: { children: React.ReactNode }) {
   return (
-    <ul className="overflow-hidden rounded-2xl bg-white dark:bg-[#26262a]">
+    <ul
+      /* White on #f2f2f7 is a 13-in-255 difference — in the dark the card's
+         own black against #26262a reads fine (a much bigger relative step),
+         but in the light this edge all but disappears, and the least distinct
+         spot is the top: the first row's own accent tint (a pale mix toward
+         white) lands within a few units of both neighbouring colours. A
+         hairline ring, not a bigger colour gap, gives the group a crisp edge
+         regardless of which folder happens to sit at the top. */
+      className="overflow-hidden rounded-2xl bg-white shadow-[0_0_0_1px_rgba(0,0,0,0.06)] dark:bg-[#26262a] dark:shadow-none"
+    >
       {children}
     </ul>
   );

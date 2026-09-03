@@ -104,6 +104,14 @@ d'Arc (espaces colorés, sidebar translucide, favoris épinglés, onglets « Auj
   manquer. `CommandInput` accepte un `trailing` (même idée que `RecipientField`) : un bouton
   « Annuler » à côté du champ, affiché seulement sur téléphone (`!desktop`), là où le clic en dehors
   et Échap restent fiables sur ordinateur.
+- **Un groupe blanc (`Group`, menu mobile) a besoin d'un vrai bord, pas seulement d'un fond
+  différent.** En clair, blanc sur `#f2f2f7` n'est qu'un écart de 13/255 — en sombre le même
+  composant (noir contre `#26262a`) s'en sort très bien parce que l'écart relatif y est bien plus
+  grand. Pire au sommet du groupe : la ligne active s'y teinte avec `color-mix(...space-accent...)`,
+  qui pousse encore le blanc du premier rang vers une nuance à quelques unités du fond de la carte
+  ET du blanc des rangs suivants. Un `shadow-[0_0_0_1px_rgba(0,0,0,0.06)]` (retiré en sombre) donne
+  un bord net indépendamment de la couleur d'espace active, plutôt que de compter sur l'écart de
+  teinte.
 - Les espaces ont une icône Lucide sur une tuile dégradée (`SpaceIcon`), pas d'emoji. Lire les
   espaces via `useSpace()` / `useSpaces()` (couleur personnalisée résolue), jamais `SPACES` en direct
   dans un composant. **Exception : la barre du bas du téléphone (`MobileNav`).** À côté des glyphes

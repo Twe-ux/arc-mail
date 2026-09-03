@@ -87,7 +87,7 @@ export function RecipientField({
 
   return (
     <div
-      className="relative flex min-h-11 cursor-text flex-wrap items-center gap-1.5 border-b border-border/60 px-4 py-1.5"
+      className="relative flex min-h-11 cursor-text flex-wrap items-center gap-1.5 border-b border-black/[0.07] dark:border-white/[0.12] px-4 py-1.5"
       onClick={() => inputRef.current?.focus()}
     >
       <span className="w-14 shrink-0 text-[15px] text-muted-foreground sm:text-sm">{label}</span>
@@ -151,7 +151,7 @@ export function RecipientField({
         <ul
           id={listId}
           role="listbox"
-          className="absolute top-full right-4 left-16 z-10 mt-1 overflow-hidden rounded-xl border bg-popover py-1 shadow-lg"
+          className="absolute top-full right-4 left-16 z-10 mt-1 overflow-hidden rounded-xl border bg-popover py-1 shadow-lg dark:border-white/12 dark:bg-[#303036]"
         >
           {matches.map((c, i) => (
             <li

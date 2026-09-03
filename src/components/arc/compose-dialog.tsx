@@ -73,7 +73,7 @@ function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
       <DialogContent
         ref={sheetRef}
         showCloseButton={false}
-        className="inset-x-2 top-[calc(var(--safe-top)+0.5rem)] bottom-[calc(max(0.5rem,calc(env(safe-area-inset-bottom)-10px))+var(--keyboard-inset,0px))] flex h-auto w-auto max-w-none translate-x-0 translate-y-0 flex-col gap-0 rounded-[36px] border-0 p-0 shadow-2xl transition-none data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom"
+        className="inset-x-2 top-[calc(var(--safe-top)+0.5rem)] bottom-[calc(0.75rem+var(--keyboard-inset,0px))] flex h-auto w-auto max-w-none translate-x-0 translate-y-0 flex-col gap-0 rounded-[36px] border-0 p-0 shadow-2xl transition-none dark:bg-[#26262a] dark:ring-1 dark:ring-white/12 data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom"
       >
         <header className="flex h-14 shrink-0 items-center px-3">
           <Button
@@ -109,7 +109,7 @@ function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
           draft={draft}
           /* Four buttons that do nothing while a message is being typed, in a
              card the keyboard has already made short. */
-          className="border-t border-border/60 [.keyboard-open_&]:hidden"
+          className="border-t border-black/[0.07] dark:border-white/[0.12] [.keyboard-open_&]:hidden"
         />
       </DialogContent>
     </Dialog>
@@ -185,7 +185,7 @@ function ComposePanel({ draft }: { draft: ComposeDraft }) {
       {mode !== "minimized" && (
         <>
           <ComposeFields draft={draft} />
-          <footer className="flex shrink-0 items-center gap-1 border-t border-border/60 px-3 py-2.5">
+          <footer className="flex shrink-0 items-center gap-1 border-t border-black/[0.07] dark:border-white/[0.12] px-3 py-2.5">
             <button
               type="button"
               onClick={sendMail}
@@ -338,7 +338,7 @@ function ComposeFields({
         <button
           type="button"
           onClick={() => setDetails(true)}
-          className="flex h-11 w-full shrink-0 items-center gap-3 border-b border-border/60 px-4 text-left text-[15px] sm:text-sm"
+          className="flex h-11 w-full shrink-0 items-center gap-3 border-b border-black/[0.07] dark:border-white/[0.12] px-4 text-left text-[15px] sm:text-sm"
         >
           <span className="w-14 shrink-0 whitespace-nowrap text-muted-foreground">
             Cc/Cci
@@ -387,7 +387,7 @@ function Row({
   children: React.ReactNode;
 }) {
   return (
-    <label className="flex h-11 shrink-0 items-center gap-3 border-b border-border/60 px-4 text-[15px] sm:text-sm">
+    <label className="flex h-11 shrink-0 items-center gap-3 border-b border-black/[0.07] dark:border-white/[0.12] px-4 text-[15px] sm:text-sm">
       <span className="w-14 shrink-0 text-muted-foreground">{label}</span>
       {children}
     </label>

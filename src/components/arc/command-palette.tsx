@@ -14,6 +14,7 @@ import {
   CommandShortcut,
 } from "@/components/ui/command";
 import { FOLDERS } from "@/lib/mock-data";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import { sortByDate, useMail, useSpaces } from "@/lib/store";
 import type { FolderId } from "@/lib/types";
 import { ContactAvatar } from "./contact-avatar";
@@ -34,6 +35,7 @@ export function CommandPalette() {
   const open = useMail((s) => s.commandOpen);
   const setCommandOpen = useMail((s) => s.setCommandOpen);
   const spaces = useSpaces();
+  const desktop = useMediaQuery("(min-width: 768px)");
   const threads = useMail((s) => s.threads);
   const spaceId = useMail((s) => s.spaceId);
   const setSpace = useMail((s) => s.setSpace);
@@ -59,7 +61,7 @@ export function CommandPalette() {
       onOpenChange={setCommandOpen}
       title="Barre de commande"
       description="Rechercher une conversation ou lancer une action"
-      className="top-[18%] translate-y-0 sm:max-w-xl"
+      className="top-[18%] translate-y-0 rounded-2xl dark:bg-[#26262a] dark:ring-1 dark:ring-white/12 sm:max-w-xl"
     >
       <CommandInput placeholder="Rechercher ou taper une commande…" />
       <CommandList>
@@ -70,10 +72,14 @@ export function CommandPalette() {
             <PenSquare /> Nouveau message
             <CommandShortcut className="max-sm:hidden">⌘N</CommandShortcut>
           </CommandItem>
-          <CommandItem onSelect={() => run(toggleSplit)} className="max-md:hidden">
-            <Columns2 /> Basculer la vue partagée
-            <CommandShortcut className="max-sm:hidden">⌘⇧D</CommandShortcut>
-          </CommandItem>
+          {/* Not merely hidden on a phone: cmdk still matches a CSS-hidden item,
+              which left an "Actions" heading standing over nothing. */}
+          {desktop && (
+            <CommandItem onSelect={() => run(toggleSplit)}>
+              <Columns2 /> Basculer la vue partagée
+              <CommandShortcut>⌘⇧D</CommandShortcut>
+            </CommandItem>
+          )}
           <CommandItem onSelect={() => run(toggleDark)}>
             <Moon /> Basculer le thème
           </CommandItem>

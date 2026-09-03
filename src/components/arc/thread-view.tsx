@@ -108,7 +108,7 @@ export function ThreadView({ className }: { className?: string }) {
       </header>
 
       {/* Messages: a floating card on mobile, plain column on desktop */}
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-t-[28px] bg-card shadow-[0_-8px_30px_rgb(0_0_0/0.06)] ring-1 ring-black/[0.05] md:rounded-none md:bg-transparent md:shadow-none md:ring-0 dark:ring-white/[0.06]">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-t-[28px] bg-card shadow-[0_-8px_30px_rgb(0_0_0/0.06)] ring-1 ring-black/[0.05] md:rounded-none md:bg-transparent md:shadow-none md:ring-0 dark:ring-white/12">
         <ScrollArea className="min-h-0 flex-1">
           <div className="mx-auto flex w-full max-w-3xl flex-col gap-3 p-4 md:gap-4 md:p-6">
             <div className="hidden flex-wrap items-center gap-2 md:flex">
@@ -154,7 +154,7 @@ function Action({
 
 function MessageCard({ message }: { message: Message }) {
   return (
-    <div className="rounded-2xl bg-muted/50 p-4 dark:bg-white/[0.04]">
+    <div className="rounded-2xl bg-muted/50 p-4 dark:bg-white/[0.07]">
       <div className="flex items-start gap-3">
         <ContactAvatar contact={message.from} />
         <div className="min-w-0 flex-1">
@@ -223,8 +223,8 @@ function MobileReply({ thread }: { thread: Thread }) {
   };
 
   return (
-    <div className="shrink-0 border-t border-border/50 bg-card px-3 pt-2 pb-[max(0.75rem,calc(env(safe-area-inset-bottom)-10px))] md:hidden">
-      <div className="flex items-end gap-2 rounded-[22px] bg-muted/60 py-1.5 pr-1.5 pl-4">
+    <div className="shrink-0 border-t border-black/[0.06] bg-card px-3 pt-2 pb-[max(0.75rem,calc(env(safe-area-inset-bottom)-10px))] md:hidden dark:border-white/[0.10]">
+      <div className="flex items-end gap-2 rounded-[22px] bg-muted/60 py-1.5 pr-1.5 pl-4 dark:bg-white/[0.07]">
         <textarea
           rows={1}
           value={body}

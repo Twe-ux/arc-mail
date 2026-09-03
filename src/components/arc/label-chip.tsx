@@ -20,7 +20,7 @@ export function LabelChip({
       className={cn(
         "inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-[11px] font-medium whitespace-nowrap",
         tone === "tint"
-          ? "bg-[oklch(0.72_0.12_var(--h)/0.16)] text-[oklch(0.42_0.13_var(--h))] dark:text-[oklch(0.84_0.1_var(--h))]"
+          ? "bg-[oklch(0.72_0.12_var(--h)/0.16)] text-[oklch(0.42_0.13_var(--h))] dark:bg-[oklch(0.72_0.14_var(--h)/0.24)] dark:text-[oklch(0.88_0.11_var(--h))]"
           : "bg-white/20 text-white",
         className,
       )}

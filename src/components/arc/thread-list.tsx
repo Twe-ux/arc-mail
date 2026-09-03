@@ -63,7 +63,7 @@ export function ThreadList({ className }: { className?: string }) {
       </header>
 
       {/* The list: a floating card on mobile, plain column on desktop */}
-      <div className="min-h-0 flex-1 overflow-hidden rounded-t-[28px] bg-card shadow-[0_-8px_30px_rgb(0_0_0/0.06)] ring-1 ring-black/[0.05] md:rounded-none md:bg-transparent md:shadow-none md:ring-0 dark:ring-white/[0.06]">
+      <div className="min-h-0 flex-1 overflow-hidden rounded-t-[28px] bg-card shadow-[0_-8px_30px_rgb(0_0_0/0.06)] ring-1 ring-black/[0.05] md:rounded-none md:bg-transparent md:shadow-none md:ring-0 dark:ring-white/12">
         <ScrollArea className="h-full">
           {threads.length === 0 ? (
             <div className="flex flex-col items-center gap-2 px-6 py-16 text-center text-muted-foreground">
@@ -183,7 +183,7 @@ function ThreadRow({
         )}
       >
         <ContactAvatar contact={last.from} className="mt-0.5 size-10 md:size-9" />
-        <div className="min-w-0 flex-1 border-b border-border/50 pb-3 md:border-0 md:pb-0">
+        <div className="min-w-0 flex-1 border-b border-black/[0.06] pb-3 md:border-0 md:pb-0 dark:border-white/[0.10]">
           <div className="flex items-center gap-2">
             {thread.unread && (
               <span className="size-2 shrink-0 rounded-full" style={{ backgroundColor: accent }} aria-label="Non lu" />

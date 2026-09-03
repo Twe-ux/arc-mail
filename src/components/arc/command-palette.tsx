@@ -61,10 +61,17 @@ export function CommandPalette() {
       onOpenChange={setCommandOpen}
       title="Barre de commande"
       description="Rechercher une conversation ou lancer une action"
-      className="top-[18%] translate-y-0 rounded-2xl dark:bg-[#26262a] dark:ring-1 dark:ring-white/12 sm:max-w-xl"
+      /* Opening this always means typing next, so the keyboard is seconds
+           away — at a fixed 18% from the top the list ran into it, its last
+           row half under the accessory bar (see screenshot). On phones this
+           now clamps its own height to whatever the keyboard actually
+           leaves, rather than only starting higher: a tall "Conversations"
+           match list could still reach the keys otherwise. Both var()s default
+           to 0 before `KeyboardInset`/`--safe-top` are in play, at first paint. */
+        className="top-[7dvh] max-h-[calc(100dvh-7dvh-var(--keyboard-inset,0px)-1.5rem)] flex translate-y-0 flex-col overflow-hidden rounded-2xl dark:bg-[#26262a] dark:ring-1 dark:ring-white/12 sm:top-[18%] sm:max-h-none sm:max-w-xl"
     >
       <CommandInput placeholder="Rechercher ou taper une commande…" />
-      <CommandList>
+      <CommandList className="max-h-none min-h-0 flex-1 sm:max-h-[300px] sm:flex-none">
         <CommandEmpty>Aucun résultat.</CommandEmpty>
 
         <CommandGroup heading="Actions">

@@ -91,6 +91,13 @@ d'Arc (espaces colorés, sidebar translucide, favoris épinglés, onglets « Auj
   problème, et la feuille finit au milieu de l'écran. Seul le conteneur défilant à l'intérieur
   (`ComposeFields`) reçoit `padding-bottom: var(--keyboard-inset)`, ce qui donne à iOS de quoi
   défiler *dedans* plutôt que de bouger la page entière.
+- **La barre de commande se cale sur le clavier, pas seulement sur une position fixe.** Elle s'ouvre
+  pour qu'on tape aussitôt : sur téléphone, `top-[7dvh]` (au lieu de 18 %) et une hauteur plafonnée à
+  `calc(100dvh - 7dvh - var(--keyboard-inset) - 1.5rem)` empêchent la liste de résultats de s'étendre
+  sous le clavier même avec beaucoup de correspondances. `CommandList` y devient `flex-1 min-h-0` au
+  lieu de son plafond fixe de 300 px, pour se caler sur ce qui reste. Le focus arrivant toujours sur le
+  champ de recherche, tout en haut, il n'y a pas de conflit avec le défilement natif d'iOS comme pour
+  le composeur — la position peut bouger avec le clavier ici sans risque.
 - Les espaces ont une icône Lucide sur une tuile dégradée (`SpaceIcon`), pas d'emoji. Lire les
   espaces via `useSpace()` / `useSpaces()` (couleur personnalisée résolue), jamais `SPACES` en direct
   dans un composant.

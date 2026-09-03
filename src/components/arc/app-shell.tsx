@@ -34,7 +34,8 @@ export function AppShell() {
   // Dialogs portal to <body>, outside the shell: give them the space colour too.
   useEffect(() => {
     document.documentElement.style.setProperty("--space-accent", space.theme.accent);
-  }, [space.theme.accent]);
+    document.documentElement.style.setProperty("--space-gradient", space.theme.gradient);
+  }, [space.theme.accent, space.theme.gradient]);
 
   const hasSelection = selectedThreadId !== null;
   // Desktop: split view shows both; full view shows one or the other.

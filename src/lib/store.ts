@@ -53,8 +53,11 @@ const NO_SUBJECT = "(sans objet)";
 const patchThread = (threads: Thread[], id: string, patch: (t: Thread) => Thread) =>
   threads.map((t) => (t.id === id ? patch(t) : t));
 
-const isBlank = (d: ComposeDraft) =>
-  d.to.length === 0 && d.cc.length === 0 && d.bcc.length === 0 && !d.subject.trim() && !d.body.trim();
+const isBlank = (d: ComposeDraft) => {
+  const signature = SPACES.find((sp) => sp.id === d.spaceId)?.signature ?? "";
+  const body = d.body.replace(`— ${signature}`, "").trim();
+  return d.to.length === 0 && d.cc.length === 0 && d.bcc.length === 0 && !d.subject.trim() && !body;
+};
 
 /** Known contacts across every thread, so a typed address gets its display name back. */
 function contactBook(threads: Thread[]): Map<string, Contact> {
@@ -169,11 +172,16 @@ export const useMail = create<MailState>((set, get) => ({
   // ───────────── Composer ─────────────
 
   openCompose: (initial) =>
-    set((s) => ({
-      compose: { spaceId: s.spaceId, to: [], cc: [], bcc: [], subject: "", body: "", ...initial },
-      sidebarOpen: false,
-      commandOpen: false,
-    })),
+    set((s) => {
+      const spaceId = initial?.spaceId ?? s.spaceId;
+      const signature = SPACES.find((sp) => sp.id === spaceId)?.signature ?? "";
+      const body = `\n\n— ${signature}${initial?.body ?? ""}`;
+      return {
+        compose: { spaceId, to: [], cc: [], bcc: [], subject: "", ...initial, body },
+        sidebarOpen: false,
+        commandOpen: false,
+      };
+    }),
 
   openDraft: (threadId) => {
     const t = get().threads.find((x) => x.id === threadId);

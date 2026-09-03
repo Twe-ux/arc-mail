@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { PwaRegister } from "@/components/pwa/pwa-register";
+import { KeyboardInset } from "@/components/pwa/keyboard-inset";
 import { ViewportSlack } from "@/components/pwa/viewport-slack";
 import "./globals.css";
 
@@ -35,6 +36,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body>
         {children}
         <ViewportSlack />
+        <KeyboardInset />
         <PwaRegister />
       </body>
     </html>

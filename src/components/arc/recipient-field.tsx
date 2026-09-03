@@ -87,16 +87,16 @@ export function RecipientField({
 
   return (
     <div
-      className="relative flex min-h-11 cursor-text flex-wrap items-center gap-1.5 border-b border-border/60 px-4 py-1.5 sm:px-5"
+      className="relative flex min-h-11 cursor-text flex-wrap items-center gap-1.5 border-b border-border/60 px-4 py-1.5"
       onClick={() => inputRef.current?.focus()}
     >
-      <span className="w-10 shrink-0 text-sm text-muted-foreground">{label}</span>
+      <span className="w-14 shrink-0 text-[15px] text-muted-foreground sm:text-sm">{label}</span>
       {value.map((email) => {
         const contact = byEmail.get(email);
         return (
           <span
             key={email}
-            className="inline-flex h-7 max-w-full items-center gap-1 rounded-full bg-muted py-0.5 pr-1 pl-1 text-sm"
+            className="inline-flex h-7 max-w-full items-center gap-1 rounded-full bg-[color-mix(in_oklch,var(--space-accent)_14%,transparent)] py-0.5 pr-1 pl-1 text-sm"
           >
             <ContactAvatar contact={contact ?? { name: email, email }} className="size-5 [&_[data-slot=avatar-fallback]]:text-[9px]" />
             <span className="truncate">{contact?.name ?? email}</span>
@@ -107,7 +107,7 @@ export function RecipientField({
                 onChange(value.filter((v) => v !== email));
               }}
               aria-label={`Retirer ${contact?.name ?? email}`}
-              className="rounded-full p-0.5 text-muted-foreground hover:bg-background hover:text-foreground"
+              className="rounded-full p-0.5 text-muted-foreground hover:bg-black/10 hover:text-foreground dark:hover:bg-white/10"
             >
               <X className="size-3.5" />
             </button>
@@ -151,7 +151,7 @@ export function RecipientField({
         <ul
           id={listId}
           role="listbox"
-          className="absolute top-full right-4 left-14 z-10 mt-1 overflow-hidden rounded-xl border bg-popover py-1 shadow-lg sm:left-16"
+          className="absolute top-full right-4 left-16 z-10 mt-1 overflow-hidden rounded-xl border bg-popover py-1 shadow-lg"
         >
           {matches.map((c, i) => (
             <li

@@ -21,6 +21,8 @@ export type Space = {
   name: string;
   email: string;
   emoji: string;
+  /** Appended to new messages, Apple Mail style. */
+  signature: string;
   theme: SpaceTheme;
 };
 

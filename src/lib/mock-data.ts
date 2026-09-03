@@ -6,6 +6,7 @@ export const SPACES: Space[] = [
     name: "Perso",
     email: "thierry@icloud.com",
     emoji: "🏠",
+    signature: "Thierry",
     theme: {
       gradient:
         "linear-gradient(135deg, #7c3aed 0%, #db2777 55%, #f97316 100%)",
@@ -17,6 +18,7 @@ export const SPACES: Space[] = [
     name: "Pro",
     email: "thierry@coworkingcafe.fr",
     emoji: "💼",
+    signature: "Thierry Milone\nCoworking Café · coworkingcafe.fr",
     theme: {
       gradient:
         "linear-gradient(135deg, #0ea5e9 0%, #2563eb 55%, #0f766e 100%)",
@@ -28,6 +30,7 @@ export const SPACES: Space[] = [
     name: "Side projects",
     email: "hello@twe-ux.dev",
     emoji: "🧪",
+    signature: "twe-ux · twe-ux.dev",
     theme: {
       gradient:
         "linear-gradient(135deg, #f59e0b 0%, #ea580c 55%, #b91c1c 100%)",

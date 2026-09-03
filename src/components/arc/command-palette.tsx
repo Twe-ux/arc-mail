@@ -37,7 +37,7 @@ export function CommandPalette() {
   const setSpace = useMail((s) => s.setSpace);
   const setFolder = useMail((s) => s.setFolder);
   const selectThread = useMail((s) => s.selectThread);
-  const setComposeOpen = useMail((s) => s.setComposeOpen);
+  const openCompose = useMail((s) => s.openCompose);
   const toggleSplit = useMail((s) => s.toggleSplit);
   const toggleDark = useMail((s) => s.toggleDark);
 
@@ -64,7 +64,7 @@ export function CommandPalette() {
         <CommandEmpty>Aucun résultat.</CommandEmpty>
 
         <CommandGroup heading="Actions">
-          <CommandItem onSelect={() => run(() => setComposeOpen(true))}>
+          <CommandItem onSelect={() => run(() => openCompose())}>
             <PenSquare /> Nouveau message
             <CommandShortcut className="max-sm:hidden">⌘N</CommandShortcut>
           </CommandItem>

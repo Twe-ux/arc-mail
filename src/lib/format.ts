@@ -46,3 +46,13 @@ export function hueFor(seed: string): number {
   for (const ch of seed) hash = (hash * 31 + ch.charCodeAt(0)) | 0;
   return Math.abs(hash) % 360;
 }
+
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+export function isEmail(value: string): boolean {
+  return EMAIL.test(value.trim());
+}
+
+export function firstLine(text: string, max = 140): string {
+  return text.trim().split("\n")[0].slice(0, max);
+}

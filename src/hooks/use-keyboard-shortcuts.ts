@@ -28,7 +28,7 @@ export function useKeyboardShortcuts() {
       }
       if (mod && e.key.toLowerCase() === "n") {
         e.preventDefault();
-        s.setComposeOpen(true);
+        s.openCompose();
         return;
       }
       if (mod && e.shiftKey && e.key.toLowerCase() === "d") {
@@ -45,7 +45,7 @@ export function useKeyboardShortcuts() {
         return;
       }
 
-      if (isTyping(e.target) || s.commandOpen || s.composeOpen || mod) return;
+      if (isTyping(e.target) || s.commandOpen || s.compose !== null || mod) return;
 
       const visible = selectVisibleThreads(s);
       const index = visible.findIndex((t) => t.id === s.selectedThreadId);
@@ -53,7 +53,7 @@ export function useKeyboardShortcuts() {
       switch (e.key) {
         case "c":
           e.preventDefault();
-          s.setComposeOpen(true);
+          s.openCompose();
           break;
         case "j": {
           const next = visible[Math.min(index + 1, visible.length - 1)];

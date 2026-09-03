@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import { Share, X } from "lucide-react";
 
 const DISMISS_KEY = "arc-mail.install-hint.dismissed";
+const CHANGE_EVENT = "arc-mail:install-hint";
 
 function isIosSafariBrowser(): boolean {
   const ua = navigator.userAgent;
@@ -14,31 +15,36 @@ function isIosSafariBrowser(): boolean {
   return ios && !standalone;
 }
 
+function isDismissed(): boolean {
+  try {
+    return Boolean(localStorage.getItem(DISMISS_KEY));
+  } catch {
+    return false;
+  }
+}
+
+const subscribe = (onChange: () => void) => {
+  window.addEventListener(CHANGE_EVENT, onChange);
+  return () => window.removeEventListener(CHANGE_EVENT, onChange);
+};
+const getSnapshot = () => isIosSafariBrowser() && !isDismissed();
+const getServerSnapshot = () => false;
+
 /**
  * iOS has no install prompt: the only way onto the home screen is Safari's share sheet.
- * Shown once, in the mobile drawer, until dismissed.
+ * Shown in the mobile drawer until dismissed; the server renders nothing so hydration matches.
  */
 export function InstallHint() {
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    try {
-      if (localStorage.getItem(DISMISS_KEY)) return;
-    } catch {
-      /* private mode */
-    }
-    setVisible(isIosSafariBrowser());
-  }, []);
-
+  const visible = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
   if (!visible) return null;
 
   const dismiss = () => {
-    setVisible(false);
     try {
       localStorage.setItem(DISMISS_KEY, "1");
     } catch {
-      /* ignore */
+      /* private mode: the hint simply comes back next time */
     }
+    window.dispatchEvent(new Event(CHANGE_EVENT));
   };
 
   return (

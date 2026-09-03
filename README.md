@@ -35,7 +35,9 @@ npm run lint
 - **Vue partagée** liste + lecture, ou lecture plein écran (`⌘⇧D`).
 - **Barre de commande** `⌘K` : recherche dans les conversations, saut vers un dossier ou un
   espace, actions.
-- **Composer** (`⌘N` ou `c`) et **répondre** (`⌘⏎`), en mémoire.
+- **Composer** (`⌘N` ou `c`) : destinataires en puces avec suggestions, Cc / Cci, choix de l'espace
+  expéditeur, `⌘⏎` pour envoyer. Fermer conserve un **brouillon** ; le dossier Brouillons rouvre le
+  composeur. **Répondre** en ligne dans la conversation, **transférer** vers le composeur. En mémoire.
 - Raccourcis Gmail-like : `j`/`k` naviguer, `e` archiver, `s` favori, `u` non-lu, `#` corbeille.
 - Thème clair / sombre.
 - **Responsive** : au-dessus de 768 px, la fenêtre Arc (sidebar + carte). En dessous, une colonne à la

@@ -136,7 +136,7 @@ function SidebarContent({ onNavigate, tone = "gradient" }: { onNavigate?: () => 
   const removeRecent = useMail((s) => s.removeRecent);
   const clearRecent = useMail((s) => s.clearRecent);
   const setCommandOpen = useMail((s) => s.setCommandOpen);
-  const setComposeOpen = useMail((s) => s.setComposeOpen);
+  const openCompose = useMail((s) => s.openCompose);
   const dark = useMail((s) => s.dark);
   const toggleDark = useMail((s) => s.toggleDark);
   const inboxUnread = useMail((s) => selectUnreadCount(s, s.spaceId, "inbox"));
@@ -292,7 +292,7 @@ function SidebarContent({ onNavigate, tone = "gradient" }: { onNavigate?: () => 
             <TooltipTrigger asChild>
               <button
                 type="button"
-                onClick={go(() => setComposeOpen(true))}
+                onClick={go(() => openCompose())}
                 aria-label="Nouveau message"
                 className={cn("flex size-8 items-center justify-center rounded-lg transition-colors", tn.icon)}
               >

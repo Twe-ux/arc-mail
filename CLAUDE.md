@@ -23,7 +23,8 @@ d'Arc (espaces colorés, sidebar translucide, favoris épinglés, onglets « Auj
 - Tailwind v4 : tokens dans `src/app/globals.css` (`@theme inline`), dark mode par classe `.dark`.
 - shadcn/ui style new-york, primitives via le paquet unifié `radix-ui`, icônes `lucide-react`.
   `npx shadcn@latest add <x>` pour en ajouter ; ne pas réécrire ceux qui existent.
-- État UI dans `src/lib/store.ts` (zustand). Les sélecteurs qui renvoient des tableaux passent par
+- État UI dans `src/lib/store.ts` (zustand). Le composeur (`compose`) y vit aussi : ses champs sont l'état
+  du formulaire, `closeCompose` garde un brouillon, `sendMail` lit le store. Ne pas dupliquer cet état en local. Les sélecteurs qui renvoient des tableaux passent par
   `useVisibleThreads()` (memo) pour éviter les re-rendus infinis.
 - Données mock dans `src/lib/mock-data.ts`. Les dates sont relatives au chargement du module ;
   les `<time>` ont `suppressHydrationWarning`.

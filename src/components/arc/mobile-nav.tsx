@@ -13,7 +13,7 @@ export function MobileNav({ className }: { className?: string }) {
   const selectThread = useMail((s) => s.selectThread);
   const setSidebarOpen = useMail((s) => s.setSidebarOpen);
   const setCommandOpen = useMail((s) => s.setCommandOpen);
-  const setComposeOpen = useMail((s) => s.setComposeOpen);
+  const openCompose = useMail((s) => s.openCompose);
   const inboxUnread = useMail((s) => selectUnreadCount(s, s.spaceId, "inbox"));
 
   const goInbox = () => {
@@ -46,7 +46,7 @@ export function MobileNav({ className }: { className?: string }) {
         <NavButton label="Rechercher" onClick={() => setCommandOpen(true)}>
           <Search className="size-[22px]" strokeWidth={1.75} />
         </NavButton>
-        <NavButton label="Écrire" onClick={() => setComposeOpen(true)}>
+        <NavButton label="Écrire" onClick={() => openCompose()}>
           <PenSquare className="size-[22px]" strokeWidth={1.75} />
         </NavButton>
       </div>

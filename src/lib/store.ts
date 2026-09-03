@@ -1,7 +1,8 @@
 import { useMemo } from "react";
 import { create } from "zustand";
+import { firstLine } from "./format";
 import { FOLDERS, ME, SPACES, THREADS } from "./mock-data";
-import type { FolderId, SpaceId, Thread } from "./types";
+import type { ComposeDraft, Contact, FolderId, Message, SpaceId, Thread } from "./types";
 
 type RecentMap = Record<SpaceId, string[]>;
 
@@ -13,13 +14,14 @@ export type MailState = {
   splitView: boolean;
   unreadOnly: boolean;
   commandOpen: boolean;
-  composeOpen: boolean;
   /** Mobile only: the sidebar drawer. */
   sidebarOpen: boolean;
   dark: boolean;
   threads: Thread[];
   /** Threads opened recently, per space — the "Today" tabs of Arc. */
   recent: RecentMap;
+  /** The composer, `null` when closed. Its fields are the live form state. */
+  compose: ComposeDraft | null;
 
   setSpace: (id: SpaceId) => void;
   setFolder: (id: FolderId) => void;
@@ -32,17 +34,56 @@ export type MailState = {
   toggleSplit: () => void;
   setUnreadOnly: (value: boolean) => void;
   setCommandOpen: (open: boolean) => void;
-  setComposeOpen: (open: boolean) => void;
   setSidebarOpen: (open: boolean) => void;
   toggleDark: () => void;
-  sendMail: (input: { to: string; subject: string; body: string }) => void;
   reply: (threadId: string, body: string) => void;
+
+  openCompose: (initial?: Partial<ComposeDraft>) => void;
+  openDraft: (threadId: string) => void;
+  updateCompose: (patch: Partial<ComposeDraft>) => void;
+  /** Closes the composer, keeping the text as a draft unless it is blank. */
+  closeCompose: () => void;
+  sendMail: () => void;
+  deleteDraft: (threadId: string) => void;
 };
 
 const MAX_RECENT = 8;
+const NO_SUBJECT = "(sans objet)";
 
 const patchThread = (threads: Thread[], id: string, patch: (t: Thread) => Thread) =>
   threads.map((t) => (t.id === id ? patch(t) : t));
+
+const isBlank = (d: ComposeDraft) =>
+  d.to.length === 0 && d.cc.length === 0 && d.bcc.length === 0 && !d.subject.trim() && !d.body.trim();
+
+/** Known contacts across every thread, so a typed address gets its display name back. */
+function contactBook(threads: Thread[]): Map<string, Contact> {
+  const book = new Map<string, Contact>();
+  for (const t of threads) {
+    for (const m of t.messages) {
+      for (const c of [m.from, ...m.to, ...(m.cc ?? []), ...(m.bcc ?? [])]) {
+        if (!book.has(c.email)) book.set(c.email, c);
+      }
+    }
+  }
+  return book;
+}
+
+function toContacts(emails: string[], book: Map<string, Contact>): Contact[] {
+  return emails.map((email) => book.get(email) ?? { name: email, email });
+}
+
+function draftMessage(d: ComposeDraft, book: Map<string, Contact>, id: string): Message {
+  return {
+    id,
+    from: ME[d.spaceId],
+    to: toContacts(d.to, book),
+    cc: d.cc.length ? toContacts(d.cc, book) : undefined,
+    bcc: d.bcc.length ? toContacts(d.bcc, book) : undefined,
+    date: new Date().toISOString(),
+    body: d.body,
+  };
+}
 
 export const useMail = create<MailState>((set, get) => ({
   spaceId: SPACES[0].id,
@@ -51,11 +92,11 @@ export const useMail = create<MailState>((set, get) => ({
   splitView: true,
   unreadOnly: false,
   commandOpen: false,
-  composeOpen: false,
   sidebarOpen: false,
   dark: false,
   threads: THREADS,
   recent: { perso: [], pro: [], side: [] },
+  compose: null,
 
   setSpace: (spaceId) => set({ spaceId, folderId: "inbox", selectedThreadId: null, unreadOnly: false }),
 
@@ -97,34 +138,8 @@ export const useMail = create<MailState>((set, get) => ({
   toggleSplit: () => set((s) => ({ splitView: !s.splitView })),
   setUnreadOnly: (unreadOnly) => set({ unreadOnly }),
   setCommandOpen: (commandOpen) => set({ commandOpen }),
-  setComposeOpen: (composeOpen) => set({ composeOpen }),
   setSidebarOpen: (sidebarOpen) => set({ sidebarOpen }),
   toggleDark: () => set((s) => ({ dark: !s.dark })),
-
-  sendMail: ({ to, subject, body }) => {
-    const { spaceId } = get();
-    const stamp = Date.now();
-    const thread: Thread = {
-      id: `thr-local-${stamp}`,
-      spaceId,
-      folder: "sent",
-      subject: subject.trim() || "(sans objet)",
-      snippet: body.split("\n")[0].slice(0, 140),
-      labels: [],
-      unread: false,
-      starred: false,
-      messages: [
-        {
-          id: `msg-local-${stamp}`,
-          from: ME[spaceId],
-          to: [{ name: to, email: to }],
-          date: new Date(stamp).toISOString(),
-          body,
-        },
-      ],
-    };
-    set((s) => ({ threads: [thread, ...s.threads], composeOpen: false }));
-  },
 
   reply: (threadId, body) => {
     const { spaceId } = get();
@@ -135,7 +150,7 @@ export const useMail = create<MailState>((set, get) => ({
         const recipients = [last.from, ...last.to].filter((c) => c.email !== me.email);
         return {
           ...t,
-          snippet: body.split("\n")[0].slice(0, 140),
+          snippet: firstLine(body),
           messages: [
             ...t.messages,
             {
@@ -150,6 +165,101 @@ export const useMail = create<MailState>((set, get) => ({
       }),
     }));
   },
+
+  // ───────────── Composer ─────────────
+
+  openCompose: (initial) =>
+    set((s) => ({
+      compose: { spaceId: s.spaceId, to: [], cc: [], bcc: [], subject: "", body: "", ...initial },
+      sidebarOpen: false,
+      commandOpen: false,
+    })),
+
+  openDraft: (threadId) => {
+    const t = get().threads.find((x) => x.id === threadId);
+    if (!t) return;
+    const m = t.messages[0];
+    set({
+      compose: {
+        draftId: t.id,
+        spaceId: t.spaceId,
+        to: m.to.map((c) => c.email),
+        cc: (m.cc ?? []).map((c) => c.email),
+        bcc: (m.bcc ?? []).map((c) => c.email),
+        subject: t.subject === NO_SUBJECT ? "" : t.subject,
+        body: m.body,
+      },
+      sidebarOpen: false,
+    });
+  },
+
+  updateCompose: (patch) => set((s) => (s.compose ? { compose: { ...s.compose, ...patch } } : {})),
+
+  closeCompose: () => {
+    const d = get().compose;
+    if (!d) return;
+    if (isBlank(d)) {
+      set((s) => ({ compose: null, threads: d.draftId ? s.threads.filter((t) => t.id !== d.draftId) : s.threads }));
+      return;
+    }
+    const book = contactBook(get().threads);
+    const subject = d.subject.trim() || NO_SUBJECT;
+    if (d.draftId) {
+      set((s) => ({
+        compose: null,
+        threads: patchThread(s.threads, d.draftId!, (t) => ({
+          ...t,
+          spaceId: d.spaceId,
+          subject,
+          snippet: firstLine(d.body),
+          messages: [draftMessage(d, book, t.messages[0].id)],
+        })),
+      }));
+      return;
+    }
+    const stamp = Date.now();
+    const thread: Thread = {
+      id: `thr-draft-${stamp}`,
+      spaceId: d.spaceId,
+      folder: "drafts",
+      subject,
+      snippet: firstLine(d.body),
+      labels: [],
+      unread: false,
+      starred: false,
+      messages: [draftMessage(d, book, `msg-draft-${stamp}`)],
+    };
+    set((s) => ({ compose: null, threads: [thread, ...s.threads] }));
+  },
+
+  sendMail: () => {
+    const d = get().compose;
+    if (!d || d.to.length === 0) return;
+    const book = contactBook(get().threads);
+    const stamp = Date.now();
+    const thread: Thread = {
+      id: `thr-sent-${stamp}`,
+      spaceId: d.spaceId,
+      folder: "sent",
+      subject: d.subject.trim() || NO_SUBJECT,
+      snippet: firstLine(d.body),
+      labels: [],
+      unread: false,
+      starred: false,
+      messages: [draftMessage(d, book, `msg-sent-${stamp}`)],
+    };
+    set((s) => ({
+      compose: null,
+      threads: [thread, ...s.threads.filter((t) => t.id !== d.draftId)],
+    }));
+  },
+
+  deleteDraft: (threadId) =>
+    set((s) => ({
+      threads: s.threads.filter((t) => t.id !== threadId),
+      compose: s.compose?.draftId === threadId ? null : s.compose,
+      selectedThreadId: s.selectedThreadId === threadId ? null : s.selectedThreadId,
+    })),
 }));
 
 // ───────────── Selectors ─────────────
@@ -182,6 +292,14 @@ export function selectVisibleThreads(s: MailState): Thread[] {
 
 export function selectUnreadCount(s: MailState, spaceId: SpaceId, folderId: FolderId): number {
   return s.threads.filter((t) => t.spaceId === spaceId && t.unread && threadMatchesFolder(t, folderId)).length;
+}
+
+/** Everyone we have exchanged with, for recipient suggestions. */
+export function selectContacts(threads: Thread[]): Contact[] {
+  const mine = new Set(Object.values(ME).map((c) => c.email));
+  return [...contactBook(threads).values()]
+    .filter((c) => !mine.has(c.email))
+    .sort((a, b) => a.name.localeCompare(b.name, "fr"));
 }
 
 /** Memoised list for components — a fresh array from the selector would re-render forever. */

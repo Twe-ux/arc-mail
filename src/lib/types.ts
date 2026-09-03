@@ -33,6 +33,8 @@ export type Message = {
   id: string;
   from: Contact;
   to: Contact[];
+  cc?: Contact[];
+  bcc?: Contact[];
   /** ISO date string. */
   date: string;
   body: string;
@@ -53,4 +55,16 @@ export type Thread = {
 export type Folder = {
   id: FolderId;
   name: string;
+};
+
+/** The live state of the composer; also what a draft thread is built from. */
+export type ComposeDraft = {
+  /** Set when editing an existing thread from the Drafts folder. */
+  draftId?: string;
+  spaceId: SpaceId;
+  to: string[];
+  cc: string[];
+  bcc: string[];
+  subject: string;
+  body: string;
 };

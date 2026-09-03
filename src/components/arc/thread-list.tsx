@@ -18,6 +18,7 @@ export function ThreadList({ className }: { className?: string }) {
   const threads = useVisibleThreads();
   const selectedThreadId = useMail((s) => s.selectedThreadId);
   const selectThread = useMail((s) => s.selectThread);
+  const openDraft = useMail((s) => s.openDraft);
   const toggleStar = useMail((s) => s.toggleStar);
   const unreadOnly = useMail((s) => s.unreadOnly);
   const splitView = useMail((s) => s.splitView);
@@ -73,7 +74,7 @@ export function ThreadList({ className }: { className?: string }) {
                   thread={t}
                   accent={space.theme.accent}
                   active={t.id === selectedThreadId}
-                  onSelect={() => selectThread(t.id)}
+                  onSelect={() => (t.folder === "drafts" ? openDraft(t.id) : selectThread(t.id))}
                   onStar={() => toggleStar(t.id)}
                 />
               ))}
@@ -151,6 +152,13 @@ function ThreadRow({
   onStar: () => void;
 }) {
   const last = thread.messages[thread.messages.length - 1];
+  const isDraft = thread.folder === "drafts";
+  const outgoing = isDraft || thread.folder === "sent";
+  const who = outgoing
+    ? last.to.length
+      ? `À : ${last.to.map((c) => c.name).join(", ")}`
+      : "Aucun destinataire"
+    : last.from.name;
 
   return (
     <li className="md:border-0">
@@ -177,8 +185,9 @@ function ThreadRow({
               <span className="size-2 shrink-0 rounded-full" style={{ backgroundColor: accent }} aria-label="Non lu" />
             )}
             <span className={cn("truncate text-[15px] md:text-sm", thread.unread ? "font-semibold" : "font-medium")}>
-              {last.from.name}
+              {who}
             </span>
+            {isDraft && <span className="shrink-0 text-xs font-medium text-destructive">Brouillon</span>}
             {thread.messages.length > 1 && (
               <span className="shrink-0 text-xs text-muted-foreground tabular-nums">{thread.messages.length}</span>
             )}

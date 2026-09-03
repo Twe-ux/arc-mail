@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Archive, ArrowLeft, ArrowUp, Mail, MailOpen, Reply, Star, Trash2 } from "lucide-react";
+import { Archive, ArrowLeft, ArrowUp, Forward, Mail, MailOpen, Reply, Star, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -21,6 +21,7 @@ export function ThreadView({ className }: { className?: string }) {
   const toggleStar = useMail((s) => s.toggleStar);
   const toggleUnread = useMail((s) => s.toggleUnread);
   const moveThread = useMail((s) => s.moveThread);
+  const openCompose = useMail((s) => s.openCompose);
 
   if (!thread) {
     return (
@@ -36,8 +37,20 @@ export function ThreadView({ className }: { className?: string }) {
   }
 
   const inTrash = thread.folder === "trash";
+  const forward = () => {
+    const quoted = thread.messages
+      .map((m) => `De : ${m.from.name} <${m.from.email}>\nDate : ${formatFullDate(m.date)}\nÀ : ${m.to.map((c) => c.name).join(", ")}\n\n${m.body}`)
+      .join("\n\n— — —\n\n");
+    openCompose({
+      subject: /^(fwd|tr)\s*:/i.test(thread.subject) ? thread.subject : `Fwd : ${thread.subject}`,
+      body: `\n\n---------- Message transféré ----------\n${quoted}`,
+    });
+  };
   const actions = (
     <>
+      <Action label="Transférer" onClick={forward}>
+        <Forward />
+      </Action>
       <Action label="Archiver · e" onClick={() => moveThread(thread.id, "archive")} disabled={thread.folder === "archive"}>
         <Archive />
       </Action>

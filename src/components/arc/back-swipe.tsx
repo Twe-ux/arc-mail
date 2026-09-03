@@ -67,7 +67,9 @@ export function BackSwipe({
   });
 
   return (
-    <div ref={ref} className={cn("relative isolate min-w-0 flex-1 flex-col", className)}>
+    /* `touch-pan-y`: the browser keeps vertical panning, we get horizontal. Without
+       it iOS can claim the touch for a scroll and the swipe never becomes cancelable. */
+    <div ref={ref} className={cn("relative isolate min-w-0 flex-1 flex-col touch-pan-y md:touch-auto", className)}>
       {revealing && (
         <div aria-hidden inert className="space-wash absolute inset-0 z-0 overflow-hidden">
           <div

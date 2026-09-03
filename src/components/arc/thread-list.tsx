@@ -29,7 +29,7 @@ export function ThreadList({ className }: { className?: string }) {
   const plural = (n: number, word: string) => `${n} ${word}${n > 1 ? "s" : ""}`;
 
   return (
-    <section className={cn("min-w-0 flex-col", className)} aria-label={folder.name}>
+    <section className={cn("min-h-0 min-w-0 flex-col", className)} aria-label={folder.name}>
       {/* Mobile: large title on the tinted backdrop, iOS style */}
       <div className="shrink-0 px-5 pt-1 pb-3 md:hidden">
         <h1 className="truncate text-[30px] leading-tight font-bold tracking-tight">{folder.name}</h1>

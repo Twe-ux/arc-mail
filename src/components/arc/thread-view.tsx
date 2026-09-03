@@ -25,7 +25,7 @@ export function ThreadView({ className }: { className?: string }) {
 
   if (!thread) {
     return (
-      <div className={cn("min-w-0 flex-1 flex-col items-center justify-center gap-3 text-muted-foreground", className)}>
+      <div className={cn("min-h-0 min-w-0 flex-1 flex-col items-center justify-center gap-3 text-muted-foreground", className)}>
         <Mail className="size-10 opacity-30" />
         <p className="text-sm">Sélectionne une conversation</p>
         <p className="text-xs">
@@ -67,7 +67,7 @@ export function ThreadView({ className }: { className?: string }) {
   );
 
   return (
-    <article className={cn("min-w-0 flex-1 flex-col", className)}>
+    <article className={cn("min-h-0 min-w-0 flex-1 flex-col", className)}>
       {/* Mobile: back, actions and subject on the tinted backdrop */}
       <div className="shrink-0 px-2 pt-0.5 pb-3 md:hidden [&_button]:size-9 [&_svg]:size-5">
         <div className="flex items-center">

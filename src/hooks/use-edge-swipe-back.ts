@@ -13,16 +13,35 @@ import {
   type SpringAnimation,
 } from "@/lib/gesture";
 
-/** How far in from the left edge a drag has to start. */
-export const EDGE_ZONE = 24;
+/**
+ * How far in from the left edge counts as "the edge".
+ *
+ * 24px was the strip Kairos could spare, because every one of its screens has
+ * something horizontally draggable on it. A mail thread has nothing of the
+ * kind, so the target can be the width of a thumb — and beyond it the gesture
+ * still works, it just has to be meant (see `RATIO_*`).
+ */
+export const EDGE_ZONE = 56;
 const INTENT_DISTANCE = 8;
 const COMMIT_RATIO = 0.4;
+
+/**
+ * How much more horizontal than vertical a drag must be to count.
+ *
+ * From the edge, ties go to the gesture: nothing else starts there, and a
+ * thumb coming in from the side never travels straight. Away from the edge the
+ * page scrolls, so only a clearly sideways drag may take the touch — stealing a
+ * scroll is worse than missing a swipe.
+ */
+const RATIO_EDGE = 1.2;
+const RATIO_INSIDE = 2.5;
 
 const clamp = (p: number) => Math.min(1, Math.max(0, p));
 
 /**
- * Drag in from the left edge to go back — the gesture iOS gives every app and
- * an installed PWA gets from nobody. Touch only, edge only. Progress is 0..1.
+ * Drag rightwards to go back — the gesture iOS gives every app and an installed
+ * PWA gets from nobody. Generous from the left edge, still available from
+ * anywhere else if the drag is plainly horizontal. Touch only. Progress is 0..1.
  */
 export function useEdgeSwipeBack({
   enabled,
@@ -54,6 +73,7 @@ export function useEdgeSwipeBack({
     if (!element) return;
 
     let origin: { x: number; y: number } | null = null;
+    let fromEdge = false;
     let claimed = false;
     let travelled = 0;
     let samples: Sample[] = [];
@@ -104,8 +124,8 @@ export function useEdgeSwipeBack({
     const onStart = (event: TouchEvent) => {
       if (!latest.current.enabled || event.touches.length !== 1) return;
       const touch = event.touches[0];
-      if (touch.clientX - element.getBoundingClientRect().left > EDGE_ZONE) return;
       if (startsOnControl(event.target)) return;
+      fromEdge = touch.clientX - element.getBoundingClientRect().left <= EDGE_ZONE;
       const caught = settling?.stop().value ?? 0;
       settling = null;
       committed = false;
@@ -122,7 +142,7 @@ export function useEdgeSwipeBack({
       const dy = touch.clientY - origin.y;
       if (!claimed) {
         if (Math.abs(dx) < INTENT_DISTANCE && Math.abs(dy) < INTENT_DISTANCE) return;
-        if (dx <= 0 || Math.abs(dx) < Math.abs(dy) * 1.2) {
+        if (dx <= 0 || Math.abs(dx) < Math.abs(dy) * (fromEdge ? RATIO_EDGE : RATIO_INSIDE)) {
           origin = null;
           return;
         }

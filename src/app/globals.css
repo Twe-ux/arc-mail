@@ -7,6 +7,10 @@
   /* Named so a layer that starts below it can offset the wash by exactly as
      much, and so a test can stand in for a notch the browser does not report. */
   --safe-top: env(safe-area-inset-top);
+  /* What the tint wash is laid over. In dark mode the page and the window take
+     the same ground, so the strip under the bottom bar reads as more of the
+     list rather than a darker band below it. */
+  --wash-base: var(--background);
   --radius: 0.75rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
@@ -29,6 +33,7 @@
 }
 
 .dark {
+  --wash-base: var(--card);
   --background: oklch(0.17 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
@@ -120,8 +125,8 @@
   background:
     radial-gradient(
       140% 55% at 50% -15%,
-      color-mix(in oklch, var(--space-accent) 26%, var(--background)),
+      color-mix(in oklch, var(--space-accent) 26%, var(--wash-base)),
       transparent 75%
     ),
-    var(--background);
+    var(--wash-base);
 }

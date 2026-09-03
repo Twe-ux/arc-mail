@@ -37,7 +37,7 @@ export function MobileNav({ className }: { className?: string }) {
         className,
       )}
     >
-      <div className="relative flex h-14 items-center rounded-full bg-background/80 p-1.5 shadow-[0_8px_30px_rgb(0_0_0/0.12)] ring-1 ring-black/5 backdrop-blur-2xl dark:bg-card/80 dark:ring-white/10">
+      <div className="relative flex h-14 items-center rounded-full bg-background/80 p-1.5 shadow-[0_8px_30px_rgb(0_0_0/0.12)] ring-1 ring-black/5 backdrop-blur-2xl dark:bg-white/[0.07] dark:ring-white/10">
         <span
           aria-hidden
           className="absolute top-1.5 bottom-1.5 left-1.5 rounded-full bg-[color-mix(in_oklch,var(--space-accent)_18%,transparent)] transition-[transform,opacity] duration-300 ease-[cubic-bezier(.2,.8,.2,1)]"
@@ -56,7 +56,7 @@ export function MobileNav({ className }: { className?: string }) {
         >
           <Inbox className="size-6" strokeWidth={active === 1 ? 2.25 : 1.75} />
           {inboxUnread > 0 && (
-            <span className="absolute top-2 right-2.5 min-w-4 rounded-full bg-[var(--space-accent)] px-1 text-center text-[10px] leading-4 font-bold text-white tabular-nums ring-2 ring-background dark:ring-card">
+            <span className="absolute top-2 right-2.5 min-w-4 rounded-full bg-[var(--space-accent)] px-1 text-center text-[10px] leading-4 font-bold text-white tabular-nums ring-2 ring-background dark:ring-transparent">
               {inboxUnread}
             </span>
           )}

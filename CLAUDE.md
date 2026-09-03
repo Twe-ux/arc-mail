@@ -33,6 +33,9 @@ d'Arc (espaces colorés, sidebar translucide, favoris épinglés, onglets « Auj
   `--viewport-slack` dans `globals.css`), sinon WebKit peint sur un viewport amputé de la safe
   area basse et laisse une bande nue. La barre du bas se place à `safe-area − 18px` (min 14px),
   la safe area complète la fait remonter trop haut. Solution portée du projet Kairos.
+- Le voile se pose sur `--wash-base` : `--background` en clair, `--card` en sombre. En sombre la carte
+  est plus claire que le fond, et sans ça la bande sous la barre du bas lisait comme un bandeau plus
+  foncé sous la liste au lieu d'en être la suite.
 - **Le voile de teinte (`space-wash`) ne se peint qu'une fois.** Son dégradé part du haut de
   l'élément : une couche qui démarre sous la safe area et le repeint fait redémarrer le dégradé, et
   ça se voit comme une ligne nette au ras de l'encoche. Une couche qui a besoin d'un fond opaque

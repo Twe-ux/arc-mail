@@ -28,25 +28,32 @@ export function ThemePicker({
   const setSpaceHue = useMail((s) => s.setSpaceHue);
   const custom = hue !== undefined;
 
+  const trigger = (
+    <PopoverTrigger
+      aria-label={`Couleur de l'espace ${space.name}`}
+      className={cn(
+        "flex size-7 shrink-0 items-center justify-center rounded-lg transition-colors",
+        tone === "gradient"
+          ? "text-white/70 hover:bg-white/15 hover:text-white"
+          : "text-muted-foreground hover:bg-muted hover:text-foreground",
+        className,
+      )}
+    >
+      <Palette className="size-4" />
+    </PopoverTrigger>
+  );
+
   return (
     <Popover>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <PopoverTrigger
-            aria-label={`Couleur de l'espace ${space.name}`}
-            className={cn(
-              "flex size-7 shrink-0 items-center justify-center rounded-lg transition-colors",
-              tone === "gradient"
-                ? "text-white/70 hover:bg-white/15 hover:text-white"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground",
-              className,
-            )}
-          >
-            <Palette className="size-4" />
-          </PopoverTrigger>
-        </TooltipTrigger>
-        <TooltipContent side="bottom">Personnaliser la couleur</TooltipContent>
-      </Tooltip>
+      {/* A tooltip is a pointer's affordance; on the phone's surface a tap would only summon it. */}
+      {tone === "gradient" ? (
+        <Tooltip>
+          <TooltipTrigger asChild>{trigger}</TooltipTrigger>
+          <TooltipContent side="bottom">Personnaliser la couleur</TooltipContent>
+        </Tooltip>
+      ) : (
+        trigger
+      )}
 
       <PopoverContent align="start" className="w-64 rounded-2xl p-3">
         <div className="flex items-center gap-2.5">

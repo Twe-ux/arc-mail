@@ -1,6 +1,5 @@
 "use client";
 
-import type { CSSProperties } from "react";
 import {
   Archive,
   Clock,
@@ -20,7 +19,6 @@ import {
 import { Kbd } from "@/components/ui/kbd";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { FOLDERS } from "@/lib/mock-data";
 import { selectFolder, selectUnreadCount, useMail, useSpace } from "@/lib/store";
@@ -29,7 +27,6 @@ import { cn } from "@/lib/utils";
 import { ContactAvatar } from "./contact-avatar";
 import { SpaceIcon } from "./space-icon";
 import { ThemePicker } from "./theme-picker";
-import { InstallHint } from "./install-hint";
 import { SpaceSwitcher } from "./space-switcher";
 
 const FOLDER_ICONS: Record<FolderId, LucideIcon> = {
@@ -97,31 +94,6 @@ export function Sidebar() {
       </div>
       <SidebarContent />
     </aside>
-  );
-}
-
-/** Mobile sidebar: the same content in a left drawer painted with the space gradient. */
-export function MobileSidebar() {
-  const space = useSpace();
-  const open = useMail((s) => s.sidebarOpen);
-  const setOpen = useMail((s) => s.setSidebarOpen);
-
-  return (
-    <Sheet open={open} onOpenChange={setOpen}>
-      <SheetContent
-        side="left"
-        showCloseButton={false}
-        className="space-wash w-[85vw] max-w-sm gap-0 border-r border-border/50 px-2 pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(0.75rem,calc(env(safe-area-inset-bottom)-10px))] md:hidden"
-        style={{ "--space-accent": space.theme.accent } as CSSProperties}
-      >
-        <SheetTitle className="sr-only">Menu</SheetTitle>
-        <SheetDescription className="sr-only">Espaces, dossiers et conversations récentes</SheetDescription>
-        <div className="flex min-h-0 flex-1 flex-col gap-3">
-          <SidebarContent tone="surface" onNavigate={() => setOpen(false)} />
-          <InstallHint />
-        </div>
-      </SheetContent>
-    </Sheet>
   );
 }
 

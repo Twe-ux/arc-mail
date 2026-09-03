@@ -9,7 +9,8 @@ import { BackSwipe } from "./back-swipe";
 import { CommandPalette } from "./command-palette";
 import { ComposeDialog } from "./compose-dialog";
 import { MobileNav } from "./mobile-nav";
-import { MobileSidebar, Sidebar } from "./sidebar";
+import { MobileMenu } from "./mobile-menu";
+import { Sidebar } from "./sidebar";
 import { ThreadList } from "./thread-list";
 import { ThreadView } from "./thread-view";
 
@@ -80,7 +81,7 @@ export function AppShell() {
           </BackSwipe>
         </main>
         <MobileNav className={cn(hasSelection && "hidden")} />
-        <MobileSidebar />
+        <MobileMenu />
         <CommandPalette />
         <ComposeDialog />
       </div>

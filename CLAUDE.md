@@ -50,7 +50,7 @@ d'Arc (espaces colorés, sidebar translucide, favoris épinglés, onglets « Auj
 
 ## Feuille de route
 
-1. **UI Arc avec données mock** — fait, responsive (tiroir + barre du bas sous `md`) et installable en PWA
+1. **UI Arc avec données mock** — fait, responsive (menu en feuille basse façon iOS `MobileMenu` + barre du bas sous `md`) et installable en PWA
    sur iPhone (`src/app/manifest.ts`, `public/sw.js` en production seulement, icônes dans `public/icons`).
 2. **Persistance légère** — fait : `zustand/persist` (clé `arc-mail`, `skipHydration` puis
    `rehydrate()` dans `AppShell`) pour les couleurs d'espace, le thème sombre, la vue partagée et

@@ -3,7 +3,7 @@
 import { useEffect, type CSSProperties } from "react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
-import { selectSpace, useMail } from "@/lib/store";
+import { useMail, useSpace } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { BackSwipe } from "./back-swipe";
 import { CommandPalette } from "./command-palette";
@@ -21,13 +21,18 @@ import { ThreadView } from "./thread-view";
  * (one at a time) and a bottom bar carries the space, search and compose.
  */
 export function AppShell() {
-  const space = useMail(selectSpace);
+  const space = useSpace();
   const dark = useMail((s) => s.dark);
   const splitView = useMail((s) => s.splitView);
   const selectedThreadId = useMail((s) => s.selectedThreadId);
   const selectThread = useMail((s) => s.selectThread);
 
   useKeyboardShortcuts();
+
+  // Persisted preferences come back after mount, so server and client agree on the first paint.
+  useEffect(() => {
+    useMail.persist.rehydrate();
+  }, []);
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", dark);

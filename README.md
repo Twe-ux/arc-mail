@@ -39,7 +39,8 @@ npm run lint
   expéditeur, `⌘⏎` pour envoyer. Fermer conserve un **brouillon** ; le dossier Brouillons rouvre le
   composeur. **Répondre** en ligne dans la conversation, **transférer** vers le composeur. En mémoire.
 - Raccourcis Gmail-like : `j`/`k` naviguer, `e` archiver, `s` favori, `u` non-lu, `#` corbeille.
-- Thème clair / sombre.
+- Thème clair / sombre, et **couleur par espace** : huit teintes ou un curseur, le dégradé et
+  l'accent suivent partout. Conservé entre les sessions, comme la vue partagée et les onglets.
 - **Responsive** : au-dessus de 768 px, la fenêtre Arc (sidebar + carte). En dessous, une colonne à la
   fois, la sidebar en tiroir latéral et une barre du bas façon Arc mobile (espace, réception,
   recherche, écrire).

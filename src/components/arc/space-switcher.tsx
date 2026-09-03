@@ -1,19 +1,19 @@
 "use client";
 
-import { SPACES } from "@/lib/mock-data";
-import { useMail } from "@/lib/store";
+import { useMail, useSpaces } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { SpaceIcon } from "./space-icon";
 
 /** The row of space dots at the bottom of the Arc sidebar. */
 export function SpaceSwitcher({ onSelect, tone = "gradient" }: { onSelect?: () => void; tone?: "gradient" | "surface" }) {
+  const spaces = useSpaces();
   const spaceId = useMail((s) => s.spaceId);
   const setSpace = useMail((s) => s.setSpace);
 
   return (
     <div className="flex items-center gap-1">
-      {SPACES.map((space, i) => {
+      {spaces.map((space, i) => {
         const active = space.id === spaceId;
         return (
           <Tooltip key={space.id}>

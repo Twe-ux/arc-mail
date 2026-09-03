@@ -32,8 +32,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { useSheetDismiss } from "@/hooks/use-sheet-dismiss";
-import { SPACES } from "@/lib/mock-data";
-import { selectContacts, useMail } from "@/lib/store";
+import { selectContacts, useMail, useSpaces } from "@/lib/store";
 import type { ComposeDraft } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { RecipientField } from "./recipient-field";
@@ -293,7 +292,8 @@ function ComposeFields({
   const [details, setDetails] = useState(
     draft.cc.length > 0 || draft.bcc.length > 0,
   );
-  const space = SPACES.find((sp) => sp.id === draft.spaceId) ?? SPACES[0];
+  const spaces = useSpaces();
+  const space = spaces.find((sp) => sp.id === draft.spaceId) ?? spaces[0];
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
@@ -408,7 +408,8 @@ function FromSelect({
   value: ComposeDraft["spaceId"];
   onChange: (v: ComposeDraft["spaceId"]) => void;
 }) {
-  const space = SPACES.find((sp) => sp.id === value) ?? SPACES[0];
+  const spaces = useSpaces();
+  const space = spaces.find((sp) => sp.id === value) ?? spaces[0];
   return (
     <span className="relative flex min-w-0 flex-1 cursor-pointer items-center gap-1.5">
       <SpaceIcon space={space} size="xs" />
@@ -423,7 +424,7 @@ function FromSelect({
         aria-label="Expéditeur"
         className="absolute inset-0 cursor-pointer opacity-0"
       >
-        {SPACES.map((sp) => (
+        {spaces.map((sp) => (
           <option key={sp.id} value={sp.id}>
             {sp.name} · {sp.email}
           </option>

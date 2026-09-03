@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { formatShortDate } from "@/lib/format";
-import { selectFolder, selectSpace, useMail, useVisibleThreads } from "@/lib/store";
+import { selectFolder, useMail, useSpace, useVisibleThreads } from "@/lib/store";
 import type { Thread } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { ContactAvatar } from "./contact-avatar";
@@ -15,7 +15,7 @@ import { SpaceIcon } from "./space-icon";
 
 export function ThreadList({ className }: { className?: string }) {
   const folder = useMail(selectFolder);
-  const space = useMail(selectSpace);
+  const space = useSpace();
   const threads = useVisibleThreads();
   const selectedThreadId = useMail((s) => s.selectedThreadId);
   const selectThread = useMail((s) => s.selectThread);

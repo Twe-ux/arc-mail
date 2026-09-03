@@ -23,11 +23,12 @@ import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { FOLDERS } from "@/lib/mock-data";
-import { selectFolder, selectSpace, selectUnreadCount, useMail } from "@/lib/store";
+import { selectFolder, selectUnreadCount, useMail, useSpace } from "@/lib/store";
 import type { FolderId } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { ContactAvatar } from "./contact-avatar";
 import { SpaceIcon } from "./space-icon";
+import { ThemePicker } from "./theme-picker";
 import { InstallHint } from "./install-hint";
 import { SpaceSwitcher } from "./space-switcher";
 
@@ -101,7 +102,7 @@ export function Sidebar() {
 
 /** Mobile sidebar: the same content in a left drawer painted with the space gradient. */
 export function MobileSidebar() {
-  const space = useMail(selectSpace);
+  const space = useSpace();
   const open = useMail((s) => s.sidebarOpen);
   const setOpen = useMail((s) => s.setSidebarOpen);
 
@@ -126,7 +127,7 @@ export function MobileSidebar() {
 
 function SidebarContent({ onNavigate, tone = "gradient" }: { onNavigate?: () => void; tone?: Tone }) {
   const tn = TONES[tone];
-  const space = useMail(selectSpace);
+  const space = useSpace();
   const folder = useMail(selectFolder);
   const folderId = useMail((s) => s.folderId);
   const setFolder = useMail((s) => s.setFolder);
@@ -201,6 +202,7 @@ function SidebarContent({ onNavigate, tone = "gradient" }: { onNavigate?: () => 
           <p className={cn("truncate text-sm font-semibold", tn.text)}>{space.name}</p>
           <p className={cn("truncate text-xs", tn.sub)}>{space.email}</p>
         </div>
+        <ThemePicker space={space} tone={tone} className="ml-auto" />
       </div>
 
       {/* Folders */}

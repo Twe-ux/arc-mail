@@ -13,8 +13,8 @@ import {
   CommandSeparator,
   CommandShortcut,
 } from "@/components/ui/command";
-import { FOLDERS, SPACES } from "@/lib/mock-data";
-import { sortByDate, useMail } from "@/lib/store";
+import { FOLDERS } from "@/lib/mock-data";
+import { sortByDate, useMail, useSpaces } from "@/lib/store";
 import type { FolderId } from "@/lib/types";
 import { ContactAvatar } from "./contact-avatar";
 import { SpaceIcon } from "./space-icon";
@@ -33,6 +33,7 @@ const FOLDER_ICONS: Record<FolderId, LucideIcon> = {
 export function CommandPalette() {
   const open = useMail((s) => s.commandOpen);
   const setCommandOpen = useMail((s) => s.setCommandOpen);
+  const spaces = useSpaces();
   const threads = useMail((s) => s.threads);
   const spaceId = useMail((s) => s.spaceId);
   const setSpace = useMail((s) => s.setSpace);
@@ -92,7 +93,7 @@ export function CommandPalette() {
         </CommandGroup>
 
         <CommandGroup heading="Espaces">
-          {SPACES.map((space, i) => (
+          {spaces.map((space, i) => (
             <CommandItem
               key={space.id}
               value={`espace ${space.name} ${space.email}`}

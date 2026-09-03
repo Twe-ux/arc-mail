@@ -42,7 +42,9 @@ d'Arc (espaces colorés, sidebar translucide, favoris épinglés, onglets « Auj
   chaque frame, jamais via un état React ni une transition CSS ; le relâchement lit la vitesse, pas la
   distance ; un ressort suit, qu'on peut rattraper. Retour par glissement depuis le bord gauche
   (`BackSwipe` + `useEdgeSwipeBack`), fermeture des feuilles par glissement vers le bas (`useSheetDismiss`).
-- Les espaces ont une icône Lucide sur une tuile dégradée (`SpaceIcon`), pas d'emoji.
+- Les espaces ont une icône Lucide sur une tuile dégradée (`SpaceIcon`), pas d'emoji. Lire les
+  espaces via `useSpace()` / `useSpaces()` (couleur personnalisée résolue), jamais `SPACES` en direct
+  dans un composant.
 - Textes de l'interface en français.
 - Commits conventionnels (`feat:`, `fix:`, `docs:`, `chore:`).
 
@@ -50,11 +52,15 @@ d'Arc (espaces colorés, sidebar translucide, favoris épinglés, onglets « Auj
 
 1. **UI Arc avec données mock** — fait, responsive (tiroir + barre du bas sous `md`) et installable en PWA
    sur iPhone (`src/app/manifest.ts`, `public/sw.js` en production seulement, icônes dans `public/icons`).
-2. **Persistance légère** : `zustand/persist` pour les onglets « Aujourd'hui », la vue partagée et le thème.
+2. **Persistance légère** — fait : `zustand/persist` (clé `arc-mail`, `skipHydration` puis
+   `rehydrate()` dans `AppShell`) pour les couleurs d'espace, le thème sombre, la vue partagée et
+   les onglets « Aujourd'hui ». Les mails restent mock et repartent à zéro à chaque chargement.
 3. **Gmail** : NextAuth (Auth.js) + Google OAuth, lecture des threads via `googleapis`,
    envoi/réponse via `gmail.send`. Introduire une interface `MailProvider` (`listThreads`,
    `getThread`, `send`, `modify`) dont le mock devient la première implémentation.
-4. **Multi-comptes = Spaces** : un espace par compte connecté, dégradé choisi par l'utilisateur.
+4. **Multi-comptes = Spaces** : un espace par compte connecté. La couleur se choisit déjà
+   (`ThemePicker`, une teinte → `themeFromHue` dérive dégradé et accent) ; reste à créer/renommer
+   un espace et à lui choisir son icône.
 5. **Autres fournisseurs** : IMAP/SMTP générique, puis Microsoft Graph (Outlook).
 6. Pièces jointes, recherche serveur, notifications push, PWA.
 

@@ -1,7 +1,7 @@
 /* Arc Mail service worker: caches the app shell so the PWA opens offline.
  * Navigations are network-first (fresh HTML when online, cached shell otherwise);
  * Next.js static assets are cache-first because their URLs are content-hashed. */
-const VERSION = "arc-mail-v2";
+const VERSION = "arc-mail-v3";
 const SHELL = ["/"];
 
 self.addEventListener("install", (event) => {

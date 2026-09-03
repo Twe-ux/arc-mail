@@ -1,8 +1,10 @@
 import { useMemo } from "react";
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 import { firstLine } from "./format";
 import { FOLDERS, ME, SPACES, THREADS } from "./mock-data";
-import type { ComposeDraft, Contact, FolderId, Message, SpaceId, Thread } from "./types";
+import { resolveSpace } from "./theme";
+import type { ComposeDraft, Contact, FolderId, Message, Space, SpaceId, Thread } from "./types";
 
 type RecentMap = Record<SpaceId, string[]>;
 
@@ -22,6 +24,8 @@ export type MailState = {
   recent: RecentMap;
   /** The composer, `null` when closed. Its fields are the live form state. */
   compose: ComposeDraft | null;
+  /** Hue chosen for a space, when the user changed its colour. */
+  themes: Partial<Record<SpaceId, number>>;
 
   setSpace: (id: SpaceId) => void;
   setFolder: (id: FolderId) => void;
@@ -45,6 +49,7 @@ export type MailState = {
   closeCompose: () => void;
   sendMail: () => void;
   deleteDraft: (threadId: string) => void;
+  setSpaceHue: (id: SpaceId, hue: number | null) => void;
 };
 
 const MAX_RECENT = 8;
@@ -88,7 +93,9 @@ function draftMessage(d: ComposeDraft, book: Map<string, Contact>, id: string): 
   };
 }
 
-export const useMail = create<MailState>((set, get) => ({
+export const useMail = create<MailState>()(
+  persist(
+    (set, get) => ({
   spaceId: SPACES[0].id,
   folderId: "inbox",
   selectedThreadId: null,
@@ -100,6 +107,7 @@ export const useMail = create<MailState>((set, get) => ({
   threads: THREADS,
   recent: { perso: [], pro: [], side: [] },
   compose: null,
+  themes: {},
 
   setSpace: (spaceId) => set({ spaceId, folderId: "inbox", selectedThreadId: null, unreadOnly: false }),
 
@@ -268,7 +276,26 @@ export const useMail = create<MailState>((set, get) => ({
       compose: s.compose?.draftId === threadId ? null : s.compose,
       selectedThreadId: s.selectedThreadId === threadId ? null : s.selectedThreadId,
     })),
-}));
+
+  setSpaceHue: (id, hue) =>
+    set((s) => {
+      const themes = { ...s.themes };
+      if (hue === null) delete themes[id];
+      else themes[id] = hue;
+      return { themes };
+    }),
+    }),
+    {
+      name: "arc-mail",
+      /* Only what should survive a reload: the mail itself is mock and reloads
+         fresh; the composer is transient. */
+      partialize: (s) => ({ themes: s.themes, dark: s.dark, splitView: s.splitView, recent: s.recent }),
+      /* Rehydrated from `AppShell` after mount so the server and first client
+         render agree; see `useMail.persist.rehydrate()`. */
+      skipHydration: true,
+    },
+  ),
+);
 
 // ───────────── Selectors ─────────────
 
@@ -285,7 +312,21 @@ export function sortByDate(threads: Thread[]): Thread[] {
   return [...threads].sort((a, b) => lastMessageDate(b).localeCompare(lastMessageDate(a)));
 }
 
-export const selectSpace = (s: MailState) => SPACES.find((sp) => sp.id === s.spaceId) ?? SPACES[0];
+export const selectSpace = (s: MailState) =>
+  resolveSpace(SPACES.find((sp) => sp.id === s.spaceId) ?? SPACES[0], s.themes[s.spaceId]);
+
+/** Every space with the colour the user gave it; memoised on the overrides. */
+export function useSpaces(): Space[] {
+  const themes = useMail((s) => s.themes);
+  return useMemo(() => SPACES.map((sp) => resolveSpace(sp, themes[sp.id])), [themes]);
+}
+
+/** The current space, coloured as the user wants it. */
+export function useSpace(): Space {
+  const spaces = useSpaces();
+  const spaceId = useMail((s) => s.spaceId);
+  return spaces.find((sp) => sp.id === spaceId) ?? spaces[0];
+}
 export const selectFolder = (s: MailState) => FOLDERS.find((f) => f.id === s.folderId) ?? FOLDERS[0];
 export const selectSelectedThread = (s: MailState) => s.threads.find((t) => t.id === s.selectedThreadId);
 

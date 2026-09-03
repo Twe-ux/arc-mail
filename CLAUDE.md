@@ -48,7 +48,9 @@ d'Arc (espaces colorés, sidebar translucide, favoris épinglés, onglets « Auj
 - Les fenêtres du téléphone (menu, composeur) sont des **cartes flottantes** : détachées des quatre
   bords (8 px sur les côtés, 12 px en bas — mesuré sur la référence, la carte descend jusqu'au ras de
   l'indicateur d'accueil plutôt que de laisser la safe area entière), arrondies à 36 px tout autour,
-  pas de poignée. En sombre elles sont des surfaces *au-dessus* de la page (`#26262a` pour le
+  pas de poignée. Leur en-tête (compte, espaces) est **hors du conteneur de défilement** : sinon il
+  glisse sous le coin arrondi de la carte et on croit que le contenu en sort. En sombre elles sont des
+  surfaces *au-dessus* de la page (`#26262a` pour le
   composeur) : peintes en `--background`, plus foncé que le sol de la fenêtre, elles se lisaient comme
   un trou. Sur une carte
   positionnée par ses quatre côtés, `w-auto` est indispensable : le `w-full` des primitives fixe la

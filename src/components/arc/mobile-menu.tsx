@@ -108,145 +108,150 @@ function MenuBody({
   };
 
   return (
-    <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pt-3 pb-4">
-      {/* Account */}
-      <div className="flex items-center gap-3 pb-2">
-        <SpaceIcon
-          space={space}
-          size="lg"
-          className="size-11 rounded-xl [&_svg]:size-6"
-        />
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-[17px] leading-tight font-semibold">
-            {space.name}
-          </p>
-          <p className="truncate text-[13px] text-muted-foreground">
-            {space.email}
-          </p>
-        </div>
-        <ThemePicker
-          space={space}
-          tone="surface"
-          className="size-9 rounded-full bg-white dark:bg-[#26262a]"
-        />
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Fermer"
-          className="flex size-9 shrink-0 items-center justify-center rounded-full bg-black/[0.06] text-foreground/60 active:bg-black/10 dark:bg-white/10 dark:active:bg-white/20"
-        >
-          <X className="size-5" strokeWidth={2.25} />
-        </button>
-      </div>
-
-      {/* Spaces as chips */}
-      <div className="-mx-4 mt-1 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none]">
-        {spaces.map((sp) => {
-          const active = sp.id === spaceId;
-          return (
-            <button
-              key={sp.id}
-              type="button"
-              onClick={() => setSpace(sp.id)}
-              aria-pressed={active}
-              className={cn(
-                "flex shrink-0 items-center gap-2 rounded-full py-1.5 pr-3.5 pl-1.5 text-[15px] transition-colors",
-                active
-                  ? "bg-[color-mix(in_oklch,var(--space-accent)_16%,white)] font-medium text-foreground ring-1 ring-[color-mix(in_oklch,var(--space-accent)_35%,transparent)] dark:bg-[color-mix(in_oklch,var(--space-accent)_22%,black)]"
-                  : "bg-white text-muted-foreground dark:bg-[#26262a]",
-              )}
-            >
-              <SpaceIcon space={sp} size="md" />
-              {sp.name}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Mailboxes */}
-      <Section title="Boîtes">
-        <Group>
-          {FOLDERS.map((f) => (
-            <FolderRow
-              key={f.id}
-              id={f.id}
-              name={f.name}
-              active={f.id === folderId}
-              onClick={go(() => setFolder(f.id))}
-            />
-          ))}
-        </Group>
-      </Section>
-
-      {/* Today */}
-      <Section
-        title="Aujourd'hui"
-        action={
-          recentThreads.length > 0 && (
-            <button
-              type="button"
-              onClick={clearRecent}
-              className="text-[13px] font-medium text-[var(--space-accent)]"
-            >
-              Effacer
-            </button>
-          )
-        }
-      >
-        <Group>
-          {recentThreads.length === 0 ? (
-            <p className="px-4 py-3.5 text-[15px] text-muted-foreground">
-              Les conversations que tu ouvres restent ici, comme les onglets
-              d&apos;Arc.
+    <>
+      {/* Fixed head: an account row that scrolled would slide under the card's
+          own rounded corner and read as content escaping it. */}
+      <div className="shrink-0 px-4 pt-4 pb-2">
+        <div className="flex items-center gap-3 pb-2">
+          <SpaceIcon
+            space={space}
+            size="lg"
+            className="size-11 rounded-xl [&_svg]:size-6"
+          />
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-[17px] leading-tight font-semibold">
+              {space.name}
             </p>
-          ) : (
-            recentThreads.map((t) => {
-              const last = t.messages[t.messages.length - 1];
-              return (
-                <Row
-                  key={t.id}
-                  onClick={go(() => selectThread(t.id))}
-                  active={t.id === selectedThreadId}
-                >
-                  <ContactAvatar contact={last.from} className="size-8" />
-                  <span className="min-w-0 flex-1 truncate text-[15px]">
-                    {t.subject}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      removeRecent(t.id);
-                    }}
-                    aria-label="Retirer"
-                    className="-mr-2 flex size-8 items-center justify-center rounded-full text-muted-foreground active:bg-muted"
-                  >
-                    <X className="size-4" />
-                  </button>
-                </Row>
-              );
-            })
-          )}
-        </Group>
-      </Section>
+            <p className="truncate text-[13px] text-muted-foreground">
+              {space.email}
+            </p>
+          </div>
+          <ThemePicker
+            space={space}
+            tone="surface"
+            className="size-9 rounded-full bg-white dark:bg-[#26262a]"
+          />
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Fermer"
+            className="flex size-9 shrink-0 items-center justify-center rounded-full bg-black/[0.06] text-foreground/60 active:bg-black/10 dark:bg-white/10 dark:active:bg-white/20"
+          >
+            <X className="size-5" strokeWidth={2.25} />
+          </button>
+        </div>
 
-      {/* Appearance */}
-      <Section title="Apparence">
-        <Group>
-          <Row onClick={toggleDark}>
-            <Tile tint="bg-indigo-500">
-              <Moon />
-            </Tile>
-            <span className="min-w-0 flex-1 text-[15px]">Thème sombre</span>
-            <Switch on={dark} />
-          </Row>
-        </Group>
-      </Section>
-
-      <div className="mt-4">
-        <InstallHint />
+        {/* Spaces as chips */}
+        <div className="-mx-4 mt-1 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none]">
+          {spaces.map((sp) => {
+            const active = sp.id === spaceId;
+            return (
+              <button
+                key={sp.id}
+                type="button"
+                onClick={() => setSpace(sp.id)}
+                aria-pressed={active}
+                className={cn(
+                  "flex shrink-0 items-center gap-2 rounded-full py-1.5 pr-3.5 pl-1.5 text-[15px] transition-colors",
+                  active
+                    ? "bg-[color-mix(in_oklch,var(--space-accent)_16%,white)] font-medium text-foreground ring-1 ring-[color-mix(in_oklch,var(--space-accent)_35%,transparent)] dark:bg-[color-mix(in_oklch,var(--space-accent)_22%,black)]"
+                    : "bg-white text-muted-foreground dark:bg-[#26262a]",
+                )}
+              >
+                <SpaceIcon space={sp} size="md" />
+                {sp.name}
+              </button>
+            );
+          })}
+        </div>
       </div>
-    </div>
+
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-4">
+        {/* Mailboxes */}
+        <Section title="Boîtes">
+          <Group>
+            {FOLDERS.map((f) => (
+              <FolderRow
+                key={f.id}
+                id={f.id}
+                name={f.name}
+                active={f.id === folderId}
+                onClick={go(() => setFolder(f.id))}
+              />
+            ))}
+          </Group>
+        </Section>
+
+        {/* Today */}
+        <Section
+          title="Aujourd'hui"
+          action={
+            recentThreads.length > 0 && (
+              <button
+                type="button"
+                onClick={clearRecent}
+                className="text-[13px] font-medium text-[var(--space-accent)]"
+              >
+                Effacer
+              </button>
+            )
+          }
+        >
+          <Group>
+            {recentThreads.length === 0 ? (
+              <p className="px-4 py-3.5 text-[15px] text-muted-foreground">
+                Les conversations que tu ouvres restent ici, comme les onglets
+                d&apos;Arc.
+              </p>
+            ) : (
+              recentThreads.map((t) => {
+                const last = t.messages[t.messages.length - 1];
+                return (
+                  <Row
+                    key={t.id}
+                    onClick={go(() => selectThread(t.id))}
+                    active={t.id === selectedThreadId}
+                  >
+                    <ContactAvatar contact={last.from} className="size-8" />
+                    <span className="min-w-0 flex-1 truncate text-[15px]">
+                      {t.subject}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeRecent(t.id);
+                      }}
+                      aria-label="Retirer"
+                      className="-mr-2 flex size-8 items-center justify-center rounded-full text-muted-foreground active:bg-muted"
+                    >
+                      <X className="size-4" />
+                    </button>
+                  </Row>
+                );
+              })
+            )}
+          </Group>
+        </Section>
+
+        {/* Appearance */}
+        <Section title="Apparence">
+          <Group>
+            <Row onClick={toggleDark}>
+              <Tile tint="bg-indigo-500">
+                <Moon />
+              </Tile>
+              <span className="min-w-0 flex-1 text-[15px]">Thème sombre</span>
+              <Switch on={dark} />
+            </Row>
+          </Group>
+        </Section>
+
+        <div className="mt-4">
+          <InstallHint />
+        </div>
+      </div>
+    </>
   );
 }
 
@@ -260,7 +265,7 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="mt-5">
+    <section className="mt-4 first:mt-1">
       <div className="mb-1.5 flex items-center justify-between px-4">
         <h3 className="text-[13px] font-medium tracking-wide text-muted-foreground uppercase dark:text-white/55">
           {title}

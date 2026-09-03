@@ -60,7 +60,7 @@ export function MobileMenu() {
            bottom one — hence rounded all round and inset. `transition-none`:
            see `useSheetDismiss`, the primitive's own duration would
            interpolate the transform the drag writes. */
-        className="inset-x-2 top-auto bottom-[max(0.5rem,calc(env(safe-area-inset-bottom)-10px))] flex h-auto max-h-[86dvh] w-auto flex-col gap-0 rounded-[36px] border-0 bg-[#f2f2f7] p-0 text-foreground shadow-2xl transition-none md:hidden dark:bg-black"
+        className="inset-x-2 top-auto bottom-[max(0.5rem,calc(env(safe-area-inset-bottom)-10px))] flex h-auto max-h-[86dvh] w-auto flex-col gap-0 rounded-[36px] border-0 bg-[#f2f2f7] p-0 text-foreground shadow-2xl transition-none md:hidden dark:bg-black dark:ring-1 dark:ring-white/12"
       >
         <SheetTitle className="sr-only">Menu</SheetTitle>
         <SheetDescription className="sr-only">
@@ -127,7 +127,7 @@ function MenuBody({
         <ThemePicker
           space={space}
           tone="surface"
-          className="size-9 rounded-full bg-white dark:bg-neutral-900"
+          className="size-9 rounded-full bg-white dark:bg-[#26262a]"
         />
         <button
           type="button"
@@ -153,7 +153,7 @@ function MenuBody({
                 "flex shrink-0 items-center gap-2 rounded-full py-1.5 pr-3.5 pl-1.5 text-[15px] transition-colors",
                 active
                   ? "bg-[color-mix(in_oklch,var(--space-accent)_16%,white)] font-medium text-foreground ring-1 ring-[color-mix(in_oklch,var(--space-accent)_35%,transparent)] dark:bg-[color-mix(in_oklch,var(--space-accent)_22%,black)]"
-                  : "bg-white text-muted-foreground dark:bg-neutral-900",
+                  : "bg-white text-muted-foreground dark:bg-[#26262a]",
               )}
             >
               <SpaceIcon space={sp} size="md" />
@@ -262,7 +262,7 @@ function Section({
   return (
     <section className="mt-5">
       <div className="mb-1.5 flex items-center justify-between px-4">
-        <h3 className="text-[13px] font-medium tracking-wide text-muted-foreground uppercase">
+        <h3 className="text-[13px] font-medium tracking-wide text-muted-foreground uppercase dark:text-white/55">
           {title}
         </h3>
         {action}
@@ -275,7 +275,7 @@ function Section({
 /** The inset grouped card of iOS lists. */
 function Group({ children }: { children: React.ReactNode }) {
   return (
-    <ul className="overflow-hidden rounded-2xl bg-white dark:bg-neutral-900">
+    <ul className="overflow-hidden rounded-2xl bg-white dark:bg-[#26262a]">
       {children}
     </ul>
   );
@@ -302,7 +302,7 @@ function Row({
             "bg-[color-mix(in_oklch,var(--space-accent)_9%,transparent)]",
         )}
       >
-        <span className="flex min-h-12 min-w-0 flex-1 items-center gap-3 border-b border-border/60 py-1.5 pr-4 group-last/row:border-0">
+        <span className="flex min-h-12 min-w-0 flex-1 items-center gap-3 border-b border-black/[0.07] py-1.5 pr-4 group-last/row:border-0 dark:border-white/[0.09]">
           {children}
         </span>
       </button>

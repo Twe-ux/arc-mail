@@ -73,7 +73,12 @@ function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
       <DialogContent
         ref={sheetRef}
         showCloseButton={false}
-        className="inset-x-2 top-[calc(var(--safe-top)+0.5rem)] bottom-[calc(0.75rem+var(--keyboard-inset,0px))] flex h-auto w-auto max-w-none translate-x-0 translate-y-0 flex-col gap-0 rounded-[36px] border-0 p-0 shadow-2xl transition-none dark:bg-[#26262a] dark:ring-1 dark:ring-white/12 data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom"
+        /* The box itself never moves for the keyboard — see the note on
+           `ComposeFields`'s scroll container below. Moving it here as well
+           fights iOS's own scroll-into-view and the card ends up mid-screen,
+           neither where the keyboard math nor the browser's own compensation
+           put it. */
+        className="inset-x-2 top-[calc(var(--safe-top)+0.5rem)] bottom-[max(0.75rem,env(safe-area-inset-bottom))] flex h-auto w-auto max-w-none translate-x-0 translate-y-0 flex-col gap-0 rounded-[36px] border-0 p-0 shadow-2xl transition-none dark:bg-[#26262a] dark:ring-1 dark:ring-white/12 data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom"
       >
         <header className="flex h-14 shrink-0 items-center px-3">
           <Button
@@ -289,7 +294,13 @@ function ComposeFields({
   const space = spaces.find((sp) => sp.id === draft.spaceId) ?? spaces[0];
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain">
+    <div
+      className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain"
+      /* Room to scroll the focused field clear of the keyboard, inside this
+         box — the box's own position stays put, so iOS scrolls *here* rather
+         than moving the page (which would drag the fixed card along with it). */
+      style={{ paddingBottom: "var(--keyboard-inset, 0px)" }}
+    >
       <RecipientField
         label="À"
         value={draft.to}

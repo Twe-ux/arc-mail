@@ -8,6 +8,7 @@ import {
   projectMomentum,
   rubberband,
   startsOnControl,
+  swallowNextClick,
   velocityFrom,
   type Sample,
   type SpringAnimation,
@@ -80,9 +81,12 @@ export function useEdgeSwipeBack({
     let settling: SpringAnimation | null = null;
     let committed = false;
 
-    const width = () => element.getBoundingClientRect().width || window.innerWidth;
-    const offsetFor = (pull: number) => (pull < 0 ? -rubberband(-pull, width()) : Math.min(pull, width()));
-    const draw = (offset: number) => latest.current.onProgress(clamp(offset / width()));
+    const width = () =>
+      element.getBoundingClientRect().width || window.innerWidth;
+    const offsetFor = (pull: number) =>
+      pull < 0 ? -rubberband(-pull, width()) : Math.min(pull, width());
+    const draw = (offset: number) =>
+      latest.current.onProgress(clamp(offset / width()));
 
     const settle = (from: { value: number; velocity: number }) => {
       settling = animateSpring({
@@ -125,7 +129,8 @@ export function useEdgeSwipeBack({
       if (!latest.current.enabled || event.touches.length !== 1) return;
       const touch = event.touches[0];
       if (startsOnControl(event.target)) return;
-      fromEdge = touch.clientX - element.getBoundingClientRect().left <= EDGE_ZONE;
+      fromEdge =
+        touch.clientX - element.getBoundingClientRect().left <= EDGE_ZONE;
       const caught = settling?.stop().value ?? 0;
       settling = null;
       committed = false;
@@ -141,14 +146,19 @@ export function useEdgeSwipeBack({
       const dx = touch.clientX - origin.x;
       const dy = touch.clientY - origin.y;
       if (!claimed) {
-        if (Math.abs(dx) < INTENT_DISTANCE && Math.abs(dy) < INTENT_DISTANCE) return;
-        if (dx <= 0 || Math.abs(dx) < Math.abs(dy) * (fromEdge ? RATIO_EDGE : RATIO_INSIDE)) {
+        if (Math.abs(dx) < INTENT_DISTANCE && Math.abs(dy) < INTENT_DISTANCE)
+          return;
+        if (
+          dx <= 0 ||
+          Math.abs(dx) < Math.abs(dy) * (fromEdge ? RATIO_EDGE : RATIO_INSIDE)
+        ) {
           origin = null;
           return;
         }
         claimed = true;
         latest.current.onClaim();
-        if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+        if (document.activeElement instanceof HTMLElement)
+          document.activeElement.blur();
       }
       if (event.cancelable) event.preventDefault();
       travelled = dx;
@@ -171,8 +181,17 @@ export function useEdgeSwipeBack({
       claimed = false;
       samples = [];
       travelled = 0;
-      if (!cancelled && projected > width() * COMMIT_RATIO) throwOut(from);
-      else settle(from);
+      if (!cancelled && projected > width() * COMMIT_RATIO) {
+        /* Only on an actual commit: the finger lifts over the list now
+           revealed underneath, and the browser's synthesized click would
+           otherwise land on whatever thread sits there. A drag that springs
+           back leaves the same thread open, where swallowing the click would
+           just eat the next legitimate tap. */
+        swallowNextClick();
+        throwOut(from);
+      } else {
+        settle(from);
+      }
     };
 
     const onEnd = (e: TouchEvent) => finish(e, false);

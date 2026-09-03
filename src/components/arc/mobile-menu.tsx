@@ -57,10 +57,13 @@ export function MobileMenu() {
         side="bottom"
         showCloseButton={false}
         /* A card that floats clear of every edge, not a sheet welded to the
-           bottom one — hence rounded all round and inset. `transition-none`:
-           see `useSheetDismiss`, the primitive's own duration would
-           interpolate the transform the drag writes. */
-        className="inset-x-2 top-auto bottom-3 flex h-auto max-h-[86dvh] w-auto flex-col gap-0 rounded-[36px] border-0 bg-[#f2f2f7] p-0 text-foreground shadow-2xl transition-none md:hidden dark:bg-black dark:ring-1 dark:ring-white/12"
+           bottom one — hence rounded all round and inset. Flat 12px undershot
+           the home indicator on a Face ID phone: this is a web box, not a
+           native view the system draws the indicator over, so it needs the
+           actual safe area or the rounded corner sits under the gesture zone.
+           `transition-none`: see `useSheetDismiss`, the primitive's own
+           duration would interpolate the transform the drag writes. */
+        className="inset-x-2 top-auto bottom-[max(0.75rem,env(safe-area-inset-bottom))] flex h-auto max-h-[86dvh] w-auto flex-col gap-0 rounded-[36px] border-0 bg-[#f2f2f7] p-0 text-foreground shadow-2xl transition-none md:hidden dark:bg-black dark:ring-1 dark:ring-white/12"
       >
         <SheetTitle className="sr-only">Menu</SheetTitle>
         <SheetDescription className="sr-only">

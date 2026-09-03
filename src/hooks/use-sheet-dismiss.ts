@@ -5,18 +5,28 @@ import {
   SPRING_DISMISS,
   SPRING_SETTLE,
   animateSpring,
-  projectMomentum,
   rubberband,
   scrollTopUnder,
   startsOnDragControl,
+  swallowNextClick,
   velocityFrom,
   type Sample,
   type SpringAnimation,
 } from "@/lib/gesture";
 
 const INTENT_DISTANCE = 8;
-/** Where the *projected* pull has to land for the sheet to go. */
-const DISMISS_DISTANCE = 96;
+/**
+ * What counts as meaning it.
+ *
+ * Projected distance alone (travel plus momentum) made a short, brisk nudge
+ * enough — 20px at 500px/s projects past 100 — so a sheet one meant to jostle
+ * left. A dismissal now needs real travel first, and then either a deliberate
+ * pull or a genuine flick. Anything less springs back, which is the other thing
+ * a small movement is allowed to do.
+ */
+const MIN_TRAVEL = 40;
+const DISMISS_TRAVEL = 110;
+const FLICK_VELOCITY = 550;
 /** Where the sheet starts resisting rather than following one for one. */
 const MAX_PULL = 320;
 
@@ -72,7 +82,8 @@ export function useSheetDismiss(onDismiss: () => void) {
       pull > MAX_PULL ? MAX_PULL + rubberband(pull - MAX_PULL, MAX_PULL) : pull;
 
     const draw = (offset: number) => {
-      element.style.transform = offset === 0 ? "" : `translate3d(0, ${offset}px, 0)`;
+      element.style.transform =
+        offset === 0 ? "" : `translate3d(0, ${offset}px, 0)`;
     };
 
     const settle = (from: { value: number; velocity: number }) => {
@@ -96,7 +107,8 @@ export function useSheetDismiss(onDismiss: () => void) {
      * and the close fires the frame it clears the edge.
      */
     const throwOut = (from: { value: number; velocity: number }) => {
-      const height = element.getBoundingClientRect().height || window.innerHeight;
+      const height =
+        element.getBoundingClientRect().height || window.innerHeight;
       settling = animateSpring({
         from,
         to: height + 80,
@@ -127,7 +139,10 @@ export function useSheetDismiss(onDismiss: () => void) {
       const caught = settling?.stop().value ?? 0;
       settling = null;
       dismissed = false;
-      origin = { x: event.touches[0].clientX, y: event.touches[0].clientY - caught };
+      origin = {
+        x: event.touches[0].clientX,
+        y: event.touches[0].clientY - caught,
+      };
       claimed = false;
       travelled = caught;
       samples = [{ value: travelled, time: event.timeStamp }];
@@ -149,7 +164,8 @@ export function useSheetDismiss(onDismiss: () => void) {
       const dy = point.clientY - origin.y;
 
       if (!claimed) {
-        if (Math.abs(dx) < INTENT_DISTANCE && Math.abs(dy) < INTENT_DISTANCE) return;
+        if (Math.abs(dx) < INTENT_DISTANCE && Math.abs(dy) < INTENT_DISTANCE)
+          return;
         /* Upward is the content's own scroll, sideways is someone else's
            gesture — neither ends the drag, the finger may still come down. */
         if (dy <= 0 || Math.abs(dx) > Math.abs(dy)) {
@@ -164,7 +180,8 @@ export function useSheetDismiss(onDismiss: () => void) {
         element.style.animation = "none";
         /* While a field holds focus iOS pans the visual viewport under a drag
            and the whole page slides with it. Dropping focus leaves it to us. */
-        if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+        if (document.activeElement instanceof HTMLElement)
+          document.activeElement.blur();
       }
 
       if (event.cancelable) event.preventDefault();
@@ -182,14 +199,27 @@ export function useSheetDismiss(onDismiss: () => void) {
       }
       samples.push({ value: travelled, time: event.timeStamp });
       const velocity = cancelled ? 0 : velocityFrom(samples);
-      const projected = travelled + projectMomentum(velocity);
+      const pulled = travelled;
       const from = { value: offsetFor(travelled), velocity };
       origin = null;
       claimed = false;
       samples = [];
       travelled = 0;
-      if (!cancelled && projected > DISMISS_DISTANCE) throwOut(from);
-      else settle(from);
+      const meant =
+        pulled >= MIN_TRAVEL &&
+        (pulled > DISMISS_TRAVEL || velocity > FLICK_VELOCITY);
+      if (!cancelled && meant) {
+        /* Only here: the drag is actually taking the sheet away, so the
+           browser's synthesized click will land on the page now revealed
+           underneath — often the very button that opens this sheet, since a
+           downward pull ends low on the screen. A drag that springs back
+           stays covered by the sheet, and swallowing its click too would eat
+           a legitimate tap right after. */
+        swallowNextClick();
+        throwOut(from);
+      } else {
+        settle(from);
+      }
     };
 
     const onEnd = (e: TouchEvent) => finish(e, false);

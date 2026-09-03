@@ -127,3 +127,21 @@ export function scrollTopUnder(target: EventTarget | null, sheet: HTMLElement): 
   }
   return sheet.scrollTop;
 }
+
+/**
+ * Swallow the click a finished drag leaves behind.
+ *
+ * A touch that moved still ends in a synthesized click, dispatched at whatever
+ * is under the finger when it lifts. After a sheet is thrown out that is the
+ * page it was covering — often the very button that opens it, since a downward
+ * pull ends low on the screen — so the window closed and immediately reopened.
+ * One capturing listener, dropped on the next tick.
+ */
+export function swallowNextClick(): void {
+  const block = (event: MouseEvent) => {
+    event.stopPropagation();
+    event.preventDefault();
+  };
+  window.addEventListener("click", block, true);
+  setTimeout(() => window.removeEventListener("click", block, true), 350);
+}

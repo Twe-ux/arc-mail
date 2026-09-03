@@ -66,6 +66,19 @@ d'Arc (espaces colorés, sidebar translucide, favoris épinglés, onglets « Auj
   serait interpolée — la feuille traîne derrière le doigt et se pose un dixième de seconde trop tard,
   ce qui est exactement la seconde fenêtre fantôme. Le geste coupe aussi l'animation de sortie
   (`animation: none`), sans quoi une animation par images clés écraserait la transformation en ligne.
+- **Fermer une feuille exige un vrai geste**, pas une projection de vitesse seule : un petit coup bref
+  (`use-sheet-dismiss.ts` : `MIN_TRAVEL` + `DISMISS_TRAVEL`/`FLICK_VELOCITY`, pareil côté
+  `use-edge-swipe-back.ts` avec `COMMIT_RATIO`) projetait au-delà du seuil et fermait une fenêtre
+  qu'on voulait juste secouer. Et un geste qui *ferme* laisse toujours un clic de souris synthétisé là
+  où le doigt s'est levé — sur la page qui apparaît dessous, souvent le bouton qui rouvre la même
+  fenêtre. `swallowNextClick()` (`src/lib/gesture.ts`) avale ce clic, appelé uniquement au moment du
+  vrai commit (jamais quand le geste ressort), pour ne pas manger un tap légitime après un ressort.
+- **Le clavier ne déplace jamais la carte.** `bottom` reste fixe (`max(0.75rem, safe-area-inset-bottom)`),
+  jamais `+ var(--keyboard-inset)` : Kairos l'a documenté le premier — faire remonter la feuille ET
+  laisser iOS faire défiler la page pour révéler le champ, ce sont deux compensations pour un seul
+  problème, et la feuille finit au milieu de l'écran. Seul le conteneur défilant à l'intérieur
+  (`ComposeFields`) reçoit `padding-bottom: var(--keyboard-inset)`, ce qui donne à iOS de quoi
+  défiler *dedans* plutôt que de bouger la page entière.
 - Les espaces ont une icône Lucide sur une tuile dégradée (`SpaceIcon`), pas d'emoji. Lire les
   espaces via `useSpace()` / `useSpaces()` (couleur personnalisée résolue), jamais `SPACES` en direct
   dans un composant.

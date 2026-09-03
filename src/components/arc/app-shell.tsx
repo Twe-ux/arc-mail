@@ -39,7 +39,7 @@ export function AppShell() {
   return (
     <TooltipProvider>
       <div
-        className="flex h-dvh w-full flex-col transition-[background] duration-500 md:flex-row md:gap-2 md:p-2"
+        className="flex h-dvh w-full flex-col pt-[env(safe-area-inset-top)] transition-[background] duration-500 md:flex-row md:gap-2 md:p-2"
         style={{ background: space.theme.gradient }}
       >
         <Sidebar />

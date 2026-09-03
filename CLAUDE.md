@@ -32,7 +32,8 @@ d'Arc (espaces colorés, sidebar translucide, favoris épinglés, onglets « Auj
 
 ## Feuille de route
 
-1. **UI Arc avec données mock** — fait (ce dépôt).
+1. **UI Arc avec données mock** — fait, responsive (tiroir + barre du bas sous `md`) et installable en PWA
+   sur iPhone (`src/app/manifest.ts`, `public/sw.js` en production seulement, icônes dans `public/icons`).
 2. **Persistance légère** : `zustand/persist` pour les onglets « Aujourd'hui », la vue partagée et le thème.
 3. **Gmail** : NextAuth (Auth.js) + Google OAuth, lecture des threads via `googleapis`,
    envoi/réponse via `gmail.send`. Introduire une interface `MailProvider` (`listThreads`,

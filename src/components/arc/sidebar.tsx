@@ -26,6 +26,7 @@ import { selectFolder, selectSpace, selectUnreadCount, useMail } from "@/lib/sto
 import type { FolderId } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { ContactAvatar } from "./contact-avatar";
+import { InstallHint } from "./install-hint";
 import { SpaceSwitcher } from "./space-switcher";
 
 const FOLDER_ICONS: Record<FolderId, LucideIcon> = {
@@ -74,6 +75,7 @@ export function MobileSidebar() {
         <SheetDescription className="sr-only">Espaces, dossiers et conversations récentes</SheetDescription>
         <div className="flex min-h-0 flex-1 flex-col gap-3">
           <SidebarContent onNavigate={() => setOpen(false)} />
+          <InstallHint />
         </div>
       </SheetContent>
     </Sheet>

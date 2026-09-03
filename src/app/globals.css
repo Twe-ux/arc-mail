@@ -83,6 +83,11 @@
   }
   body {
     @apply bg-background text-foreground antialiased;
+    /* Installed on a phone: no rubber-banding, no tap flash, no double-tap zoom. */
+    overscroll-behavior: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    -webkit-touch-callout: none;
   }
 }
 

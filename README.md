@@ -42,6 +42,14 @@ npm run lint
   fois, la sidebar en tiroir latéral et une barre du bas façon Arc mobile (espace, réception,
   recherche, écrire).
 
+## Installer sur iPhone (PWA)
+
+L'app est installable : manifeste (`src/app/manifest.ts`), icônes dans `public/icons`, métadonnées
+Apple dans `src/app/layout.tsx`, service worker minimal (`public/sw.js`, actif en production
+uniquement) pour ouvrir le shell hors ligne. Sur iPhone, ouvre le site dans Safari, touche
+**Partager** puis **Sur l'écran d'accueil** : Arc Mail se lance en plein écran, avec la barre
+d'état peinte aux couleurs de l'espace.
+
 ## Structure
 
 ```

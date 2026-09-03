@@ -73,9 +73,9 @@ function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
       <DialogContent
         ref={sheetRef}
         showCloseButton={false}
-        className="inset-x-2.5 top-[calc(var(--safe-top)+0.625rem)] bottom-[calc(max(0.625rem,calc(env(safe-area-inset-bottom)-10px))+var(--keyboard-inset,0px))] flex h-auto max-w-none translate-x-0 translate-y-0 flex-col gap-0 rounded-[26px] border-0 p-0 shadow-2xl transition-none data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom"
+        className="inset-x-2 top-[calc(var(--safe-top)+0.5rem)] bottom-[calc(max(0.5rem,calc(env(safe-area-inset-bottom)-10px))+var(--keyboard-inset,0px))] flex h-auto w-auto max-w-none translate-x-0 translate-y-0 flex-col gap-0 rounded-[36px] border-0 p-0 shadow-2xl transition-none data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom"
       >
-        <header className="flex h-14 shrink-0 items-center px-2">
+        <header className="flex h-14 shrink-0 items-center px-3">
           <Button
             variant="ghost"
             size="sm"
@@ -105,7 +105,12 @@ function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
         {draft && (
           <ComposeFields key={draft.draftId ?? "new"} draft={draft} compact />
         )}
-        <Toolbar draft={draft} className="border-t border-border/60" />
+        <Toolbar
+          draft={draft}
+          /* Four buttons that do nothing while a message is being typed, in a
+             card the keyboard has already made short. */
+          className="border-t border-border/60 [.keyboard-open_&]:hidden"
+        />
       </DialogContent>
     </Dialog>
   );

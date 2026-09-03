@@ -60,7 +60,7 @@ export function MobileMenu() {
            bottom one — hence rounded all round and inset. `transition-none`:
            see `useSheetDismiss`, the primitive's own duration would
            interpolate the transform the drag writes. */
-        className="inset-x-2.5 top-auto bottom-[max(0.625rem,calc(env(safe-area-inset-bottom)-10px))] flex h-auto max-h-[86dvh] flex-col gap-0 rounded-[26px] border-0 bg-[#f2f2f7] p-0 text-foreground shadow-2xl transition-none md:hidden dark:bg-black"
+        className="inset-x-2 top-auto bottom-[max(0.5rem,calc(env(safe-area-inset-bottom)-10px))] flex h-auto max-h-[86dvh] w-auto flex-col gap-0 rounded-[36px] border-0 bg-[#f2f2f7] p-0 text-foreground shadow-2xl transition-none md:hidden dark:bg-black"
       >
         <SheetTitle className="sr-only">Menu</SheetTitle>
         <SheetDescription className="sr-only">

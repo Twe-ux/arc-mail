@@ -46,8 +46,13 @@ d'Arc (espaces colorés, sidebar translucide, favoris épinglés, onglets « Auj
   distance ; un ressort suit, qu'on peut rattraper. Retour par glissement depuis le bord gauche
   (`BackSwipe` + `useEdgeSwipeBack`), fermeture des feuilles par glissement vers le bas (`useSheetDismiss`).
 - Les fenêtres du téléphone (menu, composeur) sont des **cartes flottantes** : détachées des quatre
-  bords (`inset-x-2.5`, bas à `safe-area − 10px`), arrondies tout autour, pas de poignée. Le clavier
-  remonte la carte (`bottom: … + var(--keyboard-inset)`) au lieu de la rembourrer par le bas.
+  bords (8 px, bas à `safe-area − 10px`), arrondies à 36 px tout autour, pas de poignée. Sur une carte
+  positionnée par ses quatre côtés, `w-auto` est indispensable : le `w-full` des primitives fixe la
+  largeur, la marge droite est alors ignorée et la carte déborde.
+- **Clavier** : `--keyboard-inset` est l'écart entre les deux viewports, sans `offsetTop` (qui dit le
+  défilement fait pour révéler un champ ; le soustraire soulevait la carte du clavier *plus* ce
+  défilement). Un seuil de 200 px écarte ce qui n'est pas un clavier. La classe `keyboard-open` va avec,
+  pour qu'une carte abandonne ce qui ne sert pas pendant la saisie.
 - **Une feuille se prend n'importe où**, pas par sa poignée : `useSheetDismiss` s'attache à la feuille
   entière et cède au conteneur défilable sous le doigt tant qu'il lui reste de la course
   (`scrollTopUnder`). Elle doit porter `transition-none` : les primitives de dialogue embarquent une

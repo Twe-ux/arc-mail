@@ -48,7 +48,11 @@ function CommandDialog({
   );
 }
 
-function CommandInput({ className, ...props }: React.ComponentProps<typeof CommandPrimitive.Input>) {
+function CommandInput({
+  className,
+  trailing,
+  ...props
+}: React.ComponentProps<typeof CommandPrimitive.Input> & { trailing?: React.ReactNode }) {
   return (
     <div data-slot="command-input-wrapper" className="flex h-9 items-center gap-2 border-b border-black/[0.07] px-3 dark:border-white/[0.12]">
       <SearchIcon className="size-4 shrink-0 opacity-50" />
@@ -60,6 +64,7 @@ function CommandInput({ className, ...props }: React.ComponentProps<typeof Comma
         )}
         {...props}
       />
+      {trailing}
     </div>
   );
 }

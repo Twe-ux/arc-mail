@@ -70,7 +70,26 @@ export function CommandPalette() {
            to 0 before `KeyboardInset`/`--safe-top` are in play, at first paint. */
         className="top-[7dvh] max-h-[calc(100dvh-7dvh-var(--keyboard-inset,0px)-1.5rem)] flex translate-y-0 flex-col overflow-hidden rounded-2xl dark:bg-[#26262a] dark:ring-1 dark:ring-white/12 sm:top-[18%] sm:max-h-none sm:max-w-xl"
     >
-      <CommandInput placeholder="Rechercher ou taper une commande…" />
+      <CommandInput
+        placeholder="Rechercher ou taper une commande…"
+        /* No Escape key on a phone, and once the keyboard is up the box
+           itself covers almost the whole screen — the sliver of overlay left
+           to tap outside on shrinks to a few pixels at the very top and
+           sides, easy to miss. A explicit control next to the field, the way
+           iOS's own search bars do it, closes the palette without depending
+           on that sliver. */
+        trailing={
+          !desktop && (
+            <button
+              type="button"
+              onClick={() => setCommandOpen(false)}
+              className="shrink-0 text-[15px] text-[var(--space-accent)]"
+            >
+              Annuler
+            </button>
+          )
+        }
+      />
       <CommandList className="max-h-none min-h-0 flex-1 sm:max-h-[300px] sm:flex-none">
         <CommandEmpty>Aucun résultat.</CommandEmpty>
 

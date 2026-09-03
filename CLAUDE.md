@@ -98,6 +98,12 @@ d'Arc (espaces colorés, sidebar translucide, favoris épinglés, onglets « Auj
   lieu de son plafond fixe de 300 px, pour se caler sur ce qui reste. Le focus arrivant toujours sur le
   champ de recherche, tout en haut, il n'y a pas de conflit avec le défilement natif d'iOS comme pour
   le composeur — la position peut bouger avec le clavier ici sans risque.
+- **La barre de commande a besoin d'un vrai bouton pour se fermer sur téléphone.** Sans clavier
+  physique, Échap n'existe pas ; et une fois le clavier sorti, la boîte occupe presque tout l'écran —
+  il ne reste qu'un mince liseré de recouvrement à toucher pour fermer par l'extérieur, facile à
+  manquer. `CommandInput` accepte un `trailing` (même idée que `RecipientField`) : un bouton
+  « Annuler » à côté du champ, affiché seulement sur téléphone (`!desktop`), là où le clic en dehors
+  et Échap restent fiables sur ordinateur.
 - Les espaces ont une icône Lucide sur une tuile dégradée (`SpaceIcon`), pas d'emoji. Lire les
   espaces via `useSpace()` / `useSpaces()` (couleur personnalisée résolue), jamais `SPACES` en direct
   dans un composant. **Exception : la barre du bas du téléphone (`MobileNav`).** À côté des glyphes
@@ -142,3 +148,13 @@ la mettre en arrière-plan) avant de rouvrir, ou de la réinstaller si le doute 
 ```bash
 npm run dev · npm run build · npm run lint
 ```
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

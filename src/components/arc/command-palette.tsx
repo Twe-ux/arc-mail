@@ -99,7 +99,10 @@ export function CommandPalette() {
           )
         }
       />
-      <CommandList className="max-h-none min-h-0 flex-1 sm:max-h-[300px] sm:flex-none">
+      {/* Same fade as the menu's list, for the same reason: a row half-cut at
+          the card's edge reads as a bar under the results. `pb-6` matches the
+          fade so the last match stays opaque once scrolled to the end. */}
+      <CommandList className="max-h-none min-h-0 flex-1 pb-6 [mask-image:linear-gradient(to_bottom,#000_calc(100%-1.5rem),transparent)] sm:max-h-[300px] sm:flex-none">
         <CommandEmpty>Aucun résultat.</CommandEmpty>
 
         <CommandGroup heading="Actions">

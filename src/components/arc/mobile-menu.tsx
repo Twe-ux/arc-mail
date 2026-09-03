@@ -186,9 +186,15 @@ function MenuBody({
       {/* The card keeps its own `pb-3` under this box, so mid-scroll the list
           is cut against a strip of card rather than against the border itself:
           a row guillotined flat on the 36px corner reads as content escaping
-          the window (same reasoning as the fixed head above). `pb-4` here is
-          the separate end-of-list breathing room, only seen at the bottom. */}
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-4">
+          the window (same reasoning as the fixed head above).
+
+          The mask then softens that cut: a sliver of the next group left at
+          the edge read as a little bar sitting under the list. The gradient is
+          anchored to this box, not to the content, so it always fades the last
+          24px of the *viewport*. `pb-6` matches it — at the end of the list
+          the fade falls on that padding, so the final row stays fully opaque
+          instead of dimming once there is nothing left to scroll. */}
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-6 [mask-image:linear-gradient(to_bottom,#000_calc(100%-1.5rem),transparent)]">
         {/* Mailboxes */}
         <Section title="Boîtes">
           <Group>

@@ -133,6 +133,16 @@ d'Arc (espaces colorés, sidebar translucide, favoris épinglés, onglets « Auj
   au milieu d'un trait de ligne neutre. `SPACE_ICONS` (la table Lucide, exportée depuis
   `space-icon.tsx`) permet d'y dessiner le même glyphe en trait seul (`SpaceGlyph`), avec le même
   poids que les deux autres, sans la tuile ni le dégradé.
+- **Les listes des cartes s'effacent en bas au lieu d'être tranchées** (`mask-image` en dégradé sur
+  les 24 derniers px du conteneur défilant, menu et barre de commande). La bande de carte seule ne
+  suffisait pas : le liseré du groupe suivant, resté au ras du bord, se lisait comme une petite barre
+  posée sous la liste. Le masque est ancré sur la boîte et non sur le contenu, donc il efface
+  toujours le bas du *cadre* ; le `pb-6` qui l'accompagne le fait tomber sur du vide en fin de liste,
+  pour que la dernière rangée reste franche quand il n'y a plus rien à faire défiler.
+- **Une seule surface par carte.** `Command` (cmdk) apporte son propre `bg-popover`, quasi noir en
+  sombre, alors que la carte est `#26262a` : tant qu'il la couvrait bord à bord ça ne se voyait pas,
+  mais dès qu'un bout de carte dépasse (la bande du bas) il vire à la bande claire. Il est donc en
+  `bg-transparent` dans `CommandDialog` — la carte peint, l'intérieur ne repeint pas.
 - **Un rail horizontal (`overflow-x-auto`) rogne aussi verticalement.** CSS transforme le `visible`
   de l'autre axe en `auto` dès qu'un axe défile : le rail des espaces coupait donc le haut du ring
   de la pastille active, qui est un `box-shadow` peint *hors* de la boîte, collé au ras du bord du

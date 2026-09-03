@@ -90,12 +90,12 @@ function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
            fights iOS's own scroll-into-view and the card ends up mid-screen,
            neither where the keyboard math nor the browser's own compensation
            put it. */
-        /* Bottom matches the nav bar's own floor (safe-area − 18px, never
-           under 12px) rather than the full safe-area inset: the full inset
-           left this card floating noticeably higher than the bar right next
-           to it once closed, the two edges not reading as the same "clear of
-           the home indicator" line. */
-        className="inset-x-2 top-[calc(var(--safe-top)+0.5rem)] bottom-[max(14px,calc(env(safe-area-inset-bottom)-18px))] flex h-auto w-auto max-w-none translate-x-0 translate-y-0 flex-col gap-0 rounded-[36px] border-0 p-0 shadow-2xl transition-none dark:bg-[#26262a] dark:ring-1 dark:ring-white/12 data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom"
+        /* One margin, not three: 8px left, right and bottom (`inset-x-2` /
+           `bottom-2`). Only the top still adds `--safe-top`, which is a real
+           obstruction (the notch) rather than a margin. Deriving the bottom
+           from the safe area put it at 34px against 8px on the sides — the
+           card read as floating instead of resting. */
+        className="inset-x-2 top-[calc(var(--safe-top)+0.5rem)] bottom-2 flex h-auto w-auto max-w-none translate-x-0 translate-y-0 flex-col gap-0 rounded-[36px] border-0 p-0 shadow-2xl transition-none dark:bg-[#26262a] dark:ring-1 dark:ring-white/12 data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom"
       >
         <header className="flex h-14 shrink-0 items-center px-3">
           <Button

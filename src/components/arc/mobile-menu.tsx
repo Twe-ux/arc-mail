@@ -64,16 +64,14 @@ export function MobileMenu() {
         onPointerDownOutside={(e) => e.preventDefault()}
         onInteractOutside={(e) => e.preventDefault()}
         /* A card that floats clear of every edge, not a sheet welded to the
-           bottom one — hence rounded all round and inset. Flat 12px undershot
-           the home indicator on a Face ID phone: this is a web box, not a
-           native view the system draws the indicator over, so it needs the
-           actual safe area or the rounded corner sits under the gesture zone.
+           bottom one — hence rounded all round and inset by the same 8px on
+           all three free sides (`inset-x-2` / `bottom-2`), so the gap reads as
+           one margin rather than three different ones. Deriving the bottom
+           from the safe area instead put it at 34px against 8px on the sides,
+           which looks like the card floating rather than resting.
            `transition-none`: see `useSheetDismiss`, the primitive's own
            duration would interpolate the transform the drag writes. */
-        /* Same floor as the nav bar (safe-area − 18px, never under 12px):
-           the full safe-area inset left this card visibly higher than the
-           bar right beside it once closed. */
-        className="inset-x-2 top-auto bottom-[max(14px,calc(env(safe-area-inset-bottom)-18px))] flex h-auto max-h-[86dvh] w-auto flex-col gap-0 rounded-[36px] border-0 bg-[#f2f2f7] p-0 text-foreground shadow-2xl transition-none md:hidden dark:bg-black dark:ring-1 dark:ring-white/12"
+        className="inset-x-2 top-auto bottom-2 flex h-auto max-h-[86dvh] w-auto flex-col gap-0 rounded-[36px] border-0 bg-[#f2f2f7] p-0 text-foreground shadow-2xl transition-none md:hidden dark:bg-black dark:ring-1 dark:ring-white/12"
       >
         <SheetTitle className="sr-only">Menu</SheetTitle>
         <SheetDescription className="sr-only">

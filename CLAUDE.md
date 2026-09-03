@@ -42,6 +42,13 @@ d'Arc (espaces colorés, sidebar translucide, favoris épinglés, onglets « Auj
   chaque frame, jamais via un état React ni une transition CSS ; le relâchement lit la vitesse, pas la
   distance ; un ressort suit, qu'on peut rattraper. Retour par glissement depuis le bord gauche
   (`BackSwipe` + `useEdgeSwipeBack`), fermeture des feuilles par glissement vers le bas (`useSheetDismiss`).
+- **Une feuille se prend n'importe où**, pas par sa poignée : `useSheetDismiss` s'attache à la feuille
+  entière et cède au conteneur défilable sous le doigt tant qu'il lui reste de la course
+  (`scrollTopUnder`). Elle doit porter `transition-none` : les primitives de dialogue embarquent une
+  durée et `transition-property` vaut `all` par défaut, donc la transformation écrite par le geste
+  serait interpolée — la feuille traîne derrière le doigt et se pose un dixième de seconde trop tard,
+  ce qui est exactement la seconde fenêtre fantôme. Le geste coupe aussi l'animation de sortie
+  (`animation: none`), sans quoi une animation par images clés écraserait la transformation en ligne.
 - Les espaces ont une icône Lucide sur une tuile dégradée (`SpaceIcon`), pas d'emoji. Lire les
   espaces via `useSpace()` / `useSpaces()` (couleur personnalisée résolue), jamais `SPACES` en direct
   dans un composant.

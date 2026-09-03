@@ -1,6 +1,5 @@
 "use client";
 
-import { useRef } from "react";
 import {
   Archive,
   Clock,
@@ -14,7 +13,12 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { useSheetDismiss } from "@/hooks/use-sheet-dismiss";
 import { FOLDERS } from "@/lib/mock-data";
 import { selectUnreadCount, useMail, useSpace, useSpaces } from "@/lib/store";
@@ -44,8 +48,7 @@ const FOLDER_TILES: Record<FolderId, { icon: LucideIcon; tint: string }> = {
 export function MobileMenu() {
   const open = useMail((s) => s.sidebarOpen);
   const setOpen = useMail((s) => s.setSidebarOpen);
-  const sheetRef = useRef<HTMLDivElement>(null);
-  const handleRef = useSheetDismiss(sheetRef, () => setOpen(false));
+  const sheetRef = useSheetDismiss(() => setOpen(false));
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -53,12 +56,17 @@ export function MobileMenu() {
         ref={sheetRef}
         side="bottom"
         showCloseButton={false}
-        className="inset-x-0 bottom-0 flex h-[88dvh] flex-col gap-0 rounded-t-[22px] border-0 bg-[#f2f2f7] p-0 text-foreground md:hidden dark:bg-black"
+        className="inset-x-0 bottom-0 flex h-[88dvh] flex-col gap-0 rounded-t-[22px] border-0 bg-[#f2f2f7] p-0 text-foreground transition-none md:hidden dark:bg-black"
       >
         <SheetTitle className="sr-only">Menu</SheetTitle>
-        <SheetDescription className="sr-only">Espaces, boîtes et conversations récentes</SheetDescription>
-        <div ref={handleRef} className="shrink-0 touch-none pt-2 pb-1">
-          <div className="mx-auto h-1 w-9 rounded-full bg-foreground/15" aria-hidden />
+        <SheetDescription className="sr-only">
+          Espaces, boîtes et conversations récentes
+        </SheetDescription>
+        <div className="shrink-0 pt-2 pb-1">
+          <div
+            className="mx-auto h-1 w-9 rounded-full bg-foreground/15"
+            aria-hidden
+          />
         </div>
         <MenuBody onNavigate={() => setOpen(false)} />
       </SheetContent>
@@ -92,15 +100,27 @@ function MenuBody({ onNavigate }: { onNavigate: () => void }) {
   };
 
   return (
-    <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-[max(1rem,calc(env(safe-area-inset-bottom)-10px))]">
+    <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-[max(1rem,calc(env(safe-area-inset-bottom)-10px))]">
       {/* Account */}
       <div className="flex items-center gap-3 py-2">
-        <SpaceIcon space={space} size="lg" className="size-11 rounded-xl [&_svg]:size-6" />
+        <SpaceIcon
+          space={space}
+          size="lg"
+          className="size-11 rounded-xl [&_svg]:size-6"
+        />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[17px] leading-tight font-semibold">{space.name}</p>
-          <p className="truncate text-[13px] text-muted-foreground">{space.email}</p>
+          <p className="truncate text-[17px] leading-tight font-semibold">
+            {space.name}
+          </p>
+          <p className="truncate text-[13px] text-muted-foreground">
+            {space.email}
+          </p>
         </div>
-        <ThemePicker space={space} tone="surface" className="size-9 rounded-full bg-white dark:bg-neutral-900" />
+        <ThemePicker
+          space={space}
+          tone="surface"
+          className="size-9 rounded-full bg-white dark:bg-neutral-900"
+        />
       </div>
 
       {/* Spaces as chips */}
@@ -131,7 +151,13 @@ function MenuBody({ onNavigate }: { onNavigate: () => void }) {
       <Section title="Boîtes">
         <Group>
           {FOLDERS.map((f) => (
-            <FolderRow key={f.id} id={f.id} name={f.name} active={f.id === folderId} onClick={go(() => setFolder(f.id))} />
+            <FolderRow
+              key={f.id}
+              id={f.id}
+              name={f.name}
+              active={f.id === folderId}
+              onClick={go(() => setFolder(f.id))}
+            />
           ))}
         </Group>
       </Section>
@@ -141,7 +167,11 @@ function MenuBody({ onNavigate }: { onNavigate: () => void }) {
         title="Aujourd'hui"
         action={
           recentThreads.length > 0 && (
-            <button type="button" onClick={clearRecent} className="text-[13px] font-medium text-[var(--space-accent)]">
+            <button
+              type="button"
+              onClick={clearRecent}
+              className="text-[13px] font-medium text-[var(--space-accent)]"
+            >
               Effacer
             </button>
           )
@@ -150,15 +180,22 @@ function MenuBody({ onNavigate }: { onNavigate: () => void }) {
         <Group>
           {recentThreads.length === 0 ? (
             <p className="px-4 py-3.5 text-[15px] text-muted-foreground">
-              Les conversations que tu ouvres restent ici, comme les onglets d&apos;Arc.
+              Les conversations que tu ouvres restent ici, comme les onglets
+              d&apos;Arc.
             </p>
           ) : (
             recentThreads.map((t) => {
               const last = t.messages[t.messages.length - 1];
               return (
-                <Row key={t.id} onClick={go(() => selectThread(t.id))} active={t.id === selectedThreadId}>
+                <Row
+                  key={t.id}
+                  onClick={go(() => selectThread(t.id))}
+                  active={t.id === selectedThreadId}
+                >
                   <ContactAvatar contact={last.from} className="size-8" />
-                  <span className="min-w-0 flex-1 truncate text-[15px]">{t.subject}</span>
+                  <span className="min-w-0 flex-1 truncate text-[15px]">
+                    {t.subject}
+                  </span>
                   <button
                     type="button"
                     onClick={(e) => {
@@ -197,11 +234,21 @@ function MenuBody({ onNavigate }: { onNavigate: () => void }) {
   );
 }
 
-function Section({ title, action, children }: { title: string; action?: React.ReactNode; children: React.ReactNode }) {
+function Section({
+  title,
+  action,
+  children,
+}: {
+  title: string;
+  action?: React.ReactNode;
+  children: React.ReactNode;
+}) {
   return (
     <section className="mt-5">
       <div className="mb-1.5 flex items-center justify-between px-4">
-        <h3 className="text-[13px] font-medium tracking-wide text-muted-foreground uppercase">{title}</h3>
+        <h3 className="text-[13px] font-medium tracking-wide text-muted-foreground uppercase">
+          {title}
+        </h3>
         {action}
       </div>
       {children}
@@ -211,17 +258,33 @@ function Section({ title, action, children }: { title: string; action?: React.Re
 
 /** The inset grouped card of iOS lists. */
 function Group({ children }: { children: React.ReactNode }) {
-  return <ul className="overflow-hidden rounded-2xl bg-white dark:bg-neutral-900">{children}</ul>;
+  return (
+    <ul className="overflow-hidden rounded-2xl bg-white dark:bg-neutral-900">
+      {children}
+    </ul>
+  );
 }
 
-function Row({ active, onClick, children }: { active?: boolean; onClick: () => void; children: React.ReactNode }) {
+function Row({
+  active,
+  onClick,
+  children,
+}: {
+  active?: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
   return (
     <li className="group/row">
       <button
         type="button"
         onClick={onClick}
         aria-current={active ? "page" : undefined}
-        className={cn("flex w-full items-center gap-3 pl-4 text-left transition-colors active:bg-muted", active && "bg-[color-mix(in_oklch,var(--space-accent)_9%,transparent)]")}
+        className={cn(
+          "flex w-full items-center gap-3 pl-4 text-left transition-colors active:bg-muted",
+          active &&
+            "bg-[color-mix(in_oklch,var(--space-accent)_9%,transparent)]",
+        )}
       >
         <span className="flex min-h-12 min-w-0 flex-1 items-center gap-3 border-b border-border/60 py-1.5 pr-4 group-last/row:border-0">
           {children}
@@ -231,7 +294,17 @@ function Row({ active, onClick, children }: { active?: boolean; onClick: () => v
   );
 }
 
-function FolderRow({ id, name, active, onClick }: { id: FolderId; name: string; active: boolean; onClick: () => void }) {
+function FolderRow({
+  id,
+  name,
+  active,
+  onClick,
+}: {
+  id: FolderId;
+  name: string;
+  active: boolean;
+  onClick: () => void;
+}) {
   const count = useMail((s) => selectUnreadCount(s, s.spaceId, id));
   const { icon: Icon, tint } = FOLDER_TILES[id];
   return (
@@ -239,8 +312,19 @@ function FolderRow({ id, name, active, onClick }: { id: FolderId; name: string; 
       <Tile tint={tint}>
         <Icon />
       </Tile>
-      <span className={cn("min-w-0 flex-1 truncate text-[15px]", active && "font-medium")}>{name}</span>
-      {count > 0 && <span className="text-[15px] text-muted-foreground tabular-nums">{count}</span>}
+      <span
+        className={cn(
+          "min-w-0 flex-1 truncate text-[15px]",
+          active && "font-medium",
+        )}
+      >
+        {name}
+      </span>
+      {count > 0 && (
+        <span className="text-[15px] text-muted-foreground tabular-nums">
+          {count}
+        </span>
+      )}
     </Row>
   );
 }
@@ -248,7 +332,13 @@ function FolderRow({ id, name, active, onClick }: { id: FolderId; name: string; 
 /** The coloured square that iOS puts before a row. */
 function Tile({ tint, children }: { tint: string; children: React.ReactNode }) {
   return (
-    <span className={cn("flex size-7 shrink-0 items-center justify-center rounded-[7px] text-white [&_svg]:size-4", tint)} aria-hidden>
+    <span
+      className={cn(
+        "flex size-7 shrink-0 items-center justify-center rounded-[7px] text-white [&_svg]:size-4",
+        tint,
+      )}
+      aria-hidden
+    >
       {children}
     </span>
   );

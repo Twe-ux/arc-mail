@@ -96,3 +96,34 @@ export function animateSpring({
 export function startsOnControl(target: EventTarget | null): boolean {
   return target instanceof Element && target.closest("input, textarea, select, [contenteditable=true]") !== null;
 }
+
+/**
+ * Controls whose own gesture *is* a drag, and so cannot be shared. Fields and
+ * buttons are not among them: they answer to a tap, and a deliberate pull
+ * across a sheet is not one — which is what lets a sheet be dragged from
+ * anywhere, its text included.
+ */
+export function startsOnDragControl(target: EventTarget | null): boolean {
+  return (
+    target instanceof Element &&
+    target.closest('input[type="range"], [role="slider"], [data-slot="slider"], [data-scrub]') !== null
+  );
+}
+
+/**
+ * How far the list under the finger has been scrolled, which decides whether a
+ * downward pull belongs to the list or to the sheet. Walks up from the touch to
+ * the nearest scrollable box, stopping at the sheet — the sheet itself often is
+ * not the scroller, an inner column is.
+ */
+export function scrollTopUnder(target: EventTarget | null, sheet: HTMLElement): number {
+  let node = target instanceof Element ? target : null;
+  while (node && node !== sheet) {
+    if (node instanceof HTMLElement && node.scrollHeight > node.clientHeight) {
+      const overflow = getComputedStyle(node).overflowY;
+      if (overflow === "auto" || overflow === "scroll") return node.scrollTop;
+    }
+    node = node.parentElement;
+  }
+  return sheet.scrollTop;
+}

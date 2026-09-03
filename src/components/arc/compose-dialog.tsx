@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   ArrowUp,
   ChevronDown,
@@ -61,8 +61,7 @@ function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
   const closeCompose = useMail((s) => s.closeCompose);
   const sendMail = useMail((s) => s.sendMail);
   const canSend = (draft?.to.length ?? 0) > 0;
-  const sheetRef = useRef<HTMLDivElement>(null);
-  const handleRef = useSheetDismiss(sheetRef, closeCompose);
+  const sheetRef = useSheetDismiss(closeCompose);
 
   return (
     <Dialog
@@ -74,43 +73,42 @@ function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
       <DialogContent
         ref={sheetRef}
         showCloseButton={false}
-        className="inset-x-0 top-[max(env(safe-area-inset-top),0.75rem)] bottom-0 flex h-auto max-w-none translate-x-0 translate-y-0 flex-col gap-0 rounded-t-[22px] rounded-b-none border-0 p-0 data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom"
+        className="inset-x-0 top-[max(env(safe-area-inset-top),0.75rem)] bottom-0 flex h-auto max-w-none translate-x-0 translate-y-0 flex-col gap-0 rounded-t-[22px] rounded-b-none border-0 p-0 transition-none data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom"
         style={{ paddingBottom: "var(--keyboard-inset, 0px)" }}
       >
-        {/* The handle: grabber and title bar. Drag it down to dismiss, the sheet follows the thumb. */}
-        <div ref={handleRef} className="shrink-0 touch-none">
-          <div
-            className="mx-auto mt-2 h-1 w-9 rounded-full bg-foreground/15"
-            aria-hidden
-          />
-          <header className="flex h-12 items-center px-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={closeCompose}
-              className="text-[15px] font-normal"
-            >
-              Annuler
-            </Button>
-            <div className="min-w-0 flex-1 text-center">
-              <DialogTitle className="truncate text-[15px] font-semibold">
-                {draft?.draftId ? "Brouillon" : "Nouveau message"}
-              </DialogTitle>
-              <DialogDescription className="sr-only">
-                Rédiger un e-mail
-              </DialogDescription>
-            </div>
-            <button
-              type="button"
-              onClick={sendMail}
-              disabled={!canSend}
-              aria-label="Envoyer"
-              className="mr-1 flex size-9 items-center justify-center rounded-full text-white shadow-md transition-[opacity,transform] active:scale-95 disabled:opacity-35 disabled:shadow-none [background:var(--space-gradient)]"
-            >
-              <ArrowUp className="size-5" strokeWidth={2.5} />
-            </button>
-          </header>
-        </div>
+        {/* Decorative now: the whole sheet is the grip, and the content's own
+            scroll gets the finger first while it has anywhere to go. */}
+        <div
+          className="mx-auto mt-2 h-1 w-9 shrink-0 rounded-full bg-foreground/15"
+          aria-hidden
+        />
+        <header className="flex h-12 shrink-0 items-center px-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={closeCompose}
+            className="text-[15px] font-normal"
+          >
+            Annuler
+          </Button>
+          <div className="min-w-0 flex-1 text-center">
+            <DialogTitle className="truncate text-[15px] font-semibold">
+              {draft?.draftId ? "Brouillon" : "Nouveau message"}
+            </DialogTitle>
+            <DialogDescription className="sr-only">
+              Rédiger un e-mail
+            </DialogDescription>
+          </div>
+          <button
+            type="button"
+            onClick={sendMail}
+            disabled={!canSend}
+            aria-label="Envoyer"
+            className="mr-1 flex size-9 items-center justify-center rounded-full text-white shadow-md transition-[opacity,transform] active:scale-95 disabled:opacity-35 disabled:shadow-none [background:var(--space-gradient)]"
+          >
+            <ArrowUp className="size-5" strokeWidth={2.5} />
+          </button>
+        </header>
         {draft && (
           <ComposeFields key={draft.draftId ?? "new"} draft={draft} compact />
         )}
@@ -296,7 +294,7 @@ function ComposeFields({
   const space = spaces.find((sp) => sp.id === draft.spaceId) ?? spaces[0];
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+    <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain">
       <RecipientField
         label="À"
         value={draft.to}

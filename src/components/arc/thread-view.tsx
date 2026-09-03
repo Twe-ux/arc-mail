@@ -1,9 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Archive, ArrowLeft, Mail, MailOpen, Reply, Star, Trash2 } from "lucide-react";
+import { Archive, ArrowLeft, ArrowUp, Mail, MailOpen, Reply, Star, Trash2 } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,6 +12,7 @@ import { selectSelectedThread, useMail } from "@/lib/store";
 import type { Message, Thread } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { ContactAvatar } from "./contact-avatar";
+import { LabelChip } from "./label-chip";
 
 export function ThreadView({ className }: { className?: string }) {
   const thread = useMail(selectSelectedThread);
@@ -36,50 +36,76 @@ export function ThreadView({ className }: { className?: string }) {
   }
 
   const inTrash = thread.folder === "trash";
+  const actions = (
+    <>
+      <Action label="Archiver · e" onClick={() => moveThread(thread.id, "archive")} disabled={thread.folder === "archive"}>
+        <Archive />
+      </Action>
+      <Action label={inTrash ? "Restaurer" : "Supprimer · #"} onClick={() => moveThread(thread.id, inTrash ? "inbox" : "trash")}>
+        <Trash2 />
+      </Action>
+      <Action label={thread.unread ? "Marquer comme lu · u" : "Marquer comme non lu · u"} onClick={() => toggleUnread(thread.id)}>
+        {thread.unread ? <MailOpen /> : <Mail />}
+      </Action>
+      <Action label={thread.starred ? "Retirer des favoris · s" : "Ajouter aux favoris · s"} onClick={() => toggleStar(thread.id)}>
+        <Star className={cn(thread.starred && "fill-amber-400 text-amber-400")} />
+      </Action>
+    </>
+  );
 
   return (
     <article className={cn("min-w-0 flex-1 flex-col", className)}>
-      <header className="flex h-12 shrink-0 items-center gap-1 border-b px-3">
+      {/* Mobile: back, actions and subject on the space gradient */}
+      <div className="shrink-0 px-2 pt-0.5 pb-3 text-white md:hidden [&_button]:text-white [&_button:hover]:bg-white/15 [&_button:hover]:text-white [&_button]:size-9 [&_svg]:size-5">
+        <div className="flex items-center">
+          <Button variant="ghost" size="icon-xs" onClick={() => selectThread(null)} aria-label="Retour">
+            <ArrowLeft />
+          </Button>
+          <div className="ml-auto flex items-center">{actions}</div>
+        </div>
+        <h1 className="mt-1 line-clamp-2 px-2 text-[22px] leading-tight font-bold tracking-tight">{thread.subject}</h1>
+        {thread.labels.length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-1.5 px-2">
+            {thread.labels.map((label) => (
+              <LabelChip key={label} label={label} tone="glass" />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Desktop header */}
+      <header className="hidden h-12 shrink-0 items-center gap-1 border-b px-3 md:flex">
         <Button
           variant="ghost"
           size="icon-xs"
           onClick={() => selectThread(null)}
           aria-label="Retour"
-          className={cn(splitView && "md:hidden")}
+          className={cn(splitView && "hidden")}
         >
           <ArrowLeft />
         </Button>
         <h2 className="min-w-0 flex-1 truncate px-1 text-sm font-semibold">{thread.subject}</h2>
-        <Action label="Archiver · e" onClick={() => moveThread(thread.id, "archive")} disabled={thread.folder === "archive"}>
-          <Archive />
-        </Action>
-        <Action label={inTrash ? "Restaurer" : "Supprimer · #"} onClick={() => moveThread(thread.id, inTrash ? "inbox" : "trash")}>
-          <Trash2 />
-        </Action>
-        <Action label={thread.unread ? "Marquer comme lu · u" : "Marquer comme non lu · u"} onClick={() => toggleUnread(thread.id)}>
-          {thread.unread ? <MailOpen /> : <Mail />}
-        </Action>
-        <Action label={thread.starred ? "Retirer des favoris · s" : "Ajouter aux favoris · s"} onClick={() => toggleStar(thread.id)}>
-          <Star className={cn(thread.starred && "fill-amber-400 text-amber-400")} />
-        </Action>
+        {actions}
       </header>
 
-      <ScrollArea className="min-h-0 flex-1">
-        <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 p-6">
-          <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-xl font-semibold tracking-tight">{thread.subject}</h1>
-            {thread.labels.map((label) => (
-              <Badge key={label} variant="secondary">
-                {label}
-              </Badge>
+      {/* Messages: a floating card on mobile, plain column on desktop */}
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-t-[28px] bg-background shadow-[0_-10px_40px_rgb(0_0_0/0.18)] md:rounded-none md:shadow-none">
+        <ScrollArea className="min-h-0 flex-1">
+          <div className="mx-auto flex w-full max-w-3xl flex-col gap-3 p-4 md:gap-4 md:p-6">
+            <div className="hidden flex-wrap items-center gap-2 md:flex">
+              <h1 className="text-xl font-semibold tracking-tight">{thread.subject}</h1>
+              {thread.labels.map((label) => (
+                <LabelChip key={label} label={label} />
+              ))}
+            </div>
+            {thread.messages.map((m) => (
+              <MessageCard key={m.id} message={m} />
             ))}
+            <ReplyBox key={thread.id} thread={thread} className="hidden md:block" />
           </div>
-          {thread.messages.map((m) => (
-            <MessageCard key={m.id} message={m} />
-          ))}
-          <ReplyBox key={thread.id} thread={thread} />
-        </div>
-      </ScrollArea>
+        </ScrollArea>
+        <MobileReply key={`m-${thread.id}`} thread={thread} />
+      </div>
     </article>
   );
 }
@@ -109,12 +135,12 @@ function Action({
 
 function MessageCard({ message }: { message: Message }) {
   return (
-    <div className="rounded-xl border bg-card p-4 shadow-xs">
+    <div className="rounded-2xl bg-muted/50 p-4 dark:bg-muted/30">
       <div className="flex items-start gap-3">
         <ContactAvatar contact={message.from} />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-baseline gap-x-2">
-            <span className="text-sm font-semibold">{message.from.name}</span>
+            <span className="text-[15px] font-semibold md:text-sm">{message.from.name}</span>
             <span className="truncate text-xs text-muted-foreground">{message.from.email}</span>
             <time dateTime={message.date} suppressHydrationWarning className="ml-auto text-xs text-muted-foreground">
               {formatFullDate(message.date)}
@@ -125,12 +151,13 @@ function MessageCard({ message }: { message: Message }) {
           </p>
         </div>
       </div>
-      <p className="mt-4 text-sm leading-relaxed whitespace-pre-wrap">{message.body}</p>
+      <p className="mt-4 text-[15px] leading-relaxed whitespace-pre-wrap md:text-sm">{message.body}</p>
     </div>
   );
 }
 
-function ReplyBox({ thread }: { thread: Thread }) {
+/** Desktop reply, inline at the end of the thread. */
+function ReplyBox({ thread, className }: { thread: Thread; className?: string }) {
   const [body, setBody] = useState("");
   const reply = useMail((s) => s.reply);
   const last = thread.messages[thread.messages.length - 1];
@@ -143,7 +170,7 @@ function ReplyBox({ thread }: { thread: Thread }) {
   };
 
   return (
-    <div className="rounded-xl border bg-card p-3 shadow-xs">
+    <div className={cn("rounded-2xl border border-border/60 bg-card p-3", className)}>
       <Textarea
         value={body}
         onChange={(e) => setBody(e.target.value)}
@@ -158,6 +185,43 @@ function ReplyBox({ thread }: { thread: Thread }) {
         <Button size="sm" onClick={send} disabled={!body.trim()}>
           <Reply /> Répondre
         </Button>
+      </div>
+    </div>
+  );
+}
+
+/** Mobile reply, a messaging-style composer pinned above the home indicator. */
+function MobileReply({ thread }: { thread: Thread }) {
+  const [body, setBody] = useState("");
+  const reply = useMail((s) => s.reply);
+  const last = thread.messages[thread.messages.length - 1];
+
+  const send = () => {
+    const text = body.trim();
+    if (!text) return;
+    reply(thread.id, text);
+    setBody("");
+  };
+
+  return (
+    <div className="shrink-0 border-t border-border/50 bg-background px-3 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:hidden">
+      <div className="flex items-end gap-2 rounded-[22px] bg-muted/60 py-1.5 pr-1.5 pl-4">
+        <textarea
+          rows={1}
+          value={body}
+          onChange={(e) => setBody(e.target.value)}
+          placeholder={`Répondre à ${last.from.name}…`}
+          className="max-h-32 min-h-8 flex-1 resize-none bg-transparent py-1.5 text-base leading-5 outline-none placeholder:text-muted-foreground"
+        />
+        <button
+          type="button"
+          onClick={send}
+          disabled={!body.trim()}
+          aria-label="Envoyer"
+          className="flex size-8 shrink-0 items-center justify-center rounded-full bg-foreground text-background transition-opacity disabled:opacity-30"
+        >
+          <ArrowUp className="size-4" strokeWidth={2.5} />
+        </button>
       </div>
     </div>
   );

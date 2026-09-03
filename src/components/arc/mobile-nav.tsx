@@ -5,8 +5,8 @@ import { Inbox, PenSquare, Search } from "lucide-react";
 import { selectSpace, selectUnreadCount, useMail } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
-/** Arc mobile's bottom bar: space, inbox, search, compose. Hidden from `md` up. */
-export function MobileNav() {
+/** Arc mobile's floating glass pill: space, inbox, search, compose. Hidden from `md` up. */
+export function MobileNav({ className }: { className?: string }) {
   const space = useMail(selectSpace);
   const folderId = useMail((s) => s.folderId);
   const setFolder = useMail((s) => s.setFolder);
@@ -24,25 +24,30 @@ export function MobileNav() {
   return (
     <nav
       aria-label="Navigation"
-      className="flex shrink-0 items-center justify-around px-2 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))] text-white md:hidden"
+      className={cn(
+        "flex shrink-0 justify-center px-4 pt-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] text-white md:hidden",
+        className,
+      )}
     >
-      <NavButton label={space.name} onClick={() => setSidebarOpen(true)}>
-        <span className="text-xl leading-none">{space.emoji}</span>
-      </NavButton>
-      <NavButton label="Réception" active={folderId === "inbox"} onClick={goInbox}>
-        <Inbox className="size-5" />
-        {inboxUnread > 0 && (
-          <span className="absolute top-0.5 right-2 min-w-4 rounded-full bg-white px-1 text-center text-[10px] font-bold text-black tabular-nums">
-            {inboxUnread}
-          </span>
-        )}
-      </NavButton>
-      <NavButton label="Rechercher" onClick={() => setCommandOpen(true)}>
-        <Search className="size-5" />
-      </NavButton>
-      <NavButton label="Écrire" onClick={() => setComposeOpen(true)}>
-        <PenSquare className="size-5" />
-      </NavButton>
+      <div className="glass flex items-center gap-1 rounded-full p-1.5 shadow-[0_10px_30px_rgb(0_0_0/0.25)] ring-1 ring-white/25 ring-inset">
+        <NavButton label={space.name} onClick={() => setSidebarOpen(true)}>
+          <span className="text-[22px] leading-none">{space.emoji}</span>
+        </NavButton>
+        <NavButton label="Réception" active={folderId === "inbox"} onClick={goInbox}>
+          <Inbox className="size-[22px]" strokeWidth={1.75} />
+          {inboxUnread > 0 && (
+            <span className="absolute top-1 right-3 min-w-4 rounded-full bg-white px-1 text-center text-[10px] leading-4 font-bold text-neutral-900 tabular-nums">
+              {inboxUnread}
+            </span>
+          )}
+        </NavButton>
+        <NavButton label="Rechercher" onClick={() => setCommandOpen(true)}>
+          <Search className="size-[22px]" strokeWidth={1.75} />
+        </NavButton>
+        <NavButton label="Écrire" onClick={() => setComposeOpen(true)}>
+          <PenSquare className="size-[22px]" strokeWidth={1.75} />
+        </NavButton>
+      </div>
     </nav>
   );
 }
@@ -63,13 +68,14 @@ function NavButton({
       type="button"
       onClick={onClick}
       aria-current={active ? "page" : undefined}
+      aria-label={label}
       className={cn(
-        "relative flex h-12 min-w-16 flex-col items-center justify-center gap-0.5 rounded-xl px-3 transition-colors",
-        active ? "glass" : "text-white/80 active:bg-white/15",
+        "relative flex h-12 w-[4.25rem] flex-col items-center justify-center gap-0.5 rounded-full transition-colors",
+        active ? "bg-white/25 text-white" : "text-white/85 active:bg-white/15",
       )}
     >
       {children}
-      <span className="max-w-16 truncate text-[10px] font-medium">{label}</span>
+      <span className="max-w-full truncate px-1 text-[10px] font-medium">{label}</span>
     </button>
   );
 }

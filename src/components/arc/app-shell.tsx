@@ -31,6 +31,11 @@ export function AppShell() {
     document.documentElement.classList.toggle("dark", dark);
   }, [dark]);
 
+  // Paint the space gradient behind everything so iOS safe areas never show a white strip.
+  useEffect(() => {
+    document.documentElement.style.background = space.theme.gradient;
+  }, [space.theme.gradient]);
+
   const hasSelection = selectedThreadId !== null;
   // Desktop: split view shows both; full view shows one or the other.
   const listOnDesktop = splitView || !hasSelection;
@@ -39,11 +44,11 @@ export function AppShell() {
   return (
     <TooltipProvider>
       <div
-        className="flex h-dvh w-full flex-col pt-[env(safe-area-inset-top)] transition-[background] duration-500 md:flex-row md:gap-2 md:p-2"
+        className="fixed inset-0 flex flex-col pt-[env(safe-area-inset-top)] transition-[background] duration-500 md:flex-row md:gap-2 md:p-2"
         style={{ background: space.theme.gradient }}
       >
         <Sidebar />
-        <main className="flex min-h-0 min-w-0 flex-1 overflow-hidden bg-background text-foreground shadow-2xl ring-1 ring-black/10 md:rounded-xl">
+        <main className="flex min-h-0 min-w-0 flex-1 overflow-hidden text-foreground md:rounded-xl md:bg-background md:shadow-2xl md:ring-1 md:ring-black/10">
           <ThreadList
             className={cn(
               "w-full",
@@ -54,7 +59,7 @@ export function AppShell() {
           />
           <ThreadView className={cn(hasSelection ? "flex" : "hidden", viewOnDesktop ? "md:flex" : "md:hidden")} />
         </main>
-        <MobileNav />
+        <MobileNav className={cn(hasSelection && "hidden")} />
         <MobileSidebar />
         <CommandPalette />
         <ComposeDialog />

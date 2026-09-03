@@ -204,7 +204,7 @@ function MobileReply({ thread }: { thread: Thread }) {
   };
 
   return (
-    <div className="shrink-0 border-t border-border/50 bg-card px-3 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:hidden">
+    <div className="shrink-0 border-t border-border/50 bg-card px-3 pt-2 pb-[max(0.75rem,calc(env(safe-area-inset-bottom)-10px))] md:hidden">
       <div className="flex items-end gap-2 rounded-[22px] bg-muted/60 py-1.5 pr-1.5 pl-4">
         <textarea
           rows={1}

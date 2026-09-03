@@ -109,7 +109,7 @@ export function MobileSidebar() {
       <SheetContent
         side="left"
         showCloseButton={false}
-        className="space-wash w-[85vw] max-w-sm gap-0 border-r border-border/50 px-2 pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(0.75rem,env(safe-area-inset-bottom))] md:hidden"
+        className="space-wash w-[85vw] max-w-sm gap-0 border-r border-border/50 px-2 pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(0.75rem,calc(env(safe-area-inset-bottom)-10px))] md:hidden"
         style={{ "--space-accent": space.theme.accent } as CSSProperties}
       >
         <SheetTitle className="sr-only">Menu</SheetTitle>

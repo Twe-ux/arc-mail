@@ -27,6 +27,11 @@ d'Arc (espaces colorés, sidebar translucide, favoris épinglés, onglets « Auj
   `useVisibleThreads()` (memo) pour éviter les re-rendus infinis.
 - Données mock dans `src/lib/mock-data.ts`. Les dates sont relatives au chargement du module ;
   les `<time>` ont `suppressHydrationWarning`.
+- **PWA installée (iOS)** : jamais d'`overflow: hidden` sur `html`/`body`. En mode standalone le
+  document est rendu défilable de 50 px pendant la première seconde (`ViewportSlack` +
+  `--viewport-slack` dans `globals.css`), sinon WebKit peint sur un viewport amputé de la safe
+  area basse et laisse une bande nue. La barre du bas se place à `safe-area − 18px` (min 14px),
+  la safe area complète la fait remonter trop haut. Solution portée du projet Kairos.
 - Textes de l'interface en français.
 - Commits conventionnels (`feat:`, `fix:`, `docs:`, `chore:`).
 

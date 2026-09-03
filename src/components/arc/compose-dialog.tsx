@@ -78,7 +78,7 @@ export function ComposeDialog() {
             className="min-h-56 flex-1 resize-none rounded-none border-0 px-5 py-4 shadow-none focus-visible:ring-0 sm:flex-none dark:bg-transparent"
           />
 
-          <DialogFooter className="border-t px-5 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:justify-between">
+          <DialogFooter className="border-t px-5 py-3 pb-[max(0.75rem,calc(env(safe-area-inset-bottom)-10px))] sm:justify-between">
             <span className="hidden self-center text-xs text-muted-foreground sm:inline">
               Mode démo : le message est ajouté au dossier Envoyés.
             </span>

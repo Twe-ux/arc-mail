@@ -77,20 +77,27 @@
   * {
     @apply border-border outline-ring/50;
   }
-  html,
-  body {
-    height: 100%;
-  }
   html {
     background: var(--background);
+    -webkit-tap-highlight-color: transparent;
   }
   body {
     @apply bg-background text-foreground antialiased;
-    /* Installed on a phone: no rubber-banding, no tap flash, no double-tap zoom. */
-    overscroll-behavior: none;
-    -webkit-tap-highlight-color: transparent;
+    /* `vh`, not `dvh` and not a percentage: the standalone rule below has to
+       be able to grow past the viewport. */
+    min-height: 100vh;
     touch-action: manipulation;
     -webkit-touch-callout: none;
+  }
+  /* Home-screen install: the first paint lands on a viewport amputated of its
+     bottom safe area, and the cure is a document that *can* scroll, which
+     forces WebKit to resolve the viewport against the real screen. The slack
+     is 50px until that has happened and 0 after; `ViewportSlack` decides. */
+  @media (display-mode: standalone) {
+    html,
+    body {
+      min-height: calc(100vh + var(--viewport-slack, 50px));
+    }
   }
 }
 

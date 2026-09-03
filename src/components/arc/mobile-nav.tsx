@@ -25,7 +25,9 @@ export function MobileNav({ className }: { className?: string }) {
     <nav
       aria-label="Navigation"
       className={cn(
-        "flex shrink-0 justify-center px-4 pt-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:hidden",
+        // Clear of the home indicator, not a thumb's travel above it: the full
+        // safe area pushed the bar ~40px up on an installed iPhone.
+        "flex shrink-0 justify-center px-4 pt-2.5 pb-[max(14px,calc(env(safe-area-inset-bottom)-18px))] md:hidden",
         className,
       )}
     >

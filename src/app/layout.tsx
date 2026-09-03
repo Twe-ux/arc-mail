@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { PwaRegister } from "@/components/pwa/pwa-register";
+import { ViewportSlack } from "@/components/pwa/viewport-slack";
 import "./globals.css";
 
 const APP_NAME = "Arc Mail";
@@ -28,8 +29,12 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="fr" suppressHydrationWarning>
-      <body className="overflow-hidden">
+      {/* No overflow guard on html/body: any non-visible overflow on the root chain
+          perturbs how WebKit resolves `position: fixed` on the first frame of a
+          home-screen install. The shell clips itself. */}
+      <body>
         {children}
+        <ViewportSlack />
         <PwaRegister />
       </body>
     </html>

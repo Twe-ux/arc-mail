@@ -51,12 +51,16 @@ d'Arc (espaces colorés, sidebar translucide, favoris épinglés, onglets « Auj
   Seul le haut ajoute `--safe-top`, parce que l'encoche est un obstacle réel et pas une marge.
   Dériver le bas de la safe area (34 px, ou même `safe-area − 18px` comme la barre du bas) donnait
   trois écarts différents sur une même carte, et elle se lisait comme flottant au lieu de reposer.
-  Arrondies à 36 px tout autour, pas de poignée. Leur en-tête (compte, espaces) est
+  Arrondies à 36 px tout autour, pas de poignée — **y compris la barre de commande**, qui gardait
+  les 16 px de la primitive : à marges égales, trois cartes qui s'arrondissent différemment se
+  lisent comme trois fenêtres sans rapport. Elle revient à 16 px à partir de `sm`, où c'est une
+  modale centrée et non plus une des cartes du téléphone. Leur en-tête (compte, espaces) est
   **hors du conteneur de défilement** : sinon il
   glisse sous le coin arrondi de la carte et on croit que le contenu en sort.
-  **Même problème en bas, et même remède** : la carte garde son propre `pb-3` (`pb-1.5` pour la
-  barre de commande) *sous* le conteneur défilant, pour qu'en cours de défilement la liste soit
-  tranchée contre une bande de carte et non contre la bordure. Une rangée coupée net sur le coin à
+  **Même problème en bas, et même remède** : la carte garde son propre `pb-3` *sous* le conteneur
+  défilant, pour qu'en cours de défilement la liste soit tranchée contre une bande de carte et non
+  contre la bordure. 12 px n'est pas arbitraire : à cette hauteur la courbe du coin de 36 px mord
+  de 9 px, ce qui la garde en deçà des 16 px de retrait du contenu. Une rangée coupée net sur le coin à
   36 px se lit comme du contenu qui sort de la fenêtre — d'autant plus depuis que la carte descend
   à 8 px du bord. Le `pb-4` *dans* le défilant est autre chose : la respiration de fin de liste,
   visible seulement tout en bas. En sombre elles sont des

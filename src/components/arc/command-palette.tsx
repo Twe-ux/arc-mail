@@ -71,7 +71,13 @@ export function CommandPalette() {
            The 8px in the two calcs is the same margin the menu and composer
            keep on their free sides, so a full list stops level with them
            rather than 16px in and 24px short. */
-        className="top-[7dvh] max-h-[calc(100dvh-7dvh-var(--keyboard-inset,0px)-0.5rem)] flex max-w-[calc(100%-1rem)] translate-y-0 flex-col overflow-hidden rounded-2xl pb-1.5 dark:bg-[#26262a] dark:ring-1 dark:ring-white/12 sm:top-[18%] sm:max-h-none sm:max-w-xl sm:pb-0"
+        /* 36px like the menu and the composer, not the primitive's 16px:
+           three cards at the same 8px inset that round differently read as
+           three unrelated windows. Back to 16px from `sm` up, where this is a
+           centred modal rather than one of the phone's floating cards. The
+           bottom gutter grows with the radius — at 12px up, the corner curve
+           bites 9px in, still clear of the list's own 16px inset. */
+        className="top-[7dvh] max-h-[calc(100dvh-7dvh-var(--keyboard-inset,0px)-0.5rem)] flex max-w-[calc(100%-1rem)] translate-y-0 flex-col overflow-hidden rounded-[36px] pb-3 dark:bg-[#26262a] dark:ring-1 dark:ring-white/12 sm:top-[18%] sm:max-h-none sm:max-w-xl sm:rounded-2xl sm:pb-0"
     >
       <CommandInput
         placeholder="Rechercher ou taper une commande…"

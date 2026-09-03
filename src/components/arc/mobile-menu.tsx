@@ -71,7 +71,7 @@ export function MobileMenu() {
            which looks like the card floating rather than resting.
            `transition-none`: see `useSheetDismiss`, the primitive's own
            duration would interpolate the transform the drag writes. */
-        className="inset-x-2 top-auto bottom-2 flex h-auto max-h-[86dvh] w-auto flex-col gap-0 rounded-[36px] border-0 bg-[#f2f2f7] p-0 text-foreground shadow-2xl transition-none md:hidden dark:bg-black dark:ring-1 dark:ring-white/12"
+        className="inset-x-2 top-auto bottom-2 flex h-auto max-h-[86dvh] w-auto flex-col gap-0 rounded-[36px] border-0 bg-[#f2f2f7] p-0 pb-3 text-foreground shadow-2xl transition-none md:hidden dark:bg-black dark:ring-1 dark:ring-white/12"
       >
         <SheetTitle className="sr-only">Menu</SheetTitle>
         <SheetDescription className="sr-only">
@@ -177,6 +177,11 @@ function MenuBody({
         </div>
       </div>
 
+      {/* The card keeps its own `pb-3` under this box, so mid-scroll the list
+          is cut against a strip of card rather than against the border itself:
+          a row guillotined flat on the 36px corner reads as content escaping
+          the window (same reasoning as the fixed head above). `pb-4` here is
+          the separate end-of-list breathing room, only seen at the bottom. */}
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-4">
         {/* Mailboxes */}
         <Section title="Boîtes">

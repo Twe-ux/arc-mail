@@ -71,7 +71,7 @@ export function CommandPalette() {
            The 8px in the two calcs is the same margin the menu and composer
            keep on their free sides, so a full list stops level with them
            rather than 16px in and 24px short. */
-        className="top-[7dvh] max-h-[calc(100dvh-7dvh-var(--keyboard-inset,0px)-0.5rem)] flex max-w-[calc(100%-1rem)] translate-y-0 flex-col overflow-hidden rounded-2xl dark:bg-[#26262a] dark:ring-1 dark:ring-white/12 sm:top-[18%] sm:max-h-none sm:max-w-xl"
+        className="top-[7dvh] max-h-[calc(100dvh-7dvh-var(--keyboard-inset,0px)-0.5rem)] flex max-w-[calc(100%-1rem)] translate-y-0 flex-col overflow-hidden rounded-2xl pb-1.5 dark:bg-[#26262a] dark:ring-1 dark:ring-white/12 sm:top-[18%] sm:max-h-none sm:max-w-xl sm:pb-0"
     >
       <CommandInput
         placeholder="Rechercher ou taper une commande…"

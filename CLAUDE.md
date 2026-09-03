@@ -53,7 +53,13 @@ d'Arc (espaces colorés, sidebar translucide, favoris épinglés, onglets « Auj
   trois écarts différents sur une même carte, et elle se lisait comme flottant au lieu de reposer.
   Arrondies à 36 px tout autour, pas de poignée. Leur en-tête (compte, espaces) est
   **hors du conteneur de défilement** : sinon il
-  glisse sous le coin arrondi de la carte et on croit que le contenu en sort. En sombre elles sont des
+  glisse sous le coin arrondi de la carte et on croit que le contenu en sort.
+  **Même problème en bas, et même remède** : la carte garde son propre `pb-3` (`pb-1.5` pour la
+  barre de commande) *sous* le conteneur défilant, pour qu'en cours de défilement la liste soit
+  tranchée contre une bande de carte et non contre la bordure. Une rangée coupée net sur le coin à
+  36 px se lit comme du contenu qui sort de la fenêtre — d'autant plus depuis que la carte descend
+  à 8 px du bord. Le `pb-4` *dans* le défilant est autre chose : la respiration de fin de liste,
+  visible seulement tout en bas. En sombre elles sont des
   surfaces *au-dessus* de la page (`#26262a` pour le
   composeur) : peintes en `--background`, plus foncé que le sol de la fenêtre, elles se lisaient comme
   un trou. Sur une carte

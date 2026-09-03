@@ -69,21 +69,27 @@ export function ThreadView({ className }: { className?: string }) {
   return (
     <article className={cn("min-h-0 min-w-0 flex-1 flex-col", className)}>
       {/* Mobile: back, actions and subject on the tinted backdrop */}
-      <div className="shrink-0 px-2 pt-0.5 pb-3 md:hidden [&_button]:size-9 [&_svg]:size-5">
-        <div className="flex items-center">
-          <Button variant="ghost" size="icon-xs" onClick={() => selectThread(null)} aria-label="Retour">
+      <div className="shrink-0 px-2 pt-0.5 pb-2 md:hidden [&_button]:size-9 [&_svg]:size-5">
+        {/* The subject rides beside the arrow it came from; the actions get their
+            own line under it, still right-aligned, so neither crowds the other. */}
+        {/* Top-aligned, with the title nudged onto the arrow's optical centre:
+            centring a two-line subject would leave the arrow floating mid-title. */}
+        <div className="flex items-start gap-0.5">
+          <Button variant="ghost" size="icon-xs" onClick={() => selectThread(null)} aria-label="Retour" className="shrink-0">
             <ArrowLeft />
           </Button>
-          <div className="ml-auto flex items-center">{actions}</div>
+          <h1 className="line-clamp-2 min-w-0 flex-1 pt-[7px] text-[19px] leading-tight font-bold tracking-tight">
+            {thread.subject}
+          </h1>
         </div>
-        <h1 className="mt-1 line-clamp-2 px-2 text-[22px] leading-tight font-bold tracking-tight">{thread.subject}</h1>
-        {thread.labels.length > 0 && (
-          <div className="mt-2 flex flex-wrap gap-1.5 px-2">
+        <div className="mt-0.5 flex items-center gap-1.5 pl-3">
+          <div className="flex min-w-0 flex-1 gap-1.5 overflow-hidden">
             {thread.labels.map((label) => (
               <LabelChip key={label} label={label} />
             ))}
           </div>
-        )}
+          <div className="flex shrink-0 items-center">{actions}</div>
+        </div>
       </div>
 
       {/* Desktop header */}

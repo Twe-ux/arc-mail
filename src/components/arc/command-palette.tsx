@@ -66,11 +66,11 @@ export function CommandPalette() {
         <CommandGroup heading="Actions">
           <CommandItem onSelect={() => run(() => setComposeOpen(true))}>
             <PenSquare /> Nouveau message
-            <CommandShortcut>⌘N</CommandShortcut>
+            <CommandShortcut className="max-sm:hidden">⌘N</CommandShortcut>
           </CommandItem>
-          <CommandItem onSelect={() => run(toggleSplit)}>
+          <CommandItem onSelect={() => run(toggleSplit)} className="max-md:hidden">
             <Columns2 /> Basculer la vue partagée
-            <CommandShortcut>⌘⇧D</CommandShortcut>
+            <CommandShortcut className="max-sm:hidden">⌘⇧D</CommandShortcut>
           </CommandItem>
           <CommandItem onSelect={() => run(toggleDark)}>
             <Moon /> Basculer le thème
@@ -99,7 +99,7 @@ export function CommandPalette() {
             >
               <span className="w-4 text-center">{space.emoji}</span> {space.name}
               <span className="text-muted-foreground text-xs">{space.email}</span>
-              <CommandShortcut>⌘{i + 1}</CommandShortcut>
+              <CommandShortcut className="max-sm:hidden">⌘{i + 1}</CommandShortcut>
             </CommandItem>
           ))}
         </CommandGroup>

@@ -14,6 +14,8 @@ export type MailState = {
   unreadOnly: boolean;
   commandOpen: boolean;
   composeOpen: boolean;
+  /** Mobile only: the sidebar drawer. */
+  sidebarOpen: boolean;
   dark: boolean;
   threads: Thread[];
   /** Threads opened recently, per space — the "Today" tabs of Arc. */
@@ -31,6 +33,7 @@ export type MailState = {
   setUnreadOnly: (value: boolean) => void;
   setCommandOpen: (open: boolean) => void;
   setComposeOpen: (open: boolean) => void;
+  setSidebarOpen: (open: boolean) => void;
   toggleDark: () => void;
   sendMail: (input: { to: string; subject: string; body: string }) => void;
   reply: (threadId: string, body: string) => void;
@@ -49,6 +52,7 @@ export const useMail = create<MailState>((set, get) => ({
   unreadOnly: false,
   commandOpen: false,
   composeOpen: false,
+  sidebarOpen: false,
   dark: false,
   threads: THREADS,
   recent: { perso: [], pro: [], side: [] },
@@ -94,6 +98,7 @@ export const useMail = create<MailState>((set, get) => ({
   setUnreadOnly: (unreadOnly) => set({ unreadOnly }),
   setCommandOpen: (commandOpen) => set({ commandOpen }),
   setComposeOpen: (composeOpen) => set({ composeOpen }),
+  setSidebarOpen: (sidebarOpen) => set({ sidebarOpen }),
   toggleDark: () => set((s) => ({ dark: !s.dark })),
 
   sendMail: ({ to, subject, body }) => {

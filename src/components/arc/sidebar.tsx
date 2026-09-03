@@ -19,6 +19,7 @@ import {
 import { Kbd } from "@/components/ui/kbd";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { FOLDERS } from "@/lib/mock-data";
 import { selectFolder, selectSpace, selectUnreadCount, useMail } from "@/lib/store";
@@ -40,7 +41,46 @@ const FOLDER_ICONS: Record<FolderId, LucideIcon> = {
 /** The four "favorite" tiles under the address bar, like Arc's pinned favorites. */
 const PINNED: FolderId[] = ["inbox", "starred", "sent", "drafts"];
 
+/** Desktop sidebar, inline on the space gradient. */
 export function Sidebar() {
+  return (
+    <aside className="hidden w-[260px] shrink-0 flex-col gap-3 px-2 py-2 text-white md:flex">
+      {/* Window controls placeholder, keeps the Arc proportions. */}
+      <div className="flex items-center gap-1.5 px-2 pt-1" aria-hidden>
+        <span className="size-3 rounded-full bg-white/30" />
+        <span className="size-3 rounded-full bg-white/30" />
+        <span className="size-3 rounded-full bg-white/30" />
+      </div>
+      <SidebarContent />
+    </aside>
+  );
+}
+
+/** Mobile sidebar: the same content in a left drawer painted with the space gradient. */
+export function MobileSidebar() {
+  const space = useMail(selectSpace);
+  const open = useMail((s) => s.sidebarOpen);
+  const setOpen = useMail((s) => s.setSidebarOpen);
+
+  return (
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetContent
+        side="left"
+        showCloseButton={false}
+        className="w-[85vw] max-w-sm gap-0 border-0 px-2 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] text-white md:hidden"
+        style={{ background: space.theme.gradient }}
+      >
+        <SheetTitle className="sr-only">Menu</SheetTitle>
+        <SheetDescription className="sr-only">Espaces, dossiers et conversations récentes</SheetDescription>
+        <div className="flex min-h-0 flex-1 flex-col gap-3">
+          <SidebarContent onNavigate={() => setOpen(false)} />
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   const space = useMail(selectSpace);
   const folder = useMail(selectFolder);
   const folderId = useMail((s) => s.folderId);
@@ -61,28 +101,26 @@ export function Sidebar() {
     .map((id) => threads.find((t) => t.id === id))
     .filter((t): t is NonNullable<typeof t> => Boolean(t));
 
-  return (
-    <aside className="flex w-[260px] shrink-0 flex-col gap-3 px-2 py-2 text-white">
-      {/* Window controls placeholder, keeps the Arc proportions. */}
-      <div className="flex items-center gap-1.5 px-2 pt-1" aria-hidden>
-        <span className="size-3 rounded-full bg-white/30" />
-        <span className="size-3 rounded-full bg-white/30" />
-        <span className="size-3 rounded-full bg-white/30" />
-      </div>
+  const go = (fn: () => void) => () => {
+    fn();
+    onNavigate?.();
+  };
 
+  return (
+    <>
       {/* Address bar → command palette */}
       <button
         type="button"
-        onClick={() => setCommandOpen(true)}
-        className="glass flex h-9 items-center gap-2 rounded-lg px-3 text-sm text-white/80 transition-colors hover:bg-white/20 hover:text-white"
+        onClick={go(() => setCommandOpen(true))}
+        className="glass flex h-9 shrink-0 items-center gap-2 rounded-lg px-3 text-sm text-white/80 transition-colors hover:bg-white/20 hover:text-white"
       >
         <Search className="size-4 shrink-0" />
         <span className="min-w-0 flex-1 truncate text-left">{folder.name}</span>
-        <Kbd className="bg-white/15 text-white/70">⌘K</Kbd>
+        <Kbd className="hidden bg-white/15 text-white/70 md:inline-flex">⌘K</Kbd>
       </button>
 
       {/* Pinned favorites */}
-      <div className="grid grid-cols-4 gap-1.5">
+      <div className="grid shrink-0 grid-cols-4 gap-1.5">
         {PINNED.map((id) => {
           const Icon = FOLDER_ICONS[id];
           const name = FOLDERS.find((f) => f.id === id)?.name ?? id;
@@ -93,7 +131,7 @@ export function Sidebar() {
               <TooltipTrigger asChild>
                 <button
                   type="button"
-                  onClick={() => setFolder(id)}
+                  onClick={go(() => setFolder(id))}
                   aria-label={name}
                   aria-current={active ? "page" : undefined}
                   className={cn(
@@ -112,7 +150,7 @@ export function Sidebar() {
       </div>
 
       {/* Space header */}
-      <div className="flex items-center gap-2 px-2 pt-1">
+      <div className="flex shrink-0 items-center gap-2 px-2 pt-1">
         <span className="text-lg leading-none">{space.emoji}</span>
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold">{space.name}</p>
@@ -121,14 +159,17 @@ export function Sidebar() {
       </div>
 
       {/* Folders */}
-      <nav className="flex flex-col gap-0.5" aria-label="Dossiers">
-        {FOLDERS.map((f) => {
-          const Icon = FOLDER_ICONS[f.id];
-          const active = f.id === folderId;
-          return (
-            <FolderRow key={f.id} icon={Icon} name={f.name} active={active} folderId={f.id} onClick={() => setFolder(f.id)} />
-          );
-        })}
+      <nav className="flex shrink-0 flex-col gap-0.5" aria-label="Dossiers">
+        {FOLDERS.map((f) => (
+          <FolderRow
+            key={f.id}
+            icon={FOLDER_ICONS[f.id]}
+            name={f.name}
+            active={f.id === folderId}
+            folderId={f.id}
+            onClick={go(() => setFolder(f.id))}
+          />
+        ))}
       </nav>
 
       <Separator className="bg-white/15" />
@@ -163,7 +204,7 @@ export function Sidebar() {
                   >
                     <button
                       type="button"
-                      onClick={() => selectThread(t.id)}
+                      onClick={go(() => selectThread(t.id))}
                       className="flex min-w-0 flex-1 items-center gap-2"
                     >
                       <ContactAvatar contact={last.from} className="size-5 [&_[data-slot=avatar-fallback]]:text-[9px]" />
@@ -173,7 +214,7 @@ export function Sidebar() {
                       type="button"
                       onClick={() => removeRecent(t.id)}
                       aria-label="Fermer"
-                      className="rounded p-1 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-white/20 focus-visible:opacity-100"
+                      className="rounded p-1 transition-opacity hover:bg-white/20 md:opacity-0 md:group-hover:opacity-100 md:focus-visible:opacity-100"
                     >
                       <X className="size-3.5" />
                     </button>
@@ -186,8 +227,8 @@ export function Sidebar() {
       </div>
 
       {/* Bottom bar: spaces + quick actions */}
-      <div className="flex items-center justify-between gap-1 pt-1">
-        <SpaceSwitcher />
+      <div className="flex shrink-0 items-center justify-between gap-1 pt-1">
+        <SpaceSwitcher onSelect={onNavigate} />
         <div className="flex items-center gap-0.5">
           <Tooltip>
             <TooltipTrigger asChild>
@@ -206,7 +247,7 @@ export function Sidebar() {
             <TooltipTrigger asChild>
               <button
                 type="button"
-                onClick={() => setComposeOpen(true)}
+                onClick={go(() => setComposeOpen(true))}
                 aria-label="Nouveau message"
                 className="flex size-8 items-center justify-center rounded-lg text-white/70 transition-colors hover:bg-white/15 hover:text-white"
               >
@@ -217,7 +258,7 @@ export function Sidebar() {
           </Tooltip>
         </div>
       </div>
-    </aside>
+    </>
   );
 }
 

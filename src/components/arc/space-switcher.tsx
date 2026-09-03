@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 /** The row of space dots at the bottom of the Arc sidebar. */
-export function SpaceSwitcher() {
+export function SpaceSwitcher({ onSelect }: { onSelect?: () => void }) {
   const spaceId = useMail((s) => s.spaceId);
   const setSpace = useMail((s) => s.setSpace);
 
@@ -19,7 +19,10 @@ export function SpaceSwitcher() {
             <TooltipTrigger asChild>
               <button
                 type="button"
-                onClick={() => setSpace(space.id)}
+                onClick={() => {
+                  setSpace(space.id);
+                  onSelect?.();
+                }}
                 aria-label={`Espace ${space.name}`}
                 aria-current={active ? "true" : undefined}
                 className={cn(

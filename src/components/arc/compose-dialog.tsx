@@ -40,8 +40,8 @@ export function ComposeDialog() {
 
   return (
     <Dialog open={open} onOpenChange={setComposeOpen}>
-      <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-2xl">
-        <form onSubmit={submit}>
+      <DialogContent className="gap-0 overflow-hidden p-0 max-sm:inset-0 max-sm:top-0 max-sm:left-0 max-sm:h-dvh max-sm:max-w-none max-sm:translate-x-0 max-sm:translate-y-0 max-sm:rounded-none sm:max-w-2xl">
+        <form onSubmit={submit} className="flex h-full flex-col">
           <DialogHeader className="border-b px-5 py-3">
             <DialogTitle className="text-sm">Nouveau message</DialogTitle>
             <DialogDescription className="text-xs">
@@ -57,7 +57,7 @@ export function ComposeDialog() {
               value={to}
               onChange={(e) => setTo(e.target.value)}
               placeholder="nom@exemple.fr"
-              className="flex-1 bg-transparent outline-none placeholder:text-muted-foreground"
+              className="flex-1 bg-transparent text-base outline-none placeholder:text-muted-foreground md:text-sm"
             />
           </Field>
           <Field label="Objet">
@@ -65,7 +65,7 @@ export function ComposeDialog() {
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
               placeholder="Objet du message"
-              className="flex-1 bg-transparent outline-none placeholder:text-muted-foreground"
+              className="flex-1 bg-transparent text-base outline-none placeholder:text-muted-foreground md:text-sm"
             />
           </Field>
           <Textarea
@@ -75,11 +75,11 @@ export function ComposeDialog() {
               if ((e.metaKey || e.ctrlKey) && e.key === "Enter") e.currentTarget.form?.requestSubmit();
             }}
             placeholder="Écris ton message…"
-            className="min-h-56 resize-none rounded-none border-0 px-5 py-4 shadow-none focus-visible:ring-0 dark:bg-transparent"
+            className="min-h-56 flex-1 resize-none rounded-none border-0 px-5 py-4 shadow-none focus-visible:ring-0 sm:flex-none dark:bg-transparent"
           />
 
-          <DialogFooter className="border-t px-5 py-3 sm:justify-between">
-            <span className="self-center text-xs text-muted-foreground">
+          <DialogFooter className="border-t px-5 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:justify-between">
+            <span className="hidden self-center text-xs text-muted-foreground sm:inline">
               Mode démo : le message est ajouté au dossier Envoyés.
             </span>
             <div className="flex gap-2">
@@ -99,7 +99,7 @@ export function ComposeDialog() {
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <label className="flex h-11 items-center gap-3 border-b px-5 text-sm">
+    <label className="flex h-11 shrink-0 items-center gap-3 border-b px-5 text-sm">
       <span className="w-12 shrink-0 text-muted-foreground">{label}</span>
       {children}
     </label>

@@ -14,7 +14,7 @@ import type { Message, Thread } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { ContactAvatar } from "./contact-avatar";
 
-export function ThreadView() {
+export function ThreadView({ className }: { className?: string }) {
   const thread = useMail(selectSelectedThread);
   const splitView = useMail((s) => s.splitView);
   const selectThread = useMail((s) => s.selectThread);
@@ -24,7 +24,7 @@ export function ThreadView() {
 
   if (!thread) {
     return (
-      <div className="flex min-w-0 flex-1 flex-col items-center justify-center gap-3 text-muted-foreground">
+      <div className={cn("min-w-0 flex-1 flex-col items-center justify-center gap-3 text-muted-foreground", className)}>
         <Mail className="size-10 opacity-30" />
         <p className="text-sm">Sélectionne une conversation</p>
         <p className="text-xs">
@@ -38,13 +38,17 @@ export function ThreadView() {
   const inTrash = thread.folder === "trash";
 
   return (
-    <article className="flex min-w-0 flex-1 flex-col">
+    <article className={cn("min-w-0 flex-1 flex-col", className)}>
       <header className="flex h-12 shrink-0 items-center gap-1 border-b px-3">
-        {!splitView && (
-          <Button variant="ghost" size="icon-xs" onClick={() => selectThread(null)} aria-label="Retour">
-            <ArrowLeft />
-          </Button>
-        )}
+        <Button
+          variant="ghost"
+          size="icon-xs"
+          onClick={() => selectThread(null)}
+          aria-label="Retour"
+          className={cn(splitView && "md:hidden")}
+        >
+          <ArrowLeft />
+        </Button>
         <h2 className="min-w-0 flex-1 truncate px-1 text-sm font-semibold">{thread.subject}</h2>
         <Action label="Archiver · e" onClick={() => moveThread(thread.id, "archive")} disabled={thread.folder === "archive"}>
           <Archive />

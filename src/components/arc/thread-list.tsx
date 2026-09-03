@@ -27,6 +27,9 @@ export function ThreadList({ className }: { className?: string }) {
   return (
     <section className={cn("flex min-w-0 flex-col", className)} aria-label={folder.name}>
       <header className="flex h-12 shrink-0 items-center gap-2 border-b px-4">
+        <span className="text-base leading-none md:hidden" aria-hidden>
+          {space.emoji}
+        </span>
         <h1 className="truncate text-sm font-semibold">{folder.name}</h1>
         <span className="text-xs text-muted-foreground tabular-nums">{threads.length}</span>
         <div className="ml-auto flex items-center gap-1">
@@ -40,7 +43,7 @@ export function ThreadList({ className }: { className?: string }) {
           </div>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon-xs" onClick={toggleSplit} aria-pressed={splitView} aria-label="Vue partagée">
+              <Button variant="ghost" size="icon-xs" onClick={toggleSplit} aria-pressed={splitView} aria-label="Vue partagée" className="hidden md:inline-flex">
                 <Columns2 />
               </Button>
             </TooltipTrigger>
@@ -166,7 +169,7 @@ function ThreadRow({
           aria-pressed={thread.starred}
           className={cn(
             "mt-0.5 shrink-0 rounded p-1 transition-opacity hover:bg-background",
-            thread.starred ? "text-amber-400" : "text-muted-foreground opacity-0 group-hover:opacity-100 focus-visible:opacity-100",
+            thread.starred ? "text-amber-400" : "text-muted-foreground md:opacity-0 md:group-hover:opacity-100 md:focus-visible:opacity-100",
           )}
         >
           <Star className={cn("size-4", thread.starred && "fill-current")} />

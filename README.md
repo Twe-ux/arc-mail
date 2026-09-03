@@ -38,6 +38,9 @@ npm run lint
 - **Composer** (`⌘N` ou `c`) et **répondre** (`⌘⏎`), en mémoire.
 - Raccourcis Gmail-like : `j`/`k` naviguer, `e` archiver, `s` favori, `u` non-lu, `#` corbeille.
 - Thème clair / sombre.
+- **Responsive** : au-dessus de 768 px, la fenêtre Arc (sidebar + carte). En dessous, une colonne à la
+  fois, la sidebar en tiroir latéral et une barre du bas façon Arc mobile (espace, réception,
+  recherche, écrire).
 
 ## Structure
 
@@ -45,8 +48,8 @@ npm run lint
 src/
 ├── app/                 # layout, page, globals.css (tokens shadcn + utilitaire .glass)
 ├── components/
-│   ├── arc/             # app-shell, sidebar, space-switcher, thread-list, thread-view,
-│   │                    # command-palette, compose-dialog, contact-avatar
+│   ├── arc/             # app-shell, sidebar (desktop + tiroir mobile), mobile-nav, space-switcher,
+│   │                    # thread-list, thread-view, command-palette, compose-dialog, contact-avatar
 │   └── ui/              # composants shadcn/ui
 ├── hooks/               # use-keyboard-shortcuts
 └── lib/                 # types, mock-data, store (zustand + sélecteurs), format, utils

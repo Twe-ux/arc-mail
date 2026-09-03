@@ -17,6 +17,7 @@ import { FOLDERS, SPACES } from "@/lib/mock-data";
 import { sortByDate, useMail } from "@/lib/store";
 import type { FolderId } from "@/lib/types";
 import { ContactAvatar } from "./contact-avatar";
+import { SpaceIcon } from "./space-icon";
 
 const FOLDER_ICONS: Record<FolderId, LucideIcon> = {
   inbox: Inbox,
@@ -97,7 +98,7 @@ export function CommandPalette() {
               value={`espace ${space.name} ${space.email}`}
               onSelect={() => run(() => setSpace(space.id))}
             >
-              <span className="w-4 text-center">{space.emoji}</span> {space.name}
+              <SpaceIcon space={space} size="sm" /> {space.name}
               <span className="text-muted-foreground text-xs">{space.email}</span>
               <CommandShortcut className="max-sm:hidden">⌘{i + 1}</CommandShortcut>
             </CommandItem>

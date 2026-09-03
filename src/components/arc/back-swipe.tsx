@@ -1,0 +1,94 @@
+"use client";
+
+import { useCallback, useRef, useState } from "react";
+import { flushSync } from "react-dom";
+
+import { useEdgeSwipeBack } from "@/hooks/use-edge-swipe-back";
+import { cn } from "@/lib/utils";
+
+const PARALLAX = 0.25;
+const SCRIM = 0.22;
+const parallaxFor = (progress: number, width: number) => -(1 - progress) * width * PARALLAX;
+const scrimFor = (progress: number) => (1 - progress) * SCRIM;
+
+/**
+ * Two layers the back gesture moves: the screen showing (children) slides out
+ * under the thumb, and the screen it goes back to (`under`) is really mounted
+ * beneath it, a quarter-width behind, coming home as the top one leaves.
+ * Ported from Kairos. Progress is written to the nodes on the frame, never
+ * through React state.
+ */
+export function BackSwipe({
+  enabled,
+  onBack,
+  under,
+  className,
+  children,
+}: {
+  enabled: boolean;
+  onBack: () => void;
+  under: React.ReactNode;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  const [revealing, setRevealing] = useState(false);
+  const top = useRef<HTMLDivElement>(null);
+  const beneath = useRef<HTMLDivElement>(null);
+  const scrim = useRef<HTMLDivElement>(null);
+
+  const onProgress = useCallback((progress: number) => {
+    const w = top.current?.getBoundingClientRect().width ?? window.innerWidth;
+    if (top.current) top.current.style.transform = `translate3d(${progress * w}px, 0, 0)`;
+    if (beneath.current) beneath.current.style.transform = `translate3d(${parallaxFor(progress, w)}px, 0, 0)`;
+    if (scrim.current) scrim.current.style.opacity = String(scrimFor(progress));
+  }, []);
+
+  const cancel = useCallback(() => {
+    if (top.current) top.current.style.transform = "";
+    setRevealing(false);
+  }, []);
+
+  /* The swap must land before the next paint, with the layer still off screen:
+     `flushSync`, then clear the transform. The other order flashes the old screen. */
+  const commit = useCallback(() => {
+    flushSync(() => {
+      onBack();
+      setRevealing(false);
+    });
+    if (top.current) top.current.style.transform = "";
+  }, [onBack]);
+
+  const ref = useEdgeSwipeBack({
+    enabled,
+    onClaim: useCallback(() => setRevealing(true), []),
+    onProgress,
+    onCommit: commit,
+    onCancel: cancel,
+  });
+
+  return (
+    <div ref={ref} className={cn("relative isolate min-w-0 flex-1 flex-col", className)}>
+      {revealing && (
+        <div aria-hidden inert className="space-wash absolute inset-0 z-0 overflow-hidden">
+          <div
+            ref={beneath}
+            className="flex h-full flex-col will-change-transform"
+            style={{ transform: `translate3d(${-PARALLAX * 100}%, 0, 0)` }}
+          >
+            {under}
+          </div>
+          <div ref={scrim} className="pointer-events-none absolute inset-0 bg-black" style={{ opacity: scrimFor(0) }} />
+        </div>
+      )}
+      <div
+        ref={top}
+        className={cn(
+          "space-wash relative flex min-h-0 min-w-0 flex-1 flex-col md:[background:transparent]",
+          revealing && "z-10 shadow-[-14px_0_28px_rgb(0_0_0/0.18)] will-change-transform",
+        )}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}

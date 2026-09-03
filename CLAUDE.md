@@ -33,6 +33,11 @@ d'Arc (espaces colorés, sidebar translucide, favoris épinglés, onglets « Auj
   `--viewport-slack` dans `globals.css`), sinon WebKit peint sur un viewport amputé de la safe
   area basse et laisse une bande nue. La barre du bas se place à `safe-area − 18px` (min 14px),
   la safe area complète la fait remonter trop haut. Solution portée du projet Kairos.
+- **Gestes tactiles** (`src/lib/gesture.ts`, portés de Kairos) : la transformation s'écrit sur le nœud à
+  chaque frame, jamais via un état React ni une transition CSS ; le relâchement lit la vitesse, pas la
+  distance ; un ressort suit, qu'on peut rattraper. Retour par glissement depuis le bord gauche
+  (`BackSwipe` + `useEdgeSwipeBack`), fermeture des feuilles par glissement vers le bas (`useSheetDismiss`).
+- Les espaces ont une icône Lucide sur une tuile dégradée (`SpaceIcon`), pas d'emoji.
 - Textes de l'interface en français.
 - Commits conventionnels (`feat:`, `fix:`, `docs:`, `chore:`).
 

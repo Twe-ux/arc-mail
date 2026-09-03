@@ -4,6 +4,7 @@ import { Inbox, PenSquare, Search } from "lucide-react";
 
 import { selectSpace, selectUnreadCount, useMail } from "@/lib/store";
 import { cn } from "@/lib/utils";
+import { SpaceIcon } from "./space-icon";
 
 /** Floating frosted pill: space, inbox, search, compose. Hidden from `md` up. */
 export function MobileNav({ className }: { className?: string }) {
@@ -33,7 +34,7 @@ export function MobileNav({ className }: { className?: string }) {
     >
       <div className="flex items-center gap-1 rounded-full bg-background/80 p-1.5 shadow-[0_8px_30px_rgb(0_0_0/0.12)] ring-1 ring-black/5 backdrop-blur-2xl dark:bg-card/80 dark:ring-white/10">
         <NavButton label={space.name} onClick={() => setSidebarOpen(true)}>
-          <span className="text-[22px] leading-none">{space.emoji}</span>
+          <SpaceIcon space={space} size="md" />
         </NavButton>
         <NavButton label="Réception" active={folderId === "inbox"} onClick={goInbox}>
           <Inbox className="size-[22px]" strokeWidth={1.75} />

@@ -20,7 +20,7 @@ export type Space = {
   id: SpaceId;
   name: string;
   email: string;
-  emoji: string;
+  icon: "house" | "briefcase" | "flask";
   /** Appended to new messages, Apple Mail style. */
   signature: string;
   theme: SpaceTheme;

@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
 import { selectSpace, useMail } from "@/lib/store";
 import { cn } from "@/lib/utils";
+import { BackSwipe } from "./back-swipe";
 import { CommandPalette } from "./command-palette";
 import { ComposeDialog } from "./compose-dialog";
 import { MobileNav } from "./mobile-nav";
@@ -24,6 +25,7 @@ export function AppShell() {
   const dark = useMail((s) => s.dark);
   const splitView = useMail((s) => s.splitView);
   const selectedThreadId = useMail((s) => s.selectedThreadId);
+  const selectThread = useMail((s) => s.selectThread);
 
   useKeyboardShortcuts();
 
@@ -58,7 +60,19 @@ export function AppShell() {
               splitView ? "md:w-[380px] md:shrink-0 md:border-r" : "md:flex-1",
             )}
           />
-          <ThreadView className={cn(hasSelection ? "flex" : "hidden", viewOnDesktop ? "md:flex" : "md:hidden")} />
+          <BackSwipe
+            enabled={hasSelection}
+            onBack={() => selectThread(null)}
+            className={cn(hasSelection ? "flex" : "hidden", viewOnDesktop ? "md:flex" : "md:hidden")}
+            under={
+              <>
+                <ThreadList className="flex min-h-0 flex-1" />
+                <MobileNav />
+              </>
+            }
+          >
+            <ThreadView className="flex" />
+          </BackSwipe>
         </main>
         <MobileNav className={cn(hasSelection && "hidden")} />
         <MobileSidebar />

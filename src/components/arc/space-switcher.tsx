@@ -4,6 +4,7 @@ import { SPACES } from "@/lib/mock-data";
 import { useMail } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { SpaceIcon } from "./space-icon";
 
 /** The row of space dots at the bottom of the Arc sidebar. */
 export function SpaceSwitcher({ onSelect, tone = "gradient" }: { onSelect?: () => void; tone?: "gradient" | "surface" }) {
@@ -36,7 +37,7 @@ export function SpaceSwitcher({ onSelect, tone = "gradient" }: { onSelect?: () =
                       : "text-muted-foreground hover:bg-muted hover:text-foreground",
                 )}
               >
-                <span className="text-base leading-none">{space.emoji}</span>
+                <SpaceIcon space={space} size="sm" />
                 {active && <span className="truncate font-medium">{space.name}</span>}
               </button>
             </TooltipTrigger>

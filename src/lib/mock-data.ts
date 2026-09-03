@@ -5,7 +5,7 @@ export const SPACES: Space[] = [
     id: "perso",
     name: "Perso",
     email: "thierry@icloud.com",
-    emoji: "🏠",
+    icon: "house",
     signature: "Thierry",
     theme: {
       gradient:
@@ -17,7 +17,7 @@ export const SPACES: Space[] = [
     id: "pro",
     name: "Pro",
     email: "thierry@coworkingcafe.fr",
-    emoji: "💼",
+    icon: "briefcase",
     signature: "Thierry Milone\nCoworking Café · coworkingcafe.fr",
     theme: {
       gradient:
@@ -29,7 +29,7 @@ export const SPACES: Space[] = [
     id: "side",
     name: "Side projects",
     email: "hello@twe-ux.dev",
-    emoji: "🧪",
+    icon: "flask",
     signature: "twe-ux · twe-ux.dev",
     theme: {
       gradient:

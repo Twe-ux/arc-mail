@@ -27,6 +27,7 @@ import { selectFolder, selectSpace, selectUnreadCount, useMail } from "@/lib/sto
 import type { FolderId } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { ContactAvatar } from "./contact-avatar";
+import { SpaceIcon } from "./space-icon";
 import { InstallHint } from "./install-hint";
 import { SpaceSwitcher } from "./space-switcher";
 
@@ -195,7 +196,7 @@ function SidebarContent({ onNavigate, tone = "gradient" }: { onNavigate?: () => 
 
       {/* Space header */}
       <div className="flex shrink-0 items-center gap-2 px-2 pt-1">
-        <span className="text-lg leading-none">{space.emoji}</span>
+        <SpaceIcon space={space} size="lg" />
         <div className="min-w-0">
           <p className={cn("truncate text-sm font-semibold", tn.text)}>{space.name}</p>
           <p className={cn("truncate text-xs", tn.sub)}>{space.email}</p>

@@ -11,6 +11,7 @@ import type { Thread } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { ContactAvatar } from "./contact-avatar";
 import { LabelChip } from "./label-chip";
+import { SpaceIcon } from "./space-icon";
 
 export function ThreadList({ className }: { className?: string }) {
   const folder = useMail(selectFolder);
@@ -33,9 +34,12 @@ export function ThreadList({ className }: { className?: string }) {
       <div className="shrink-0 px-5 pt-1 pb-3 md:hidden">
         <h1 className="truncate text-[30px] leading-tight font-bold tracking-tight">{folder.name}</h1>
         <div className="mt-1.5 flex items-center justify-between gap-3">
-          <p className="min-w-0 truncate text-[13px] text-muted-foreground">
-            {space.emoji} {space.name} · {plural(threads.length, "conversation")}
-            {unread > 0 && ` · ${unread} non lue${unread > 1 ? "s" : ""}`}
+          <p className="flex min-w-0 items-center gap-1.5 text-[13px] text-muted-foreground">
+            <SpaceIcon space={space} size="xs" />
+            <span className="truncate">
+              {space.name} · {plural(threads.length, "conversation")}
+              {unread > 0 && ` · ${unread} non lue${unread > 1 ? "s" : ""}`}
+            </span>
           </p>
           <Segmented tone="glass" />
         </div>

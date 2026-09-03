@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   ArrowUp,
   ChevronDown,
@@ -18,15 +18,26 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Kbd } from "@/components/ui/kbd";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import { useSheetDismiss } from "@/hooks/use-sheet-dismiss";
 import { SPACES } from "@/lib/mock-data";
 import { selectContacts, useMail } from "@/lib/store";
 import type { ComposeDraft } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { RecipientField } from "./recipient-field";
+import { SpaceIcon } from "./space-icon";
 
 /**
  * Two chromes around one form. On phones an Apple Mail sheet: grabber, Annuler,
@@ -38,7 +49,10 @@ import { RecipientField } from "./recipient-field";
 export function ComposeDialog() {
   const compose = useMail((s) => s.compose);
   const desktop = useMediaQuery("(min-width: 640px)");
-  if (desktop) return compose ? <ComposePanel key={compose.draftId ?? "new"} draft={compose} /> : null;
+  if (desktop)
+    return compose ? (
+      <ComposePanel key={compose.draftId ?? "new"} draft={compose} />
+    ) : null;
   return <ComposeSheet draft={compose} />;
 }
 
@@ -48,6 +62,8 @@ function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
   const closeCompose = useMail((s) => s.closeCompose);
   const sendMail = useMail((s) => s.sendMail);
   const canSend = (draft?.to.length ?? 0) > 0;
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const handleRef = useSheetDismiss(sheetRef, closeCompose);
 
   return (
     <Dialog
@@ -57,33 +73,52 @@ function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
       }}
     >
       <DialogContent
+        ref={sheetRef}
         showCloseButton={false}
         className="inset-x-0 top-[max(env(safe-area-inset-top),0.75rem)] bottom-0 flex h-auto max-w-none translate-x-0 translate-y-0 flex-col gap-0 rounded-t-[22px] rounded-b-none border-0 p-0 data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom"
         style={{ paddingBottom: "var(--keyboard-inset, 0px)" }}
       >
-        <div className="mx-auto mt-2 h-1 w-9 shrink-0 rounded-full bg-foreground/15" aria-hidden />
-        <header className="flex h-12 shrink-0 items-center px-2">
-          <Button variant="ghost" size="sm" onClick={closeCompose} className="text-[15px] font-normal">
-            Annuler
-          </Button>
-          <div className="min-w-0 flex-1 text-center">
-            <DialogTitle className="truncate text-[15px] font-semibold">
-              {draft?.draftId ? "Brouillon" : "Nouveau message"}
-            </DialogTitle>
-            <DialogDescription className="sr-only">Rédiger un e-mail</DialogDescription>
-          </div>
-          <button
-            type="button"
-            onClick={sendMail}
-            disabled={!canSend}
-            aria-label="Envoyer"
-            className="mr-1 flex size-9 items-center justify-center rounded-full text-white shadow-md transition-[opacity,transform] active:scale-95 disabled:opacity-35 disabled:shadow-none [background:var(--space-gradient)]"
-          >
-            <ArrowUp className="size-5" strokeWidth={2.5} />
-          </button>
-        </header>
-        {draft && <ComposeFields key={draft.draftId ?? "new"} draft={draft} compact />}
-        <Toolbar draft={draft} className="border-t border-border/60 pb-[max(0.5rem,calc(env(safe-area-inset-bottom)-10px))]" />
+        {/* The handle: grabber and title bar. Drag it down to dismiss, the sheet follows the thumb. */}
+        <div ref={handleRef} className="shrink-0 touch-none">
+          <div
+            className="mx-auto mt-2 h-1 w-9 rounded-full bg-foreground/15"
+            aria-hidden
+          />
+          <header className="flex h-12 items-center px-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={closeCompose}
+              className="text-[15px] font-normal"
+            >
+              Annuler
+            </Button>
+            <div className="min-w-0 flex-1 text-center">
+              <DialogTitle className="truncate text-[15px] font-semibold">
+                {draft?.draftId ? "Brouillon" : "Nouveau message"}
+              </DialogTitle>
+              <DialogDescription className="sr-only">
+                Rédiger un e-mail
+              </DialogDescription>
+            </div>
+            <button
+              type="button"
+              onClick={sendMail}
+              disabled={!canSend}
+              aria-label="Envoyer"
+              className="mr-1 flex size-9 items-center justify-center rounded-full text-white shadow-md transition-[opacity,transform] active:scale-95 disabled:opacity-35 disabled:shadow-none [background:var(--space-gradient)]"
+            >
+              <ArrowUp className="size-5" strokeWidth={2.5} />
+            </button>
+          </header>
+        </div>
+        {draft && (
+          <ComposeFields key={draft.draftId ?? "new"} draft={draft} compact />
+        )}
+        <Toolbar
+          draft={draft}
+          className="border-t border-border/60 pb-[max(0.5rem,calc(env(safe-area-inset-bottom)-10px))]"
+        />
       </DialogContent>
     </Dialog>
   );
@@ -95,9 +130,12 @@ function ComposePanel({ draft }: { draft: ComposeDraft }) {
   const closeCompose = useMail((s) => s.closeCompose);
   const sendMail = useMail((s) => s.sendMail);
   const deleteDraft = useMail((s) => s.deleteDraft);
-  const [mode, setMode] = useState<"docked" | "minimized" | "expanded">("docked");
+  const [mode, setMode] = useState<"docked" | "minimized" | "expanded">(
+    "docked",
+  );
   const canSend = draft.to.length > 0;
-  const title = draft.subject.trim() || (draft.draftId ? "Brouillon" : "Nouveau message");
+  const title =
+    draft.subject.trim() || (draft.draftId ? "Brouillon" : "Nouveau message");
 
   const panel = (
     <section
@@ -114,22 +152,40 @@ function ComposePanel({ draft }: { draft: ComposeDraft }) {
         "animate-in fade-in-0 slide-in-from-bottom-4 duration-200",
         mode === "docked" && "h-[600px] max-h-[calc(100vh-2rem)] w-[560px]",
         mode === "minimized" && "w-[320px]",
-        mode === "expanded" && "h-[min(860px,calc(100vh-4rem))] w-[min(900px,calc(100vw-4rem))]",
+        mode === "expanded" &&
+          "h-[min(860px,calc(100vh-4rem))] w-[min(900px,calc(100vw-4rem))]",
       )}
     >
       {/* Header: the space gradient, the Arc signature, where Gmail paints grey */}
       <header
         className="flex h-11 shrink-0 cursor-default items-center gap-1 px-4 text-white [background:var(--space-gradient)]"
-        onDoubleClick={() => setMode((m) => (m === "minimized" ? "docked" : "minimized"))}
+        onDoubleClick={() =>
+          setMode((m) => (m === "minimized" ? "docked" : "minimized"))
+        }
       >
-        <span className="min-w-0 flex-1 truncate text-sm font-semibold">{title}</span>
-        <HeaderButton label={mode === "minimized" ? "Agrandir" : "Réduire"} onClick={() => setMode((m) => (m === "minimized" ? "docked" : "minimized"))}>
+        <span className="min-w-0 flex-1 truncate text-sm font-semibold">
+          {title}
+        </span>
+        <HeaderButton
+          label={mode === "minimized" ? "Agrandir" : "Réduire"}
+          onClick={() =>
+            setMode((m) => (m === "minimized" ? "docked" : "minimized"))
+          }
+        >
           <Minus />
         </HeaderButton>
-        <HeaderButton label={mode === "expanded" ? "Taille normale" : "Plein écran"} onClick={() => setMode((m) => (m === "expanded" ? "docked" : "expanded"))}>
+        <HeaderButton
+          label={mode === "expanded" ? "Taille normale" : "Plein écran"}
+          onClick={() =>
+            setMode((m) => (m === "expanded" ? "docked" : "expanded"))
+          }
+        >
           {mode === "expanded" ? <Minimize2 /> : <Maximize2 />}
         </HeaderButton>
-        <HeaderButton label="Fermer (brouillon conservé)" onClick={closeCompose}>
+        <HeaderButton
+          label="Fermer (brouillon conservé)"
+          onClick={closeCompose}
+        >
           <X />
         </HeaderButton>
       </header>
@@ -148,12 +204,24 @@ function ComposePanel({ draft }: { draft: ComposeDraft }) {
               Envoyer
               <Kbd className="bg-white/20 text-white/90">⌘⏎</Kbd>
             </button>
-            <Toolbar draft={draft} className="flex-1 border-0 px-1 py-0" hideDelete />
-            <span className="text-xs text-muted-foreground">{draft.draftId ? "Brouillon" : "Brouillon à la fermeture"}</span>
+            <Toolbar
+              draft={draft}
+              className="flex-1 border-0 px-1 py-0"
+              hideDelete
+            />
+            <span className="text-xs text-muted-foreground">
+              {draft.draftId ? "Brouillon" : "Brouillon à la fermeture"}
+            </span>
             {draft.draftId && (
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon-sm" onClick={() => deleteDraft(draft.draftId!)} aria-label="Supprimer le brouillon" className="text-muted-foreground hover:text-destructive">
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={() => deleteDraft(draft.draftId!)}
+                    aria-label="Supprimer le brouillon"
+                    className="text-muted-foreground hover:text-destructive"
+                  >
                     <Trash2 />
                   </Button>
                 </TooltipTrigger>
@@ -168,15 +236,30 @@ function ComposePanel({ draft }: { draft: ComposeDraft }) {
 
   if (mode === "expanded") {
     return (
-      <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 backdrop-blur-[2px] animate-in fade-in-0" onClick={(e) => e.target === e.currentTarget && setMode("docked")}>
+      <div
+        className="fixed inset-0 z-50 grid place-items-center bg-black/40 backdrop-blur-[2px] animate-in fade-in-0"
+        onClick={(e) => e.target === e.currentTarget && setMode("docked")}
+      >
         {panel}
       </div>
     );
   }
-  return <div className="pointer-events-none fixed right-4 bottom-4 z-50">{panel}</div>;
+  return (
+    <div className="pointer-events-none fixed right-4 bottom-4 z-50">
+      {panel}
+    </div>
+  );
 }
 
-function HeaderButton({ label, onClick, children }: { label: string; onClick: () => void; children: React.ReactNode }) {
+function HeaderButton({
+  label,
+  onClick,
+  children,
+}: {
+  label: string;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
@@ -196,12 +279,20 @@ function HeaderButton({ label, onClick, children }: { label: string; onClick: ()
 
 // ───────────── Shared: the rows and the editor ─────────────
 
-function ComposeFields({ draft, compact }: { draft: ComposeDraft; compact?: boolean }) {
+function ComposeFields({
+  draft,
+  compact,
+}: {
+  draft: ComposeDraft;
+  compact?: boolean;
+}) {
   const threads = useMail((s) => s.threads);
   const update = useMail((s) => s.updateCompose);
   const sendMail = useMail((s) => s.sendMail);
   const contacts = useMemo(() => selectContacts(threads), [threads]);
-  const [details, setDetails] = useState(draft.cc.length > 0 || draft.bcc.length > 0);
+  const [details, setDetails] = useState(
+    draft.cc.length > 0 || draft.bcc.length > 0,
+  );
   const space = SPACES.find((sp) => sp.id === draft.spaceId) ?? SPACES[0];
 
   return (
@@ -230,10 +321,23 @@ function ComposeFields({ draft, compact }: { draft: ComposeDraft; compact?: bool
       />
       {details ? (
         <>
-          <RecipientField label="Cc" value={draft.cc} onChange={(cc) => update({ cc })} suggestions={contacts} />
-          <RecipientField label="Cci" value={draft.bcc} onChange={(bcc) => update({ bcc })} suggestions={contacts} />
+          <RecipientField
+            label="Cc"
+            value={draft.cc}
+            onChange={(cc) => update({ cc })}
+            suggestions={contacts}
+          />
+          <RecipientField
+            label="Cci"
+            value={draft.bcc}
+            onChange={(bcc) => update({ bcc })}
+            suggestions={contacts}
+          />
           <Row label="De">
-            <FromSelect value={draft.spaceId} onChange={(spaceId) => update({ spaceId })} />
+            <FromSelect
+              value={draft.spaceId}
+              onChange={(spaceId) => update({ spaceId })}
+            />
           </Row>
         </>
       ) : (
@@ -243,9 +347,11 @@ function ComposeFields({ draft, compact }: { draft: ComposeDraft; compact?: bool
           onClick={() => setDetails(true)}
           className="flex h-11 w-full shrink-0 items-center gap-3 border-b border-border/60 px-4 text-left text-[15px] sm:text-sm"
         >
-          <span className="w-14 shrink-0 whitespace-nowrap text-muted-foreground">Cc/Cci</span>
+          <span className="w-14 shrink-0 whitespace-nowrap text-muted-foreground">
+            Cc/Cci
+          </span>
           <span className="truncate text-muted-foreground">
-            De : <span className="text-foreground">{space.emoji} {space.email}</span>
+            De : <span className="text-foreground">{space.email}</span>
           </span>
         </button>
       )}
@@ -261,19 +367,32 @@ function ComposeFields({ draft, compact }: { draft: ComposeDraft; compact?: bool
         value={draft.body}
         onChange={(e) => update({ body: e.target.value })}
         onKeyDown={(e) => {
-          if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && draft.to.length > 0) sendMail();
+          if (
+            (e.metaKey || e.ctrlKey) &&
+            e.key === "Enter" &&
+            draft.to.length > 0
+          )
+            sendMail();
         }}
         placeholder="Écris ton message…"
         className={cn(
           "min-h-48 flex-1 resize-none bg-transparent px-4 py-4 outline-none placeholder:text-muted-foreground",
-          compact ? "text-[17px] leading-[1.5]" : "text-[15px] leading-relaxed sm:text-sm",
+          compact
+            ? "text-[17px] leading-[1.5]"
+            : "text-[15px] leading-relaxed sm:text-sm",
         )}
       />
     </div>
   );
 }
 
-function Row({ label, children }: { label: string; children: React.ReactNode }) {
+function Row({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
     <label className="flex h-11 shrink-0 items-center gap-3 border-b border-border/60 px-4 text-[15px] sm:text-sm">
       <span className="w-14 shrink-0 text-muted-foreground">{label}</span>
@@ -282,12 +401,20 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
   );
 }
 
-function FromSelect({ value, onChange }: { value: ComposeDraft["spaceId"]; onChange: (v: ComposeDraft["spaceId"]) => void }) {
+function FromSelect({
+  value,
+  onChange,
+}: {
+  value: ComposeDraft["spaceId"];
+  onChange: (v: ComposeDraft["spaceId"]) => void;
+}) {
   const space = SPACES.find((sp) => sp.id === value) ?? SPACES[0];
   return (
     <span className="relative flex min-w-0 flex-1 cursor-pointer items-center gap-1.5">
+      <SpaceIcon space={space} size="xs" />
       <span className="truncate">
-        {space.emoji} {space.name} <span className="text-muted-foreground">· {space.email}</span>
+        {space.name}{" "}
+        <span className="text-muted-foreground">· {space.email}</span>
       </span>
       <ChevronDown className="size-4 shrink-0 text-muted-foreground" />
       <select
@@ -298,7 +425,7 @@ function FromSelect({ value, onChange }: { value: ComposeDraft["spaceId"]; onCha
       >
         {SPACES.map((sp) => (
           <option key={sp.id} value={sp.id}>
-            {sp.emoji} {sp.name} · {sp.email}
+            {sp.name} · {sp.email}
           </option>
         ))}
       </select>
@@ -314,15 +441,31 @@ const TOOLS: [LucideIcon, string][] = [
 ];
 
 /** Attachments, images, emoji, links: the Gmail row, greyed until the backend exists. */
-function Toolbar({ draft, className, hideDelete }: { draft: ComposeDraft | null; className?: string; hideDelete?: boolean }) {
+function Toolbar({
+  draft,
+  className,
+  hideDelete,
+}: {
+  draft: ComposeDraft | null;
+  className?: string;
+  hideDelete?: boolean;
+}) {
   const deleteDraft = useMail((s) => s.deleteDraft);
   return (
-    <div className={cn("flex shrink-0 items-center gap-0.5 px-3 py-2", className)}>
+    <div
+      className={cn("flex shrink-0 items-center gap-0.5 px-3 py-2", className)}
+    >
       {TOOLS.map(([Icon, label]) => (
         <Tooltip key={label}>
           <TooltipTrigger asChild>
             <span>
-              <Button variant="ghost" size="icon-sm" disabled aria-label={`${label} (bientôt)`} className="text-muted-foreground">
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                disabled
+                aria-label={`${label} (bientôt)`}
+                className="text-muted-foreground"
+              >
                 <Icon />
               </Button>
             </span>
@@ -331,7 +474,13 @@ function Toolbar({ draft, className, hideDelete }: { draft: ComposeDraft | null;
         </Tooltip>
       ))}
       {!hideDelete && draft?.draftId && (
-        <Button variant="ghost" size="icon-sm" onClick={() => deleteDraft(draft.draftId!)} aria-label="Supprimer le brouillon" className="ml-auto text-muted-foreground hover:text-destructive">
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          onClick={() => deleteDraft(draft.draftId!)}
+          aria-label="Supprimer le brouillon"
+          className="ml-auto text-muted-foreground hover:text-destructive"
+        >
           <Trash2 />
         </Button>
       )}

@@ -33,6 +33,11 @@ d'Arc (espaces colorés, sidebar translucide, favoris épinglés, onglets « Auj
   `--viewport-slack` dans `globals.css`), sinon WebKit peint sur un viewport amputé de la safe
   area basse et laisse une bande nue. La barre du bas se place à `safe-area − 18px` (min 14px),
   la safe area complète la fait remonter trop haut. Solution portée du projet Kairos.
+- **Le voile de teinte (`space-wash`) ne se peint qu'une fois.** Son dégradé part du haut de
+  l'élément : une couche qui démarre sous la safe area et le repeint fait redémarrer le dégradé, et
+  ça se voit comme une ligne nette au ras de l'encoche. Une couche qui a besoin d'un fond opaque
+  (la couche mobile de `BackSwipe`) en pose une copie étirée jusqu'au haut du viewport
+  (`top: calc(-1 * var(--safe-top))`, `h-dvh`), pas le voile sur elle-même.
 - **Gestes tactiles** (`src/lib/gesture.ts`, portés de Kairos) : la transformation s'écrit sur le nœud à
   chaque frame, jamais via un état React ni une transition CSS ; le relâchement lit la vitesse, pas la
   distance ; un ressort suit, qu'on peut rattraper. Retour par glissement depuis le bord gauche

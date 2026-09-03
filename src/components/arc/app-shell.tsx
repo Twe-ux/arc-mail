@@ -47,7 +47,7 @@ export function AppShell() {
   return (
     <TooltipProvider>
       <div
-        className="space-wash fixed inset-0 flex flex-col pt-[env(safe-area-inset-top)] transition-[background] duration-500 md:flex-row md:gap-2 md:p-2 md:[background:var(--space-gradient)]"
+        className="space-wash fixed inset-0 flex flex-col pt-[var(--safe-top)] transition-[background] duration-500 md:flex-row md:gap-2 md:p-2 md:[background:var(--space-gradient)]"
         style={{ "--space-gradient": space.theme.gradient, "--space-accent": space.theme.accent } as CSSProperties}
       >
         <Sidebar />

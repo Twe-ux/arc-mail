@@ -71,7 +71,9 @@ export function BackSwipe({
        it iOS can claim the touch for a scroll and the swipe never becomes cancelable. */
     <div ref={ref} className={cn("relative isolate min-w-0 flex-1 flex-col touch-pan-y md:touch-auto", className)}>
       {revealing && (
-        <div aria-hidden inert className="space-wash absolute inset-0 z-0 overflow-hidden">
+        /* No ground of its own: it sits exactly over the shell's wash, which is
+            already the right one. */
+        <div aria-hidden inert className="absolute inset-0 z-0 overflow-hidden">
           <div
             ref={beneath}
             className="flex h-full flex-col will-change-transform"
@@ -85,10 +87,21 @@ export function BackSwipe({
       <div
         ref={top}
         className={cn(
-          "space-wash relative flex min-h-0 min-w-0 flex-1 flex-col md:[background:transparent]",
+          "relative isolate flex min-h-0 min-w-0 flex-1 flex-col",
           revealing && "z-10 shadow-[-14px_0_28px_rgb(0_0_0/0.18)] will-change-transform",
         )}
       >
+        {/* The layer needs an opaque ground to slide over the one beneath, but
+            painting `space-wash` on the layer itself restarts the gradient at
+            the layer's own top — a seam right on the safe-area line. This copy
+            is stretched back up to where the shell's wash begins, so the two
+            are the same picture; and being inside the transformed layer, it
+            travels with it during the drag. */}
+        <div
+          aria-hidden
+          className="space-wash pointer-events-none absolute inset-x-0 -z-10 h-dvh md:hidden"
+          style={{ top: "calc(-1 * var(--safe-top))" }}
+        />
         {children}
       </div>
     </div>

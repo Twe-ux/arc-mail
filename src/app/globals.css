@@ -4,6 +4,9 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
+  /* Named so a layer that starts below it can offset the wash by exactly as
+     much, and so a test can stand in for a notch the browser does not report. */
+  --safe-top: env(safe-area-inset-top);
   --radius: 0.75rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);

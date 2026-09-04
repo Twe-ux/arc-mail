@@ -19,7 +19,7 @@ barre du bas dessine le même glyphe en trait seul (`SPACE_ICONS`, `SpaceGlyph`)
 ## Le fond du bureau (`space-backdrop`)
 
 **Le dégradé plein cadre se regarde à travers un verre fumé** : un aplat neutre très sombre
-(`rgb(16 14 24 / 0.42)`) posé **par-dessus** `--space-gradient`. Le téléphone ne teinte que le haut
+(`rgb(16 14 24 / 0.45)`) posé **par-dessus** `--space-gradient`. Le téléphone ne teinte que le haut
 de l'écran, à 26 % ; le bureau, lui, peignait 1280 px à pleine saturation, et ce qui chuchote sur
 un téléphone criait sur un écran. L'aplat baisse la clarté et tire le chroma vers le gris d'un seul
 geste : ce sont les mêmes couleurs, plus calmes.
@@ -28,26 +28,34 @@ Mesuré sur les trois espaces, aux quatre coins de la fenêtre (1280×800) :
 
 | | Avant (arrêts bruts) | Après |
 |---|---|---|
-| Clarté | L 0,51 à 0,77 | **L 0,35 à 0,54** |
-| Chroma | C 0,086 à 0,247 | **C 0,056 à 0,166** (−33 %) |
-| Blanc pur dessus | 2,15:1 au pire (Side) | **5,21:1** |
+| Clarté | L 0,51 à 0,77 | **L 0,34 à 0,52** |
+| Chroma | C 0,086 à 0,247 | **C 0,054 à 0,158** (−36 %) |
+| Blanc pur dessus | 2,15:1 au pire (Side) | **6,14:1** |
 
 **Ce qui est une action garde le dégradé vif** : bouton composer, envoi, en-tête du composeur
 bureau. Le fond se tait, l'action parle. C'est la même règle que « l'accent se remplit, il ne
 s'écrit pas ».
 
-**La sidebar garde un voile de 16 %** (`bg-black/[0.16]`), pas les 28 % d'avant : sur le fond calmé
-il suffit pour que les trois encres passent AA — mesuré au pire point (Side, haut de fenêtre) :
+**La sidebar n'a plus de fond du tout** : plus de voile sombre, plus de faux boutons de fenêtre.
+L'encre est posée directement sur le fond calmé, et le contraste a été mesuré **à l'endroit exact
+où chaque texte est dessiné** (on masque l'encre, on lit le pixel dessous) — au pire, Side en haut
+de fenêtre :
 
 | Encre | Contraste |
 |---|---|
-| `text` blanc | 6,62:1 |
-| `sub` 85 % | 5,30:1 |
-| `heading` 80 % | 4,90:1 |
-| `faint` 75 % | 4,54:1 |
+| blanc pur | 6,14:1 |
+| 85 % | **4,96:1** |
+| 80 % | 4,58:1 |
+| 75 % | 4,22:1 |
 
-Sans voile du tout, `faint` tombe à 3,46:1 ; c'est ce voile-là, et pas une opacité plus forte, qui
-garde une hiérarchie à trois niveaux.
+**Une seule encre secondaire, à 85 %**, pas trois posées sur la ligne AA : la hiérarchie se fait
+par la taille, la graisse et les capitales, pas par quatre opacités qui se ressemblent de toute
+façon. Le seul repli qui reste est celui des **contrôles** (`glass`, blanc à 12 %) : la barre
+d'adresse, le bouton de repli, la rangée active — une surface parce que ce sont des cibles, pas
+parce que le texte en a besoin.
+
+**Le bouton de repli est à côté de la barre de recherche** : le seul contrôle qui parle de la barre
+elle-même, en haut de la barre. Il revient dans l'en-tête de la liste quand elle est repliée.
 
 ## Le voile de teinte (`space-wash`)
 

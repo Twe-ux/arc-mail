@@ -96,6 +96,8 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - Le voile `space-wash` ne se peint qu'une fois, sur `--wash-base`.
 - Le fond du bureau est le dégradé sous un aplat sombre (`space-backdrop`) ; ce qui est une action
   garde `--space-gradient` vif.
+- La sidebar bureau n'a pas de fond : une seule encre secondaire (85 %), mesurée à l'endroit où
+  elle est dessinée ; les surfaces `glass` sont pour les cibles, pas pour le texte.
 - L'accent se remplit, il ne s'écrit pas : texte et icônes en accent lisent `--space-ink`.
 - Un groupe blanc a un bord (`shadow 0 0 0 1px`) ; un rail horizontal rogne aussi verticalement,
   d'où du `padding` dedans pour tout ring.

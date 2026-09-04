@@ -175,7 +175,7 @@
    docs/features/theme.md. Actions keep `--space-gradient` untouched. */
 @utility space-backdrop {
   background-image:
-    linear-gradient(rgb(16 14 24 / 0.42), rgb(16 14 24 / 0.42)),
+    linear-gradient(rgb(16 14 24 / 0.45), rgb(16 14 24 / 0.45)),
     var(--space-gradient);
 }
 

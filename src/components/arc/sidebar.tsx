@@ -48,14 +48,17 @@ type Tone = "gradient" | "surface";
 /** Desktop sits on the space gradient (white ink); the mobile drawer sits on a frosted surface. */
 const TONES: Record<Tone, Record<string, string>> = {
   gradient: {
-    /* White ink over the calmed backdrop (see docs/features/theme.md): a
-       16% scrim under the aside brings plain white to 6.62:1 at the worst
-       point (Side, top of the window), and these three opacities are what
-       clears AA from there — measured, not guessed. */
+    /* The barre has no ground of its own: the ink sits straight on the
+       calmed backdrop (see docs/features/theme.md). Measured at the exact
+       spot each one is drawn, worst case Side at the top of the window:
+       plain white 6.14:1, 85 % 4.96:1, 80 % 4.58:1, 75 % 4.22:1. So there is
+       one secondary ink at 85 %, not three that would sit on the AA line,
+       and the hierarchy is carried by size, weight and capitals instead of
+       by four opacities that all look alike anyway. */
     text: "text-white",
     sub: "text-white/85",
-    faint: "text-white/75",
-    heading: "text-white/80",
+    faint: "text-white/85",
+    heading: "text-white/85",
     bar: "glass text-white/80 hover:bg-white/20 hover:text-white",
     kbd: "bg-white/15 text-white/70",
     tile: "bg-white/5 text-white/70 hover:bg-white/15 hover:text-white",
@@ -95,35 +98,25 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        "hidden w-[260px] shrink-0 flex-col gap-3 rounded-xl bg-black/[0.16] px-2 py-2 text-white",
+        "hidden w-[260px] shrink-0 flex-col gap-3 px-2 py-2 text-white",
         collapsed ? "md:hidden" : "md:flex",
       )}
     >
-      <div className="flex items-center gap-1.5 px-2 pt-1">
-        {/* Window controls placeholder, keeps the Arc proportions. */}
-        <span className="size-3 rounded-full bg-white/20" aria-hidden />
-        <span className="size-3 rounded-full bg-white/20" aria-hidden />
-        <span className="size-3 rounded-full bg-white/20" aria-hidden />
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button
-              type="button"
-              onClick={toggle}
-              aria-label="Replier la barre latérale"
-              className="ml-auto flex size-7 items-center justify-center rounded-md text-white/70 transition-colors hover:bg-white/15 hover:text-white"
-            >
-              <PanelLeftClose className="size-4" />
-            </button>
-          </TooltipTrigger>
-          <TooltipContent side="bottom">Replier · ⌘B</TooltipContent>
-        </Tooltip>
-      </div>
-      <SidebarContent />
+      <SidebarContent onCollapse={toggle} />
     </aside>
   );
 }
 
-function SidebarContent({ onNavigate, tone = "gradient" }: { onNavigate?: () => void; tone?: Tone }) {
+function SidebarContent({
+  onNavigate,
+  onCollapse,
+  tone = "gradient",
+}: {
+  onNavigate?: () => void;
+  /** Desktop only: folds the whole barre away. */
+  onCollapse?: () => void;
+  tone?: Tone;
+}) {
   const tn = TONES[tone];
   const space = useSpace();
   const folder = useMail(selectFolder);
@@ -152,16 +145,34 @@ function SidebarContent({ onNavigate, tone = "gradient" }: { onNavigate?: () => 
 
   return (
     <>
-      {/* Address bar → command palette */}
-      <button
-        type="button"
-        onClick={go(() => setCommandOpen(true))}
-        className={cn("flex h-9 shrink-0 items-center gap-2 rounded-lg px-3 text-sm transition-colors", tn.bar)}
-      >
-        <Search className="size-4 shrink-0" />
-        <span className="min-w-0 flex-1 truncate text-left">{folder.name}</span>
-        <Kbd className={cn("hidden md:inline-flex", tn.kbd)}>⌘K</Kbd>
-      </button>
+      {/* Address bar → command palette, and the fold beside it: the one
+          control that is about the barre itself, at the top of the barre. */}
+      <div className="flex shrink-0 items-center gap-1.5">
+        <button
+          type="button"
+          onClick={go(() => setCommandOpen(true))}
+          className={cn("flex h-9 min-w-0 flex-1 items-center gap-2 rounded-lg px-3 text-sm transition-colors", tn.bar)}
+        >
+          <Search className="size-4 shrink-0" />
+          <span className="min-w-0 flex-1 truncate text-left">{folder.name}</span>
+          <Kbd className={cn("hidden md:inline-flex", tn.kbd)}>⌘K</Kbd>
+        </button>
+        {onCollapse && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                onClick={onCollapse}
+                aria-label="Replier la barre latérale"
+                className={cn("flex size-9 shrink-0 items-center justify-center rounded-lg transition-colors", tn.bar)}
+              >
+                <PanelLeftClose className="size-4" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">Replier · ⌘B</TooltipContent>
+          </Tooltip>
+        )}
+      </div>
 
       {/* Pinned favorites */}
       <div className="grid shrink-0 grid-cols-4 gap-1.5">

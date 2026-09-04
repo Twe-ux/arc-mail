@@ -57,10 +57,19 @@ dev`, pas d'un déploiement.
 
 ## Mesurer en émulation
 
-Chromium préinstallé (`/opt/pw-browsers/chromium-*/chrome-linux/chrome`), `playwright` installé
-dans un dossier de travail, `executablePath` explicite. Contexte 393×852, `deviceScaleFactor 3`,
-`isMobile`, `hasTouch`, et surtout `Emulation.setSafeAreaInsetsOverride` en CDP (haut 59, bas 34)
-sans quoi `env(safe-area-inset-*)` vaut 0 et rien n'est représentatif. Le préréglage « iPhone 13 »
-rapporte parfois 664 px de haut : lire `viewportSize()`, ne pas supposer. Attendre au moins 1 s
-après l'ouverture d'une carte — son animation d'entrée dure 500 ms et une mesure à 400 ms donne
-un décalage de quelques pixels qui ressemble à un bug.
+**`npm run capture -- --name <ecran> [--open menu|compose|search] [--space pro] [--dark-only]`**
+(`scripts/capture.mjs`, sur `playwright-core` — aucun navigateur téléchargé) produit les quatre
+captures dans `captures/` (téléphone et bureau, clair et sombre), imprime les erreurs de page et
+de console, et mesure la carte ouverte : marges gauche / droite / bas, rayon. Le thème est posé
+dans `localStorage` comme l'app le persiste, pour capturer le vrai chemin du script inline.
+Serveur de dev requis. Chromium : `CHROMIUM_PATH`, sinon celui des sessions distantes
+(`/opt/pw-browsers/chromium-*`), sinon Chrome sur Mac.
+
+Ce que le script encode, à respecter dans tout script ponctuel : contexte 393×852,
+`deviceScaleFactor 3`, `isMobile`, `hasTouch`, et surtout `Emulation.setSafeAreaInsetsOverride`
+en CDP (haut 59, bas 34) sans quoi `env(safe-area-inset-*)` vaut 0 et rien n'est représentatif.
+Le préréglage « iPhone 13 » de Playwright rapporte parfois 664 px de haut : lire
+`viewportSize()`, ne pas supposer. Attendre au moins 1 s après l'ouverture d'une carte — son
+animation d'entrée dure 500 ms et une mesure à 400 ms donne un décalage de quelques pixels qui
+ressemble à un bug. Un geste se vérifie en CDP (`Input.dispatchTouchEvent`), voir
+[Gestes](gestes.md).

@@ -31,5 +31,5 @@ Voir [Fournisseurs de mail](roadmap/fournisseurs-mail.md) pour le plan complet e
 ## Hygiène
 
 - [ ] Bumper `VERSION` dans `public/sw.js` à chaque déploiement qui change la coquille
-- [ ] Un test Playwright reproductible pour les mesures qu'on refait à chaque correctif (marges
-      des cartes, safe areas, gestes) — aujourd'hui ce sont des scripts jetables
+- [x] `npm run capture` : captures aux deux tailles et deux thèmes, erreurs, géométrie de la
+      carte (4 sept.). Reste à faire : les gestes en CDP dans le même outil

@@ -25,6 +25,14 @@ l'état du projet et ce qui reste à faire.
 - [Fournisseurs de mail](roadmap/fournisseurs-mail.md) — `MailProvider`, iCloud (IMAP + mot de
   passe d'application), Gmail, boîtes virtuelles par domaine, authentification de l'app
 
+## Skills du dépôt (`.claude/skills/`)
+
+- `/ecran <nom>` — monter ou refondre un écran, de la fiche à la capture (porté de Kairos)
+- `/safe-commit "…"` — commit gardé par review + tsc/lint/build, push preview → main
+- `/review <dossier>` — état des lieux d'un dossier contre les fiches, rapport seulement
+
+Ils prennent le pas sur les skills globaux du même nom, écrits pour un autre projet.
+
 ## Règle de la maison
 
 Chaque correctif visuel signalé sur iPhone se **mesure** en émulation avant et après (Playwright

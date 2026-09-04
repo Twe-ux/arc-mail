@@ -21,6 +21,16 @@ d'Arc (espaces colorés, sidebar translucide, favoris épinglés, onglets « Auj
 
 - Next.js 16 App Router, TypeScript strict, React 19.
 - Tailwind v4 : tokens dans `src/app/globals.css` (`@theme inline`), dark mode par classe `.dark`.
+  **La classe est posée par un script inline bloquant dans `layout.tsx`, pas seulement par
+  `AppShell`.** L'effet React n'arrive qu'après l'hydratation : chaque chargement commençait donc
+  par une image claire avant de basculer, un éclair blanc évident en sombre — et le plus visible
+  juste après un tirage pour rafraîchir, qui recharge le document exprès. Le script lit
+  `localStorage["arc-mail"]` et pose la classe **avant la première peinture** ; il doit donc rester
+  inline et non différé. Il pose aussi `colorScheme`, et `globals.css` déclare `color-scheme`
+  (clair sur `html`, sombre sur `.dark`) : sinon le navigateur peint en clair tout ce dont il
+  décide lui-même — le fond sous un rebond de défilement, les contrôles de formulaire, et l'écran
+  entre deux documents quand l'app se recharge. Mesuré, bundles retardés de 2,5 s : la classe et le
+  fond sombre sont déjà là avant que React n'arrive.
 - shadcn/ui style new-york, primitives via le paquet unifié `radix-ui`, icônes `lucide-react`.
   `npx shadcn@latest add <x>` pour en ajouter ; ne pas réécrire ceux qui existent.
 - État UI dans `src/lib/store.ts` (zustand). Le composeur (`compose`) y vit aussi : ses champs sont l'état
@@ -160,6 +170,13 @@ d'Arc (espaces colorés, sidebar translucide, favoris épinglés, onglets « Auj
   L'indicateur est piloté pareil (opacité écrite à la frame, avancement publié en
   `--pull-progress` pour le CSS) : un état React par `touchmove` se verrait comme un tremblement.
   Quand un fournisseur de mail arrivera, `onRefresh` deviendra son rafraîchissement de données.
+  **Le rechargement attend une demi-seconde** : lancé à l'instant où le doigt se lève, il démolit le
+  document avant que l'icône ait fait un tour, et tout le geste se lit comme un clignotement. Le
+  hook tient la liste ouverte et fait tourner pendant tout ce que dure `onRefresh` — c'est donc à
+  l'appelant de s'accorder ce délai, pas au hook. Et pour que la rotation reparte de zéro pendant
+  qu'elle tourne, on remet à zéro `--pull-progress` **sur l'icône** : une classe ne peut pas battre
+  le `rotate` en ligne, mais la déclaration locale de la variable bat celle héritée, et le `calc()`
+  retombe sur 0deg.
 - **Un rail horizontal (`overflow-x-auto`) rogne aussi verticalement.** CSS transforme le `visible`
   de l'autre axe en `auto` dès qu'un axe défile : le rail des espaces coupait donc le haut du ring
   de la pastille active, qui est un `box-shadow` peint *hors* de la boîte, collé au ras du bord du

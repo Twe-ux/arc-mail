@@ -32,8 +32,13 @@ export function ThreadList({ className }: { className?: string }) {
   /* A real reload, not a re-render: installed on the home screen there is no
      address bar to pull down and no reload button, so this is the only way to
      get a fresh page — and the way a new deploy arrives without force-quitting
-     the app. When a mail provider lands, this becomes its refetch. */
-  const { ref: cardRef, indicatorRef } = usePullToRefresh(() => {
+     the app. When a mail provider lands, this becomes its refetch.
+     The pause is what makes it legible: reloading the instant the finger lifts
+     tears the document down before the spinner has turned once, so the whole
+     gesture reads as a flicker rather than as work being done. The hook holds
+     the list open and spins for as long as this takes. */
+  const { ref: cardRef, indicatorRef } = usePullToRefresh(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 550));
     window.location.reload();
   });
 
@@ -84,7 +89,12 @@ export function ThreadList({ className }: { className?: string }) {
         >
           <span className="flex size-9 items-center justify-center rounded-full bg-card shadow-sm ring-1 ring-black/[0.06] dark:ring-white/12">
             <RefreshCw
-              className="size-4 text-muted-foreground transition-colors group-data-[armed=true]/pull:text-[var(--space-accent)] group-data-[refreshing]/pull:animate-spin"
+              /* While it spins, the pull's own angle has to get out of the way,
+                 and a class cannot do that to an inline `rotate` — inline
+                 wins. So zero the variable the angle is computed from, on this
+                 element: its own declaration beats the one inherited from the
+                 indicator, and `calc()` lands on 0deg. */
+              className="size-4 text-muted-foreground transition-colors group-data-[armed=true]/pull:text-[var(--space-accent)] group-data-[refreshing]/pull:animate-spin group-data-[refreshing]/pull:text-[var(--space-accent)] group-data-[refreshing]/pull:[--pull-progress:0]"
               /* Turned by the pull itself rather than by a render per frame:
                  the hook only publishes how far along the gesture is. */
               style={{

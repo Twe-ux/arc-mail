@@ -27,9 +27,25 @@ export const viewport: Viewport = {
   maximumScale: 1,
 };
 
+/**
+ * Read the stored theme and paint with it, before anything is painted at all.
+ *
+ * The class is otherwise put on by `AppShell` in an effect, i.e. after
+ * hydration, so every load began with a light frame and flipped — a white flash
+ * you can't miss in the dark, and the most visible right after a pull to
+ * refresh, which reloads the document on purpose. Blocking and inline: the point
+ * is to run before the first paint, so it must not be deferred or bundled.
+ * `colorScheme` goes with it, so the canvas the browser paints around us during
+ * the navigation is dark too, not just our own background.
+ */
+const THEME_SCRIPT = `try{var s=localStorage.getItem("arc-mail");var d=!!(s&&JSON.parse(s).state&&JSON.parse(s).state.dark);var e=document.documentElement;if(d)e.classList.add("dark");e.style.colorScheme=d?"dark":"light"}catch(_){}`;
+
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="fr" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+      </head>
       {/* No overflow guard on html/body: any non-visible overflow on the root chain
           perturbs how WebKit resolves `position: fixed` on the first frame of a
           home-screen install. The shell clips itself. */}

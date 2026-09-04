@@ -88,6 +88,15 @@
   html {
     background: var(--background);
     -webkit-tap-highlight-color: transparent;
+    /* Declared, not left to the browser: it decides the colour of everything we
+       don't paint ourselves — the canvas under an overscroll, form controls,
+       and the frame between two documents when the app reloads itself. The
+       inline script in the layout sets it again before the first paint, for the
+       load where the class isn't on the element yet. */
+    color-scheme: light;
+  }
+  .dark {
+    color-scheme: dark;
   }
   body {
     @apply bg-background text-foreground antialiased;

@@ -34,3 +34,13 @@ frame avec les mauvais destinataires, et c'est exactement l'endroit où ça ne s
 
 **Un envoi raté rend le texte** : `reply()` résout `false`, la boîte remet ce qu'elle avait vidé,
 le fil revient tel qu'il était et un toast le dit.
+
+## Le corps d'un nouveau message
+
+Il commence **vide** quand l'espace n'a pas de signature — c'est-à-dire pour tout compte réel, qui
+n'en a pas tant qu'on ne l'a pas demandée.
+
+Les deux lignes vides du début ne sont pas une marge : elles **séparent** ce qu'on va écrire de ce
+qui suit, la signature ou le message transféré. Sans rien après, elles laissaient un champ qui
+n'était pas vide — « Écris ton message… » ne s'affichait donc jamais, et le curseur tombait deux
+lignes plus bas que là où on écrit. Elles ne se posent plus qu'avec ce qu'elles séparent.

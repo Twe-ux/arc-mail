@@ -467,9 +467,14 @@ export const useMail = create<MailState>()(
     set((s) => {
       const spaceId = initial?.spaceId ?? s.spaceId;
       const signature = s.spaces.find((sp) => sp.id === spaceId)?.signature ?? "";
-      /* Pas de tiret orphelin quand le compte n'a pas de signature : un vrai
-         compte n'en a pas tant qu'on ne l'a pas demandée. */
-      const body = `\n\n${signature ? `— ${signature}` : ""}${initial?.body ?? ""}`;
+      /* Les deux lignes vides ne servent qu'à **séparer** ce qu'on va écrire
+         de ce qui suit — la signature, le message transféré. Sans rien après,
+         elles laissaient un champ qui n'est pas vide : le repère « Écris ton
+         message… » ne s'affichait pas, et le curseur tombait deux lignes plus
+         bas que là où on écrit. Un compte réel n'a pas de signature tant qu'on
+         ne l'a pas demandée, donc c'est le cas courant, pas le cas rare.
+         Pas de tiret orphelin non plus, pour la même raison. */
+      const body = `${signature ? `\n\n— ${signature}` : ""}${initial?.body ?? ""}`;
       return {
         compose: { spaceId, to: [], cc: [], bcc: [], subject: "", ...initial, body },
         sidebarOpen: false,

@@ -19,7 +19,10 @@ Voir [Fournisseurs de mail](roadmap/fournisseurs-mail.md) pour le plan complet e
 - [x] Le vrai courrier dans la boîte : espaces issus des comptes branchés, lecture par dossier
       (4 sept.)
 - [x] Écriture IMAP des drapeaux (lu, favori, déplacer)
-- [ ] SMTP (`nodemailer`) : répondre, écrire, brouillons
+- [x] SMTP (`nodemailer`) : répondre, écrire, brouillons — copie dans Envoyés par `APPEND`,
+      `In-Reply-To`/`References` sur les réponses (4 sept.)
+- [ ] Vérifier l'envoi sur une vraie boîte : rien n'a encore été posté depuis un serveur réel
+- [x] Gmail se branche comme iCloud (IMAP + mot de passe d'application), entrée par Apple (4 sept.)
 - [ ] `modify(): Promise<Thread>` — un déplacement change l'UID donc l'identifiant du fil
 - [ ] `listFolders` pour les compteurs de non-lus des dossiers qu'on n'a pas ouverts
 - [ ] Cache des aperçus : la liste IMAP n'a pas de ligne de résumé tant qu'on n'a pas ouvert
@@ -28,7 +31,7 @@ Voir [Fournisseurs de mail](roadmap/fournisseurs-mail.md) pour le plan complet e
 - [ ] Mode `filter` des espaces : `INBOX` filtrée par destinataire, pour se passer d'une règle
       côté iCloud
 - [ ] Envoi réel, aller-retour des drapeaux et des déplacements
-- [ ] Fournisseur Gmail (`googleapis` sur la connexion Google)
+- [ ] Fournisseur Gmail par l'API (`googleapis`) — seulement pour le push et les libellés ; la lecture et l'envoi marchent déjà en IMAP
 - [ ] `listFolders` pour les compteurs de non-lus sans tout lire ; cache avec péremption pour ne
       pas relire un espace à chaque retour
 

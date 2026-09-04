@@ -173,8 +173,8 @@ connecté, ensuite ranger *ses* comptes, enfin les lire.
 | 3 | Table `accounts` chiffrée + écran « Ajouter un compte » (iCloud d'abord) | **Fait** — on saisit son adresse et son mot de passe d'application **dans l'app**, la connexion est vérifiée avant d'enregistrer | 1 jour |
 | 4 | `ImapProvider` (imapflow/mailparser) sur le compte stocké | **Fait** — les vrais mails dans la boîte : dossiers, fils, corps à l'ouverture, drapeaux en écriture | 1–2 jours |
 | 5 | Espaces-vues : dossier-comme-réception + identité | **Fait** — on choisit un dossier dans la liste du serveur, on lui donne un nom et une adresse d'envoi ; il devient une réception à part, avec sa couleur. Reste le mode `filter` | 1 jour |
-| 6 | Envoi SMTP (`nodemailer`), brouillons, déplacements | Répondre / écrire pour de vrai | ½–1 jour |
-| 7 | `GmailProvider` (googleapis, sur un jeton Google obtenu par Supabase) | Un espace Gmail à côté des espaces iCloud | 1 jour |
+| 6 | Envoi SMTP (`nodemailer`), brouillons, déplacements | **Fait** — répondre et écrire partent vraiment, avec la copie dans Envoyés et les en-têtes de fil | ½–1 jour |
+| 7 | `GmailProvider` (googleapis, sur un jeton Google obtenu par Supabase) | **Repoussé** — Gmail se branche déjà en IMAP avec un mot de passe d'application. L'API n'apporterait que le push et les libellés, contre un client OAuth déclaré et une vérification Google | 1 jour |
 
 L'identité vient donc en étape 2 — non pas pour lire Gmail tout de suite, mais parce qu'il faut
 savoir *qui* est connecté avant de ranger *ses* comptes. Gmail lui-même attend l'étape 7 : iCloud

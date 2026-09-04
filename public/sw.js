@@ -1,7 +1,7 @@
 /* Arc Mail service worker: caches the app shell so the PWA opens offline.
  * Navigations are network-first (fresh HTML when online, cached shell otherwise);
  * Next.js static assets are cache-first because their URLs are content-hashed. */
-const VERSION = "arc-mail-v4";
+const VERSION = "arc-mail-v5";
 const SHELL = ["/"];
 
 self.addEventListener("install", (event) => {
@@ -32,8 +32,15 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          const copy = response.clone();
-          caches.open(VERSION).then((cache) => cache.put("/", copy));
+          /* Ne garder que la vraie boîte : une redirection (vers la page de
+             connexion) ou une erreur mise en cache sous « / » servirait la
+             porte à quelqu'un de connecté, hors ligne, sans moyen d'en sortir.
+             Et une réponse redirigée ne peut de toute façon pas être rejouée
+             telle quelle. */
+          if (response.ok && !response.redirected && new URL(request.url).pathname === "/") {
+            const copy = response.clone();
+            caches.open(VERSION).then((cache) => cache.put("/", copy));
+          }
           return response;
         })
         .catch(() => caches.match("/")),

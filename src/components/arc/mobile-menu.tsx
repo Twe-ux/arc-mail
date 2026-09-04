@@ -13,6 +13,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
+import { SignOut } from "@/components/auth/sign-out";
 import {
   Sheet,
   SheetContent,
@@ -274,6 +275,10 @@ function MenuBody({
             </Row>
           </Group>
         </Section>
+
+        {/* Le compte, tout en bas comme dans Réglages : ce qu'on vient y
+            chercher est rare, et une sortie ne se met pas sous le pouce. */}
+        <SignOut className="mt-4 px-4" />
 
         <div className="mt-4">
           <InstallHint />

@@ -117,7 +117,10 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 **Comptes et secrets** → [docs/features/comptes-et-secrets.md](docs/features/comptes-et-secrets.md)
 - Les secrets vivent dans `account_secrets`, une table RLS **sans politique** : serveur seulement.
 - AES-256-GCM lié à la ligne (`userId:accountId` en AAD) ; `ACCOUNTS_KEY` dans Vercel, jamais ici.
-- Toujours `getUser()`, jamais `getSession()` ; `src/proxy.ts` rafraîchit, il n'autorise pas.
+- Toujours `getUser()`, jamais `getSession()` ; `src/proxy.ts` rafraîchit et redirige de façon
+  optimiste, la garde qui compte est dans `page.tsx` puis les politiques RLS.
+- Connexion par Google ; le retour OAuth est un route handler (seul endroit qui peut écrire un
+  cookie avec les Server Actions), et son `next` est vérifié.
 - Sans `NEXT_PUBLIC_SUPABASE_*`, l'app reste la maquette ouverte d'aujourd'hui.
 
 **Recherche** → [docs/features/recherche.md](docs/features/recherche.md)

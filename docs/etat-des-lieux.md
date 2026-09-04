@@ -46,9 +46,10 @@ est dans [À faire](a-faire.md).
 
 - Aucun fournisseur réel : ni lecture, ni envoi. L'interface `MailProvider` existe
   (`src/lib/mail/`), le store lit et écrit par elle, mais seul le mock l'implémente.
-- Authentification : l'ossature Supabase est posée (clients, session, schéma chiffré) mais aucune
-  page de connexion — l'app reste ouverte tant que `NEXT_PUBLIC_SUPABASE_*` n'est pas configuré.
-- Aucune authentification effective : n'importe qui avec l'URL voit la maquette (sans risque tant
+- Authentification : connexion Google par Supabase, garde de `/`, déconnexion, schéma chiffré des
+  comptes. **Elle ne s'active qu'une fois `NEXT_PUBLIC_SUPABASE_*` posées** ; sans elles l'app
+  reste la maquette ouverte.
+- Tant que les variables ne sont pas posées : n'importe qui avec l'URL voit la maquette (sans risque tant
   qu'il n'y a pas de vraies données — ce n'est plus vrai dès le premier compte connecté).
 - Aucun stockage serveur.
 - Pas de pièces jointes, pas de recherche côté serveur, pas de notifications.

@@ -164,7 +164,7 @@ connecté, ensuite ranger *ses* comptes, enfin les lire.
 | # | Étape | Ce qu'on voit à la fin | Effort |
 |---|---|---|---|
 | 1 | `MailProvider` + `MockProvider`, store asynchrone | **Fait** — rien ne change, tout passe par l'interface | ½ jour |
-| 2 | Supabase Auth : clients, proxy de session, page de connexion | Une page de connexion ; l'app est privée | ½ jour |
+| 2 | Supabase Auth : clients, proxy de session, page de connexion | **Fait** — une page de connexion Google ; l'app est privée dès que les variables sont posées | ½ jour |
 | 3 | Table `accounts` chiffrée + écran « Ajouter un compte » (iCloud d'abord) | On saisit son adresse et son mot de passe d'application **dans l'app** | 1 jour |
 | 4 | `ImapProvider` (imapflow/mailparser) sur le compte stocké | **Tes vrais mails iCloud dans l'app**, lecture + drapeaux | 1–2 jours |
 | 5 | Espaces-vues : dossier-comme-réception + identité | Tes deux domaines comme espaces, écrire depuis la bonne adresse | 1 jour |

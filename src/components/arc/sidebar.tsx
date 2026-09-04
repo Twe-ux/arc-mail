@@ -17,6 +17,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
+import { SignOut } from "@/components/auth/sign-out";
 import { Kbd } from "@/components/ui/kbd";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
@@ -282,6 +283,9 @@ function SidebarContent({
           )}
         </ScrollArea>
       </div>
+
+      {/* Qui est connecté, et la sortie. Ne rend rien sans session. */}
+      <SignOut tone={tone === "gradient" ? "clair" : "sombre"} className="shrink-0 px-1.5" />
 
       {/* Bottom bar: spaces + quick actions */}
       <div className="flex shrink-0 items-center justify-between gap-1 pt-1">

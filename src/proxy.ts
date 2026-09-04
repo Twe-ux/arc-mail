@@ -38,7 +38,19 @@ export async function proxy(request: NextRequest) {
 
   /* `getUser()` et pas `getSession()` : il valide le jeton auprès de Supabase.
      Le contenu d'un cookie, lui, vient du navigateur. */
-  await supabase.auth.getUser();
+  const { data } = await supabase.auth.getUser();
+
+  /* Vérification optimiste : renvoyer à la porte tout de suite plutôt que de
+     rendre une page qui redirigera de toute façon. La décision qui compte
+     reste celle de `page.tsx`. */
+  const path = request.nextUrl.pathname;
+  const ouvert = path === "/connexion" || path.startsWith("/auth/");
+  if (!data.user && !ouvert) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/connexion";
+    url.search = "";
+    return NextResponse.redirect(url);
+  }
 
   return response;
 }

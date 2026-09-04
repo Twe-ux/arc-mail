@@ -1,8 +1,13 @@
-import type { Contact, Folder, Space, Thread } from "./types";
+import type { AccountRef } from "./mail/provider";
+import type { Contact, Folder, Space, SpaceId, Thread } from "./types";
+
+/** The mock gives each space its own account: three different addresses. `mock:perso`. */
+export const mockAccount = (spaceId: SpaceId): AccountRef => ({ id: `mock:${spaceId}`, kind: "mock" });
 
 export const SPACES: Space[] = [
   {
     id: "perso",
+    account: mockAccount("perso"),
     name: "Perso",
     email: "thierry@icloud.com",
     icon: "house",
@@ -15,6 +20,7 @@ export const SPACES: Space[] = [
   },
   {
     id: "pro",
+    account: mockAccount("pro"),
     name: "Pro",
     email: "thierry@coworkingcafe.fr",
     icon: "briefcase",
@@ -27,6 +33,7 @@ export const SPACES: Space[] = [
   },
   {
     id: "side",
+    account: mockAccount("side"),
     name: "Side projects",
     email: "hello@twe-ux.dev",
     icon: "flask",

@@ -24,6 +24,8 @@ export type Space = {
   /** Appended to new messages, Apple Mail style. */
   signature: string;
   theme: SpaceTheme;
+  /** Where its mail lives. Several spaces may share one (a mailbox with several domains). */
+  account: import("./mail/provider").AccountRef;
 };
 
 export type Contact = {

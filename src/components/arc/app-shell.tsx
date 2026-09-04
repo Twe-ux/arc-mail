@@ -27,6 +27,8 @@ export function AppShell() {
   const splitView = useMail((s) => s.splitView);
   const selectedThreadId = useMail((s) => s.selectedThreadId);
   const selectThread = useMail((s) => s.selectThread);
+  const spaceId = useMail((s) => s.spaceId);
+  const loadSpace = useMail((s) => s.loadSpace);
 
   useKeyboardShortcuts();
 
@@ -34,6 +36,13 @@ export function AppShell() {
   useEffect(() => {
     useMail.persist.rehydrate();
   }, []);
+
+  /* The mail itself comes from the space's provider, read on arrival and on
+     every switch — a switch back is also a refresh, and the list already on
+     screen stays until the new read replaces it. */
+  useEffect(() => {
+    void loadSpace(spaceId);
+  }, [spaceId, loadSpace]);
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", dark);

@@ -3,7 +3,8 @@
 ## En une phrase
 
 L'interface est là, entière et soignée sur iPhone comme sur ordinateur ; il n'y a encore
-**aucun vrai mail derrière** — tout vient de `src/lib/mock-data.ts`.
+**aucun vrai mail derrière** — tout vient de `src/lib/mock-data.ts`, désormais servi par un
+`MockProvider` derrière l'interface `MailProvider` que les vrais fournisseurs implémenteront.
 
 ## Ce qui existe et fonctionne
 
@@ -34,8 +35,8 @@ production seulement (`public/sw.js`, `VERSION` = `arc-mail-v4`).
 
 ## Ce qui n'existe pas encore
 
-- Aucun fournisseur de mail : ni lecture, ni envoi réel. `sendMail` ajoute un fil mock dans
-  Envoyés.
+- Aucun fournisseur réel : ni lecture, ni envoi. L'interface `MailProvider` existe
+  (`src/lib/mail/`), le store lit et écrit par elle, mais seul le mock l'implémente.
 - Aucune authentification de l'app : n'importe qui avec l'URL voit la maquette (sans risque tant
   qu'il n'y a pas de vraies données — ce n'est plus vrai dès le premier compte connecté).
 - Aucun stockage serveur.

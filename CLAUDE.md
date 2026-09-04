@@ -27,6 +27,9 @@ d'Arc (espaces colorés, sidebar translucide, favoris épinglés, onglets « Auj
 - État UI dans `src/lib/store.ts` (zustand + `persist`, clé `arc-mail`). Le composeur y vit
   aussi ; ne pas dupliquer son état en local. Les sélecteurs qui renvoient des tableaux passent par
   `useVisibleThreads()` (memo).
+- Le courrier passe par `MailProvider` (`src/lib/mail/`) : le store ne lit et n'écrit que par
+  `providerFor(space.account)`, écritures optimistes, `loadSpace` à chaque changement d'espace.
+  Seul le mock l'implémente pour l'instant → [plan](docs/roadmap/fournisseurs-mail.md).
 - Données mock dans `src/lib/mock-data.ts` → [fiche](docs/features/donnees-mock.md).
 - Textes de l'interface en français. Commits conventionnels (`feat:`, `fix:`, `docs:`, `chore:`),
   message qui raconte la cause et la vérification.
@@ -88,3 +91,13 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 ```bash
 npm run dev · npm run build · npm run lint
 ```
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

@@ -50,4 +50,5 @@ Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérificatio
 | `c3e0c8f` | 70 fils mock, de quoi faire défiler chaque boîte |
 | `6d47e60` | Tirer la liste vers le bas recharge l'app |
 | `5d7723c` | Thème posé avant la première peinture (plus d'éclair blanc) ; l'icône tourne |
-| — | Bibliothèque `docs/`, `CLAUDE.md` réduit à l'index, plan fournisseurs de mail |
+| `fd584d9` | Bibliothèque `docs/`, `CLAUDE.md` réduit à l'index, plan fournisseurs de mail |
+| — | `MailProvider` : le mock derrière l'interface, store asynchrone à écritures optimistes |

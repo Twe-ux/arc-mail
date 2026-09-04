@@ -6,16 +6,19 @@ Liste vivante. Le détail des gros chantiers est dans [roadmap/](roadmap/).
 
 Voir [Fournisseurs de mail](roadmap/fournisseurs-mail.md) pour le plan complet et l'ordre.
 
-- [ ] Interface `MailProvider` ; le mock devient sa première implémentation (aucun changement
-      visible)
-- [ ] Fournisseur IMAP/SMTP (`imapflow` + `mailparser` + `nodemailer`), testé sur iCloud avec un
-      mot de passe d'application
+- [x] Interface `MailProvider` ; le mock en est la première implémentation, le store lit et
+      écrit par lui (4 sept.)
+- [ ] Authentification de l'app (Auth.js, connexion Google, liste blanche)
+- [ ] Table `accounts` chiffrée + écran « Ajouter un compte » — le mot de passe d'application se
+      saisit **dans l'app**, jamais dans l'environnement
+- [ ] Fournisseur IMAP/SMTP (`imapflow` + `mailparser` + `nodemailer`) sur le compte stocké,
+      testé sur iCloud
 - [ ] Espaces comme *vues* : un dossier vu et vécu comme une boîte de réception, une identité
       d'envoi par espace (les deux domaines personnalisés d'iCloud)
-- [ ] Authentification de l'app (Auth.js) avant de stocker le moindre identifiant de messagerie
-- [ ] Stockage chiffré des comptes ; écran « Ajouter un compte »
-- [ ] Fournisseur Gmail (Auth.js + Google OAuth + `googleapis`)
-- [ ] Envoi réel, aller-retour des drapeaux (lu / favori) et des déplacements
+- [ ] Envoi réel, aller-retour des drapeaux et des déplacements
+- [ ] Fournisseur Gmail (`googleapis` sur la connexion Google)
+- [ ] `listFolders` pour les compteurs de non-lus sans tout lire ; cache avec péremption pour ne
+      pas relire un espace à chaque retour
 
 ## Interface
 

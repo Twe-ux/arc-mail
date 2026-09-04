@@ -2,9 +2,10 @@ import { useMemo } from "react";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { firstLine } from "./format";
-import { FOLDERS, ME, SPACES, THREADS } from "./mock-data";
+import { providerFor } from "./mail";
+import { FOLDERS, ME, SPACES } from "./mock-data";
 import { resolveSpace } from "./theme";
-import type { ComposeDraft, Contact, FolderId, Message, Space, SpaceId, Thread } from "./types";
+import type { ComposeDraft, Contact, FolderId, Space, SpaceId, Thread } from "./types";
 
 type RecentMap = Record<SpaceId, string[]>;
 
@@ -19,7 +20,12 @@ export type MailState = {
   /** Mobile only: the sidebar drawer. */
   sidebarOpen: boolean;
   dark: boolean;
+  /** Everything loaded so far, every space and folder; selectors slice it. */
   threads: Thread[];
+  /** True until the current space has been read from its provider once. */
+  loading: boolean;
+  /** The last provider failure, for the interface to show; cleared on the next success. */
+  error: string | null;
   /** Threads opened recently, per space — the "Today" tabs of Arc. */
   recent: RecentMap;
   /** The composer, `null` when closed. Its fields are the live form state. */
@@ -27,6 +33,8 @@ export type MailState = {
   /** Hue chosen for a space, when the user changed its colour. */
   themes: Partial<Record<SpaceId, number>>;
 
+  /** Read every folder of a space from its provider and replace what we had. */
+  loadSpace: (id?: SpaceId) => Promise<void>;
   setSpace: (id: SpaceId) => void;
   setFolder: (id: FolderId) => void;
   selectThread: (id: string | null) => void;
@@ -58,6 +66,20 @@ const NO_SUBJECT = "(sans objet)";
 const patchThread = (threads: Thread[], id: string, patch: (t: Thread) => Thread) =>
   threads.map((t) => (t.id === id ? patch(t) : t));
 
+const accountOf = (spaceId: SpaceId) => (SPACES.find((sp) => sp.id === spaceId) ?? SPACES[0]).account;
+
+/** Folders a provider is asked for: every real one. Favoris is a view over the flag. */
+const REAL_FOLDERS = FOLDERS.map((f) => f.id).filter((id) => id !== "starred");
+
+/** One space's threads replaced by a fresh read, the other spaces untouched. */
+const replaceSpace = (threads: Thread[], spaceId: SpaceId, fresh: Thread[]) => {
+  const seen = new Set<string>();
+  const kept = fresh.filter((t) => (seen.has(t.id) ? false : (seen.add(t.id), true)));
+  return [...kept, ...threads.filter((t) => t.spaceId !== spaceId)];
+};
+
+const describe = (err: unknown) => (err instanceof Error ? err.message : String(err));
+
 const isBlank = (d: ComposeDraft) => {
   const signature = SPACES.find((sp) => sp.id === d.spaceId)?.signature ?? "";
   const body = d.body.replace(`— ${signature}`, "").trim();
@@ -81,21 +103,19 @@ function toContacts(emails: string[], book: Map<string, Contact>): Contact[] {
   return emails.map((email) => book.get(email) ?? { name: email, email });
 }
 
-function draftMessage(d: ComposeDraft, book: Map<string, Contact>, id: string): Message {
-  return {
-    id,
-    from: ME[d.spaceId],
-    to: toContacts(d.to, book),
-    cc: d.cc.length ? toContacts(d.cc, book) : undefined,
-    bcc: d.bcc.length ? toContacts(d.bcc, book) : undefined,
-    date: new Date().toISOString(),
-    body: d.body,
-  };
-}
-
 export const useMail = create<MailState>()(
   persist(
-    (set, get) => ({
+    (set, get) => {
+  /**
+   * Optimistic writes: the interface has already changed, the provider is
+   * told afterwards, and only a failure puts the previous list back with an
+   * error to show. With the mock nothing fails; with IMAP this is where a
+   * dropped connection lands.
+   */
+  const commit = (before: Thread[], run: () => Promise<unknown>) =>
+    run().catch((err: unknown) => set({ threads: before, error: describe(err) }));
+
+  return {
   spaceId: SPACES[0].id,
   folderId: "inbox",
   selectedThreadId: null,
@@ -104,10 +124,29 @@ export const useMail = create<MailState>()(
   commandOpen: false,
   sidebarOpen: false,
   dark: false,
-  threads: THREADS,
+  threads: [],
+  loading: true,
+  error: null,
   recent: { perso: [], pro: [], side: [] },
   compose: null,
   themes: {},
+
+  loadSpace: async (id) => {
+    const spaceId = id ?? get().spaceId;
+    const account = accountOf(spaceId);
+    /* `loading` only while there is nothing to show: a refresh of a space we
+       already have keeps the list on screen and swaps it when the read lands. */
+    if (!get().threads.some((t) => t.spaceId === spaceId)) set({ loading: true });
+    try {
+      const provider = providerFor(account);
+      const perFolder = await Promise.all(
+        REAL_FOLDERS.map((folder) => provider.listThreads(account, { folder })),
+      );
+      set((s) => ({ threads: replaceSpace(s.threads, spaceId, perFolder.flat()), loading: false, error: null }));
+    } catch (err) {
+      set({ loading: false, error: describe(err) });
+    }
+  },
 
   setSpace: (spaceId) => set({ spaceId, folderId: "inbox", selectedThreadId: null, unreadOnly: false }),
 
@@ -118,26 +157,49 @@ export const useMail = create<MailState>()(
       set({ selectedThreadId: null });
       return;
     }
-    const { spaceId, recent } = get();
+    const { spaceId, recent, threads } = get();
     const list = [id, ...recent[spaceId].filter((r) => r !== id)].slice(0, MAX_RECENT);
+    const target = threads.find((t) => t.id === id);
     set((s) => ({
       selectedThreadId: id,
       recent: { ...recent, [spaceId]: list },
       threads: patchThread(s.threads, id, (t) => ({ ...t, unread: false })),
     }));
+    if (target?.unread) {
+      const account = accountOf(target.spaceId);
+      commit(threads, () => providerFor(account).modify(account, id, { unread: false }));
+    }
   },
 
-  toggleStar: (id) =>
-    set((s) => ({ threads: patchThread(s.threads, id, (t) => ({ ...t, starred: !t.starred })) })),
+  toggleStar: (id) => {
+    const before = get().threads;
+    const t = before.find((x) => x.id === id);
+    if (!t) return;
+    set({ threads: patchThread(before, id, (x) => ({ ...x, starred: !x.starred })) });
+    const account = accountOf(t.spaceId);
+    commit(before, () => providerFor(account).modify(account, id, { starred: !t.starred }));
+  },
 
-  toggleUnread: (id) =>
-    set((s) => ({ threads: patchThread(s.threads, id, (t) => ({ ...t, unread: !t.unread })) })),
+  toggleUnread: (id) => {
+    const before = get().threads;
+    const t = before.find((x) => x.id === id);
+    if (!t) return;
+    set({ threads: patchThread(before, id, (x) => ({ ...x, unread: !x.unread })) });
+    const account = accountOf(t.spaceId);
+    commit(before, () => providerFor(account).modify(account, id, { unread: !t.unread }));
+  },
 
-  moveThread: (id, folder) =>
+  moveThread: (id, folder) => {
+    const before = get().threads;
+    const t = before.find((x) => x.id === id);
+    if (!t) return;
     set((s) => ({
-      threads: patchThread(s.threads, id, (t) => ({ ...t, folder })),
+      threads: patchThread(before, id, (x) => ({ ...x, folder })),
       selectedThreadId: s.selectedThreadId === id ? null : s.selectedThreadId,
-    })),
+    }));
+    const account = accountOf(t.spaceId);
+    commit(before, () => providerFor(account).modify(account, id, { folder }));
+  },
 
   removeRecent: (id) =>
     set((s) => ({
@@ -153,28 +215,27 @@ export const useMail = create<MailState>()(
   toggleDark: () => set((s) => ({ dark: !s.dark })),
 
   reply: (threadId, body) => {
-    const { spaceId } = get();
-    const me = ME[spaceId];
-    set((s) => ({
-      threads: patchThread(s.threads, threadId, (t) => {
-        const last = t.messages[t.messages.length - 1];
-        const recipients = [last.from, ...last.to].filter((c) => c.email !== me.email);
-        return {
-          ...t,
-          snippet: firstLine(body),
-          messages: [
-            ...t.messages,
-            {
-              id: `msg-local-${Date.now()}`,
-              from: me,
-              to: recipients.length ? recipients : [last.from],
-              date: new Date().toISOString(),
-              body,
-            },
-          ],
-        };
-      }),
-    }));
+    const before = get().threads;
+    const t = before.find((x) => x.id === threadId);
+    if (!t) return;
+    const me = ME[t.spaceId];
+    const last = t.messages[t.messages.length - 1];
+    const recipients = [last.from, ...last.to].filter((c) => c.email !== me.email);
+    const to = recipients.length ? recipients : [last.from];
+    set({
+      threads: patchThread(before, threadId, (x) => ({
+        ...x,
+        snippet: firstLine(body),
+        messages: [...x.messages, { id: `msg-local-${Date.now()}`, from: me, to, date: new Date().toISOString(), body }],
+      })),
+    });
+    const account = accountOf(t.spaceId);
+    commit(before, async () => {
+      const sent = await providerFor(account).send(account, {
+        spaceId: t.spaceId, from: me, to, subject: t.subject, body, replyTo: threadId,
+      });
+      set((s) => ({ threads: patchThread(s.threads, threadId, () => sent) }));
+    });
   },
 
   // ───────────── Composer ─────────────
@@ -214,68 +275,77 @@ export const useMail = create<MailState>()(
   closeCompose: () => {
     const d = get().compose;
     if (!d) return;
+    const before = get().threads;
+    const account = accountOf(d.spaceId);
+    const provider = providerFor(account);
     if (isBlank(d)) {
-      set((s) => ({ compose: null, threads: d.draftId ? s.threads.filter((t) => t.id !== d.draftId) : s.threads }));
+      set({ compose: null, threads: d.draftId ? before.filter((t) => t.id !== d.draftId) : before });
+      if (d.draftId) commit(before, () => provider.deleteDraft(account, d.draftId!));
       return;
     }
-    const book = contactBook(get().threads);
-    const subject = d.subject.trim() || NO_SUBJECT;
-    if (d.draftId) {
+    /* The composer closes now; the draft appears when the provider hands it
+       back, which with the mock is the same tick and with IMAP a moment later. */
+    set({ compose: null });
+    const book = contactBook(before);
+    commit(before, async () => {
+      const saved = await provider.saveDraft(account, {
+        id: d.draftId,
+        spaceId: d.spaceId,
+        from: ME[d.spaceId],
+        to: toContacts(d.to, book),
+        cc: d.cc.length ? toContacts(d.cc, book) : undefined,
+        bcc: d.bcc.length ? toContacts(d.bcc, book) : undefined,
+        subject: d.subject,
+        body: d.body,
+      });
       set((s) => ({
-        compose: null,
-        threads: patchThread(s.threads, d.draftId!, (t) => ({
-          ...t,
-          spaceId: d.spaceId,
-          subject,
-          snippet: firstLine(d.body),
-          messages: [draftMessage(d, book, t.messages[0].id)],
-        })),
+        threads: d.draftId
+          ? patchThread(s.threads, d.draftId, () => saved)
+          : [saved, ...s.threads],
       }));
-      return;
-    }
-    const stamp = Date.now();
-    const thread: Thread = {
-      id: `thr-draft-${stamp}`,
-      spaceId: d.spaceId,
-      folder: "drafts",
-      subject,
-      snippet: firstLine(d.body),
-      labels: [],
-      unread: false,
-      starred: false,
-      messages: [draftMessage(d, book, `msg-draft-${stamp}`)],
-    };
-    set((s) => ({ compose: null, threads: [thread, ...s.threads] }));
+    });
   },
 
   sendMail: () => {
     const d = get().compose;
     if (!d || d.to.length === 0) return;
-    const book = contactBook(get().threads);
-    const stamp = Date.now();
-    const thread: Thread = {
-      id: `thr-sent-${stamp}`,
-      spaceId: d.spaceId,
-      folder: "sent",
-      subject: d.subject.trim() || NO_SUBJECT,
-      snippet: firstLine(d.body),
-      labels: [],
-      unread: false,
-      starred: false,
-      messages: [draftMessage(d, book, `msg-sent-${stamp}`)],
-    };
-    set((s) => ({
-      compose: null,
-      threads: [thread, ...s.threads.filter((t) => t.id !== d.draftId)],
-    }));
+    const before = get().threads;
+    const account = accountOf(d.spaceId);
+    const provider = providerFor(account);
+    const book = contactBook(before);
+    set({ compose: null, threads: d.draftId ? before.filter((t) => t.id !== d.draftId) : before });
+    provider
+      .send(account, {
+        spaceId: d.spaceId,
+        from: ME[d.spaceId],
+        to: toContacts(d.to, book),
+        cc: d.cc.length ? toContacts(d.cc, book) : undefined,
+        bcc: d.bcc.length ? toContacts(d.bcc, book) : undefined,
+        subject: d.subject,
+        body: d.body,
+      })
+      .then((sent) => {
+        set((s) => ({ threads: [sent, ...s.threads], error: null }));
+        if (d.draftId) return provider.deleteDraft(account, d.draftId);
+      })
+      .catch((err: unknown) => {
+        /* Nothing written is lost: the message comes back in the composer. */
+        set({ threads: before, compose: d, error: describe(err) });
+      });
   },
 
-  deleteDraft: (threadId) =>
+  deleteDraft: (threadId) => {
+    const before = get().threads;
+    const t = before.find((x) => x.id === threadId);
+    if (!t) return;
     set((s) => ({
-      threads: s.threads.filter((t) => t.id !== threadId),
+      threads: before.filter((x) => x.id !== threadId),
       compose: s.compose?.draftId === threadId ? null : s.compose,
       selectedThreadId: s.selectedThreadId === threadId ? null : s.selectedThreadId,
-    })),
+    }));
+    const account = accountOf(t.spaceId);
+    commit(before, () => providerFor(account).deleteDraft(account, threadId));
+  },
 
   setSpaceHue: (id, hue) =>
     set((s) => {
@@ -284,7 +354,8 @@ export const useMail = create<MailState>()(
       else themes[id] = hue;
       return { themes };
     }),
-    }),
+  };
+    },
     {
       name: "arc-mail",
       /* Only what should survive a reload: the mail itself is mock and reloads

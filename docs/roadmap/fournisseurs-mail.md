@@ -61,33 +61,45 @@ servir aux deux (entrer dans l'app *et* autoriser Gmail).
 
 ## 2. Architecture
 
-### `MailProvider` — l'interface, et le mock comme première implémentation
+### `MailProvider` — l'interface, et le mock comme première implémentation — **fait**
+
+`src/lib/mail/provider.ts` :
 
 ```ts
 type AccountRef = { id: string; kind: "mock" | "imap" | "gmail" };
 
 interface MailProvider {
-  listFolders(account: AccountRef): Promise<MailFolder[]>;
-  listThreads(account: AccountRef, query: ThreadQuery): Promise<Thread[]>;
-  getThread(account: AccountRef, id: string): Promise<Thread>;
-  send(account: AccountRef, draft: OutgoingMessage): Promise<void>;
-  modify(account: AccountRef, id: string, patch: {
-    seen?: boolean; flagged?: boolean; moveTo?: string;
-  }): Promise<void>;
+  listThreads(account, { folder: FolderId; limit? }): Promise<Thread[]>;
+  getThread(account, id): Promise<Thread | null>;
+  modify(account, id, { unread?; starred?; folder? }): Promise<void>;
+  send(account, message: OutgoingMessage): Promise<Thread>;   // replyTo → rejoint le fil
+  saveDraft(account, draft: DraftInput): Promise<Thread>;
+  deleteDraft(account, id): Promise<void>;
 }
-
-type ThreadQuery = {
-  folder: string;              // chemin IMAP ou libellé Gmail
-  to?: string;                 // filtre destinataire (boîte virtuelle par adresse)
-  limit?: number;
-  before?: string;             // pagination par date
-};
 ```
 
-Le store cesse d'importer `THREADS` en dur : il appelle le provider (chargement, erreur, cache
-mémoire), et les actions `toggleStar` / `moveThread` / `sendMail` deviennent optimistes puis
-confirmées par `modify` / `send`. `MockProvider` garde le comportement actuel à l'identique —
-c'est la première étape, sans changement visible, et elle sécurise tout le reste.
+Le vocabulaire est le nôtre (`unread`, `starred`, `folder`), c'est au fournisseur de traduire
+(`\Seen`, `\Flagged`, chemin IMAP, libellé Gmail). Chaque `Space` porte son `account` ; le mock
+en donne un par espace (`mock:perso`), puisque ce sont trois adresses. `providerFor(account)`
+(`src/lib/mail/index.ts`) rend le fournisseur de la sorte — et **lève** pour une sorte inconnue
+plutôt que de retomber sur le mock : montrer du faux courrier pour un vrai compte serait pire
+qu'échouer.
+
+Le store ne touche plus `THREADS` : `loadSpace` lit **tous les dossiers** d'un espace en
+parallèle et remplace ce qu'il avait de cet espace (`replaceSpace`), à l'arrivée et à chaque
+changement d'espace — un retour est aussi un rafraîchissement, et la liste à l'écran reste jusqu'à
+ce que la lecture la remplace. `loading` n'est vrai que tant qu'il n'y a rien à montrer. Les
+écritures sont **optimistes** (`commit`) : l'interface change tout de suite, le fournisseur est
+prévenu ensuite, et seule une panne remet la liste d'avant avec une `error`. `sendMail` fait
+exception à sa manière : en cas d'échec, le message revient dans le composeur, rien n'est perdu.
+Le brouillon et l'envoi n'apparaissent dans leur dossier qu'une fois rendus par le fournisseur —
+même tick avec le mock, un instant plus tard avec IMAP.
+
+Vérifié de bout en bout par l'interface (bureau 1280×900) : chargement 18 fils, favori,
+lecture, réponse, brouillon à la fermeture, envoi, changement d'espace ; et **le favori posé
+survit à l'aller-retour Perso → Pro → Perso**, preuve que l'état vit dans le fournisseur et revient
+par `listThreads`. Rien de visible n'a changé. `listFolders` (comptes de non-lus par dossier
+sans tout lire) et le filtre `to` viendront avec IMAP, quand ils auront un consommateur.
 
 ### Les espaces deviennent des *vues* sur un compte
 
@@ -127,46 +139,55 @@ Le mode `filter` viendra ensuite : il évite les règles côté iCloud (on lit `
 `SEARCH TO domaine-a.fr`) mais rend « Archiver » et « Supprimer » plus subtils (un même message
 peut appartenir à deux vues). Le mode `folder` colle à ce que tu as déjà : on commence par lui.
 
-### Comptes et secrets
+### Comptes et secrets — saisis dans l'app, jamais dans l'environnement
 
-- **v1 (test)** : un compte iCloud décrit par variables d'environnement (`ICLOUD_USER`,
-  `ICLOUD_APP_PASSWORD`, `ICLOUD_SPACES` en JSON pour les trois vues). Zéro stockage, on valide
-  IMAP, le regroupement en fils, l'envoi.
-- **v2** : authentification de l'app, puis une table `accounts` (Vercel Postgres/Neon, ou KV — il
-  n'y aura jamais plus de quelques lignes) avec les secrets chiffrés (AES-GCM, clé dans
-  `ACCOUNTS_KEY`), et un écran « Ajouter un compte » : iCloud (adresse + mot de passe
-  d'application), Google (bouton OAuth), IMAP générique (hôte/port).
+Exigence posée le 4 septembre : **le mot de passe d'application s'inscrit dans l'app**, pas
+dans les variables d'environnement — si l'app est partagée, l'autre personne doit pouvoir le
+faire seule. Ça retire la « v1 par env » du plan et impose l'ordre : d'abord savoir *qui* est
+connecté, ensuite ranger *ses* comptes, enfin les lire.
 
-## 3. Ordre proposé et ce que ça coûte
+- **Authentification de l'app** : Auth.js (NextAuth v5), session en cookie, connexion Google
+  (qui servira aussi à autoriser Gmail plus tard). Liste blanche `ALLOWED_EMAILS` tant que l'app
+  est privée ; à retirer le jour où elle s'ouvre.
+- **Stockage** : une table `accounts` (Neon Postgres via Vercel — deux clics, `DATABASE_URL`),
+  quelques lignes par utilisateur : sorte, adresse, hôte/port, identité, et le secret chiffré
+  **AES-256-GCM** avec une clé serveur `ACCOUNTS_KEY` (jamais le secret en clair, jamais côté
+  client). Drizzle pour le schéma et les migrations.
+- **Écran « Ajouter un compte »** : iCloud (adresse + mot de passe d'application, avec le lien
+  vers account.apple.com et une vérification IMAP immédiate avant d'enregistrer), Google (bouton
+  OAuth), IMAP générique (hôte, port, SSL). Modifier, retirer.
+
+## 3. Ordre et ce que ça coûte
 
 | # | Étape | Ce qu'on voit à la fin | Effort |
 |---|---|---|---|
-| 1 | `MailProvider` + `MockProvider`, store asynchrone | Rien ne change, mais tout passe par l'interface | ½ jour |
-| 2 | `ImapProvider` (imapflow/mailparser), route handlers, iCloud par env | **Tes vrais mails iCloud dans l'app**, lecture + drapeaux | 1–2 jours |
-| 3 | Espaces-vues : dossier-comme-réception + identité | Tes deux domaines comme espaces, écrire depuis la bonne adresse | 1 jour |
-| 4 | Envoi SMTP (`nodemailer`), brouillons, déplacements | Répondre / écrire pour de vrai | ½–1 jour |
-| 5 | Auth.js + liste blanche + comptes chiffrés + écran Ajouter un compte | L'app est privée ; on ajoute un compte depuis l'interface | 1–2 jours |
-| 6 | `GmailProvider` (OAuth + googleapis) | Un espace Gmail à côté des espaces iCloud | 1 jour |
+| 1 | `MailProvider` + `MockProvider`, store asynchrone | **Fait** — rien ne change, tout passe par l'interface | ½ jour |
+| 2 | Auth.js, connexion Google, liste blanche | Une page de connexion ; l'app est privée | ½–1 jour |
+| 3 | Table `accounts` chiffrée + écran « Ajouter un compte » (iCloud d'abord) | On saisit son adresse et son mot de passe d'application **dans l'app** | 1 jour |
+| 4 | `ImapProvider` (imapflow/mailparser) sur le compte stocké | **Tes vrais mails iCloud dans l'app**, lecture + drapeaux | 1–2 jours |
+| 5 | Espaces-vues : dossier-comme-réception + identité | Tes deux domaines comme espaces, écrire depuis la bonne adresse | 1 jour |
+| 6 | Envoi SMTP (`nodemailer`), brouillons, déplacements | Répondre / écrire pour de vrai | ½–1 jour |
+| 7 | `GmailProvider` (googleapis, sur la connexion Google de l'étape 2) | Un espace Gmail à côté des espaces iCloud | 1 jour |
 
-Pourquoi iCloud avant Google alors que Google « pour tester » était l'idée de départ : c'est ce
-qui compte pour toi, c'est plus court à brancher (pas de console OAuth, pas d'écran de
-consentement), et le fournisseur IMAP qu'on écrit pour iCloud sert ensuite à n'importe quel autre
-compte. Google arrive à l'étape 6 avec l'authentification de l'app déjà en place, dont il a besoin
-de toute façon.
+La connexion Google revient donc en étape 2 — non pas pour lire Gmail tout de suite, mais parce
+qu'il faut une identité avant de ranger un compte, et que c'est la porte la plus simple à ouvrir
+pour quelqu'un à qui on partage l'app. Gmail lui-même attend l'étape 7 : iCloud reste ce qui
+compte, et le fournisseur IMAP servira à n'importe quel autre compte.
 
-## 4. Ce dont j'ai besoin de toi pour démarrer
+## 4. Ce dont j'ai besoin de toi
 
-Pour l'étape 2 (rien à me transmettre en clair — tout va dans les variables d'environnement) :
+Rien qui soit un secret de messagerie : le mot de passe d'application, tu le saisiras dans l'app
+à l'étape 3, il ne passe ni par moi ni par l'environnement.
 
-- Un **mot de passe d'application** Apple, mis dans `ICLOUD_APP_PASSWORD` sur Vercel (et dans
-  `.env.local` en local).
-- Les **adresses** : celle du compte (`@me.com` / `@icloud.com`) et les deux du domaine
-  personnalisé, pour préparer les trois espaces.
-- Les **noms exacts des dossiers** où tes règles iCloud rangent chaque domaine (tels qu'Apple Mail
-  les affiche).
-
-Pour l'étape 6, plus tard : un client OAuth Google (je te guide, dix minutes) →
-`GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`, plus `AUTH_SECRET`.
+- **Étape 2** : un client OAuth Google (console Google Cloud → identifiants → client « application
+  web », URI de redirection `https://<ton-domaine>/api/auth/callback/google` et
+  `http://localhost:3000/api/auth/callback/google`) → `GOOGLE_CLIENT_ID` et
+  `GOOGLE_CLIENT_SECRET` dans Vercel. Je te guide pas à pas, dix minutes. `AUTH_SECRET`, je le
+  génère.
+- **Étape 3** : une base Neon Postgres créée depuis l'onglet Storage de Vercel (deux clics), qui
+  pose `DATABASE_URL` toute seule. `ACCOUNTS_KEY`, je la génère.
+- **Étapes 4–5** : les adresses (compte `@me.com`/`@icloud.com` et les deux du domaine) et les
+  noms exacts des dossiers où tes règles rangent chaque domaine — pour préparer les trois espaces.
 
 ## 5. Ce que ça ne fera pas tout de suite
 

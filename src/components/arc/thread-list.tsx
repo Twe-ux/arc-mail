@@ -25,6 +25,7 @@ export function ThreadList({ className }: { className?: string }) {
   const unreadOnly = useMail((s) => s.unreadOnly);
   const splitView = useMail((s) => s.splitView);
   const toggleSplit = useMail((s) => s.toggleSplit);
+  const loading = useMail((s) => s.loading);
 
   const unread = threads.filter((t) => t.unread).length;
   const plural = (n: number, word: string) => `${n} ${word}${n > 1 ? "s" : ""}`;
@@ -110,10 +111,15 @@ export function ThreadList({ className }: { className?: string }) {
         >
         <ScrollArea className="h-full">
           {threads.length === 0 ? (
-            <div className="flex flex-col items-center gap-2 px-6 py-16 text-center text-muted-foreground">
-              <Inbox className="size-8 opacity-40" />
-              <p className="text-sm">{unreadOnly ? "Tout est lu." : "Rien ici pour l'instant."}</p>
-            </div>
+            /* Nothing at all while the space is still being read: "Rien ici"
+               would be a lie for the length of the read, and a flash of it
+               with the mock (one tick) reads as a glitch. */
+            loading ? null : (
+              <div className="flex flex-col items-center gap-2 px-6 py-16 text-center text-muted-foreground">
+                <Inbox className="size-8 opacity-40" />
+                <p className="text-sm">{unreadOnly ? "Tout est lu." : "Rien ici pour l'instant."}</p>
+              </div>
+            )
           ) : (
             <ul className="flex flex-col pt-2 pb-4 md:gap-0.5 md:p-2">
               {threads.map((t) => (

@@ -33,6 +33,21 @@ export type Contact = {
   email: string;
 };
 
+/**
+ * A file hanging off a message. `url` is what the preview loads: a `data:`
+ * URI with the mock, our own route once a provider is branched (IMAP hands
+ * back bytes, never a public link). Absent when nothing can be shown.
+ */
+export type Attachment = {
+  id: string;
+  name: string;
+  /** MIME type as the provider gives it. */
+  mime: string;
+  /** Bytes. */
+  size: number;
+  url?: string;
+};
+
 export type Message = {
   id: string;
   from: Contact;
@@ -42,6 +57,7 @@ export type Message = {
   /** ISO date string. */
   date: string;
   body: string;
+  attachments?: Attachment[];
 };
 
 export type Thread = {

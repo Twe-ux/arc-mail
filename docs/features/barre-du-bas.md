@@ -1,4 +1,14 @@
-# Barre du bas (`MobileNav`)
+# Barre du bas
+
+**Le verre a quelque chose à flouter.** La barre est posée **par-dessus** la liste
+(`absolute inset-x-0 bottom-0`), pas à côté d'elle : le défilant lui laisse exactement sa hauteur
+en `padding-bottom` (`--nav-height` dans `globals.css` = 56 + 10 + `max(14px, safe-bottom - 18px)`,
+soit 82 px avec un iPhone à encoche, mesuré). Avant, la liste s'arrêtait au-dessus de la barre : le
+flou ne floutait que le voile fixe, le matériau était décoratif, et une bande de fond restait
+visible sous la barre. Elle a disparu d'elle-même.
+
+---
+
 
 Sous `md` seulement. Une pilule de verre dépoli à trois cases — espace courant (ouvre le menu),
 Réception, Rechercher — avec une capsule qui glisse vers la case active, et le bouton composer à

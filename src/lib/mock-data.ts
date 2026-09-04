@@ -1,5 +1,5 @@
 import type { AccountRef } from "./mail/provider";
-import type { Contact, Folder, Space, SpaceId, Thread } from "./types";
+import type { Attachment, Contact, Folder, Space, SpaceId, Thread } from "./types";
 
 /** The mock gives each space its own account: three different addresses. `mock:perso`. */
 export const mockAccount = (spaceId: SpaceId): AccountRef => ({ id: `mock:${spaceId}`, kind: "mock" });
@@ -113,11 +113,47 @@ const supabase = c("Supabase", "no-reply@supabase.io");
 let seq = 0;
 const id = (prefix: string) => `${prefix}-${++seq}`;
 
+/**
+ * A previewable image without a byte of binary in the repository: an SVG
+ * gradient as a `data:` URI. Real attachments will carry their own bytes;
+ * what matters here is that the preview has something true to display.
+ */
+function photo(name: string, hue: number, caption: string, size = 2_400_000): Attachment {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800">
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0%" stop-color="oklch(0.72 0.16 ${hue})"/>
+<stop offset="100%" stop-color="oklch(0.52 0.19 ${(hue + 45) % 360})"/>
+</linearGradient></defs>
+<rect width="1200" height="800" fill="url(#g)"/>
+<text x="60" y="740" font-family="system-ui,sans-serif" font-size="48" fill="rgba(255,255,255,0.92)">${caption}</text>
+</svg>`;
+  return {
+    id: id("att"),
+    name,
+    mime: "image/svg+xml",
+    /* The weight a photo would have; the SVG's own byte count would show a
+       holiday snap at 444 o and make every size on screen a lie. */
+    size,
+    url: `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`,
+  };
+}
+
+/** A document the mock cannot show: the preview says so instead of pretending. */
+function document_(name: string, mime: string, size: number): Attachment {
+  return { id: id("att"), name, mime, size };
+}
+
 function thread(
   spaceId: Thread["spaceId"],
   folder: Thread["folder"],
   subject: string,
-  messages: Array<{ from: Contact; to: Contact[]; hoursAgo: number; body: string }>,
+  messages: Array<{
+    from: Contact;
+    to: Contact[];
+    hoursAgo: number;
+    body: string;
+    attachments?: Attachment[];
+  }>,
   opts: Partial<Pick<Thread, "labels" | "unread" | "starred">> = {},
 ): Thread {
   const msgs = messages.map((m) => ({
@@ -126,6 +162,7 @@ function thread(
     to: m.to,
     date: ago(m.hoursAgo),
     body: m.body.trim(),
+    attachments: m.attachments,
   }));
   const last = msgs[msgs.length - 1];
   return {
@@ -192,9 +229,14 @@ Suivez votre envoi depuis votre espace client.`,
         hoursAgo: 26,
         body: `Coucou !
 
-Voici le lien vers l'album partagé. Il y a quelques pépites de Marc en train de danser 😂
+Voici les trois meilleures en pièce jointe, l'album complet suit. Il y a quelques pépites de Marc en train de danser 😂
 
 Bises`,
+        attachments: [
+          photo("gateau.jpg", 35, "Le gâteau, juste avant", 2_930_000),
+          photo("marc-danse.jpg", 300, "Marc, 23 h 40", 1_840_000),
+          photo("table.jpg", 140, "La table, avant le passage", 3_410_000),
+        ],
       },
       {
         from: ME.perso,
@@ -339,6 +381,7 @@ Pensez à apporter vos derniers résultats.`,
         to: [ME.perso],
         hoursAgo: 14,
         body: `Votre facture de 68,40 € sera prélevée le 15 septembre sur votre compte habituel.`,
+        attachments: [document_("facture-septembre.pdf", "application/pdf", 184_320)],
       },
     ],
     { labels: ["Maison"] },
@@ -562,6 +605,10 @@ Théo`,
         from: marc,
         to: [ME.pro],
         hoursAgo: 0.5,
+        attachments: [
+          document_("devis-salle-reunion-v2.pdf", "application/pdf", 412_000),
+          photo("plan-1er-etage.png", 230, "Plan du 1ᵉʳ étage — cloisons vitrées", 780_000),
+        ],
         body: `Bonjour Thierry,
 
 Ci-joint le devis mis à jour pour la salle de réunion du premier étage. J'ai intégré les cloisons vitrées comme convenu.

@@ -15,6 +15,8 @@ L'interface est là, entière et soignée sur iPhone comme sur ordinateur ; il n
 - Liste de conversations, lecture d'un fil, réponse / transfert, composeur complet (À/Cc/Cci,
   expéditeur = espace, objet, corps, brouillons conservés à la fermeture).
 - Recherche ⌘K : conversations, dossiers, espaces, actions.
+- Réponse ciblée : à tous par défaut, ou à une seule personne (action ou en-tête d'un message).
+- Pièces jointes : puces sous le message, aperçu en volet sur bureau, en carte sur téléphone.
 - Onglets « Aujourd'hui » façon Arc : les conversations ouvertes restent épinglées dans le menu.
 - Bureau : sidebar translucide, vue partagée, raccourcis clavier (⌘K, ⌘N, ⌘⇧D, ⌘1-3, j/k/e/s/#/u).
 

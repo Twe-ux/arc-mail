@@ -24,6 +24,8 @@ d'Arc (espaces colorés, sidebar translucide, favoris épinglés, onglets « Auj
   `src/app/globals.css`, sombre par classe `.dark`), shadcn/ui new-york via le paquet unifié
   `radix-ui`, icônes `lucide-react`. `npx shadcn@latest add <x>` pour ajouter une primitive ; ne
   pas réécrire celles qui existent.
+- Barre latérale bureau repliable (`sidebarCollapsed`, persisté, ⌘B) ; le bouton de retour vit
+  dans l'en-tête de la liste, là où la barre était.
 - État UI dans `src/lib/store.ts` (zustand + `persist`, clé `arc-mail`). Le composeur y vit
   aussi ; ne pas dupliquer son état en local. Les sélecteurs qui renvoient des tableaux passent par
   `useVisibleThreads()` (memo).
@@ -96,7 +98,18 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - Un groupe blanc a un bord (`shadow 0 0 0 1px`) ; un rail horizontal rogne aussi verticalement,
   d'où du `padding` dedans pour tout ring.
 
-**Barre du bas** → [docs/features/barre-du-bas.md](docs/features/barre-du-bas.md) ·
+**Barre du bas** → [docs/features/barre-du-bas.md](docs/features/barre-du-bas.md)
+- La barre est posée par-dessus la liste ; le défilant lui laisse `--nav-height` en bas, sinon le
+  verre n'a rien à flouter.
+
+**Répondre** → [docs/features/reponse.md](docs/features/reponse.md)
+- Par défaut à tous ; « Répondre », « Répondre à tous » et l'en-tête d'un message visent ; le champ
+  montre les destinataires réels et prend le focus.
+
+**Pièces jointes** → [docs/features/pieces-jointes.md](docs/features/pieces-jointes.md)
+- `url` absente = rien à montrer, l'aperçu le dit ; sur bureau le volet prend la place de la liste ;
+  un sélecteur qui construit un objet doit être memoïsé (`usePreview`).
+
 **Recherche** → [docs/features/recherche.md](docs/features/recherche.md)
 
 ## Où on en est, où on va

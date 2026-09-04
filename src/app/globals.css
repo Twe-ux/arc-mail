@@ -11,6 +11,11 @@
      the same ground, so the strip under the bottom bar reads as more of the
      list rather than a darker band below it. */
   --wash-base: var(--background);
+  /* The floating bottom bar's own height, safe area included. The list is
+     padded by exactly this so its content passes *under* the frosted pill
+     instead of stopping above it — without something moving behind it, the
+     blur had nothing to blur and the material was decoration. */
+  --nav-height: calc(56px + 0.625rem + max(14px, env(safe-area-inset-bottom) - 18px));
   --radius: 0.75rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);

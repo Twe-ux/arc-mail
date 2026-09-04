@@ -2,7 +2,7 @@
 /**
  * Captures d'un écran d'Arc Mail, aux deux tailles et aux deux thèmes, dans la même passe.
  *
- *   npm run capture -- --name composeur [--open menu|compose|search] [--space pro]
+ *   npm run capture -- --name composeur [--open menu|compose|search|fil|piece-jointe] [--space pro]
  *                      [--url http://localhost:3000] [--out captures] [--dark-only|--light-only]
  *
  * Téléphone : 393×852 à ×3 avec les insets d'un iPhone à encoche (59 haut / 34 bas) posés en
@@ -28,7 +28,7 @@ const args = Object.fromEntries(
 const url = args.url ?? "http://localhost:3000";
 const out = args.out ?? "captures";
 const name = args.name ?? "ecran";
-const open = args.open; // menu | compose | search
+const open = args.open; // menu | compose | search | fil | piece-jointe
 const space = args.space; // perso | pro | side
 const themes = args["dark-only"] ? ["dark"] : args["light-only"] ? ["light"] : ["light", "dark"];
 
@@ -49,11 +49,25 @@ const SIZES = {
   desktop: { viewport: { width: 1280, height: 800 }, deviceScaleFactor: 2, isMobile: false, hasTouch: false },
 };
 
+/* Une valeur peut être une suite d'étapes ; 700 ms entre chacune, le temps qu'une carte
+   ou un volet finisse d'entrer. Les trois cartes n'existent que sur téléphone ; `fil` et
+   `piece-jointe` valent aux deux tailles (le volet d'aperçu est une vue bureau). */
+const CLICK_TEXT = (text) =>
+  `[...document.querySelectorAll('button')].find((b) => b.textContent?.includes(${JSON.stringify(text)}))?.click()`;
+
 const OPENERS = {
   menu: `document.querySelector('nav[aria-label="Navigation"] button[aria-label^="Espace"]')?.click()`,
   compose: `document.querySelector('nav[aria-label="Navigation"] button[aria-label="Écrire"]')?.click()`,
   search: `document.querySelector('nav[aria-label="Navigation"] button[aria-label="Rechercher"]')?.click()`,
+  fil: [CLICK_TEXT("Photos de l'anniversaire")],
+  "piece-jointe": [
+    CLICK_TEXT("Photos de l'anniversaire"),
+    `document.querySelector('button[aria-pressed] img')?.closest('button')?.click()`,
+  ],
 };
+
+/** Les écrans qui ne sont pas des cartes flottantes : rien à mesurer, mais à capturer partout. */
+const BOTH_SIZES = new Set(["fil", "piece-jointe"]);
 
 const CARD = `(() => {
   const el = document.querySelector('[data-slot="sheet-content"], [data-slot="dialog-content"]');
@@ -118,17 +132,21 @@ async function main() {
           await page.waitForTimeout(600);
         }
       }
-      if (open && size === "mobile" && OPENERS[open]) {
-        if (!(space && open === "menu")) await page.evaluate(OPENERS[open]);
-        /* L'animation d'entrée dure 400 ms (fiche cartes-flottantes) ; mesurée pendant qu'elle
-           joue, la carte est encore quelques pixels trop bas et cela ressemble à un bug. */
-        await page.waitForTimeout(1100);
+      if (open && OPENERS[open] && (size === "mobile" || BOTH_SIZES.has(open))) {
+        const steps = Array.isArray(OPENERS[open]) ? OPENERS[open] : [OPENERS[open]];
+        for (const [i, step] of steps.entries()) {
+          if (space && open === "menu" && i === 0) continue;
+          await page.evaluate(step);
+          /* L'animation d'entrée dure 400 ms (fiche cartes-flottantes) ; mesurée pendant qu'elle
+             joue, la carte est encore quelques pixels trop bas et cela ressemble à un bug. */
+          await page.waitForTimeout(i === steps.length - 1 ? 1100 : 700);
+        }
       }
 
       const file = `${out}/${name}-${size}-${theme}.png`;
       await page.screenshot({ path: file });
       total++;
-      const card = open && size === "mobile" ? await page.evaluate(CARD) : null;
+      const card = open && size === "mobile" && !BOTH_SIZES.has(open) ? await page.evaluate(CARD) : null;
       const line = [`${file}`, card ? `carte ${JSON.stringify(card)}` : null, errors.length ? `ERREURS ${errors.length}` : "erreurs 0"]
         .filter(Boolean).join("  ·  ");
       console.log(line);

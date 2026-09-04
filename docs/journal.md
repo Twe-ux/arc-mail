@@ -54,4 +54,5 @@ Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérificatio
 | — | `MailProvider` : le mock derrière l'interface, store asynchrone à écritures optimistes |
 | `04273d0` | Tri des skills : 13 gardés sur 33, `/ecran` porté de Kairos, `npm run capture` |
 | `6e896f6` | État des lieux : quatre audits en parallèle (code, UX, mouvement, DESIGN.md) |
+| — | Réponse ciblée (Répondre / Répondre à tous / en-tête d'un message), pièces jointes avec volet d'aperçu, barre latérale repliable (⌘B), la liste défile sous la barre du bas |
 | — | Correctifs de l'état des lieux : retour arrière par fil, chargement par espace, pannes visibles (bandeau, toasts, composeur), `--space-ink`, reduced-motion, appui sur les boutons, `RETURN_VELOCITY`, une recette d'entrée pour les cartes, ARIA des rangées et de l'interrupteur, cibles 44 px — [synthèse](audits/2026-09-04/README.md) |

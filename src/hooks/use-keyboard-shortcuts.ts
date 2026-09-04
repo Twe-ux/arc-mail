@@ -11,7 +11,7 @@ function isTyping(target: EventTarget | null): boolean {
 
 /**
  * Arc-flavoured shortcuts:
- *  ⌘K  command bar · ⌘N / c  compose · ⌘⇧D  split view · ⌘1-3  spaces
+ *  ⌘K  command bar · ⌘N / c  compose · ⌘B  sidebar · ⌘⇧D  split view · ⌘1-3  spaces
  *  j/k  next / previous thread · e  archive · s  star · #  delete · u  unread · Esc  close
  */
 export function useKeyboardShortcuts() {
@@ -36,6 +36,11 @@ export function useKeyboardShortcuts() {
       if (mod && e.key.toLowerCase() === "n") {
         e.preventDefault();
         s.openCompose();
+        return;
+      }
+      if (mod && e.key.toLowerCase() === "b") {
+        e.preventDefault();
+        s.toggleSidebarCollapsed();
         return;
       }
       if (mod && e.shiftKey && e.key.toLowerCase() === "d") {

@@ -1,6 +1,6 @@
 "use client";
 
-import { CloudOff, Columns2, Inbox, RefreshCw, Star } from "lucide-react";
+import { CloudOff, Columns2, Inbox, PanelLeftOpen, RefreshCw, Star } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -26,6 +26,8 @@ export function ThreadList({ className }: { className?: string }) {
   const splitView = useMail((s) => s.splitView);
   const toggleSplit = useMail((s) => s.toggleSplit);
   const loading = useMail(selectLoading);
+  const sidebarCollapsed = useMail((s) => s.sidebarCollapsed);
+  const toggleSidebarCollapsed = useMail((s) => s.toggleSidebarCollapsed);
   const error = useMail((s) => s.error);
   const loadSpace = useMail((s) => s.loadSpace);
 
@@ -64,6 +66,18 @@ export function ThreadList({ className }: { className?: string }) {
 
       {/* Desktop header */}
       <header className="hidden h-12 shrink-0 items-center gap-2 border-b px-4 md:flex">
+        {/* The only way back to a folded sidebar: it lives where the sidebar
+            was, so the eye finds it where it left off. */}
+        {sidebarCollapsed && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon-xs" onClick={toggleSidebarCollapsed} aria-label="Afficher la barre latérale">
+                <PanelLeftOpen />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Barre latérale · ⌘B</TooltipContent>
+          </Tooltip>
+        )}
         <h1 className="truncate text-sm font-semibold">{folder.name}</h1>
         <span className="text-xs text-muted-foreground tabular-nums">{threads.length}</span>
         <div className="ml-auto flex items-center gap-1">
@@ -140,7 +154,9 @@ export function ThreadList({ className }: { className?: string }) {
               </div>
             )
           ) : (
-            <ul className="flex flex-col pt-2 pb-4 md:gap-0.5 md:p-2">
+            /* The bar floats over the list rather than beside it, so the last
+               rows need room to pass under it — see `--nav-height`. */
+            <ul className="flex flex-col pt-2 max-md:pb-[calc(var(--nav-height)+0.5rem)] md:gap-0.5 md:p-2">
               {threads.map((t) => (
                 <ThreadRow
                   key={t.id}

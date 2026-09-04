@@ -35,7 +35,6 @@ Voir la [synthèse](audits/2026-09-04/README.md) pour le détail et les arbitrag
 - [ ] Icônes de dossiers dans `src/lib/folders.ts` ; `replyDraft` dans le store
 - [ ] Focus visible (l'anneau `outline-ring/50` fait 1,44:1) ; `--muted-foreground` sur `bg-muted`
 - [ ] Squelette de chargement, états vides par dossier, toasts « Annuler » sur archivage
-- [ ] Répondre / Répondre à tous comme deux actions (aujourd'hui : à tous, le champ le dit)
 - [ ] Regroupement par dates dans la liste (Aujourd'hui / Hier / Cette semaine) — à décider
 - [ ] `@property --space-accent` pour que le changement d'espace s'interpole vraiment
 
@@ -43,7 +42,7 @@ Voir la [synthèse](audits/2026-09-04/README.md) pour le détail et les arbitrag
 
 - [ ] Créer, renommer un espace ; choisir son icône (la couleur se choisit déjà)
 - [ ] Effacement en haut des listes défilantes, symétrique de celui du bas (non demandé, à voir)
-- [ ] Pièces jointes (barre d'outils du composeur, grisée pour l'instant)
+- [ ] Joindre un fichier depuis le composeur (la lecture et l'aperçu existent, l'envoi non)
 - [ ] Recherche côté serveur une fois un fournisseur branché
 - [ ] Notifications push (nécessite un serveur qui garde une connexion, pas du serverless pur)
 

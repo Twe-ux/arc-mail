@@ -6,7 +6,7 @@ import { firstLine } from "./format";
 import { providerFor } from "./mail";
 import { FOLDERS, ME, SPACES } from "./mock-data";
 import { resolveSpace } from "./theme";
-import type { ComposeDraft, Contact, FolderId, Space, SpaceId, Thread } from "./types";
+import type { Attachment, ComposeDraft, Contact, FolderId, Message, Space, SpaceId, Thread } from "./types";
 
 type RecentMap = Record<SpaceId, string[]>;
 
@@ -20,6 +20,10 @@ export type MailState = {
   commandOpen: boolean;
   /** Mobile only: the sidebar drawer. */
   sidebarOpen: boolean;
+  /** Desktop only: the sidebar folded away, the window kept. */
+  sidebarCollapsed: boolean;
+  /** The attachment being looked at, `null` when none; it lives in the open thread. */
+  previewId: string | null;
   dark: boolean;
   /** Everything loaded so far, every space and folder; selectors slice it. */
   threads: Thread[];
@@ -50,9 +54,15 @@ export type MailState = {
   setUnreadOnly: (value: boolean) => void;
   setCommandOpen: (open: boolean) => void;
   setSidebarOpen: (open: boolean) => void;
+  toggleSidebarCollapsed: () => void;
+  setPreview: (attachmentId: string | null) => void;
   toggleDark: () => void;
-  /** Resolves `false` when the provider refused: the caller gives the text back. */
-  reply: (threadId: string, body: string) => Promise<boolean>;
+  /**
+   * Answers a thread. `to` narrows the recipients (répondre à une seule
+   * personne) ; left out, everyone on the last message gets it.
+   * Resolves `false` when the provider refused: the caller gives the text back.
+   */
+  reply: (threadId: string, body: string, to?: Contact[]) => Promise<boolean>;
 
   openCompose: (initial?: Partial<ComposeDraft>) => void;
   openDraft: (threadId: string) => void;
@@ -158,6 +168,8 @@ export const useMail = create<MailState>()(
   unreadOnly: false,
   commandOpen: false,
   sidebarOpen: false,
+  sidebarCollapsed: false,
+  previewId: null,
   dark: false,
   threads: [],
   loading: {},
@@ -202,7 +214,7 @@ export const useMail = create<MailState>()(
 
   selectThread: (id) => {
     if (id === null) {
-      set({ selectedThreadId: null });
+      set({ selectedThreadId: null, previewId: null });
       return;
     }
     const { spaceId, recent, threads } = get();
@@ -210,6 +222,7 @@ export const useMail = create<MailState>()(
     const target = threads.find((t) => t.id === id);
     set((s) => ({
       selectedThreadId: id,
+      previewId: null,
       recent: { ...recent, [spaceId]: list },
       threads: patchThread(s.threads, id, (t) => ({ ...t, unread: false })),
     }));
@@ -262,14 +275,16 @@ export const useMail = create<MailState>()(
   setUnreadOnly: (unreadOnly) => set({ unreadOnly }),
   setCommandOpen: (commandOpen) => set({ commandOpen }),
   setSidebarOpen: (sidebarOpen) => set({ sidebarOpen }),
+  toggleSidebarCollapsed: () => set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
+  setPreview: (previewId) => set({ previewId }),
   toggleDark: () => set((s) => ({ dark: !s.dark })),
 
-  reply: async (threadId, body) => {
+  reply: async (threadId, body, only) => {
     const before = get().threads;
     const t = before.find((x) => x.id === threadId);
     if (!t) return false;
     const me = ME[t.spaceId];
-    const to = replyRecipients(t);
+    const to = only?.length ? only : replyRecipients(t);
     set({
       threads: patchThread(before, threadId, (x) => ({
         ...x,
@@ -436,10 +451,17 @@ export const useMail = create<MailState>()(
          shape: the migration only keeps what an earlier install saved, which
          zustand would otherwise drop with a console error. */
       version: 1,
-      migrate: (persisted) => persisted as Pick<MailState, "themes" | "dark" | "splitView" | "recent">,
+      migrate: (persisted) =>
+        persisted as Pick<MailState, "themes" | "dark" | "splitView" | "sidebarCollapsed" | "recent">,
       /* Only what should survive a reload: the mail itself is mock and reloads
          fresh; the composer is transient. */
-      partialize: (s) => ({ themes: s.themes, dark: s.dark, splitView: s.splitView, recent: s.recent }),
+      partialize: (s) => ({
+        themes: s.themes,
+        dark: s.dark,
+        splitView: s.splitView,
+        sidebarCollapsed: s.sidebarCollapsed,
+        recent: s.recent,
+      }),
       /* Rehydrated from `AppShell` after mount so the server and first client
          render agree; see `useMail.persist.rehydrate()`. */
       skipHydration: true,
@@ -460,6 +482,33 @@ export function lastMessageDate(t: Thread): string {
 
 export function sortByDate(threads: Thread[]): Thread[] {
   return [...threads].sort((a, b) => lastMessageDate(b).localeCompare(lastMessageDate(a)));
+}
+
+type Preview = { attachment: Attachment; message: Message };
+
+function findPreview(threads: Thread[], threadId: string | null, previewId: string | null): Preview | null {
+  if (!previewId) return null;
+  const thread = threads.find((t) => t.id === threadId);
+  for (const message of thread?.messages ?? []) {
+    const attachment = message.attachments?.find((a) => a.id === previewId);
+    if (attachment) return { attachment, message };
+  }
+  return null;
+}
+
+/**
+ * The attachment being looked at, with the message it hangs off. Memoised for
+ * the same reason as `useVisibleThreads`: a selector that builds a fresh
+ * object every call makes `useSyncExternalStore` loop forever.
+ */
+export function usePreview(): Preview | null {
+  const previewId = useMail((s) => s.previewId);
+  const threads = useMail((s) => s.threads);
+  const selectedThreadId = useMail((s) => s.selectedThreadId);
+  return useMemo(
+    () => findPreview(threads, selectedThreadId, previewId),
+    [threads, selectedThreadId, previewId],
+  );
 }
 
 /** True while the current space is being read for the first time — nothing to show yet. */

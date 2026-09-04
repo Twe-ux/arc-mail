@@ -11,6 +11,7 @@ import {
   Send,
   Star,
   Sun,
+  PanelLeftClose,
   Trash2,
   X,
   type LucideIcon,
@@ -85,15 +86,36 @@ const TONES: Record<Tone, Record<string, string>> = {
   },
 };
 
-/** Desktop sidebar, inline on the space gradient. */
+/** Desktop sidebar, inline on the space gradient. Folds away on demand. */
 export function Sidebar() {
+  const collapsed = useMail((s) => s.sidebarCollapsed);
+  const toggle = useMail((s) => s.toggleSidebarCollapsed);
+
   return (
-    <aside className="hidden w-[260px] shrink-0 flex-col gap-3 rounded-xl bg-[linear-gradient(to_right,rgb(0_0_0/0.28),rgb(0_0_0/0.10))] px-2 py-2 text-white md:flex">
-      {/* Window controls placeholder, keeps the Arc proportions. */}
-      <div className="flex items-center gap-1.5 px-2 pt-1" aria-hidden>
-        <span className="size-3 rounded-full bg-white/20" />
-        <span className="size-3 rounded-full bg-white/20" />
-        <span className="size-3 rounded-full bg-white/20" />
+    <aside
+      className={cn(
+        "hidden w-[260px] shrink-0 flex-col gap-3 rounded-xl bg-[linear-gradient(to_right,rgb(0_0_0/0.28),rgb(0_0_0/0.10))] px-2 py-2 text-white",
+        collapsed ? "md:hidden" : "md:flex",
+      )}
+    >
+      <div className="flex items-center gap-1.5 px-2 pt-1">
+        {/* Window controls placeholder, keeps the Arc proportions. */}
+        <span className="size-3 rounded-full bg-white/20" aria-hidden />
+        <span className="size-3 rounded-full bg-white/20" aria-hidden />
+        <span className="size-3 rounded-full bg-white/20" aria-hidden />
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              onClick={toggle}
+              aria-label="Replier la barre latérale"
+              className="ml-auto flex size-7 items-center justify-center rounded-md text-white/70 transition-colors hover:bg-white/15 hover:text-white"
+            >
+              <PanelLeftClose className="size-4" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">Replier · ⌘B</TooltipContent>
+        </Tooltip>
       </div>
       <SidebarContent />
     </aside>

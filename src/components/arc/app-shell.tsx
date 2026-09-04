@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
 import { useMail, useSpace } from "@/lib/store";
 import { cn } from "@/lib/utils";
+import { AttachmentPreview } from "./attachment";
 import { BackSwipe } from "./back-swipe";
 import { CommandPalette } from "./command-palette";
 import { ComposeDialog } from "./compose-dialog";
@@ -30,6 +31,7 @@ export function AppShell() {
   const selectThread = useMail((s) => s.selectThread);
   const spaceId = useMail((s) => s.spaceId);
   const loadSpace = useMail((s) => s.loadSpace);
+  const previewId = useMail((s) => s.previewId);
 
   useKeyboardShortcuts();
 
@@ -56,8 +58,12 @@ export function AppShell() {
   }, [space.theme.accent, space.theme.gradient]);
 
   const hasSelection = selectedThreadId !== null;
+  /* An open attachment takes the list's place rather than squeezing a fourth
+     column into 1280px: sidebar · message · file, and the message stays
+     readable while one looks at what came with it. */
+  const previewOnDesktop = previewId !== null && hasSelection;
   // Desktop: split view shows both; full view shows one or the other.
-  const listOnDesktop = splitView || !hasSelection;
+  const listOnDesktop = (splitView || !hasSelection) && !previewOnDesktop;
   const viewOnDesktop = splitView || hasSelection;
 
   return (
@@ -83,14 +89,17 @@ export function AppShell() {
             under={
               <>
                 <ThreadList className="flex min-h-0 flex-1" />
-                <MobileNav />
+                <MobileNav className="absolute inset-x-0 bottom-0" />
               </>
             }
           >
             <ThreadView className="flex" />
           </BackSwipe>
+          <AttachmentPreview />
         </main>
-        <MobileNav className={cn(hasSelection && "hidden")} />
+        {/* Laid over the list, not beside it: the rows pass under the frosted
+            pill, which is what gives the material something to blur. */}
+        <MobileNav className={cn("absolute inset-x-0 bottom-0 z-30", hasSelection && "hidden")} />
         <MobileMenu />
         <CommandPalette />
         <ComposeDialog />

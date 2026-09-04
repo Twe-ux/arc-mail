@@ -18,6 +18,8 @@ l'état du projet et ce qui reste à faire.
 - [Thème et couleurs](features/theme.md) — sombre, voile d'espace, contrastes, couleur par espace
 - [Barre du bas](features/barre-du-bas.md) — la pilule et le bouton composer
 - [Recherche ⌘K](features/recherche.md) — la barre de commande
+- [Répondre](features/reponse.md) — à qui part la réponse, et comment la viser
+- [Pièces jointes](features/pieces-jointes.md) — le modèle, les puces, le volet d'aperçu
 - [Données mock](features/donnees-mock.md) — le jeu de données et ses règles
 
 ## Audits

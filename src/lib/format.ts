@@ -32,6 +32,14 @@ export function initials(name: string): string {
     .join("");
 }
 
+/** « 184 ko », « 1,2 Mo » — the unit a mail client shows, not bytes. */
+export function formatSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} o`;
+  const ko = bytes / 1024;
+  if (ko < 1024) return `${Math.round(ko)} ko`;
+  return `${(ko / 1024).toFixed(1).replace(".", ",")} Mo`;
+}
+
 /** Stable hue (0-359) for a string, used for avatar gradients and label tints. */
 export function hueFor(seed: string): number {
   let hash = 0;

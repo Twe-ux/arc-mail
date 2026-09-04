@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Archive, ArrowLeft, ArrowUp, Forward, Mail, MailOpen, Reply, Star, Trash2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Archive, ArrowLeft, ArrowUp, Forward, Mail, MailOpen, Reply, ReplyAll, Star, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -9,8 +9,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { formatFullDate } from "@/lib/format";
 import { replyRecipients, selectSelectedThread, useMail } from "@/lib/store";
-import type { Message, Thread } from "@/lib/types";
+import type { Contact, Message, Thread } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { AttachmentRow } from "./attachment";
 import { ContactAvatar } from "./contact-avatar";
 import { LabelChip } from "./label-chip";
 
@@ -22,6 +23,29 @@ export function ThreadView({ className }: { className?: string }) {
   const toggleUnread = useMail((s) => s.toggleUnread);
   const moveThread = useMail((s) => s.moveThread);
   const openCompose = useMail((s) => s.openCompose);
+
+  /* Who the answer goes to. `null` means everyone on the last message — what
+     the store does on its own; a list means one has narrowed it, by the
+     « Répondre » action or by tapping a message's sender. The counter is how
+     the field learns it should take focus: the same target twice in a row is
+     still a request to type.
+     The aim carries the thread it was taken on, so opening another
+     conversation drops it during the render rather than in an effect that
+     would paint the wrong recipients for a frame. */
+  const [aim, setAim] = useState<{ threadId: string; to: Contact[] | null; tick: number } | null>(null);
+  const threadId = thread?.id;
+  const aimed = aim?.threadId === threadId ? aim : null;
+  const replyTo = aimed?.to ?? null;
+  const focusTick = aimed?.tick ?? 0;
+
+  const aimReply = (to: Contact[] | null) => {
+    if (!threadId) return;
+    setAim((current) => ({
+      threadId,
+      to,
+      tick: (current?.threadId === threadId ? current.tick : 0) + 1,
+    }));
+  };
 
   if (!thread) {
     return (
@@ -46,8 +70,23 @@ export function ThreadView({ className }: { className?: string }) {
       body: `\n\n---------- Message transféré ----------\n${quoted}`,
     });
   };
+  const everyone = replyRecipients(thread);
+  const sender = thread.messages[thread.messages.length - 1].from;
+  const targets = replyTo ?? everyone;
+  /* « Répondre » is the sender alone; « Répondre à tous » only earns a place
+     when there is actually someone else on the message. */
+  const canReplyAll = everyone.length > 1;
+
   const actions = (
     <>
+      <Action label="Répondre" onClick={() => aimReply([sender])}>
+        <Reply />
+      </Action>
+      {canReplyAll && (
+        <Action label="Répondre à tous" onClick={() => aimReply(null)}>
+          <ReplyAll />
+        </Action>
+      )}
       <Action label="Transférer" onClick={forward}>
         <Forward />
       </Action>
@@ -119,12 +158,27 @@ export function ThreadView({ className }: { className?: string }) {
               ))}
             </div>
             {thread.messages.map((m) => (
-              <MessageCard key={m.id} message={m} />
+              <MessageCard key={m.id} message={m} onReplyTo={aimReply} />
             ))}
-            <ReplyBox key={thread.id} thread={thread} className="hidden md:block" />
+            <ReplyBox
+              key={thread.id}
+              thread={thread}
+              to={targets}
+              everyone={everyone}
+              onReplyAll={() => aimReply(null)}
+              focusTick={focusTick}
+              className="hidden md:block"
+            />
           </div>
         </ScrollArea>
-        <MobileReply key={`m-${thread.id}`} thread={thread} />
+        <MobileReply
+          key={`m-${thread.id}`}
+          thread={thread}
+          to={targets}
+          everyone={everyone}
+          onReplyAll={() => aimReply(null)}
+          focusTick={focusTick}
+        />
       </div>
     </article>
   );
@@ -153,10 +207,24 @@ function Action({
   );
 }
 
-function MessageCard({ message }: { message: Message }) {
+function MessageCard({
+  message,
+  onReplyTo,
+}: {
+  message: Message;
+  onReplyTo: (to: Contact[]) => void;
+}) {
   return (
     <div className="rounded-2xl bg-muted/50 p-4 dark:bg-white/[0.07]">
-      <div className="flex items-start gap-3">
+      {/* The header is the way to answer this person alone: tapping it aims
+          the field at the sender, which is the gesture one expects from a
+          message in a thread of five people. */}
+      <button
+        type="button"
+        onClick={() => onReplyTo([message.from])}
+        aria-label={`Répondre à ${message.from.name} seulement`}
+        className="flex w-full items-start gap-3 rounded-xl text-left outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+      >
         <ContactAvatar contact={message.from} />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-baseline gap-x-2">
@@ -170,37 +238,109 @@ function MessageCard({ message }: { message: Message }) {
             À : {message.to.map((c) => c.name).join(", ")}
           </p>
         </div>
-      </div>
+      </button>
       <p className="mt-4 text-[15px] leading-relaxed whitespace-pre-wrap md:text-sm">{message.body}</p>
+      {message.attachments && message.attachments.length > 0 && (
+        <AttachmentRow attachments={message.attachments} />
+      )}
+    </div>
+  );
+}
+
+/**
+ * Who is about to receive the answer, above the field. It is the only place
+ * that says it before sending, so it shows the names and the way back to
+ * everyone — narrowing is one tap, un-narrowing must be one too.
+ */
+function ReplyTargets({
+  to,
+  everyone,
+  onReplyAll,
+  className,
+}: {
+  to: Contact[];
+  everyone: Contact[];
+  onReplyAll: () => void;
+  className?: string;
+}) {
+  const narrowed = to.length < everyone.length;
+  /* A conversation with one other person needs no list: the placeholder
+     already names them, and a chip would be a label for a label. */
+  if (everyone.length <= 1) return null;
+  return (
+    <div className={cn("flex flex-wrap items-center gap-1.5 text-xs", className)}>
+      <span className="text-muted-foreground">À :</span>
+      {to.map((c) => (
+        <span
+          key={c.email}
+          title={c.email}
+          className="rounded-full bg-[color-mix(in_oklch,var(--space-accent)_14%,transparent)] px-2 py-0.5 font-medium"
+        >
+          {c.name}
+        </span>
+      ))}
+      {narrowed && (
+        <button
+          type="button"
+          onClick={onReplyAll}
+          className="relative rounded px-1 py-0.5 font-medium text-[var(--space-ink)] after:absolute after:-inset-1.5 active:opacity-60"
+        >
+          Répondre à tous
+        </button>
+      )}
     </div>
   );
 }
 
 /** Desktop reply, inline at the end of the thread. */
-function ReplyBox({ thread, className }: { thread: Thread; className?: string }) {
+function ReplyBox({
+  thread,
+  to,
+  everyone,
+  onReplyAll,
+  focusTick,
+  className,
+}: {
+  thread: Thread;
+  to: Contact[];
+  everyone: Contact[];
+  onReplyAll: () => void;
+  focusTick: number;
+  className?: string;
+}) {
   const [body, setBody] = useState("");
   const reply = useMail((s) => s.reply);
-  const placeholder = replyPlaceholder(thread);
+  const field = useRef<HTMLTextAreaElement>(null);
+
+  /* Aiming the answer is also asking to write it: the field takes focus and
+     comes into view. Not on the first render, where nothing was aimed. */
+  useEffect(() => {
+    if (focusTick === 0) return;
+    field.current?.focus();
+    field.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }, [focusTick]);
 
   const send = () => {
     const text = body.trim();
     if (!text) return;
     setBody("");
     /* The box empties at once; a refusal from the provider puts the text back. */
-    void reply(thread.id, text).then((ok) => {
+    void reply(thread.id, text, to).then((ok) => {
       if (!ok) setBody((current) => current || text);
     });
   };
 
   return (
     <div className={cn("rounded-2xl border border-border/60 bg-card p-3", className)}>
+      <ReplyTargets to={to} everyone={everyone} onReplyAll={onReplyAll} className="px-1 pb-2" />
       <Textarea
+        ref={field}
         value={body}
         onChange={(e) => setBody(e.target.value)}
         onKeyDown={(e) => {
           if ((e.metaKey || e.ctrlKey) && e.key === "Enter") send();
         }}
-        placeholder={placeholder}
+        placeholder={replyPlaceholder(to)}
         className="min-h-20 resize-none border-0 bg-transparent p-1 shadow-none focus-visible:ring-0 dark:bg-transparent"
       />
       <div className="mt-2 flex items-center justify-between">
@@ -214,28 +354,47 @@ function ReplyBox({ thread, className }: { thread: Thread; className?: string })
 }
 
 /** Mobile reply, a messaging-style composer pinned above the home indicator. */
-function MobileReply({ thread }: { thread: Thread }) {
+function MobileReply({
+  thread,
+  to,
+  everyone,
+  onReplyAll,
+  focusTick,
+}: {
+  thread: Thread;
+  to: Contact[];
+  everyone: Contact[];
+  onReplyAll: () => void;
+  focusTick: number;
+}) {
   const [body, setBody] = useState("");
   const reply = useMail((s) => s.reply);
-  const placeholder = replyPlaceholder(thread);
+  const field = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (focusTick === 0) return;
+    field.current?.focus();
+  }, [focusTick]);
 
   const send = () => {
     const text = body.trim();
     if (!text) return;
     setBody("");
-    void reply(thread.id, text).then((ok) => {
+    void reply(thread.id, text, to).then((ok) => {
       if (!ok) setBody((current) => current || text);
     });
   };
 
   return (
     <div className="shrink-0 border-t border-black/[0.06] bg-card px-3 pt-2 pb-[max(0.75rem,calc(env(safe-area-inset-bottom)-10px))] md:hidden dark:border-white/[0.10]">
+      <ReplyTargets to={to} everyone={everyone} onReplyAll={onReplyAll} className="px-1 pb-1.5" />
       <div className="flex items-end gap-2 rounded-[22px] bg-muted/60 py-1.5 pr-1.5 pl-4 dark:bg-white/[0.07]">
         <textarea
+          ref={field}
           rows={1}
           value={body}
           onChange={(e) => setBody(e.target.value)}
-          placeholder={placeholder}
+          placeholder={replyPlaceholder(to)}
           className="max-h-32 min-h-8 flex-1 resize-none bg-transparent py-1.5 text-base leading-5 outline-none placeholder:text-muted-foreground"
         />
         <button
@@ -254,11 +413,11 @@ function MobileReply({ thread }: { thread: Thread }) {
 }
 
 /**
- * The field says who will actually get the reply — everyone on the last
- * message, like the store sends it — rather than promising the sender alone.
+ * The field says who will actually get the reply — the chips above it are the
+ * full truth, this is the short form.
  */
-function replyPlaceholder(thread: Thread): string {
-  const names = replyRecipients(thread).map((c) => c.name.split(" ")[0]);
+function replyPlaceholder(to: Contact[]): string {
+  const names = to.map((c) => c.name.split(" ")[0]);
   const shown = names.length > 3 ? `${names.slice(0, 3).join(", ")}…` : names.join(", ");
   return `Répondre à ${shown}…`;
 }

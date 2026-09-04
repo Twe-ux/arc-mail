@@ -27,7 +27,12 @@ d'Arc (espaces colorés, sidebar translucide, favoris épinglés, onglets « Auj
   du formulaire, `closeCompose` garde un brouillon, `sendMail` lit le store. Ne pas dupliquer cet état en local. Les sélecteurs qui renvoient des tableaux passent par
   `useVisibleThreads()` (memo) pour éviter les re-rendus infinis.
 - Données mock dans `src/lib/mock-data.ts`. Les dates sont relatives au chargement du module ;
-  les `<time>` ont `suppressHydrationWarning`.
+  les `<time>` ont `suppressHydrationWarning`. Le volume est voulu — ~70 fils, une quinzaine par
+  boîte de réception, soit près de trois écrans de téléphone : en dessous, rien ne défile et on ne
+  voit ni le défilement, ni l'effacement en bas de liste, ni le regroupement des dates. Favoris est
+  une vue dérivée (`threadMatchesFolder` : drapeau `starred`, hors corbeille), donc un fil se met
+  dans un vrai dossier avec `starred: true` — jamais dans un dossier `"starred"`, où il
+  n'apparaîtrait nulle part ailleurs.
 - **PWA installée (iOS)** : jamais d'`overflow: hidden` sur `html`/`body`. En mode standalone le
   document est rendu défilable de 50 px pendant la première seconde (`ViewportSlack` +
   `--viewport-slack` dans `globals.css`), sinon WebKit peint sur un viewport amputé de la safe

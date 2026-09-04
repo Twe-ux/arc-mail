@@ -73,6 +73,36 @@ const nina = c("Nina Bernard", "nina@collectif-atelier.org");
 const ovh = c("OVHcloud", "billing@ovh.com");
 const figma = c("Figma", "team@figma.com");
 
+// Enough correspondents for each inbox to run well past a phone screen.
+const lucas = c("Lucas Perrin", "lucas.perrin@gmail.com");
+const karine = c("Karine Vidal", "karine.vidal@orange.fr");
+const theo = c("Théo Mercier", "theo@mercier-photo.fr");
+const doctolib = c("Doctolib", "no-reply@doctolib.fr");
+const edf = c("EDF", "contact@edf.fr");
+const spotify = c("Spotify", "no-reply@spotify.com");
+const leboncoin = c("leboncoin", "contact@leboncoin.fr");
+const mairie = c("Mairie d'Annecy", "contact@annecy.fr");
+const banque = c("Crédit Mutuel", "info@creditmutuel.fr");
+const decathlon = c("Decathlon", "commande@decathlon.fr");
+const airbnb = c("Airbnb", "automated@airbnb.com");
+
+const laurent = c("Laurent Bouvier", "l.bouvier@fiduciaire-alpes.fr");
+const ines = c("Inès Ferreira", "ines@coworkingcafe.fr");
+const pauline = c("Pauline Girard", "pauline@nomade-coworking.fr");
+const urssaf = c("Urssaf", "noreply@urssaf.fr");
+const qonto = c("Qonto", "hello@qonto.com");
+const lomi = c("Café Lomi", "commandes@cafelomi.com");
+const maif = c("MAIF Pro", "pro@maif.fr");
+const linkedin = c("LinkedIn", "messages-noreply@linkedin.com");
+
+const raphael = c("Raphaël Ott", "raph@ott.dev");
+const linear = c("Linear", "noreply@linear.app");
+const sentry = c("Sentry", "noreply@sentry.io");
+const npmjs = c("npm", "support@npmjs.com");
+const cloudflare = c("Cloudflare", "noreply@cloudflare.com");
+const appledev = c("Apple Developer", "developer@apple.com");
+const supabase = c("Supabase", "no-reply@supabase.io");
+
 let seq = 0;
 const id = (prefix: string) => `${prefix}-${++seq}`;
 
@@ -250,6 +280,271 @@ Nina`,
     ],
   ),
 
+  thread(
+    "perso",
+    "inbox",
+    "Rappel : rendez-vous mardi 9h30",
+    [
+      {
+        from: doctolib,
+        to: [ME.perso],
+        hoursAgo: 5,
+        body: `Rappel de votre rendez-vous avec le Dr Fabre, mardi à 9h30, 12 rue des Marquisats.
+
+Pensez à apporter vos derniers résultats.`,
+      },
+    ],
+    { unread: true, labels: ["Santé"] },
+  ),
+  thread(
+    "perso",
+    "inbox",
+    "Tu as vu le vélo sur leboncoin ?",
+    [
+      {
+        from: lucas,
+        to: [ME.perso],
+        hoursAgo: 6.5,
+        body: `Celui dont je te parlais est encore dispo, à 15 min de chez toi. Je lui écris ou tu veux le voir d'abord ?`,
+      },
+      {
+        from: ME.perso,
+        to: [lucas],
+        hoursAgo: 6,
+        body: `Écris-lui, je peux passer samedi matin.`,
+      },
+      {
+        from: lucas,
+        to: [ME.perso],
+        hoursAgo: 5.5,
+        body: `Nickel, il propose samedi 10h. Je te confirme ce soir.`,
+      },
+    ],
+    { labels: ["Amis"] },
+  ),
+  thread(
+    "perso",
+    "inbox",
+    "Votre facture d'électricité de septembre",
+    [
+      {
+        from: edf,
+        to: [ME.perso],
+        hoursAgo: 14,
+        body: `Votre facture de 68,40 € sera prélevée le 15 septembre sur votre compte habituel.`,
+      },
+    ],
+    { labels: ["Maison"] },
+  ),
+  thread(
+    "perso",
+    "inbox",
+    "Ton annonce a reçu un message",
+    [
+      {
+        from: leboncoin,
+        to: [ME.perso],
+        hoursAgo: 20,
+        body: `Un acheteur est intéressé par « Table basse chêne massif ». Réponds vite pour ne pas le perdre.`,
+      },
+    ],
+    { unread: true },
+  ),
+  thread(
+    "perso",
+    "inbox",
+    "Réunion de copropriété — 24 septembre",
+    [
+      {
+        from: karine,
+        to: [ME.perso, claire, marc],
+        hoursAgo: 27,
+        body: `Bonjour à tous,
+
+L'assemblée se tiendra le 24 à 18h30 dans la salle du rez-de-chaussée. L'ordre du jour porte surtout sur le ravalement et le local à vélos.
+
+Merci de me dire si vous serez présents ou si vous donnez pouvoir.
+
+Karine`,
+      },
+    ],
+    { labels: ["Travaux"] },
+  ),
+  thread(
+    "perso",
+    "inbox",
+    "Les photos du mariage sont en ligne",
+    [
+      {
+        from: theo,
+        to: [ME.perso, claire],
+        hoursAgo: 34,
+        body: `Bonjour,
+
+La galerie est prête, 380 photos. Le lien est valable trois mois et le téléchargement en pleine résolution est activé.
+
+Théo`,
+      },
+    ],
+    { starred: true, labels: ["Famille"] },
+  ),
+  thread(
+    "perso",
+    "inbox",
+    "Votre commande est prête en magasin",
+    [
+      {
+        from: decathlon,
+        to: [ME.perso],
+        hoursAgo: 44,
+        body: `Votre commande n° 884120 vous attend au comptoir retrait pendant 14 jours.`,
+      },
+    ],
+    { labels: ["Achats"] },
+  ),
+  thread(
+    "perso",
+    "inbox",
+    "Inscription cantine — dernier rappel",
+    [
+      {
+        from: mairie,
+        to: [ME.perso],
+        hoursAgo: 58,
+        body: `Les inscriptions à la restauration scolaire se terminent le 12 septembre. Passé cette date, aucune modification ne pourra être prise en compte pour le trimestre.`,
+      },
+    ],
+    { unread: true },
+  ),
+  thread(
+    "perso",
+    "inbox",
+    "Votre relevé de compte est disponible",
+    [
+      {
+        from: banque,
+        to: [ME.perso],
+        hoursAgo: 76,
+        body: `Votre relevé du mois d'août est consultable dans votre espace personnel.`,
+      },
+    ],
+    { labels: ["Banque"] },
+  ),
+  thread(
+    "perso",
+    "inbox",
+    "Votre séjour à Chamonix approche",
+    [
+      {
+        from: airbnb,
+        to: [ME.perso],
+        hoursAgo: 96,
+        body: `Plus que quelques jours. Votre hôte Ludivine vous transmettra les instructions d'arrivée la veille.`,
+      },
+    ],
+    { labels: ["Voyage"] },
+  ),
+  thread(
+    "perso",
+    "inbox",
+    "Playlist de la rentrée",
+    [
+      {
+        from: spotify,
+        to: [ME.perso],
+        hoursAgo: 120,
+        body: `On vous a préparé une sélection à partir de vos écoutes de cet été.`,
+      },
+    ],
+  ),
+  thread(
+    "perso",
+    "inbox",
+    "Prêt pour la course de dimanche ?",
+    [
+      {
+        from: marc,
+        to: [ME.perso, lucas],
+        hoursAgo: 150,
+        body: `On part à 8h du parking du lac. J'emmène de quoi ravitailler, pensez juste à vos dossards.`,
+      },
+      {
+        from: ME.perso,
+        to: [marc, lucas],
+        hoursAgo: 148,
+        body: `Ok pour moi. Je serai un peu juste, comptez sur 8h10.`,
+      },
+    ],
+    { labels: ["Sport"] },
+  ),
+  thread(
+    "perso",
+    "inbox",
+    "Merci pour le week-end",
+    [
+      {
+        from: amelie,
+        to: [ME.perso, claire, marc],
+        hoursAgo: 200,
+        body: `C'était vraiment chouette. On remet ça avant l'hiver ? J'ai encore les photos du lac à vous envoyer.`,
+      },
+    ],
+    { labels: ["Amis"] },
+  ),
+  thread(
+    "perso",
+    "archive",
+    "Codes du portail et du local vélo",
+    [
+      {
+        from: karine,
+        to: [ME.perso],
+        hoursAgo: 260,
+        body: `Portail : 4821B. Local vélos : 7734. Merci de ne pas les diffuser en dehors de l'immeuble.`,
+      },
+    ],
+    { starred: true, labels: ["Maison"] },
+  ),
+  thread(
+    "perso",
+    "snoozed",
+    "Renouveler le passeport",
+    [
+      {
+        from: mairie,
+        to: [ME.perso],
+        hoursAgo: 300,
+        body: `Votre pré-demande n° 22PA9081 est enregistrée. Prenez rendez-vous en mairie pour finaliser le dépôt.`,
+      },
+    ],
+  ),
+  thread(
+    "perso",
+    "archive",
+    "Confirmation de commande — librairie",
+    [
+      {
+        from: c("Librairie du Lac", "commandes@librairiedulac.fr"),
+        to: [ME.perso],
+        hoursAgo: 420,
+        body: `Vos trois ouvrages sont réservés à votre nom jusqu'au 20 septembre.`,
+      },
+    ],
+  ),
+  thread(
+    "perso",
+    "trash",
+    "Vous avez gagné un séjour !",
+    [
+      {
+        from: c("Jeu Concours", "gagnant@promo-vacances.net"),
+        to: [ME.perso],
+        hoursAgo: 500,
+        body: `Cliquez vite pour réclamer votre séjour tous frais payés.`,
+      },
+    ],
+  ),
+
   // ───────────── Pro ─────────────
   thread(
     "pro",
@@ -401,6 +696,269 @@ Lucas Petit`,
     ],
   ),
 
+  thread(
+    "pro",
+    "inbox",
+    "Bilan intermédiaire — pièces manquantes",
+    [
+      {
+        from: laurent,
+        to: [ME.pro],
+        hoursAgo: 2.5,
+        body: `Bonjour Thierry,
+
+Il me manque les relevés de juillet et les justificatifs de deux notes de frais (déplacement Lyon, matériel Bureau Vallée) pour boucler le point d'étape.
+
+Si vous pouvez me les déposer avant vendredi, je tiens les délais.
+
+Cordialement,
+Laurent Bouvier`,
+      },
+    ],
+    { unread: true, labels: ["Compta"] },
+  ),
+  thread(
+    "pro",
+    "inbox",
+    "Planning des permanences — semaine 38",
+    [
+      {
+        from: ines,
+        to: [ME.pro, sophie],
+        hoursAgo: 4,
+        body: `Coucou,
+
+J'ai mis à jour le planning. Il me manque quelqu'un le jeudi soir, Sophie est en congé.
+
+Je peux décaler ma fermeture si besoin.
+
+Inès`,
+      },
+      {
+        from: sophie,
+        to: [ME.pro, ines],
+        hoursAgo: 3.4,
+        body: `Je peux prendre le jeudi soir finalement, mon rendez-vous a été déplacé.`,
+      },
+    ],
+    { labels: ["Équipe"] },
+  ),
+  thread(
+    "pro",
+    "inbox",
+    "Votre déclaration est en ligne",
+    [
+      {
+        from: urssaf,
+        to: [ME.pro],
+        hoursAgo: 9,
+        body: `Votre déclaration du 3e trimestre est disponible. Date limite de paiement : 30 septembre.`,
+      },
+    ],
+    { unread: true, labels: ["Compta"] },
+  ),
+  thread(
+    "pro",
+    "inbox",
+    "Demande de devis — séminaire 20 personnes",
+    [
+      {
+        from: pauline,
+        to: [ME.pro],
+        hoursAgo: 12,
+        body: `Bonjour,
+
+Nous cherchons un lieu pour une journée d'équipe mi-octobre, 20 personnes, avec un espace de travail et de quoi déjeuner sur place.
+
+Auriez-vous des disponibilités et un ordre de prix ?
+
+Bien à vous,
+Pauline Girard`,
+      },
+    ],
+    { unread: true, starred: true, labels: ["Clients"] },
+  ),
+  thread(
+    "pro",
+    "inbox",
+    "Virement reçu — 1 240,00 €",
+    [
+      {
+        from: qonto,
+        to: [ME.pro],
+        hoursAgo: 18,
+        body: `Un virement de 1 240,00 € de STUDIO NORD SARL a été crédité sur votre compte professionnel.`,
+      },
+    ],
+    { labels: ["Banque"] },
+  ),
+  thread(
+    "pro",
+    "inbox",
+    "Commande de café — livraison décalée",
+    [
+      {
+        from: lomi,
+        to: [ME.pro],
+        hoursAgo: 25,
+        body: `Bonjour,
+
+Votre commande de 12 kg part finalement lundi, notre torréfaction de jeudi a pris du retard. Livraison mardi matin.
+
+Désolés pour le décalage.`,
+      },
+    ],
+    { labels: ["Fournisseurs"] },
+  ),
+  thread(
+    "pro",
+    "inbox",
+    "Attestation d'assurance 2026",
+    [
+      {
+        from: maif,
+        to: [ME.pro],
+        hoursAgo: 40,
+        body: `Votre attestation multirisque professionnelle est disponible dans votre espace client.`,
+      },
+    ],
+  ),
+  thread(
+    "pro",
+    "inbox",
+    "Un profil correspond à votre annonce",
+    [
+      {
+        from: linkedin,
+        to: [ME.pro],
+        hoursAgo: 50,
+        body: `3 nouvelles candidatures pour « Chargé·e d'accueil — mi-temps ».`,
+      },
+    ],
+    { labels: ["Recrutement"] },
+  ),
+  thread(
+    "pro",
+    "inbox",
+    "Retour sur la journée portes ouvertes",
+    [
+      {
+        from: sophie,
+        to: [ME.pro],
+        hoursAgo: 62,
+        body: `On a compté 74 visiteurs et 9 demandes d'essai. Le créneau du samedi matin marche beaucoup mieux que le vendredi soir.
+
+Je te fais un récap chiffré lundi.`,
+      },
+    ],
+    { starred: true, labels: ["Équipe"] },
+  ),
+  thread(
+    "pro",
+    "inbox",
+    "Panne machine à café — intervention",
+    [
+      {
+        from: c("Alpes Maintenance", "sav@alpes-maintenance.fr"),
+        to: [ME.pro],
+        hoursAgo: 88,
+        body: `Un technicien passera mercredi entre 8h et 10h. Merci de laisser l'accès libre au local technique.`,
+      },
+    ],
+  ),
+  thread(
+    "pro",
+    "inbox",
+    "Renouvellement des abonnements mensuels",
+    [
+      {
+        from: ines,
+        to: [ME.pro],
+        hoursAgo: 130,
+        body: `Sur les 31 abonnés, 27 ont reconduit. Deux départs pour déménagement, deux sans réponse — je relance ?`,
+      },
+    ],
+    { labels: ["Clients"] },
+  ),
+  thread(
+    "pro",
+    "inbox",
+    "Proposition de partenariat — torréfacteur local",
+    [
+      {
+        from: c("Brûlerie des Alpes", "contact@bruleriedesalpes.fr"),
+        to: [ME.pro],
+        hoursAgo: 190,
+        body: `Bonjour,
+
+Nous fournissons plusieurs lieux du centre et cherchons à nous rapprocher d'espaces comme le vôtre. Nous pourrions vous proposer une dégustation sur place.
+
+Bien cordialement`,
+      },
+    ],
+    { labels: ["Fournisseurs"] },
+  ),
+  thread(
+    "pro",
+    "inbox",
+    "Bail commercial — clauses à revoir",
+    [
+      {
+        from: c("Cabinet Rivière", "contact@cabinet-riviere.fr"),
+        to: [ME.pro],
+        hoursAgo: 240,
+        body: `Comme évoqué, deux points méritent une négociation avant signature : la répartition des charges de ravalement et la durée du préavis.`,
+      },
+    ],
+    { starred: true },
+  ),
+  thread(
+    "pro",
+    "snoozed",
+    "Devis enseigne lumineuse",
+    [
+      {
+        from: c("Signal Déco", "devis@signaldeco.fr"),
+        to: [ME.pro],
+        hoursAgo: 320,
+        body: `Notre proposition pour l'enseigne façade, pose comprise, s'élève à 2 180 € HT. Validité 60 jours.`,
+      },
+    ],
+  ),
+  thread(
+    "pro",
+    "sent",
+    "Re: Demande de devis — séminaire 20 personnes",
+    [
+      {
+        from: ME.pro,
+        to: [pauline],
+        hoursAgo: 11,
+        body: `Bonjour Pauline,
+
+Merci pour votre message. La salle Atelier accueille 20 personnes en configuration réunion, et nous pouvons organiser le déjeuner sur place.
+
+Je vous joins deux formules et nos disponibilités d'octobre.
+
+Bien à vous,
+Thierry`,
+      },
+    ],
+  ),
+  thread(
+    "pro",
+    "archive",
+    "Facture d'électricité — local commercial",
+    [
+      {
+        from: edf,
+        to: [ME.pro],
+        hoursAgo: 460,
+        body: `Votre facture professionnelle de 312,70 € a bien été réglée par prélèvement.`,
+      },
+    ],
+  ),
+
   // ───────────── Side projects ─────────────
   thread(
     "side",
@@ -473,6 +1031,231 @@ Julien`,
   ),
   thread(
     "side",
+    "inbox",
+    "Erreur en production : TypeError sur /thread",
+    [
+      {
+        from: sentry,
+        to: [ME.side],
+        hoursAgo: 0.8,
+        body: `Cannot read properties of undefined (reading 'messages')
+
+12 événements sur 4 utilisateurs, première occurrence il y a 40 minutes.`,
+      },
+    ],
+    { unread: true, labels: ["Dev"] },
+  ),
+  thread(
+    "side",
+    "inbox",
+    "Déploiement réussi — arc-mail (preview)",
+    [
+      {
+        from: vercel,
+        to: [ME.side],
+        hoursAgo: 2,
+        body: `La branche preview est en ligne. Build en 38 s, aucune alerte.`,
+      },
+    ],
+  ),
+  thread(
+    "side",
+    "inbox",
+    "ARC-42 t'a été assignée",
+    [
+      {
+        from: linear,
+        to: [ME.side],
+        hoursAgo: 4.5,
+        body: `« Le geste de fermeture rouvre la feuille sur un petit mouvement » — priorité haute, cycle en cours.`,
+      },
+    ],
+    { unread: true, labels: ["Dev"] },
+  ),
+  thread(
+    "side",
+    "inbox",
+    "Un retour sur la bêta",
+    [
+      {
+        from: raphael,
+        to: [ME.side],
+        hoursAgo: 7,
+        body: `Salut,
+
+J'ai installé sur iPhone, c'est bluffant de fluidité. Deux détails : la barre de recherche part un peu trop haut quand le clavier sort, et j'aimerais pouvoir renommer un espace.
+
+Sinon rien à dire, le glissement depuis le bord est parfait.
+
+Raph`,
+      },
+      {
+        from: ME.side,
+        to: [raphael],
+        hoursAgo: 6.2,
+        body: `Merci ! Le clavier est corrigé sur preview. Le renommage arrive avec le multi-comptes.`,
+      },
+    ],
+    { starred: true },
+  ),
+  thread(
+    "side",
+    "inbox",
+    "Votre certificat SSL a été renouvelé",
+    [
+      {
+        from: cloudflare,
+        to: [ME.side],
+        hoursAgo: 16,
+        body: `Le certificat de twe-ux.dev est valide jusqu'au 3 décembre. Aucune action requise.`,
+      },
+    ],
+  ),
+  thread(
+    "side",
+    "inbox",
+    "[twe-ux/arc-mail] CI failed on preview",
+    [
+      {
+        from: github,
+        to: [ME.side],
+        hoursAgo: 22,
+        body: `Le job « lint » a échoué sur le commit 4f2a1c8.
+
+  src/components/arc/thread-view.tsx:88 — 'label' is defined but never used.`,
+      },
+    ],
+    { unread: true, labels: ["GitHub"] },
+  ),
+  thread(
+    "side",
+    "inbox",
+    "Votre base atteint 80 % du quota",
+    [
+      {
+        from: supabase,
+        to: [ME.side],
+        hoursAgo: 30,
+        body: `Le projet arc-mail-dev utilise 401 Mo sur 500 Mo. Pensez à purger les tables de test.`,
+      },
+    ],
+  ),
+  thread(
+    "side",
+    "inbox",
+    "Nouvelle version de @radix-ui disponible",
+    [
+      {
+        from: npmjs,
+        to: [ME.side],
+        hoursAgo: 46,
+        body: `radix-ui 1.4.3 corrige un problème de focus dans Dialog lors d'une fermeture animée.`,
+      },
+    ],
+    { labels: ["Dev"] },
+  ),
+  thread(
+    "side",
+    "inbox",
+    "Rappel : expiration du certificat de distribution",
+    [
+      {
+        from: appledev,
+        to: [ME.side],
+        hoursAgo: 70,
+        body: `Votre certificat expire dans 30 jours. Renouvelez-le pour continuer à publier des mises à jour.`,
+      },
+    ],
+    { labels: ["iOS"] },
+  ),
+  thread(
+    "side",
+    "inbox",
+    "On se fait un point mercredi ?",
+    [
+      {
+        from: julien,
+        to: [ME.side],
+        hoursAgo: 100,
+        body: `J'aimerais te montrer les écrans du composeur avant d'aller plus loin. 30 min en visio suffiraient.`,
+      },
+    ],
+    { labels: ["Design"] },
+  ),
+  thread(
+    "side",
+    "inbox",
+    "Sondage : quel fournisseur mail en premier ?",
+    [
+      {
+        from: raphael,
+        to: [ME.side, julien],
+        hoursAgo: 160,
+        body: `Entre Gmail et IMAP générique, mon vote va à Gmail : plus de monde à tester, et l'API est mieux documentée.`,
+      },
+      {
+        from: julien,
+        to: [ME.side, raphael],
+        hoursAgo: 155,
+        body: `D'accord avec Raph. IMAP ensuite, ça couvrira le reste.`,
+      },
+    ],
+  ),
+  thread(
+    "side",
+    "archive",
+    "Notes d'archi — interface MailProvider",
+    [
+      {
+        from: ME.side,
+        to: [ME.side],
+        hoursAgo: 210,
+        body: `listThreads / getThread / send / modify. Le mock devient la première implémentation, le reste ne connaît que l'interface.`,
+      },
+    ],
+    { starred: true, labels: ["Dev"] },
+  ),
+  thread(
+    "side",
+    "snoozed",
+    "Migration vers le nouveau runtime",
+    [
+      {
+        from: vercel,
+        to: [ME.side],
+        hoursAgo: 280,
+        body: `Le runtime edge legacy sera retiré le 1er novembre. Vos projets devront être redéployés d'ici là.`,
+      },
+    ],
+  ),
+  thread(
+    "side",
+    "sent",
+    "Re: Maquette v3 — écran de lecture",
+    [
+      {
+        from: ME.side,
+        to: [julien],
+        hoursAgo: 7,
+        body: `J'ai intégré la v3. Les actions flottantes fonctionnent bien au pouce, je garde ta version.`,
+      },
+    ],
+  ),
+  thread(
+    "side",
+    "drafts",
+    "Changelog 0.4 — cartes flottantes",
+    [
+      {
+        from: ME.side,
+        to: [],
+        hoursAgo: 3,
+        body: `Menu, composeur et recherche partagent maintenant la même marge et les mêmes arrondis. Les listes s'effacent en bas au lieu d'être coupées.`,
+      },
+    ],
+  ),
+  thread(
+    "side",
     "archive",
     "Welcome to Vercel",
     [
@@ -481,6 +1264,19 @@ Julien`,
         to: [ME.side],
         hoursAgo: 800,
         body: `Thanks for signing up! Deploy your first project in seconds.`,
+      },
+    ],
+  ),
+  thread(
+    "side",
+    "trash",
+    "Boostez votre SEO en 7 jours",
+    [
+      {
+        from: c("SEO Growth", "contact@seo-growth-pro.net"),
+        to: [ME.side],
+        hoursAgo: 600,
+        body: `Nos experts placent votre site en première page, garanti.`,
       },
     ],
   ),

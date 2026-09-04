@@ -167,6 +167,18 @@
   }
 }
 
+/* Desktop backdrop: the space gradient seen through smoked glass. Full
+   saturation across a 1280px window shouted where the phone's wash whispers
+   — the phone only tints the top 26%. A near-neutral dark laid over the
+   gradient lowers its lightness and pulls its chroma toward grey at once:
+   the same colours, quieter. The dose is measured, not guessed — see
+   docs/features/theme.md. Actions keep `--space-gradient` untouched. */
+@utility space-backdrop {
+  background-image:
+    linear-gradient(rgb(16 14 24 / 0.42), rgb(16 14 24 / 0.42)),
+    var(--space-gradient);
+}
+
 /* Mobile backdrop: the space colour as a soft wash at the top, not a full gradient. */
 @utility space-wash {
   background:

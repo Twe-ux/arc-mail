@@ -16,6 +16,39 @@ Les espaces ont une icône Lucide sur une tuile dégradée (`SpaceIcon`), pas d'
 barre du bas dessine le même glyphe en trait seul (`SPACE_ICONS`, `SpaceGlyph`), voir
 [Barre du bas](barre-du-bas.md).
 
+## Le fond du bureau (`space-backdrop`)
+
+**Le dégradé plein cadre se regarde à travers un verre fumé** : un aplat neutre très sombre
+(`rgb(16 14 24 / 0.42)`) posé **par-dessus** `--space-gradient`. Le téléphone ne teinte que le haut
+de l'écran, à 26 % ; le bureau, lui, peignait 1280 px à pleine saturation, et ce qui chuchote sur
+un téléphone criait sur un écran. L'aplat baisse la clarté et tire le chroma vers le gris d'un seul
+geste : ce sont les mêmes couleurs, plus calmes.
+
+Mesuré sur les trois espaces, aux quatre coins de la fenêtre (1280×800) :
+
+| | Avant (arrêts bruts) | Après |
+|---|---|---|
+| Clarté | L 0,51 à 0,77 | **L 0,35 à 0,54** |
+| Chroma | C 0,086 à 0,247 | **C 0,056 à 0,166** (−33 %) |
+| Blanc pur dessus | 2,15:1 au pire (Side) | **5,21:1** |
+
+**Ce qui est une action garde le dégradé vif** : bouton composer, envoi, en-tête du composeur
+bureau. Le fond se tait, l'action parle. C'est la même règle que « l'accent se remplit, il ne
+s'écrit pas ».
+
+**La sidebar garde un voile de 16 %** (`bg-black/[0.16]`), pas les 28 % d'avant : sur le fond calmé
+il suffit pour que les trois encres passent AA — mesuré au pire point (Side, haut de fenêtre) :
+
+| Encre | Contraste |
+|---|---|
+| `text` blanc | 6,62:1 |
+| `sub` 85 % | 5,30:1 |
+| `heading` 80 % | 4,90:1 |
+| `faint` 75 % | 4,54:1 |
+
+Sans voile du tout, `faint` tombe à 3,46:1 ; c'est ce voile-là, et pas une opacité plus forte, qui
+garde une hiérarchie à trois niveaux.
+
 ## Le voile de teinte (`space-wash`)
 
 Le voile se pose sur `--wash-base` : `--background` en clair, `--card` en sombre. En sombre la

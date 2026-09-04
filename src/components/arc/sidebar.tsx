@@ -48,12 +48,13 @@ type Tone = "gradient" | "surface";
 /** Desktop sits on the space gradient (white ink); the mobile drawer sits on a frosted surface. */
 const TONES: Record<Tone, Record<string, string>> = {
   gradient: {
-    /* White ink on a gradient whose first stop can be as light as Side's
-       amber (2.15:1 for plain white): the aside carries a scrim, and the
-       secondary inks stay above 70% so they hold up on the scrim too. */
+    /* White ink over the calmed backdrop (see docs/features/theme.md): a
+       16% scrim under the aside brings plain white to 6.62:1 at the worst
+       point (Side, top of the window), and these three opacities are what
+       clears AA from there — measured, not guessed. */
     text: "text-white",
     sub: "text-white/85",
-    faint: "text-white/70",
+    faint: "text-white/75",
     heading: "text-white/80",
     bar: "glass text-white/80 hover:bg-white/20 hover:text-white",
     kbd: "bg-white/15 text-white/70",
@@ -94,7 +95,7 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        "hidden w-[260px] shrink-0 flex-col gap-3 rounded-xl bg-[linear-gradient(to_right,rgb(0_0_0/0.28),rgb(0_0_0/0.10))] px-2 py-2 text-white",
+        "hidden w-[260px] shrink-0 flex-col gap-3 rounded-xl bg-black/[0.16] px-2 py-2 text-white",
         collapsed ? "md:hidden" : "md:flex",
       )}
     >

@@ -384,6 +384,11 @@ reprend comme règles, il ne les réinvente pas.
 
 ## Colors
 
+> **Mise à jour du 4 sept. (après DESIGN.md)** — le dégradé plein cadre du bureau est peint sous un
+> aplat neutre sombre (`space-backdrop`, `rgb(16 14 24 / 0.42)`) : L 0,35–0,54 et chroma −33 %
+> contre les arrêts bruts ci-dessous, qui restent la source. Les actions (bouton composer, envoi)
+> gardent le dégradé vif. Voir `docs/features/theme.md`, qui fait autorité.
+
 Une palette de gris neutres (chroma 0) sur laquelle une seule teinte, celle de l'espace, fait
 tout le travail — en dégradé sur ce qu'on touche, en accent uni sur ce qui signale, en voile sur
 le sol.

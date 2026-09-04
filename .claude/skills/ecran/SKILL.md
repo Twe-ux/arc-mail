@@ -42,10 +42,10 @@ Dans cet ordre :
 1. `Skill(impeccable)` — puis ce qu'il demande lui-même :
    `node .claude/skills/impeccable/scripts/context.mjs --target <fichier>` une fois par session,
    et `reference/craft-floor.md` **juste avant** d'éditer de l'UI. Sur un clone neuf, ses
-   dépendances d'abord : `npm ci --prefix .claude/skills/impeccable`. Arc Mail n'a ni
-   `PRODUCT.md` ni `DESIGN.md` : il prend alors le code existant comme autorité — ce qui est
-   juste — et **les fiches `docs/features/` tiennent lieu de DESIGN.md** ; en cas de conflit
-   entre son goût et une fiche, la fiche gagne.
+   dépendances d'abord : `npm ci --prefix .claude/skills/impeccable`. Arc Mail a un
+   `DESIGN.md` (racine, généré le 4 sept. par `impeccable document` : tokens et règles nommées)
+   que le skill lit de lui-même ; **les fiches `docs/features/` restent l'autorité** — en cas de
+   conflit entre DESIGN.md, son goût et une fiche, la fiche gagne, et on met DESIGN.md à jour.
 2. `Skill(apple-design)` — dès que l'écran a un geste, un mouvement, une feuille, une
    transition, un matériau translucide. Ici c'est presque toujours le cas. `Skill(animate)`
    pour une animation nouvelle, décidée dans l'ordre ; `review-animations` est humain seulement.
@@ -106,8 +106,8 @@ capturer une fois → **arrêter**. Une boucle ouverte d'auto-QA coûte cher et 
 les passes de finition.
 
 Un geste se vérifie autrement : événements tactiles CDP (`Input.dispatchTouchEvent`), voir
-`docs/features/gestes.md` — et l'animation d'entrée d'une carte dure 500 ms, une mesure à
-400 ms donne quelques pixels de décalage qui ressemblent à un bug.
+`docs/features/gestes.md` — et l'animation d'entrée d'une carte dure 400 ms, une mesure prise
+pendant qu'elle joue donne quelques pixels de décalage qui ressemblent à un bug.
 
 ## 6. Le détecteur, une fois, sur l'UI finie
 

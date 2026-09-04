@@ -92,7 +92,8 @@ export function CommandPalette() {
             <button
               type="button"
               onClick={() => setCommandOpen(false)}
-              className="shrink-0 text-[15px] text-[var(--space-accent)]"
+              /* 44px tall to the finger, one line to the eye. */
+              className="-my-2 shrink-0 py-2 pl-2 text-[15px] text-[var(--space-ink)] active:opacity-60"
             >
               Annuler
             </button>

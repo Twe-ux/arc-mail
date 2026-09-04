@@ -27,7 +27,7 @@ function SheetOverlay({ className, ...props }: React.ComponentProps<typeof Sheet
     <SheetPrimitive.Overlay
       data-slot="sheet-overlay"
       className={cn(
-        "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/50 backdrop-blur-[3px] dark:bg-black/65",
+        "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 ease-[cubic-bezier(0.32,0.72,0,1)] data-[state=open]:duration-[400ms] data-[state=closed]:duration-[260ms] fixed inset-0 z-50 bg-black/50 backdrop-blur-[3px] dark:bg-black/65",
         className,
       )}
       {...props}
@@ -51,7 +51,11 @@ function SheetContent({
       <SheetPrimitive.Content
         data-slot="sheet-content"
         className={cn(
-          "bg-background data-[state=open]:animate-in data-[state=closed]:animate-out fixed z-50 flex flex-col gap-4 shadow-lg transition ease-in-out data-[state=closed]:duration-300 data-[state=open]:duration-500",
+          /* One motion for every sheet, and the same one the composer uses:
+             an iOS-like curve that leaves fast and lands soft, 400ms in and
+             260ms out — with the overlay on the same clock, so it never
+             finishes ahead of the card it is there for. */
+          "bg-background data-[state=open]:animate-in data-[state=closed]:animate-out fixed z-50 flex flex-col gap-4 shadow-lg ease-[cubic-bezier(0.32,0.72,0,1)] data-[state=open]:duration-[400ms] data-[state=closed]:duration-[260ms]",
           side === "right" &&
             "data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right inset-y-0 right-0 h-full w-3/4 border-l sm:max-w-sm",
           side === "left" &&

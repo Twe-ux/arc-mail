@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { toast } from "sonner";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { firstLine } from "./format";
@@ -22,10 +23,12 @@ export type MailState = {
   dark: boolean;
   /** Everything loaded so far, every space and folder; selectors slice it. */
   threads: Thread[];
-  /** True until the current space has been read from its provider once. */
-  loading: boolean;
-  /** The last provider failure, for the interface to show; cleared on the next success. */
+  /** Spaces being read for the first time — nothing to show yet. Per space: a switch mid-read must not lie about the other one. */
+  loading: Partial<Record<SpaceId, boolean>>;
+  /** The last failed read of a space, for the list to show with a retry; cleared by the next successful read. */
   error: string | null;
+  /** Why the last send failed, shown in the composer next to « Réessayer »; the message itself is back in `compose`. */
+  sendError: string | null;
   /** Threads opened recently, per space — the "Today" tabs of Arc. */
   recent: RecentMap;
   /** The composer, `null` when closed. Its fields are the live form state. */
@@ -48,7 +51,8 @@ export type MailState = {
   setCommandOpen: (open: boolean) => void;
   setSidebarOpen: (open: boolean) => void;
   toggleDark: () => void;
-  reply: (threadId: string, body: string) => void;
+  /** Resolves `false` when the provider refused: the caller gives the text back. */
+  reply: (threadId: string, body: string) => Promise<boolean>;
 
   openCompose: (initial?: Partial<ComposeDraft>) => void;
   openDraft: (threadId: string) => void;
@@ -66,7 +70,32 @@ const NO_SUBJECT = "(sans objet)";
 const patchThread = (threads: Thread[], id: string, patch: (t: Thread) => Thread) =>
   threads.map((t) => (t.id === id ? patch(t) : t));
 
-const accountOf = (spaceId: SpaceId) => (SPACES.find((sp) => sp.id === spaceId) ?? SPACES[0]).account;
+/** Throws rather than guessing: a write on the wrong real account would be worse than no write. */
+const accountOf = (spaceId: SpaceId) => {
+  const space = SPACES.find((sp) => sp.id === spaceId);
+  if (!space) throw new Error(`Espace inconnu « ${spaceId} »`);
+  return space.account;
+};
+
+/** One thread as it was, put back in place — or back at the top when it had been removed. */
+const restoreThread = (threads: Thread[], before: Thread) =>
+  threads.some((t) => t.id === before.id) ? threads.map((t) => (t.id === before.id ? before : t)) : [before, ...threads];
+
+/** Reads in flight, one counter per space: a response that is not the latest is dropped. */
+const loadTokens = new Map<SpaceId, number>();
+
+/** The people a reply goes to: everyone on the last message but us, or its sender alone. */
+export function replyRecipients(t: Thread): Contact[] {
+  const me = ME[t.spaceId];
+  const last = t.messages[t.messages.length - 1];
+  const seen = new Set<string>();
+  const recipients = [last.from, ...last.to, ...(last.cc ?? [])].filter((c) => {
+    if (c.email === me.email || seen.has(c.email)) return false;
+    seen.add(c.email);
+    return true;
+  });
+  return recipients.length ? recipients : [last.from];
+}
 
 /** Folders a provider is asked for: every real one. Favoris is a view over the flag. */
 const REAL_FOLDERS = FOLDERS.map((f) => f.id).filter((id) => id !== "starred");
@@ -108,12 +137,18 @@ export const useMail = create<MailState>()(
     (set, get) => {
   /**
    * Optimistic writes: the interface has already changed, the provider is
-   * told afterwards, and only a failure puts the previous list back with an
-   * error to show. With the mock nothing fails; with IMAP this is where a
-   * dropped connection lands.
+   * told afterwards, and only a failure puts *that thread* back as it was —
+   * not the whole list, which would undo every write that succeeded in the
+   * meantime (three gestures in two seconds is normal, and IMAP answers in
+   * one or two). The failure is said out loud, in a toast, because the
+   * thread silently returning would read as a glitch. With the mock nothing
+   * fails; with IMAP this is where a dropped connection lands.
    */
-  const commit = (before: Thread[], run: () => Promise<unknown>) =>
-    run().catch((err: unknown) => set({ threads: before, error: describe(err) }));
+  const commit = (before: Thread, run: () => Promise<unknown>, undone: string) =>
+    run().catch((err: unknown) => {
+      set((s) => ({ threads: restoreThread(s.threads, before) }));
+      toast.error(undone, { description: describe(err) });
+    });
 
   return {
   spaceId: SPACES[0].id,
@@ -125,8 +160,9 @@ export const useMail = create<MailState>()(
   sidebarOpen: false,
   dark: false,
   threads: [],
-  loading: true,
+  loading: {},
   error: null,
+  sendError: null,
   recent: { perso: [], pro: [], side: [] },
   compose: null,
   themes: {},
@@ -134,17 +170,29 @@ export const useMail = create<MailState>()(
   loadSpace: async (id) => {
     const spaceId = id ?? get().spaceId;
     const account = accountOf(spaceId);
+    const token = (loadTokens.get(spaceId) ?? 0) + 1;
+    loadTokens.set(spaceId, token);
     /* `loading` only while there is nothing to show: a refresh of a space we
        already have keeps the list on screen and swaps it when the read lands. */
-    if (!get().threads.some((t) => t.spaceId === spaceId)) set({ loading: true });
+    if (!get().threads.some((t) => t.spaceId === spaceId))
+      set((s) => ({ loading: { ...s.loading, [spaceId]: true } }));
+    const done = (patch: Partial<MailState>) =>
+      set((s) => ({ ...patch, loading: { ...s.loading, [spaceId]: false } }));
     try {
       const provider = providerFor(account);
       const perFolder = await Promise.all(
         REAL_FOLDERS.map((folder) => provider.listThreads(account, { folder })),
       );
-      set((s) => ({ threads: replaceSpace(s.threads, spaceId, perFolder.flat()), loading: false, error: null }));
+      /* Two reads of the same space can cross; only the latest one may land. */
+      if (loadTokens.get(spaceId) !== token) return;
+      set((s) => ({
+        threads: replaceSpace(s.threads, spaceId, perFolder.flat()),
+        loading: { ...s.loading, [spaceId]: false },
+        error: null,
+      }));
     } catch (err) {
-      set({ loading: false, error: describe(err) });
+      if (loadTokens.get(spaceId) !== token) return;
+      done({ error: describe(err) });
     }
   },
 
@@ -158,7 +206,7 @@ export const useMail = create<MailState>()(
       return;
     }
     const { spaceId, recent, threads } = get();
-    const list = [id, ...recent[spaceId].filter((r) => r !== id)].slice(0, MAX_RECENT);
+    const list = [id, ...(recent[spaceId] ?? []).filter((r) => r !== id)].slice(0, MAX_RECENT);
     const target = threads.find((t) => t.id === id);
     set((s) => ({
       selectedThreadId: id,
@@ -167,7 +215,7 @@ export const useMail = create<MailState>()(
     }));
     if (target?.unread) {
       const account = accountOf(target.spaceId);
-      commit(threads, () => providerFor(account).modify(account, id, { unread: false }));
+      commit(target, () => providerFor(account).modify(account, id, { unread: false }), "Impossible de marquer comme lu");
     }
   },
 
@@ -177,7 +225,7 @@ export const useMail = create<MailState>()(
     if (!t) return;
     set({ threads: patchThread(before, id, (x) => ({ ...x, starred: !x.starred })) });
     const account = accountOf(t.spaceId);
-    commit(before, () => providerFor(account).modify(account, id, { starred: !t.starred }));
+    commit(t, () => providerFor(account).modify(account, id, { starred: !t.starred }), t.starred ? "Toujours en favori" : "Impossible d'ajouter aux favoris");
   },
 
   toggleUnread: (id) => {
@@ -186,7 +234,7 @@ export const useMail = create<MailState>()(
     if (!t) return;
     set({ threads: patchThread(before, id, (x) => ({ ...x, unread: !x.unread })) });
     const account = accountOf(t.spaceId);
-    commit(before, () => providerFor(account).modify(account, id, { unread: !t.unread }));
+    commit(t, () => providerFor(account).modify(account, id, { unread: !t.unread }), "Impossible de changer l'état de lecture");
   },
 
   moveThread: (id, folder) => {
@@ -198,12 +246,14 @@ export const useMail = create<MailState>()(
       selectedThreadId: s.selectedThreadId === id ? null : s.selectedThreadId,
     }));
     const account = accountOf(t.spaceId);
-    commit(before, () => providerFor(account).modify(account, id, { folder }));
+    const undone = { archive: "Archivage impossible, la conversation est de retour", trash: "Suppression impossible, la conversation est de retour" }[folder as string]
+      ?? "Déplacement impossible, la conversation est de retour";
+    commit(t, () => providerFor(account).modify(account, id, { folder }), undone);
   },
 
   removeRecent: (id) =>
     set((s) => ({
-      recent: { ...s.recent, [s.spaceId]: s.recent[s.spaceId].filter((r) => r !== id) },
+      recent: { ...s.recent, [s.spaceId]: (s.recent[s.spaceId] ?? []).filter((r) => r !== id) },
     })),
 
   clearRecent: () => set((s) => ({ recent: { ...s.recent, [s.spaceId]: [] } })),
@@ -214,14 +264,12 @@ export const useMail = create<MailState>()(
   setSidebarOpen: (sidebarOpen) => set({ sidebarOpen }),
   toggleDark: () => set((s) => ({ dark: !s.dark })),
 
-  reply: (threadId, body) => {
+  reply: async (threadId, body) => {
     const before = get().threads;
     const t = before.find((x) => x.id === threadId);
-    if (!t) return;
+    if (!t) return false;
     const me = ME[t.spaceId];
-    const last = t.messages[t.messages.length - 1];
-    const recipients = [last.from, ...last.to].filter((c) => c.email !== me.email);
-    const to = recipients.length ? recipients : [last.from];
+    const to = replyRecipients(t);
     set({
       threads: patchThread(before, threadId, (x) => ({
         ...x,
@@ -230,12 +278,19 @@ export const useMail = create<MailState>()(
       })),
     });
     const account = accountOf(t.spaceId);
-    commit(before, async () => {
+    try {
       const sent = await providerFor(account).send(account, {
         spaceId: t.spaceId, from: me, to, subject: t.subject, body, replyTo: threadId,
       });
       set((s) => ({ threads: patchThread(s.threads, threadId, () => sent) }));
-    });
+      return true;
+    } catch (err) {
+      /* The thread goes back to what it was; the text goes back to the box
+         (the caller keeps it), so nothing typed is lost. */
+      set((s) => ({ threads: restoreThread(s.threads, t) }));
+      toast.error("L'envoi de la réponse a échoué, votre texte est conservé", { description: describe(err) });
+      return false;
+    }
   },
 
   // ───────────── Composer ─────────────
@@ -279,16 +334,17 @@ export const useMail = create<MailState>()(
     const account = accountOf(d.spaceId);
     const provider = providerFor(account);
     if (isBlank(d)) {
-      set({ compose: null, threads: d.draftId ? before.filter((t) => t.id !== d.draftId) : before });
-      if (d.draftId) commit(before, () => provider.deleteDraft(account, d.draftId!));
+      const draft = d.draftId ? before.find((t) => t.id === d.draftId) : undefined;
+      set({ compose: null, sendError: null, threads: draft ? before.filter((t) => t.id !== draft.id) : before });
+      if (draft) commit(draft, () => provider.deleteDraft(account, draft.id), "Impossible de supprimer le brouillon");
       return;
     }
     /* The composer closes now; the draft appears when the provider hands it
        back, which with the mock is the same tick and with IMAP a moment later. */
-    set({ compose: null });
+    set({ compose: null, sendError: null });
     const book = contactBook(before);
-    commit(before, async () => {
-      const saved = await provider.saveDraft(account, {
+    provider
+      .saveDraft(account, {
         id: d.draftId,
         spaceId: d.spaceId,
         from: ME[d.spaceId],
@@ -297,13 +353,19 @@ export const useMail = create<MailState>()(
         bcc: d.bcc.length ? toContacts(d.bcc, book) : undefined,
         subject: d.subject,
         body: d.body,
+      })
+      .then((saved) =>
+        set((s) => ({
+          threads: d.draftId ? patchThread(s.threads, d.draftId, () => saved) : [saved, ...s.threads],
+        })),
+      )
+      .catch((err: unknown) => {
+        /* Nothing on screen to put back: the composer is closed and the old
+           draft, if any, is still in the list. The text is not lost either —
+           the composer reopens with it, which is the one honest outcome. */
+        set({ compose: d });
+        toast.error("Impossible d'enregistrer le brouillon, il est de retour dans le composeur", { description: describe(err) });
       });
-      set((s) => ({
-        threads: d.draftId
-          ? patchThread(s.threads, d.draftId, () => saved)
-          : [saved, ...s.threads],
-      }));
-    });
   },
 
   sendMail: () => {
@@ -313,7 +375,8 @@ export const useMail = create<MailState>()(
     const account = accountOf(d.spaceId);
     const provider = providerFor(account);
     const book = contactBook(before);
-    set({ compose: null, threads: d.draftId ? before.filter((t) => t.id !== d.draftId) : before });
+    const draft = d.draftId ? before.find((t) => t.id === d.draftId) : undefined;
+    set({ compose: null, sendError: null, threads: draft ? before.filter((t) => t.id !== draft.id) : before });
     provider
       .send(account, {
         spaceId: d.spaceId,
@@ -324,14 +387,24 @@ export const useMail = create<MailState>()(
         subject: d.subject,
         body: d.body,
       })
-      .then((sent) => {
-        set((s) => ({ threads: [sent, ...s.threads], error: null }));
-        if (d.draftId) return provider.deleteDraft(account, d.draftId);
-      })
-      .catch((err: unknown) => {
-        /* Nothing written is lost: the message comes back in the composer. */
-        set({ threads: before, compose: d, error: describe(err) });
-      });
+      .then(
+        (sent) => {
+          set((s) => ({ threads: [sent, ...s.threads] }));
+          /* The send is final from here: a draft that will not delete is a
+             leftover to warn about, never a reason to reopen the composer —
+             that would be the second send waiting to happen. */
+          if (draft)
+            provider.deleteDraft(account, draft.id).catch((err: unknown) => {
+              set((s) => ({ threads: restoreThread(s.threads, draft) }));
+              toast.error("Envoyé, mais le brouillon n'a pas pu être supprimé", { description: describe(err) });
+            });
+        },
+        (err: unknown) => {
+          /* Nothing written is lost: the message comes back in the composer,
+             with the reason, and the draft it came from is back in its folder. */
+          set((s) => ({ threads: draft ? restoreThread(s.threads, draft) : s.threads, compose: d, sendError: describe(err) }));
+        },
+      );
   },
 
   deleteDraft: (threadId) => {
@@ -344,7 +417,7 @@ export const useMail = create<MailState>()(
       selectedThreadId: s.selectedThreadId === threadId ? null : s.selectedThreadId,
     }));
     const account = accountOf(t.spaceId);
-    commit(before, () => providerFor(account).deleteDraft(account, threadId));
+    commit(t, () => providerFor(account).deleteDraft(account, threadId), "Impossible de supprimer le brouillon, il est de retour");
   },
 
   setSpaceHue: (id, hue) =>
@@ -358,6 +431,12 @@ export const useMail = create<MailState>()(
     },
     {
       name: "arc-mail",
+      /* Bumped with every change to what is persisted, so an old shape is
+         migrated rather than read as is. Version 1 changed nothing in the
+         shape: the migration only keeps what an earlier install saved, which
+         zustand would otherwise drop with a console error. */
+      version: 1,
+      migrate: (persisted) => persisted as Pick<MailState, "themes" | "dark" | "splitView" | "recent">,
       /* Only what should survive a reload: the mail itself is mock and reloads
          fresh; the composer is transient. */
       partialize: (s) => ({ themes: s.themes, dark: s.dark, splitView: s.splitView, recent: s.recent }),
@@ -383,8 +462,8 @@ export function sortByDate(threads: Thread[]): Thread[] {
   return [...threads].sort((a, b) => lastMessageDate(b).localeCompare(lastMessageDate(a)));
 }
 
-export const selectSpace = (s: MailState) =>
-  resolveSpace(SPACES.find((sp) => sp.id === s.spaceId) ?? SPACES[0], s.themes[s.spaceId]);
+/** True while the current space is being read for the first time — nothing to show yet. */
+export const selectLoading = (s: MailState) => s.loading[s.spaceId] === true;
 
 /** Every space with the colour the user gave it; memoised on the overrides. */
 export function useSpaces(): Space[] {

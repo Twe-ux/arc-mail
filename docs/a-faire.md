@@ -20,6 +20,25 @@ Voir [Fournisseurs de mail](roadmap/fournisseurs-mail.md) pour le plan complet e
 - [ ] `listFolders` pour les compteurs de non-lus sans tout lire ; cache avec péremption pour ne
       pas relire un espace à chaque retour
 
+## Reste de l'état des lieux du 4 septembre
+
+Voir la [synthèse](audits/2026-09-04/README.md) pour le détail et les arbitrages.
+
+- [ ] Le fournisseur ne doit connaître que `account` + `mailbox` ; le store tamponne `spaceId`,
+      `OutgoingMessage` porte `identity` — à faire avec les espaces-vues (étape 5)
+- [ ] `getThread` pour hydrater à la demande ; `loadSpace` lit la réception d'abord (étape 4)
+- [ ] `SpaceId = string` quand les espaces viendront de la base (étape 5)
+- [ ] `modify(): Promise<Thread>` (un déplacement IMAP change l'id) ; `Message` avec
+      `messageId`/`inReplyTo`/`references`, `html`, `attachments` (étape 4)
+- [ ] Tests : contrat `MailProvider`, écritures optimistes, `loadSpace`, seuils de geste, e2e cartes
+- [ ] Un seul `createTouchDrag` pour les trois hooks de geste ; `compose-dialog` en quatre fichiers
+- [ ] Icônes de dossiers dans `src/lib/folders.ts` ; `replyDraft` dans le store
+- [ ] Focus visible (l'anneau `outline-ring/50` fait 1,44:1) ; `--muted-foreground` sur `bg-muted`
+- [ ] Squelette de chargement, états vides par dossier, toasts « Annuler » sur archivage
+- [ ] Répondre / Répondre à tous comme deux actions (aujourd'hui : à tous, le champ le dit)
+- [ ] Regroupement par dates dans la liste (Aujourd'hui / Hier / Cette semaine) — à décider
+- [ ] `@property --space-accent` pour que le changement d'espace s'interpole vraiment
+
 ## Interface
 
 - [ ] Créer, renommer un espace ; choisir son icône (la couleur se choisit déjà)

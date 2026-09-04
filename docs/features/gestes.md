@@ -32,6 +32,16 @@ sortie (`animation: none`), sans quoi une animation par images clés écraserait
 `FLICK_VELOCITY` (550). La projection de vitesse seule fermait sur un petit coup bref qu'on voulait
 juste secouer. Même logique côté retour avec `COMMIT_RATIO`.
 
+**Une remontée vive annule** (`RETURN_VELOCITY`, −250 px/s) : tirer 150 px puis rejeter la carte
+vers le haut est un changement d'avis, pas une fermeture. Sans ce seuil la distance gagnait, le
+lancer partait avec une vitesse négative, la carte remontait puis redescendait se fermer contre
+le doigt qui venait de la refuser (audit mouvement du 4 sept., 🔴 3).
+
+**« Réduire les animations »** : les ressorts passent sur un ressort critique très court
+(`SPRING_REDUCED`, 900/60, ~120 ms) plutôt qu'un saut sec — un retour instantané depuis 100 px
+se lit comme un bug. Les entrées CSS des cartes perdent leur trajet et leur zoom, gardent un
+fondu de 150 ms (bloc `@media (prefers-reduced-motion)` de `globals.css`, hors `@layer`).
+
 **Un ressort qui reste ouvert ne rend jamais la main sur `animation`.** La remettre à `""` une
 fois le ressort terminé relance le mot-clé d'entrée de la primitive puisque l'élément est encore à
 `data-state="open"` — mesuré : l'opacité retombe à 0 et remonte, ce qui se voit comme une

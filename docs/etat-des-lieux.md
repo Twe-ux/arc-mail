@@ -33,6 +33,13 @@ partagée, onglets « Aujourd'hui ». Les mails repartent de zéro à chaque cha
 **Déploiement** : Vercel, branches `preview` et `main` tenues en fast-forward. Service worker en
 production seulement (`public/sw.js`, `VERSION` = `arc-mail-v4`).
 
+## État des lieux du 4 septembre (avant l'étape 2)
+
+Quatre audits en parallèle — code, UX, mouvement, et `DESIGN.md` généré — puis une passe de
+correctifs : les 🔴 des trois rapports qui tenaient dans les fiches sont corrigés, le reste est
+listé avec ses arbitrages dans [la synthèse](audits/2026-09-04/README.md). Ce qui reste ouvert
+est dans [À faire](a-faire.md).
+
 ## Ce qui n'existe pas encore
 
 - Aucun fournisseur réel : ni lecture, ni envoi. L'interface `MailProvider` existe

@@ -47,10 +47,13 @@ type Tone = "gradient" | "surface";
 /** Desktop sits on the space gradient (white ink); the mobile drawer sits on a frosted surface. */
 const TONES: Record<Tone, Record<string, string>> = {
   gradient: {
+    /* White ink on a gradient whose first stop can be as light as Side's
+       amber (2.15:1 for plain white): the aside carries a scrim, and the
+       secondary inks stay above 70% so they hold up on the scrim too. */
     text: "text-white",
-    sub: "text-white/60",
-    faint: "text-white/40",
-    heading: "text-white/50",
+    sub: "text-white/85",
+    faint: "text-white/70",
+    heading: "text-white/80",
     bar: "glass text-white/80 hover:bg-white/20 hover:text-white",
     kbd: "bg-white/15 text-white/70",
     tile: "bg-white/5 text-white/70 hover:bg-white/15 hover:text-white",
@@ -85,12 +88,12 @@ const TONES: Record<Tone, Record<string, string>> = {
 /** Desktop sidebar, inline on the space gradient. */
 export function Sidebar() {
   return (
-    <aside className="hidden w-[260px] shrink-0 flex-col gap-3 px-2 py-2 text-white md:flex">
+    <aside className="hidden w-[260px] shrink-0 flex-col gap-3 rounded-xl bg-[linear-gradient(to_right,rgb(0_0_0/0.28),rgb(0_0_0/0.10))] px-2 py-2 text-white md:flex">
       {/* Window controls placeholder, keeps the Arc proportions. */}
       <div className="flex items-center gap-1.5 px-2 pt-1" aria-hidden>
-        <span className="size-3 rounded-full bg-white/30" />
-        <span className="size-3 rounded-full bg-white/30" />
-        <span className="size-3 rounded-full bg-white/30" />
+        <span className="size-3 rounded-full bg-white/20" />
+        <span className="size-3 rounded-full bg-white/20" />
+        <span className="size-3 rounded-full bg-white/20" />
       </div>
       <SidebarContent />
     </aside>

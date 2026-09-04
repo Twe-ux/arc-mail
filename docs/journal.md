@@ -52,3 +52,6 @@ Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérificatio
 | `5d7723c` | Thème posé avant la première peinture (plus d'éclair blanc) ; l'icône tourne |
 | `fd584d9` | Bibliothèque `docs/`, `CLAUDE.md` réduit à l'index, plan fournisseurs de mail |
 | — | `MailProvider` : le mock derrière l'interface, store asynchrone à écritures optimistes |
+| `04273d0` | Tri des skills : 13 gardés sur 33, `/ecran` porté de Kairos, `npm run capture` |
+| `6e896f6` | État des lieux : quatre audits en parallèle (code, UX, mouvement, DESIGN.md) |
+| — | Correctifs de l'état des lieux : retour arrière par fil, chargement par espace, pannes visibles (bandeau, toasts, composeur), `--space-ink`, reduced-motion, appui sur les boutons, `RETURN_VELOCITY`, une recette d'entrée pour les cartes, ARIA des rangées et de l'interrupteur, cibles 44 px — [synthèse](audits/2026-09-04/README.md) |

@@ -1,13 +1,13 @@
 "use client";
 
-import { Columns2, Inbox, RefreshCw, Star } from "lucide-react";
+import { CloudOff, Columns2, Inbox, RefreshCw, Star } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { usePullToRefresh } from "@/hooks/use-pull-to-refresh";
 import { formatShortDate } from "@/lib/format";
-import { selectFolder, useMail, useSpace, useVisibleThreads } from "@/lib/store";
+import { selectFolder, selectLoading, useMail, useSpace, useVisibleThreads } from "@/lib/store";
 import type { Thread } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { ContactAvatar } from "./contact-avatar";
@@ -25,7 +25,9 @@ export function ThreadList({ className }: { className?: string }) {
   const unreadOnly = useMail((s) => s.unreadOnly);
   const splitView = useMail((s) => s.splitView);
   const toggleSplit = useMail((s) => s.toggleSplit);
-  const loading = useMail((s) => s.loading);
+  const loading = useMail(selectLoading);
+  const error = useMail((s) => s.error);
+  const loadSpace = useMail((s) => s.loadSpace);
 
   const unread = threads.filter((t) => t.unread).length;
   const plural = (n: number, word: string) => `${n} ${word}${n > 1 ? "s" : ""}`;
@@ -77,6 +79,23 @@ export function ThreadList({ className }: { className?: string }) {
         </div>
       </header>
 
+      {/* A failed read says so where the list is, with the one thing to do
+          about it; the store clears it on the next read that lands. */}
+      {error && (
+        <div
+          role="status"
+          aria-live="polite"
+          title={error}
+          className="mx-2 mb-2 flex shrink-0 items-center gap-2 rounded-xl bg-destructive/10 py-2 pr-1 pl-3 text-[13px] text-destructive md:mx-3 md:mt-2"
+        >
+          <CloudOff className="size-4 shrink-0" />
+          <span className="min-w-0 flex-1 truncate">Impossible de joindre {space.email}.</span>
+          <Button variant="ghost" size="sm" onClick={() => void loadSpace()} className="h-8 text-destructive hover:text-destructive">
+            Réessayer
+          </Button>
+        </div>
+      )}
+
       {/* The list: a floating card on mobile, plain column on desktop.
           The card is what the pull-to-refresh gesture moves, so it sits in a
           box of its own with the indicator behind it — the card's own opaque
@@ -95,7 +114,7 @@ export function ThreadList({ className }: { className?: string }) {
                  wins. So zero the variable the angle is computed from, on this
                  element: its own declaration beats the one inherited from the
                  indicator, and `calc()` lands on 0deg. */
-              className="size-4 text-muted-foreground transition-colors group-data-[armed=true]/pull:text-[var(--space-accent)] group-data-[refreshing]/pull:animate-spin group-data-[refreshing]/pull:text-[var(--space-accent)] group-data-[refreshing]/pull:[--pull-progress:0]"
+              className="size-4 text-muted-foreground transition-colors group-data-[armed=true]/pull:text-[var(--space-ink)] group-data-[refreshing]/pull:animate-spin group-data-[refreshing]/pull:text-[var(--space-ink)] group-data-[refreshing]/pull:[--pull-progress:0]"
               /* Turned by the pull itself rather than by a render per frame:
                  the hook only publishes how far along the gesture is. */
               style={{
@@ -145,8 +164,10 @@ function Segmented({ tone }: { tone: "glass" | "muted" }) {
   const unreadOnly = useMail((s) => s.unreadOnly);
   const setUnreadOnly = useMail((s) => s.setUnreadOnly);
   return (
+    /* A choice between two views of the same list, not two tabs with panels
+       of their own: a radio group is what a screen reader should announce. */
     <div
-      role="tablist"
+      role="radiogroup"
       aria-label="Filtre"
       className={cn("flex shrink-0 rounded-full p-0.5 text-xs", tone === "glass" ? "bg-foreground/[0.06]" : "bg-muted")}
     >
@@ -174,11 +195,13 @@ function Tab({
   return (
     <button
       type="button"
-      role="tab"
-      aria-selected={active}
+      role="radio"
+      aria-checked={active}
       onClick={onClick}
       className={cn(
-        "rounded-full px-3 py-1 font-medium transition-colors",
+        /* 32px tall on the phone (the rail makes 36, the title line gives the rest to the finger); compact on desktop. */
+        "rounded-full px-3 font-medium transition-colors",
+        tone === "glass" ? "min-h-8 py-1" : "py-1",
         tone === "glass"
           ? active
             ? "bg-card text-foreground shadow-sm ring-1 ring-black/[0.04] dark:ring-white/[0.08]"
@@ -216,20 +239,16 @@ function ThreadRow({
     : last.from.name;
 
   return (
-    <li className="md:border-0">
-      <div
-        role="button"
-        tabIndex={0}
+    /* A real button for the row and the star as its *sibling*: a control
+       inside a control is what every screen reader trips on. The star sits
+       over the row's right edge, in the room the row leaves it. */
+    <li className="group relative md:border-0">
+      <button
+        type="button"
         aria-current={active ? "true" : undefined}
         onClick={onSelect}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            onSelect();
-          }
-        }}
         className={cn(
-          "group flex w-full cursor-pointer items-start gap-3 px-4 py-3 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring/50 md:rounded-lg md:px-3 md:py-2.5",
+          "flex w-full cursor-pointer items-start gap-3 px-4 py-3 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring/50 md:rounded-lg md:px-3 md:py-2.5 md:pr-10",
           active ? "bg-accent" : "active:bg-accent/60 md:hover:bg-accent/60",
         )}
       >
@@ -237,7 +256,9 @@ function ThreadRow({
         <div className="min-w-0 flex-1 border-b border-black/[0.06] pb-3 md:border-0 md:pb-0 dark:border-white/[0.10]">
           <div className="flex items-center gap-2">
             {thread.unread && (
-              <span className="size-2 shrink-0 rounded-full" style={{ backgroundColor: accent }} aria-label="Non lu" />
+              <span className="size-2 shrink-0 rounded-full" style={{ backgroundColor: accent }}>
+                <span className="sr-only">Non lu</span>
+              </span>
             )}
             <span className={cn("truncate text-[15px] md:text-sm", thread.unread ? "font-semibold" : "font-medium")}>
               {who}
@@ -270,24 +291,21 @@ function ThreadRow({
             ))}
           </div>
         </div>
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            onStar();
-          }}
-          aria-label={thread.starred ? "Retirer des favoris" : "Ajouter aux favoris"}
-          aria-pressed={thread.starred}
-          className={cn(
-            "mt-0.5 hidden shrink-0 rounded p-1 transition-opacity hover:bg-background md:block",
-            thread.starred
-              ? "text-amber-400"
-              : "text-muted-foreground opacity-0 group-hover:opacity-100 focus-visible:opacity-100",
-          )}
-        >
-          <Star className={cn("size-4", thread.starred && "fill-current")} />
-        </button>
-      </div>
+      </button>
+      <button
+        type="button"
+        onClick={onStar}
+        aria-label={thread.starred ? "Retirer des favoris" : "Ajouter aux favoris"}
+        aria-pressed={thread.starred}
+        className={cn(
+          "absolute top-3 right-3 hidden rounded p-1 transition-opacity hover:bg-background md:block",
+          thread.starred
+            ? "text-amber-400"
+            : "text-muted-foreground opacity-0 group-hover:opacity-100 focus-visible:opacity-100",
+        )}
+      >
+        <Star className={cn("size-4", thread.starred && "fill-current")} />
+      </button>
     </li>
   );
 }

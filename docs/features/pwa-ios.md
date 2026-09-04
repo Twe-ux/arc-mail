@@ -70,6 +70,6 @@ Ce que le script encode, à respecter dans tout script ponctuel : contexte 393×
 en CDP (haut 59, bas 34) sans quoi `env(safe-area-inset-*)` vaut 0 et rien n'est représentatif.
 Le préréglage « iPhone 13 » de Playwright rapporte parfois 664 px de haut : lire
 `viewportSize()`, ne pas supposer. Attendre au moins 1 s après l'ouverture d'une carte — son
-animation d'entrée dure 500 ms et une mesure à 400 ms donne un décalage de quelques pixels qui
-ressemble à un bug. Un geste se vérifie en CDP (`Input.dispatchTouchEvent`), voir
+animation d'entrée dure 400 ms (500 avant le 4 sept.) et une mesure prise pendant qu'elle joue
+donne un décalage de quelques pixels qui ressemble à un bug. Un geste se vérifie en CDP (`Input.dispatchTouchEvent`), voir
 [Gestes](gestes.md).

@@ -52,6 +52,22 @@ dépasse (la bande du bas) il vire à la bande claire. Il est en `bg-transparent
 
 **Un groupe blanc a besoin d'un vrai bord** (`Group` du menu) : voir [Thème](theme.md).
 
+## Mouvement
+
+**Une seule recette d'entrée pour les trois cartes** (audit mouvement du 4 sept., 🔴 4) : courbe
+`cubic-bezier(0.32, 0.72, 0, 1)`, 400 ms à l'ouverture, 260 ms à la fermeture, le voile sur la même
+horloge. Le menu et le composeur sont tous deux des `SheetContent side="bottom"` — même primitive,
+même mouvement, sans compter sur `tailwind-merge` qui ne connaît pas `zoom-in-*` (le composeur
+en `DialogContent` cumulait glissement + zoom + fondu). La recherche seule entre en fondu-zoom
+(`zoom-in-[0.97]`, 180 ms, `cubic-bezier(0.23, 1, 0.32, 1)`) : elle se pose au-dessus, elle ne
+monte pas du bas. Avant : menu 500 ms `ease-in-out`, composeur 200 ms, voile 150 ms — le voile
+finissait 350 ms avant le menu.
+
+**Le retour est sur l'appui.** `Button` porte `active:scale-[0.97] active:duration-0` et le fantôme
+`active:bg-accent` : Tailwind v4 enveloppe `hover:` dans `@media (hover: hover)`, donc un bouton
+qui n'a que des styles `hover:` est mort au doigt, et `-webkit-tap-highlight-color: transparent`
+avait retiré le dernier filet. `transition-all` a cédé la place à une liste explicite.
+
 ## Fermeture
 
 Menu et composeur ont trois façons explicites de se fermer (bouton, croix, geste) ;

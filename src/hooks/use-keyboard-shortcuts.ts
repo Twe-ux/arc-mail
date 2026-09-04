@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
-import { SPACES } from "@/lib/mock-data";
-import { selectVisibleThreads, useMail } from "@/lib/store";
+import { useEffect, useRef } from "react";
+import { selectVisibleThreads, useMail, useSpaces } from "@/lib/store";
 
 function isTyping(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false;
@@ -16,6 +15,14 @@ function isTyping(target: EventTarget | null): boolean {
  *  j/k  next / previous thread · e  archive · s  star · #  delete · u  unread · Esc  close
  */
 export function useKeyboardShortcuts() {
+  /* Read through the store like every other component (fiche thème), kept in
+     a ref so the listener is installed once. */
+  const spaces = useSpaces();
+  const spacesRef = useRef(spaces);
+  useEffect(() => {
+    spacesRef.current = spaces;
+  }, [spaces]);
+
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       const s = useMail.getState();
@@ -37,7 +44,7 @@ export function useKeyboardShortcuts() {
         return;
       }
       if (mod && /^[1-9]$/.test(e.key)) {
-        const space = SPACES[Number(e.key) - 1];
+        const space = spacesRef.current[Number(e.key) - 1];
         if (space) {
           e.preventDefault();
           s.setSpace(space.id);

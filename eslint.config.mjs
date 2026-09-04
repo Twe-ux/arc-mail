@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Not ours to lint: the skills' own scripts and the capture output.
+    ".claude/**",
+    "captures/**",
   ]),
 ]);
 

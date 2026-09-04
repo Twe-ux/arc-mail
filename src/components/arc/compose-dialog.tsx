@@ -18,13 +18,13 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Kbd } from "@/components/ui/kbd";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import {
   Tooltip,
   TooltipContent,
@@ -39,7 +39,7 @@ import { RecipientField } from "./recipient-field";
 import { SpaceIcon } from "./space-icon";
 
 /**
- * Two chromes around one form. On phones a card that floats clear of the edges: Annuler,
+ * Two chromes around one form. On phones a card that floats clear of the edges: Fermer,
  * a round send button, rows that fold Cc/Cci/De away. On desktop a Gmail-style
  * floating window pinned bottom-right, non-modal so the mailbox stays usable,
  * with minimise and expand. The form state lives in the store so closing by
@@ -60,20 +60,24 @@ export function ComposeDialog() {
 function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
   const closeCompose = useMail((s) => s.closeCompose);
   const sendMail = useMail((s) => s.sendMail);
+  const sendError = useMail((s) => s.sendError);
   const canSend = (draft?.to.length ?? 0) > 0;
   const sheetRef = useSheetDismiss(closeCompose);
 
   return (
-    <Dialog
+    <Sheet
       open={draft !== null}
       onOpenChange={(open) => {
         if (!open) closeCompose();
       }}
     >
-      <DialogContent
+      {/* The same primitive as the menu, so the same motion: one card that
+          rises from the bottom, not a dialog that also zooms and fades. */}
+      <SheetContent
         ref={sheetRef}
+        side="bottom"
         showCloseButton={false}
-        /* This sheet already has three explicit ways to close: Annuler, the
+        /* This sheet already has three explicit ways to close: Fermer, the
            swipe-down gesture, sending. Radix's own default — a pointerdown
            outside the content also closes it — is one more, undeclared one,
            and it fires from a raw `pointerdown` before our gesture code ever
@@ -95,35 +99,40 @@ function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
            obstruction (the notch) rather than a margin. Deriving the bottom
            from the safe area put it at 34px against 8px on the sides — the
            card read as floating instead of resting. */
-        className="inset-x-2 top-[calc(var(--safe-top)+0.5rem)] bottom-2 flex h-auto w-auto max-w-none translate-x-0 translate-y-0 flex-col gap-0 rounded-[36px] border-0 p-0 shadow-2xl transition-none dark:bg-[#26262a] dark:ring-1 dark:ring-white/12 data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom"
+        className="inset-x-2 top-[calc(var(--safe-top)+0.5rem)] bottom-2 flex h-auto w-auto max-w-none flex-col gap-0 rounded-[36px] border-0 p-0 shadow-2xl transition-none dark:bg-[#26262a] dark:ring-1 dark:ring-white/12"
       >
         <header className="flex h-14 shrink-0 items-center px-3">
+          {/* « Fermer », not « Annuler »: closing keeps the text as a draft,
+              and in French as on iOS « Annuler » promises to throw it away.
+              The desktop window already said so; the two now agree. */}
           <Button
             variant="ghost"
             size="sm"
             onClick={closeCompose}
-            className="text-[15px] font-normal"
+            className="h-9 text-[15px] font-normal"
           >
-            Annuler
+            Fermer
           </Button>
           <div className="min-w-0 flex-1 text-center">
-            <DialogTitle className="truncate text-[15px] font-semibold">
+            <SheetTitle className="truncate text-[15px] font-semibold">
               {draft?.draftId ? "Brouillon" : "Nouveau message"}
-            </DialogTitle>
-            <DialogDescription className="sr-only">
+            </SheetTitle>
+            <SheetDescription className="sr-only">
               Rédiger un e-mail
-            </DialogDescription>
+            </SheetDescription>
           </div>
           <button
             type="button"
             onClick={sendMail}
             disabled={!canSend}
-            aria-label="Envoyer"
-            className="mr-1 flex size-9 items-center justify-center rounded-full text-white shadow-md transition-[opacity,transform] active:scale-95 disabled:opacity-35 disabled:shadow-none [background:var(--space-gradient)]"
+            aria-label={sendError ? "Réessayer l'envoi" : "Envoyer"}
+            /* 36px drawn, 44px to the finger. */
+            className="relative mr-1 flex size-9 items-center justify-center rounded-full text-white shadow-md transition-[opacity,transform] ease-out after:absolute after:-inset-1 active:scale-95 active:duration-0 disabled:opacity-35 disabled:shadow-none [background:var(--space-gradient)]"
           >
             <ArrowUp className="size-5" strokeWidth={2.5} />
           </button>
         </header>
+        {sendError && <SendFailed detail={sendError} />}
         {draft && (
           <ComposeFields key={draft.draftId ?? "new"} draft={draft} compact />
         )}
@@ -133,8 +142,24 @@ function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
              card the keyboard has already made short. */
           className="border-t border-black/[0.07] dark:border-white/[0.12] [.keyboard-open_&]:hidden"
         />
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+/**
+ * Said where the message is, not in a toast that would vanish: the text is
+ * back in the fields above, the send button is now « Réessayer ».
+ */
+function SendFailed({ detail }: { detail: string }) {
+  return (
+    <p
+      role="alert"
+      title={detail}
+      className="mx-4 mb-1 shrink-0 rounded-lg bg-destructive/10 px-3 py-2 text-[13px] text-destructive"
+    >
+      L&apos;envoi a échoué, rien n&apos;est perdu. Réessayez avec la flèche.
+    </p>
   );
 }
 
@@ -143,6 +168,7 @@ function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
 function ComposePanel({ draft }: { draft: ComposeDraft }) {
   const closeCompose = useMail((s) => s.closeCompose);
   const sendMail = useMail((s) => s.sendMail);
+  const sendError = useMail((s) => s.sendError);
   const deleteDraft = useMail((s) => s.deleteDraft);
   const [mode, setMode] = useState<"docked" | "minimized" | "expanded">(
     "docked",
@@ -207,15 +233,16 @@ function ComposePanel({ draft }: { draft: ComposeDraft }) {
       {mode !== "minimized" && (
         <>
           <ComposeFields draft={draft} />
+          {sendError && <SendFailed detail={sendError} />}
           <footer className="flex shrink-0 items-center gap-1 border-t border-black/[0.07] dark:border-white/[0.12] px-3 py-2.5">
             <button
               type="button"
               onClick={sendMail}
               disabled={!canSend}
-              className="flex h-9 items-center gap-2 rounded-full pr-2 pl-4 text-sm font-semibold text-white shadow-md transition-[filter,transform] hover:brightness-110 active:scale-[0.98] disabled:opacity-40 disabled:shadow-none disabled:hover:brightness-100 [background:var(--space-gradient)]"
+              className="flex h-9 items-center gap-2 rounded-full pr-2 pl-4 text-sm font-semibold text-white shadow-md transition-[filter,transform] ease-out hover:brightness-110 active:scale-[0.98] active:duration-0 disabled:opacity-40 disabled:shadow-none disabled:hover:brightness-100 [background:var(--space-gradient)]"
             >
               <Send className="size-4" />
-              Envoyer
+              {sendError ? "Réessayer" : "Envoyer"}
               <Kbd className="bg-white/20 text-white/90">⌘⏎</Kbd>
             </button>
             <Toolbar

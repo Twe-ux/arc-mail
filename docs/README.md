@@ -20,6 +20,13 @@ l'état du projet et ce qui reste à faire.
 - [Recherche ⌘K](features/recherche.md) — la barre de commande
 - [Données mock](features/donnees-mock.md) — le jeu de données et ses règles
 
+## Audits
+
+- [4 septembre 2026](audits/2026-09-04/README.md) — état des lieux avant l'étape 2 : synthèse,
+  ce qui a été corrigé, les arbitrages ouverts ; rapports bruts [code](audits/2026-09-04/code.md),
+  [UX](audits/2026-09-04/ux.md), [mouvement](audits/2026-09-04/mouvement.md). `DESIGN.md` à la
+  racine en est le quatrième livrable.
+
 ## Feuille de route
 
 - [Fournisseurs de mail](roadmap/fournisseurs-mail.md) — `MailProvider`, iCloud (IMAP + mot de

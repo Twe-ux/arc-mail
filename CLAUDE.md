@@ -31,6 +31,12 @@ d'Arc (espaces colorés, sidebar translucide, favoris épinglés, onglets « Auj
   `providerFor(space.account)`, écritures optimistes, `loadSpace` à chaque changement d'espace.
   Seul le mock l'implémente pour l'instant → [plan](docs/roadmap/fournisseurs-mail.md).
 - Données mock dans `src/lib/mock-data.ts` → [fiche](docs/features/donnees-mock.md).
+- `DESIGN.md` (racine) : tokens, formes, composants et règles nommées, généré par `impeccable
+  document` le 4 sept. ; les fiches gardent l'autorité, DESIGN.md suit.
+- Les pannes se voient : lecture ratée → bandeau dans la liste avec « Réessayer » ; écriture
+  optimiste ratée → le fil seul revient + toast Sonner ; envoi raté → le message revient dans le
+  composeur avec la raison. `commit(thread, run, message)` dans le store, jamais un retour arrière
+  de toute la liste.
 - Textes de l'interface en français. Commits conventionnels (`feat:`, `fix:`, `docs:`, `chore:`),
   message qui raconte la cause et la vérification.
 - Branches : on développe sur `preview`, on avance `main` en fast-forward après chaque correctif.
@@ -75,14 +81,18 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - Transformation écrite sur le nœud à chaque frame, jamais un état React, jamais une transition
   CSS ; les feuilles portent `transition-none`.
 - Le contenu défile d'abord (`scrollTopUnder`) ; le tirage se mesure depuis le haut atteint.
-- Fermer exige un vrai geste (`MIN_TRAVEL` + distance ou vitesse) ; `swallowNextClick()` seulement
-  au vrai commit ; `animation` reste à `none` tant que la feuille est ouverte.
+- Fermer exige un vrai geste (`MIN_TRAVEL` + distance ou vitesse) ; une remontée vive annule
+  (`RETURN_VELOCITY`) ; `swallowNextClick()` seulement au vrai commit ; `animation` reste à
+  `none` tant que la feuille est ouverte.
+- Une seule recette d'entrée pour les cartes (400/260 ms, `cubic-bezier(0.32,0.72,0,1)`) ; le
+  retour est sur l'appui (`active:`), jamais seulement `hover:` ; reduced-motion respecté.
 - Tirer pour recharger : distance seule, jamais la vitesse ; 550 ms de spin avant le reload.
 
 **Thème et couleurs** → [docs/features/theme.md](docs/features/theme.md)
 - Espaces lus via `useSpace()` / `useSpaces()`, jamais `SPACES` en direct ; icône Lucide sur tuile
   (`SpaceIcon`), sauf la barre du bas en trait nu.
 - Le voile `space-wash` ne se peint qu'une fois, sur `--wash-base`.
+- L'accent se remplit, il ne s'écrit pas : texte et icônes en accent lisent `--space-ink`.
 - Un groupe blanc a un bord (`shadow 0 0 0 1px`) ; un rail horizontal rogne aussi verticalement,
   d'où du `padding` dedans pour tout ring.
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, type CSSProperties } from "react";
+import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
 import { useMail, useSpace } from "@/lib/store";
@@ -94,6 +95,8 @@ export function AppShell() {
         <CommandPalette />
         <ComposeDialog />
       </div>
+      {/* Failures of optimistic writes land here (see `commit` in the store). */}
+      <Toaster />
     </TooltipProvider>
   );
 }

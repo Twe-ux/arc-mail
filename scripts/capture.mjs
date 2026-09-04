@@ -120,8 +120,8 @@ async function main() {
       }
       if (open && size === "mobile" && OPENERS[open]) {
         if (!(space && open === "menu")) await page.evaluate(OPENERS[open]);
-        /* L'animation d'entrée dure 500 ms ; à 400 ms la carte est encore quelques pixels
-           trop bas et la mesure ressemble à un bug. */
+        /* L'animation d'entrée dure 400 ms (fiche cartes-flottantes) ; mesurée pendant qu'elle
+           joue, la carte est encore quelques pixels trop bas et cela ressemble à un bug. */
         await page.waitForTimeout(1100);
       }
 

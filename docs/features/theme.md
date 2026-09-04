@@ -30,6 +30,21 @@ le voile sur elle-même.
 
 ## Contrastes
 
+**L'accent ne s'écrit pas, il se remplit.** À L ≈ 0,7 (`#a855f7`, `#38bdf8`, `#fbbf24`, presets
+`oklch(0.7 0.18 h)`) l'accent échoue AA comme texte ou icône sur blanc : Perso 3,96:1, Pro 2,14:1,
+Side 1,67:1. Tout ce qui *se lit* en accent (« Annuler », « Effacer », icône active de la barre du
+bas, icône de rechargement armée, fond du badge de non-lus) prend **`--space-ink`** :
+`color-mix(in oklch, var(--space-accent) 62%, black)` en clair (≥ 4,6:1 quelle que soit la
+teinte), l'accent lui-même en sombre, où il passe partout (4,5 à 10,7:1). Déclaré dans
+`globals.css` à côté de `--space-accent` ; le badge garde le blanc dessus en clair, l'encre noire
+en sombre.
+
+**La sidebar bureau porte un voile sombre** (`linear-gradient(to right, rgb(0 0 0/0.28),
+rgb(0 0 0/0.10))`, arrondi comme la fenêtre) et ses encres secondaires sont à 85/70/80 % au lieu
+de 60/40/50 : le premier tiers du dégradé de Side (`#f59e0b`) donnait 2,15:1 pour du blanc pur,
+Pro 2,77:1. Perso passait ; les autres, non. Plafonner le premier arrêt du dégradé (L 0,5) reste
+une option, non prise : elle changerait les couleurs choisies.
+
 **Un groupe blanc a besoin d'un vrai bord** (`Group` du menu mobile). En clair, blanc sur
 `#f2f2f7` n'est qu'un écart de 13/255 ; en sombre le même composant (noir contre `#26262a`) s'en
 sort parce que l'écart relatif y est bien plus grand. Pire au sommet du groupe : la ligne active se

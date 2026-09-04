@@ -146,7 +146,7 @@ function MenuBody({
             type="button"
             onClick={onClose}
             aria-label="Fermer"
-            className="flex size-9 shrink-0 items-center justify-center rounded-full bg-black/[0.06] text-foreground/60 active:bg-black/10 dark:bg-white/10 dark:active:bg-white/20"
+            className="relative flex size-9 shrink-0 items-center justify-center rounded-full bg-black/[0.06] text-foreground/60 after:absolute after:-inset-1 active:bg-black/10 dark:bg-white/10 dark:active:bg-white/20"
           >
             <X className="size-5" strokeWidth={2.25} />
           </button>
@@ -218,7 +218,7 @@ function MenuBody({
               <button
                 type="button"
                 onClick={clearRecent}
-                className="text-[13px] font-medium text-[var(--space-accent)]"
+                className="-my-2 py-2 text-[13px] font-medium text-[var(--space-ink)] active:opacity-60"
               >
                 Effacer
               </button>
@@ -251,7 +251,7 @@ function MenuBody({
                         removeRecent(t.id);
                       }}
                       aria-label="Retirer"
-                      className="-mr-2 flex size-8 items-center justify-center rounded-full text-muted-foreground active:bg-muted"
+                      className="relative -mr-2 flex size-8 items-center justify-center rounded-full text-muted-foreground after:absolute after:-inset-1.5 active:bg-muted"
                     >
                       <X className="size-4" />
                     </button>
@@ -265,7 +265,7 @@ function MenuBody({
         {/* Appearance */}
         <Section title="Apparence">
           <Group>
-            <Row onClick={toggleDark}>
+            <Row onClick={toggleDark} checked={dark}>
               <Tile tint="bg-indigo-500">
                 <Moon />
               </Tile>
@@ -325,10 +325,13 @@ function Group({ children }: { children: React.ReactNode }) {
 
 function Row({
   active,
+  checked,
   onClick,
   children,
 }: {
   active?: boolean;
+  /** Makes the row a switch: the drawing inside is then decoration only. */
+  checked?: boolean;
   onClick: () => void;
   children: React.ReactNode;
 }) {
@@ -337,6 +340,8 @@ function Row({
       <button
         type="button"
         onClick={onClick}
+        role={checked === undefined ? undefined : "switch"}
+        aria-checked={checked}
         aria-current={active ? "page" : undefined}
         className={cn(
           "flex w-full items-center gap-3 pl-4 text-left transition-colors active:bg-muted",
@@ -402,12 +407,11 @@ function Tile({ tint, children }: { tint: string; children: React.ReactNode }) {
   );
 }
 
-/** A faithful little iOS switch; the row it sits in is the button. */
+/** A faithful little iOS switch, drawing only: the row it sits in is the switch. */
 function Switch({ on }: { on: boolean }) {
   return (
     <span
-      role="switch"
-      aria-checked={on}
+      aria-hidden
       className={cn(
         "relative inline-block h-[31px] w-[51px] shrink-0 rounded-full transition-colors",
         on ? "bg-[var(--space-accent)]" : "bg-neutral-300 dark:bg-neutral-700",

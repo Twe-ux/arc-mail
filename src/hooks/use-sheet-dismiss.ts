@@ -27,6 +27,14 @@ const INTENT_DISTANCE = 8;
 const MIN_TRAVEL = 40;
 const DISMISS_TRAVEL = 110;
 const FLICK_VELOCITY = 550;
+/**
+ * A pull past `DISMISS_TRAVEL` followed by a brisk push back *up* is a
+ * change of mind, not a dismissal: below this (negative) velocity the sheet
+ * settles back however far it was pulled. Without it the throw started with
+ * an upward velocity, rose, then came back down and closed against the
+ * finger that had just refused it.
+ */
+const RETURN_VELOCITY = -250;
 /** Where the sheet starts resisting rather than following one for one. */
 const MAX_PULL = 320;
 
@@ -226,6 +234,7 @@ export function useSheetDismiss(onDismiss: () => void) {
       travelled = 0;
       const meant =
         pulled >= MIN_TRAVEL &&
+        velocity > RETURN_VELOCITY &&
         (pulled > DISMISS_TRAVEL || velocity > FLICK_VELOCITY);
       if (!cancelled && meant) {
         /* Only here: the drag is actually taking the sheet away, so the

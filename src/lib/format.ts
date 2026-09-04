@@ -32,14 +32,6 @@ export function initials(name: string): string {
     .join("");
 }
 
-/** Deterministic pastel from a string, so avatars stay stable between renders. */
-export function colorFor(seed: string): string {
-  let hash = 0;
-  for (const ch of seed) hash = (hash * 31 + ch.charCodeAt(0)) | 0;
-  const hue = Math.abs(hash) % 360;
-  return `oklch(0.72 0.12 ${hue})`;
-}
-
 /** Stable hue (0-359) for a string, used for avatar gradients and label tints. */
 export function hueFor(seed: string): number {
   let hash = 0;

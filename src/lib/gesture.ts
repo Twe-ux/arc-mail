@@ -43,6 +43,13 @@ export type SpringAnimation = { stop: () => { value: number; velocity: number } 
 const reduceMotion = () =>
   typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+/**
+ * Under « Réduire les animations » a settle from 100px that lands in one
+ * frame reads as a bug, not as restraint: this is a critically damped spring
+ * that gets there in about 120ms, still with no overshoot to speak of.
+ */
+const SPRING_REDUCED: Spring = { stiffness: 900, damping: 60 };
+
 /** A damped spring on requestAnimationFrame; `stop` hands back the live state so a new drag can catch it. */
 export function animateSpring({
   from,
@@ -62,11 +69,7 @@ export function animateSpring({
   let raf = 0;
   let last = performance.now();
 
-  if (reduceMotion()) {
-    onFrame(to);
-    onRest();
-    return { stop: () => ({ value: to, velocity: 0 }) };
-  }
+  if (reduceMotion()) spring = SPRING_REDUCED;
 
   const tick = (now: number) => {
     const dt = Math.min(1 / 30, (now - last) / 1000);

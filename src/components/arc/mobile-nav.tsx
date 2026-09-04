@@ -73,7 +73,7 @@ export function MobileNav({ className }: { className?: string }) {
         >
           <Inbox className="size-6" strokeWidth={active === 1 ? 2.25 : 1.75} />
           {inboxUnread > 0 && (
-            <span className="absolute top-2 right-2.5 min-w-4 rounded-full bg-[var(--space-accent)] px-1 text-center text-[10px] leading-4 font-bold text-white tabular-nums ring-2 ring-background dark:ring-transparent">
+            <span className="absolute top-2 right-2.5 min-w-4 rounded-full bg-[var(--space-ink)] px-1 text-center text-[10px] leading-4 font-bold text-white tabular-nums ring-2 ring-background dark:ring-transparent dark:text-black">
               {inboxUnread}
             </span>
           )}
@@ -135,7 +135,7 @@ function Slot({
       className={cn(
         "relative z-10 flex h-11 items-center justify-center rounded-full transition-colors",
         active
-          ? "text-[var(--space-accent)]"
+          ? "text-[var(--space-ink)]"
           : "text-muted-foreground active:text-foreground",
       )}
     >

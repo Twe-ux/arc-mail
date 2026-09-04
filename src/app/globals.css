@@ -30,10 +30,17 @@
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
+  /* The space accent is a fill colour: at L≈0.7 it fails AA as text on white
+     (Perso 3.96:1, Pro 2.14:1, Side 1.67:1). Anything that *reads* in the
+     accent — a link, an active icon, a badge's ground — takes this darker
+     twin instead, ≥ 4.6:1 on white whatever the hue. In the dark theme the
+     accent itself is the readable one, so the twin is the accent. */
+  --space-ink: color-mix(in oklch, var(--space-accent) 62%, black);
 }
 
 .dark {
   --wash-base: var(--card);
+  --space-ink: var(--space-accent);
   --background: oklch(0.17 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
@@ -115,6 +122,32 @@
     body {
       min-height: calc(100vh + var(--viewport-slack, 50px));
     }
+  }
+}
+
+/* « Réduire les animations » : the springs already fall back to a snap
+   (`animateSpring`), but the keyframes of tw-animate-css know nothing of the
+   setting — a full-screen card would still slide the height of the screen.
+   Outside any layer so it beats every `animate-in` utility: the cards and
+   popovers keep their fade and lose their travel and zoom, in a short beat. */
+@media (prefers-reduced-motion: reduce) {
+  [data-slot="sheet-content"],
+  [data-slot="dialog-content"],
+  [data-slot="tooltip-content"],
+  [data-slot="popover-content"] {
+    --tw-enter-translate-x: 0;
+    --tw-enter-translate-y: 0;
+    --tw-enter-scale: 1;
+    --tw-exit-translate-x: 0;
+    --tw-exit-translate-y: 0;
+    --tw-exit-scale: 1;
+    --tw-enter-opacity: 0;
+    --tw-exit-opacity: 0;
+    --tw-duration: 150ms;
+  }
+  [data-slot="sheet-overlay"],
+  [data-slot="dialog-overlay"] {
+    --tw-duration: 150ms;
   }
 }
 

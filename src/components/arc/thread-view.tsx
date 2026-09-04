@@ -8,7 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { formatFullDate } from "@/lib/format";
-import { selectSelectedThread, useMail } from "@/lib/store";
+import { replyRecipients, selectSelectedThread, useMail } from "@/lib/store";
 import type { Message, Thread } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { ContactAvatar } from "./contact-avatar";
@@ -69,7 +69,8 @@ export function ThreadView({ className }: { className?: string }) {
   return (
     <article className={cn("min-h-0 min-w-0 flex-1 flex-col", className)}>
       {/* Mobile: back, actions and subject on the tinted backdrop */}
-      <div className="shrink-0 px-2 pt-0.5 pb-2 md:hidden [&_button]:size-9 [&_svg]:size-5">
+      {/* 36px buttons drawn, 44px to the finger: the hit area grows, the row does not. */}
+      <div className="shrink-0 px-2 pt-0.5 pb-2 md:hidden [&_button]:relative [&_button]:size-9 [&_button]:after:absolute [&_button]:after:-inset-1 [&_svg]:size-5">
         {/* The subject rides beside the arrow it came from; the actions get their
             own line under it, still right-aligned, so neither crowds the other. */}
         {/* Top-aligned, with the title nudged onto the arrow's optical centre:
@@ -179,13 +180,16 @@ function MessageCard({ message }: { message: Message }) {
 function ReplyBox({ thread, className }: { thread: Thread; className?: string }) {
   const [body, setBody] = useState("");
   const reply = useMail((s) => s.reply);
-  const last = thread.messages[thread.messages.length - 1];
+  const placeholder = replyPlaceholder(thread);
 
   const send = () => {
     const text = body.trim();
     if (!text) return;
-    reply(thread.id, text);
     setBody("");
+    /* The box empties at once; a refusal from the provider puts the text back. */
+    void reply(thread.id, text).then((ok) => {
+      if (!ok) setBody((current) => current || text);
+    });
   };
 
   return (
@@ -196,7 +200,7 @@ function ReplyBox({ thread, className }: { thread: Thread; className?: string })
         onKeyDown={(e) => {
           if ((e.metaKey || e.ctrlKey) && e.key === "Enter") send();
         }}
-        placeholder={`Répondre à ${last.from.name}…`}
+        placeholder={placeholder}
         className="min-h-20 resize-none border-0 bg-transparent p-1 shadow-none focus-visible:ring-0 dark:bg-transparent"
       />
       <div className="mt-2 flex items-center justify-between">
@@ -213,13 +217,15 @@ function ReplyBox({ thread, className }: { thread: Thread; className?: string })
 function MobileReply({ thread }: { thread: Thread }) {
   const [body, setBody] = useState("");
   const reply = useMail((s) => s.reply);
-  const last = thread.messages[thread.messages.length - 1];
+  const placeholder = replyPlaceholder(thread);
 
   const send = () => {
     const text = body.trim();
     if (!text) return;
-    reply(thread.id, text);
     setBody("");
+    void reply(thread.id, text).then((ok) => {
+      if (!ok) setBody((current) => current || text);
+    });
   };
 
   return (
@@ -229,7 +235,7 @@ function MobileReply({ thread }: { thread: Thread }) {
           rows={1}
           value={body}
           onChange={(e) => setBody(e.target.value)}
-          placeholder={`Répondre à ${last.from.name}…`}
+          placeholder={placeholder}
           className="max-h-32 min-h-8 flex-1 resize-none bg-transparent py-1.5 text-base leading-5 outline-none placeholder:text-muted-foreground"
         />
         <button
@@ -237,11 +243,22 @@ function MobileReply({ thread }: { thread: Thread }) {
           onClick={send}
           disabled={!body.trim()}
           aria-label="Envoyer"
-          className="flex size-8 shrink-0 items-center justify-center rounded-full bg-foreground text-background transition-opacity disabled:opacity-30"
+          /* 32px drawn inside the bubble, 44px to the finger. */
+          className="relative flex size-8 shrink-0 items-center justify-center rounded-full bg-foreground text-background transition-[opacity,transform] ease-out after:absolute after:-inset-1.5 active:scale-95 active:duration-0 disabled:opacity-30"
         >
           <ArrowUp className="size-4" strokeWidth={2.5} />
         </button>
       </div>
     </div>
   );
+}
+
+/**
+ * The field says who will actually get the reply — everyone on the last
+ * message, like the store sends it — rather than promising the sender alone.
+ */
+function replyPlaceholder(thread: Thread): string {
+  const names = replyRecipients(thread).map((c) => c.name.split(" ")[0]);
+  const shown = names.length > 3 ? `${names.slice(0, 3).join(", ")}…` : names.join(", ");
+  return `Répondre à ${shown}…`;
 }

@@ -78,6 +78,32 @@ vrais comptes.
 l'identifiant d'un compte. Sans ce repli sur le premier espace, la première lecture lèverait
 « espace inconnu ».
 
+## Renommer, changer d'icône
+
+Depuis la boîte, par la pastille à côté du nom : le nom, le glyphe et la couleur au même endroit,
+parce que ce sont les trois façons de reconnaître un espace d'un coup d'œil et qu'on les choisit
+ensemble.
+
+**Le nom se valide en quittant le champ ou par Entrée**, jamais à chaque frappe : une lettre tapée
+serait un aller-retour serveur, et six lettres six écritures dont cinq à jeter. La couleur, elle,
+s'applique à la frappe — elle ne quitte pas le navigateur, et la voir bouger *est* la façon de la
+choisir.
+
+**Un identifiant peut changer au premier renommage.** Tant qu'un compte n'a aucune vue, ses espaces
+sont fabriqués à la volée et portent l'identifiant du *compte* : il n'y a pas de ligne à mettre à
+jour. Plutôt que de refuser, `renameSpace` pose la vue qui manquait (sur `INBOX`, avec l'adresse du
+compte) — et tout ce qui désignait l'espace suit : les fils déjà chargés, la teinte, les
+conversations récentes. Sans cela la liste se viderait sous les yeux, ses fils portant un `spaceId`
+qui n'existe plus.
+
+**La maquette n'écrit nulle part** : ses espaces n'ont pas de ligne, et un toast d'erreur à chaque
+renommage ferait passer une démo pour une panne. Le changement y vit le temps de la session, comme
+le reste du mock.
+
+Huit glyphes (`SPACE_ICONS`), pas trois : « maison, mallette, fiole » couvrait les trois espaces
+d'exemple, pas les boîtes de quelqu'un. La contrainte SQL les suit — c'est elle qui garantit que
+l'app sait dessiner ce que la base contient.
+
 ## Une lecture par dossier
 
 `loadSpace(espace, dossier)` ne lit **que le dossier regardé**. Les six en parallèle, c'étaient six

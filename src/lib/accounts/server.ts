@@ -3,6 +3,7 @@ import "server-only";
 import { seal, unseal } from "@/lib/secret";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { currentUser, supabaseServer } from "@/lib/supabase/server";
+import type { SpaceIconName } from "@/lib/types";
 
 /** Un compte tel que l'interface a le droit de le voir : jamais son secret. */
 export type StoredAccount = {
@@ -53,7 +54,7 @@ export type StoredSpace = {
   id: string;
   accountId: string;
   name: string;
-  icon: "house" | "briefcase" | "flask";
+  icon: SpaceIconName;
   inboxPath: string;
   identityName: string;
   identityEmail: string;
@@ -64,7 +65,7 @@ type SpaceRow = {
   id: string;
   account_id: string;
   name: string;
-  icon: "house" | "briefcase" | "flask";
+  icon: SpaceIconName;
   inbox_path: string;
   identity_name: string;
   identity_email: string;
@@ -144,6 +145,53 @@ export async function saveSpace(input: NewSpace): Promise<StoredSpace> {
     throw new Error(`Enregistrement de l'espace impossible : ${error.message}`);
   }
   return toSpace(data as SpaceRow);
+}
+
+/**
+ * Renommer un espace, ou lui changer d'icône.
+ *
+ * **Un espace sans ligne devient une ligne ici.** Tant qu'un compte n'a aucune
+ * vue, ses espaces sont fabriqués à la volée par `spacesFromAccounts` et leur
+ * identifiant est celui du compte : il n'y a rien à mettre à jour. Plutôt que
+ * de refuser, on pose la vue qui manquait — sur `INBOX`, avec l'adresse du
+ * compte — et le renommage devient un enregistrement comme un autre.
+ *
+ * Rend l'identifiant de la ligne : il change au premier renommage d'un espace
+ * fabriqué, et l'appelant doit le savoir pour continuer à le désigner.
+ */
+export async function renameSpace(
+  id: string,
+  patch: { name: string; icon: SpaceIconName },
+): Promise<{ id: string }> {
+  const user = await currentUser();
+  if (!user) throw new Error("Personne n'est connecté.");
+  const supabase = await supabaseServer();
+
+  const { data, error } = await supabase
+    .from("mail_spaces")
+    .update({ name: patch.name, icon: patch.icon })
+    .eq("id", id)
+    .select("id")
+    .maybeSingle();
+
+  if (error && error.code !== "42P01") {
+    throw new Error(`Renommage impossible : ${error.message}`);
+  }
+  if (data) return { id: (data as { id: string }).id };
+
+  /* Aucune ligne de ce nom : l'identifiant est celui d'un compte. */
+  const comptes = await listAccounts();
+  const compte = comptes.find((c) => c.id === id);
+  if (!compte) throw new Error("Cet espace n'existe plus.");
+  const pose = await saveSpace({
+    accountId: compte.id,
+    name: patch.name,
+    icon: patch.icon,
+    inboxPath: "INBOX",
+    identityName: patch.name,
+    identityEmail: compte.email,
+  });
+  return { id: pose.id };
 }
 
 export async function deleteSpace(id: string): Promise<void> {

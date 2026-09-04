@@ -154,6 +154,9 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   restent les dossiers SPECIAL-USE du compte.
 - Le dossier se choisit dans une liste rendue par le serveur, jamais tapé à la main ; la première
   vue crée aussi celle d'`INBOX`, sinon la réception du compte disparaît.
+- Le nom et l'icône se règlent depuis la boîte (`ThemePicker`) ; le nom se valide au blur, pas à la
+  frappe. Renommer un espace fabriqué crée sa ligne et **change son identifiant** : fils, teinte et
+  récents suivent.
 - `loadSpace` ne lit **qu'un dossier**, celui qu'on regarde ; Favoris se fond au lieu de remplacer.
 
 **Recherche** → [docs/features/recherche.md](docs/features/recherche.md)

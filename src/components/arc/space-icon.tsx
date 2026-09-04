@@ -1,4 +1,14 @@
-import { Briefcase, FlaskConical, House, type LucideIcon } from "lucide-react";
+import {
+  BookOpen,
+  Briefcase,
+  FlaskConical,
+  Globe,
+  Heart,
+  House,
+  Sparkles,
+  Tag,
+  type LucideIcon,
+} from "lucide-react";
 
 import type { Space } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -10,6 +20,11 @@ export const SPACE_ICONS: Record<Space["icon"], LucideIcon> = {
   house: House,
   briefcase: Briefcase,
   flask: FlaskConical,
+  globe: Globe,
+  heart: Heart,
+  sparkles: Sparkles,
+  book: BookOpen,
+  tag: Tag,
 };
 
 const SIZES = {

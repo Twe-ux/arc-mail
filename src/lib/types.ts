@@ -22,13 +22,30 @@ export type SpaceTheme = {
   accent: string;
 };
 
+/**
+ * Les glyphes qu'un espace peut porter.
+ *
+ * Huit, pas trois : « maison, mallette, fiole » couvrait trois espaces
+ * d'exemple, pas les boîtes de quelqu'un. Huit tiennent sur une rangée de
+ * pastilles et laissent le choix sans le noyer.
+ */
+export type SpaceIconName =
+  | "house"
+  | "briefcase"
+  | "flask"
+  | "globe"
+  | "heart"
+  | "sparkles"
+  | "book"
+  | "tag";
+
 export type Space = {
   id: SpaceId;
   name: string;
   email: string;
   /** L'expéditeur quand on écrit depuis cet espace — un domaine peut avoir la sienne. */
   identity: Contact;
-  icon: "house" | "briefcase" | "flask";
+  icon: SpaceIconName;
   /** Appended to new messages, Apple Mail style. */
   signature: string;
   theme: SpaceTheme;

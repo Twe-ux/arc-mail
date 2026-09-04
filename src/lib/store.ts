@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { toast } from "sonner";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
+import { renommerEspace } from "./accounts/actions";
 import { firstLine } from "./format";
 import { providerFor } from "./mail";
 import { FOLDERS, SPACES } from "./mock-data";
@@ -82,6 +83,7 @@ export type MailState = {
   sendMail: () => void;
   deleteDraft: (threadId: string) => void;
   setSpaceHue: (id: SpaceId, hue: number | null) => void;
+  renameSpace: (id: SpaceId, patch: { name: string; icon: Space["icon"] }) => Promise<void>;
 };
 
 const MAX_RECENT = 8;
@@ -196,6 +198,15 @@ function contactBook(threads: Thread[]): Map<string, Contact> {
     }
   }
   return book;
+}
+
+/** Une table indexée par espace, dont une clé change de nom. */
+function renomme<T>(table: Partial<Record<SpaceId, T>>, de: SpaceId, vers: SpaceId) {
+  if (!(de in table)) return table;
+  const suite = { ...table };
+  suite[vers] = suite[de];
+  delete suite[de];
+  return suite;
 }
 
 function toContacts(emails: string[], book: Map<string, Contact>): Contact[] {
@@ -585,6 +596,47 @@ export const useMail = create<MailState>()(
       else themes[id] = hue;
       return { themes };
     }),
+
+  /**
+   * Renommer un espace, ou lui changer d'icône.
+   *
+   * L'affichage change tout de suite et le serveur apprend après, comme toute
+   * écriture ici ; un échec remet les espaces tels qu'ils étaient et le dit.
+   *
+   * **La maquette n'écrit nulle part** : ses espaces n'ont pas de ligne, et
+   * un toast d'erreur à chaque renommage ferait passer une démo pour une
+   * panne. Le changement vit alors le temps de la session, comme le reste du
+   * mock.
+   *
+   * **Un identifiant peut changer.** Tant qu'un compte n'a aucune vue, ses
+   * espaces portent l'identifiant du compte ; le premier renommage crée la
+   * ligne qui manquait, et tout ce qui désignait l'espace — les fils déjà
+   * chargés, la teinte choisie, les conversations récentes — doit suivre,
+   * sinon la liste se viderait sous les yeux.
+   */
+  renameSpace: async (id, patch) => {
+    const before = get().spaces;
+    const space = before.find((sp) => sp.id === id);
+    if (!space) return;
+    set({ spaces: before.map((sp) => (sp.id === id ? { ...sp, ...patch } : sp)) });
+    if (space.account.kind === "mock") return;
+
+    const reponse = await renommerEspace(id, patch);
+    if (!reponse.ok) {
+      set({ spaces: before });
+      toast.error("L'espace n'a pas pu être enregistré", { description: reponse.message });
+      return;
+    }
+    if (reponse.id !== id) {
+      set((s) => ({
+        spaces: s.spaces.map((sp) => (sp.id === id ? { ...sp, id: reponse.id } : sp)),
+        spaceId: s.spaceId === id ? reponse.id : s.spaceId,
+        threads: s.threads.map((th) => (th.spaceId === id ? { ...th, spaceId: reponse.id } : th)),
+        themes: renomme(s.themes, id, reponse.id),
+        recent: renomme(s.recent, id, reponse.id),
+      }));
+    }
+  },
   };
     },
     {

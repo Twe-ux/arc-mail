@@ -34,6 +34,18 @@ export type Space = {
   theme: SpaceTheme;
   /** Where its mail lives. Several spaces may share one (a mailbox with several domains). */
   account: import("./mail/provider").AccountRef;
+  /**
+   * Le dossier qui **est** la réception de cet espace.
+   *
+   * `INBOX` pour l'espace principal ; pour un domaine personnalisé, le dossier
+   * où la règle iCloud range son courrier. C'est ce qui permet à un seul compte
+   * de porter plusieurs boîtes qui se comportent chacune comme une vraie.
+   *
+   * Un jour il pourra aussi valoir une recherche (`SEARCH TO domaine`) plutôt
+   * qu'un chemin ; on commence par le chemin, qui colle aux règles déjà en
+   * place chez iCloud.
+   */
+  inboxPath: string;
 };
 
 export type Contact = {

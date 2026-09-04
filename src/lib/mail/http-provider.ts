@@ -27,6 +27,7 @@ export class HttpProvider implements MailProvider {
       op: "listThreads",
       accountId: account.id,
       folder: query.folder,
+      inboxPath: query.inboxPath,
       limit: query.limit,
     });
     return threads;

@@ -77,8 +77,12 @@ pas ouvert la conversation. Un cache des aperçus viendra ; il n'existe pas enco
 ## L'espace n'appartient pas au fournisseur
 
 Un fournisseur rend des fils au `spaceId` vide et c'est le **store** qui les tamponne (`stamp`).
-Un seul compte iCloud portera trois espaces — un par domaine — et le fournisseur n'a aucun moyen
+Un seul compte iCloud porte plusieurs espaces — un par domaine — et le fournisseur n'a aucun moyen
 de savoir lequel demande.
+
+Ce que la requête porte, en revanche, c'est **quel dossier tient lieu de réception**
+(`ThreadQuery.inboxPath`) : `body.folder === "inbox"` ouvre ce chemin-là plutôt que `INBOX`. Les
+autres dossiers restent ceux du compte → [Espaces](espaces.md).
 
 ## Écrire : les drapeaux
 

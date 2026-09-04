@@ -26,7 +26,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 type Body =
-  | { op: "listThreads"; accountId: string; folder: FolderId; limit?: number }
+  | { op: "listThreads"; accountId: string; folder: FolderId; inboxPath?: string; limit?: number }
   | { op: "getThread"; accountId: string; id: string }
   | {
       op: "modify";
@@ -58,6 +58,12 @@ export async function POST(request: NextRequest) {
       if (body.op === "folders") return { paths };
 
       if (body.op === "listThreads") {
+        /* La « Réception » d'un espace n'est pas forcément `INBOX` : pour un
+           domaine personnalisé c'est le dossier où la règle iCloud range son
+           courrier. Le fournisseur ne connaît pas les espaces, il reçoit le
+           chemin. */
+        const reception = body.inboxPath || "INBOX";
+
         /* Favoris n'est pas un dossier mais un drapeau : on cherche les
            messages marqués dans la réception plutôt que d'ouvrir un chemin
            qui n'existe pas. */
@@ -66,13 +72,13 @@ export async function POST(request: NextRequest) {
              et les marquer « starred » les ferait disparaître de la réception
              (`threadMatchesFolder` lit `t.folder`). */
           return {
-            threads: await readFolder(client, "INBOX", "inbox", {
+            threads: await readFolder(client, reception, "inbox", {
               flaggedOnly: true,
               limit: body.limit,
             }),
           };
         }
-        const path = paths[body.folder];
+        const path = body.folder === "inbox" ? reception : paths[body.folder];
         /* Une boîte iCloud n'a pas d'« En pause » : un dossier absent est une
            liste vide, pas une erreur. */
         if (!path) return { threads: [] };

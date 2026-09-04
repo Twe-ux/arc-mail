@@ -8,6 +8,7 @@ export const SPACES: Space[] = [
   {
     id: "perso",
     account: mockAccount("perso"),
+    inboxPath: "INBOX",
     name: "Perso",
     email: "thierry@icloud.com",
     identity: { name: "Thierry", email: "thierry@icloud.com" },
@@ -22,6 +23,7 @@ export const SPACES: Space[] = [
   {
     id: "pro",
     account: mockAccount("pro"),
+    inboxPath: "INBOX",
     name: "Pro",
     email: "thierry@coworkingcafe.fr",
     identity: { name: "Thierry Milone", email: "thierry@coworkingcafe.fr" },
@@ -36,6 +38,7 @@ export const SPACES: Space[] = [
   {
     id: "side",
     account: mockAccount("side"),
+    inboxPath: "INBOX",
     name: "Side projects",
     email: "hello@twe-ux.dev",
     identity: { name: "twe-ux", email: "hello@twe-ux.dev" },

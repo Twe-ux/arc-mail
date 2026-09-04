@@ -2,8 +2,15 @@
 
 import { revalidatePath } from "next/cache";
 
-import { accountCredentials, deleteAccount, saveImapAccount } from "@/lib/accounts/server";
-import { readFolder, withImap } from "@/lib/mail/imap";
+import {
+  accountCredentials,
+  deleteAccount,
+  deleteSpace,
+  saveImapAccount,
+  saveSpace,
+  type StoredSpace,
+} from "@/lib/accounts/server";
+import { listFolders, readFolder, withImap } from "@/lib/mail/imap";
 import { currentUser } from "@/lib/supabase/server";
 
 /** Ce que le formulaire reçoit en retour : un état, jamais une exception. */
@@ -109,4 +116,77 @@ export async function lireDerniers(id: string): Promise<{ apercus: Apercu[] } | 
   } catch (error) {
     return { erreur: error instanceof Error ? error.message : String(error) };
   }
+}
+
+/** Un dossier de la boîte, tel que le serveur le nomme. */
+export type Dossier = { path: string; name: string; unseen: number };
+
+/**
+ * Les dossiers d'une boîte, pour en choisir un comme réception.
+ *
+ * On ne les tape pas à la main : « Milone Thierry Coworking » avec la bonne
+ * casse et le bon séparateur, c'est une faute de frappe garantie, et IMAP
+ * répondrait « Mailbox does not exist » sans dire laquelle il attendait.
+ */
+export async function listerDossiers(
+  accountId: string,
+): Promise<{ dossiers: Dossier[] } | { erreur: string }> {
+  try {
+    const { account, password } = await accountCredentials(accountId);
+    const dossiers = await withImap(account, password, listFolders);
+    return { dossiers: dossiers.filter((d) => d.path !== "INBOX") };
+  } catch (error) {
+    return { erreur: error instanceof Error ? error.message : String(error) };
+  }
+}
+
+/**
+ * Créer un espace-vue : ce dossier devient une réception, avec son adresse.
+ *
+ * Le premier espace créé sur un compte fait apparaître le besoin d'un second :
+ * sans une vue sur `INBOX`, le courrier du compte principal n'aurait plus
+ * d'espace du tout. On la pose donc en même temps, une seule fois.
+ */
+export async function ajouterEspace(_precedent: Etat, form: FormData): Promise<Etat> {
+  const accountId = texte(form, "accountId");
+  const inboxPath = texte(form, "inboxPath");
+  const name = texte(form, "name");
+  const identityEmail = texte(form, "identityEmail").toLowerCase();
+  const identityName = texte(form, "identityName") || name;
+  const icon = (texte(form, "icon") || "briefcase") as StoredSpace["icon"];
+  const principal = texte(form, "principal");
+
+  if (!inboxPath) return { statut: "erreur", message: "Il faut choisir un dossier." };
+  if (!name) return { statut: "erreur", message: "Il faut un nom d'espace." };
+  if (!identityEmail.includes("@")) {
+    return { statut: "erreur", message: "Il faut l'adresse depuis laquelle tu écris ici." };
+  }
+
+  try {
+    if (principal) {
+      /* La réception du compte, posée avec la première vue : autrement elle
+         disparaîtrait au profit du seul dossier choisi. */
+      await saveSpace({
+        accountId,
+        name: texte(form, "principalName") || "Perso",
+        icon: "house",
+        inboxPath: "INBOX",
+        identityName: texte(form, "principalName") || "Perso",
+        identityEmail: principal,
+      });
+    }
+    await saveSpace({ accountId, name, icon, inboxPath, identityName, identityEmail });
+  } catch (error) {
+    return { statut: "erreur", message: error instanceof Error ? error.message : String(error) };
+  }
+
+  revalidatePath("/comptes");
+  revalidatePath("/");
+  return { statut: "ok", message: `« ${name} » lit maintenant ${inboxPath}.` };
+}
+
+export async function retirerEspace(id: string): Promise<void> {
+  await deleteSpace(id);
+  revalidatePath("/comptes");
+  revalidatePath("/");
 }

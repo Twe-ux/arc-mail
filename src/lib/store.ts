@@ -257,7 +257,12 @@ export const useMail = create<MailState>()(
          six connexions IMAP et six ouvertures de session pour afficher une
          seule liste ; le reste arrive quand on y va. Le prix : les compteurs
          de non-lus des autres dossiers attendent `listFolders`. */
-      const fresh = await providerFor(account).listThreads(account, { folder });
+      const fresh = await providerFor(account).listThreads(account, {
+        folder,
+        /* Quel dossier tient lieu de « Réception » **pour cet espace** : un
+           compte iCloud en porte plusieurs, une par domaine. */
+        inboxPath: spaceOf(spaceId).inboxPath,
+      });
       /* Two reads of the same space can cross; only the latest one may land. */
       if (loadTokens.get(spaceId) !== token) return;
       set((s) => ({

@@ -15,6 +15,7 @@ C'est ce qui impose l'ordre — savoir *qui* est connecté, ranger *ses* comptes
 |---|---|
 | `accounts` | son propriétaire (le navigateur en a besoin pour lister les comptes) |
 | `account_secrets` | **personne** — sécurité au niveau ligne activée, *aucune politique* |
+| `mail_spaces` | son propriétaire — ce n'est qu'un nom de dossier et une adresse → [Espaces](espaces.md) |
 
 Une table RLS sans politique n'est accessible qu'au **rôle de service**, c'est-à-dire au serveur.
 Le navigateur ne peut donc pas lire un secret, même chiffré, même le sien. C'est tout l'intérêt de

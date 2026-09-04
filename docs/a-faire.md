@@ -12,9 +12,8 @@ Voir [Fournisseurs de mail](roadmap/fournisseurs-mail.md) pour le plan complet e
       tables, coffre AES-256-GCM (4 sept.)
 - [x] Page de connexion (Google), retour OAuth, garde de `/`, déconnexion (4 sept.)
 - [x] Variables posées et connexion Google vérifiée (4 sept.)
-- [ ] Appliquer `supabase/migrations/` à la base (intégration GitHub, ou le SQL collé à la main)
-- [ ] Écran « Ajouter un compte » — le mot de passe d'application se saisit **dans l'app**,
-      jamais dans l'environnement (le schéma et le coffre existent)
+- [ ] Appliquer `supabase/migrations/20260904140000_espaces.sql` à la base (les précédentes le
+      sont ; sans elle, `/comptes` n'affiche pas la section Espaces)
 - [x] Écran « Ajouter un compte » avec vérification IMAP avant enregistrement (4 sept.)
 - [x] Lecture IMAP : route `/api/mail`, dossiers par SPECIAL-USE, fils, hydratation à l'ouverture
 - [x] Le vrai courrier dans la boîte : espaces issus des comptes branchés, lecture par dossier
@@ -24,8 +23,10 @@ Voir [Fournisseurs de mail](roadmap/fournisseurs-mail.md) pour le plan complet e
 - [ ] `modify(): Promise<Thread>` — un déplacement change l'UID donc l'identifiant du fil
 - [ ] `listFolders` pour les compteurs de non-lus des dossiers qu'on n'a pas ouverts
 - [ ] Cache des aperçus : la liste IMAP n'a pas de ligne de résumé tant qu'on n'a pas ouvert
-- [ ] Espaces comme *vues* : un dossier vu et vécu comme une boîte de réception, une identité
-      d'envoi par espace (les deux domaines personnalisés d'iCloud)
+- [x] Espaces comme *vues* : un dossier vu et vécu comme une boîte de réception, une identité
+      d'envoi par espace (4 sept.)
+- [ ] Mode `filter` des espaces : `INBOX` filtrée par destinataire, pour se passer d'une règle
+      côté iCloud
 - [ ] Envoi réel, aller-retour des drapeaux et des déplacements
 - [ ] Fournisseur Gmail (`googleapis` sur la connexion Google)
 - [ ] `listFolders` pour les compteurs de non-lus sans tout lire ; cache avec péremption pour ne
@@ -35,8 +36,8 @@ Voir [Fournisseurs de mail](roadmap/fournisseurs-mail.md) pour le plan complet e
 
 Voir la [synthèse](audits/2026-09-04/README.md) pour le détail et les arbitrages.
 
-- [ ] Le fournisseur ne doit connaître que `account` + `mailbox` ; le store tamponne `spaceId`,
-      `OutgoingMessage` porte `identity` — à faire avec les espaces-vues (étape 5)
+- [x] Le fournisseur ne connaît que `account` + `mailbox` ; le store tamponne `spaceId`,
+      `OutgoingMessage` porte `identity` (4 sept.)
 - [ ] `getThread` pour hydrater à la demande ; `loadSpace` lit la réception d'abord (étape 4)
 - [ ] `SpaceId = string` quand les espaces viendront de la base (étape 5)
 - [ ] `modify(): Promise<Thread>` (un déplacement IMAP change l'id) ; `Message` avec

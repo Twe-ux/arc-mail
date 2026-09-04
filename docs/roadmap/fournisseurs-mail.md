@@ -139,6 +139,11 @@ Le mode `filter` viendra ensuite : il évite les règles côté iCloud (on lit `
 `SEARCH TO domaine-a.fr`) mais rend « Archiver » et « Supprimer » plus subtils (un même message
 peut appartenir à deux vues). Le mode `folder` colle à ce que tu as déjà : on commence par lui.
 
+**Écrit le 4 septembre**, avec une simplification : pas d'union `folder | filter` tant qu'un seul
+mode existe — `Space.inboxPath` est une chaîne, et le jour où le filtre arrive, c'est ce champ-là
+qui devient une union. La table est `mail_spaces`, les vues se créent depuis `/comptes` →
+[la fiche](../features/espaces.md).
+
 ### Comptes et secrets — saisis dans l'app, jamais dans l'environnement
 
 Exigence posée le 4 septembre : **le mot de passe d'application s'inscrit dans l'app**, pas
@@ -167,7 +172,7 @@ connecté, ensuite ranger *ses* comptes, enfin les lire.
 | 2 | Supabase Auth : clients, proxy de session, page de connexion | **Fait** — une page de connexion Google ; l'app est privée dès que les variables sont posées | ½ jour |
 | 3 | Table `accounts` chiffrée + écran « Ajouter un compte » (iCloud d'abord) | **Fait** — on saisit son adresse et son mot de passe d'application **dans l'app**, la connexion est vérifiée avant d'enregistrer | 1 jour |
 | 4 | `ImapProvider` (imapflow/mailparser) sur le compte stocké | **Fait** — les vrais mails dans la boîte : dossiers, fils, corps à l'ouverture, drapeaux en écriture | 1–2 jours |
-| 5 | Espaces-vues : dossier-comme-réception + identité | **Commencé** : un espace par compte, `spacesFromAccounts` est le seul endroit à changer pour en faire trois. Reste : choisir le dossier de réception et l'identité par espace | 1 jour |
+| 5 | Espaces-vues : dossier-comme-réception + identité | **Fait** — on choisit un dossier dans la liste du serveur, on lui donne un nom et une adresse d'envoi ; il devient une réception à part, avec sa couleur. Reste le mode `filter` | 1 jour |
 | 6 | Envoi SMTP (`nodemailer`), brouillons, déplacements | Répondre / écrire pour de vrai | ½–1 jour |
 | 7 | `GmailProvider` (googleapis, sur un jeton Google obtenu par Supabase) | Un espace Gmail à côté des espaces iCloud | 1 jour |
 

@@ -15,6 +15,14 @@ export type AccountRef = {
 export type ThreadQuery = {
   /** Our folder vocabulary; each provider maps it to its own (IMAP path, Gmail label). */
   folder: FolderId;
+  /**
+   * Le chemin qui tient lieu de « Réception » pour l'espace qui demande.
+   *
+   * Un compte, plusieurs boîtes : le fournisseur ne connaît pas les espaces,
+   * mais il a besoin de savoir quel dossier ouvrir quand on lui dit « inbox ».
+   * Absent : le vrai `INBOX`.
+   */
+  inboxPath?: string;
   limit?: number;
 };
 

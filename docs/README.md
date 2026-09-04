@@ -22,7 +22,7 @@ l'état du projet et ce qui reste à faire.
 - [Pièces jointes](features/pieces-jointes.md) — le modèle, les puces, le volet d'aperçu
 - [Comptes et secrets](features/comptes-et-secrets.md) — Supabase, les deux tables, le chiffrement
 - [IMAP](features/imap.md) — lire une vraie boîte : la route, les dossiers, les fils, l'hydratation
-- [Espaces](features/espaces.md) — d'où ils viennent, la lecture par dossier, Favoris
+- [Espaces](features/espaces.md) — d'où ils viennent, un dossier vécu comme une réception, la lecture par dossier, Favoris
 - [Données mock](features/donnees-mock.md) — le jeu de données et ses règles
 
 ## Audits

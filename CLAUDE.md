@@ -138,6 +138,10 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - Les espaces viennent des comptes branchés (`spacesFromAccounts`) ; sans compte, la maquette reste.
 - Ils vivent dans le store (`spaces`), plus dans une constante : deviner un compte, c'est écrire
   dans la mauvaise boîte.
+- Un espace-vue détourne **la réception seule** (`inboxPath`) ; Envoyés, Corbeille et les autres
+  restent les dossiers SPECIAL-USE du compte.
+- Le dossier se choisit dans une liste rendue par le serveur, jamais tapé à la main ; la première
+  vue crée aussi celle d'`INBOX`, sinon la réception du compte disparaît.
 - `loadSpace` ne lit **qu'un dossier**, celui qu'on regarde ; Favoris se fond au lieu de remplacer.
 
 **Recherche** → [docs/features/recherche.md](docs/features/recherche.md)

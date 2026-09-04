@@ -54,6 +54,7 @@ Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérificatio
 | — | `MailProvider` : le mock derrière l'interface, store asynchrone à écritures optimistes |
 | `04273d0` | Tri des skills : 13 gardés sur 33, `/ecran` porté de Kairos, `npm run capture` |
 | `6e896f6` | État des lieux : quatre audits en parallèle (code, UX, mouvement, DESIGN.md) |
+| — | Espaces-vues : un dossier iCloud devient une réception à part, avec son nom, sa couleur et son adresse d'envoi ; table `mail_spaces`, dossier choisi dans la liste du serveur, `inboxPath` porté jusqu'à `/api/mail` |
 | — | Bandeau de fenêtre (`theme-color`) accordé au thème au lieu d'un violet fixe ; manifeste neutre |
 | — | Icônes : l'onglet montrait encore le triangle de Vercel ; une famille dessinée par `scripts/icones.py`, enveloppe au rabat creusé sur le dégradé de Perso ; `sw.js` v6 |
 | — | Le vrai courrier dans la boîte : les espaces viennent des comptes branchés, une lecture par dossier au lieu de six connexions, drapeaux IMAP en écriture |

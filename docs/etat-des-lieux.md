@@ -46,25 +46,26 @@ est dans [À faire](a-faire.md).
 
 Depuis le 4 septembre, une boîte IMAP se branche dans `/comptes` (adresse + mot de passe
 d'application, connexion vérifiée avant enregistrement) et **son courrier s'affiche dans la
-boîte** : un espace par compte, dossiers découverts par SPECIAL-USE, messages regroupés en fils,
-corps chargé à l'ouverture, lu / favori / déplacer écrits sur le serveur.
+boîte** : dossiers découverts par SPECIAL-USE, messages regroupés en fils, corps chargé à
+l'ouverture, lu / favori / déplacer écrits sur le serveur.
 
-Ce qui manque : l'envoi (SMTP), les compteurs de non-lus des dossiers non ouverts, la ligne
-d'aperçu dans la liste, et les espaces-vues (un dossier comme réception, une identité par domaine).
-Sans compte branché, l'app reste la maquette d'exemple.
+Les espaces viennent de là : un par compte branché, ou un par **vue** — un dossier choisi dans la
+liste du serveur, présenté comme une réception à part, avec son nom, sa couleur et son adresse
+d'envoi. C'est ainsi qu'un domaine personnalisé rangé par une règle iCloud devient une boîte.
+
+Ce qui manque : l'envoi (SMTP), les compteurs de non-lus des dossiers non ouverts et la ligne
+d'aperçu dans la liste. Sans compte branché, l'app reste la maquette d'exemple.
 
 ## Ce qui n'existe pas encore
 
-- Aucun fournisseur réel : ni lecture, ni envoi. L'interface `MailProvider` existe
-  (`src/lib/mail/`), le store lit et écrit par elle, mais seul le mock l'implémente.
-- Authentification : connexion Google par Supabase, garde de `/`, déconnexion, schéma chiffré des
-  comptes. **Elle ne s'active qu'une fois `NEXT_PUBLIC_SUPABASE_*` posées** ; sans elles l'app
-  reste la maquette ouverte.
-- Tant que les variables ne sont pas posées : n'importe qui avec l'URL voit la maquette (sans risque tant
-  qu'il n'y a pas de vraies données — ce n'est plus vrai dès le premier compte connecté).
-- Aucun stockage serveur.
-- Pas de pièces jointes, pas de recherche côté serveur, pas de notifications.
-- Un espace ne se crée ni ne se renomme ; l'icône ne se choisit pas (la couleur, si).
+- **L'envoi.** `send`, `saveDraft`, `deleteDraft` lèvent une erreur explicite côté IMAP : le
+  composeur fonctionne, rien ne part. SMTP est l'étape suivante.
+- Tant que `NEXT_PUBLIC_SUPABASE_*` ne sont pas posées, l'app reste la maquette ouverte : pas de
+  connexion, pas de comptes, n'importe qui avec l'URL voit les données d'exemple.
+- Pas de recherche côté serveur, pas de notifications, pas de push (IMAP `IDLE` demande un serveur
+  qui vit entre deux requêtes ; Vercel n'en a pas).
+- Un espace se crée et se retire depuis `/comptes`, mais ne se renomme pas ; son icône se choisit
+  à la création seulement (la couleur, si, dans l'app).
 
 ## Points de vigilance connus
 

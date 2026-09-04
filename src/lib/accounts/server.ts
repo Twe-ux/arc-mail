@@ -48,6 +48,110 @@ export async function listAccounts(): Promise<StoredAccount[]> {
   return (data as Row[]).map(toAccount);
 }
 
+/** Une vue sur un compte : un dossier présenté comme une réception. */
+export type StoredSpace = {
+  id: string;
+  accountId: string;
+  name: string;
+  icon: "house" | "briefcase" | "flask";
+  inboxPath: string;
+  identityName: string;
+  identityEmail: string;
+  position: number;
+};
+
+type SpaceRow = {
+  id: string;
+  account_id: string;
+  name: string;
+  icon: "house" | "briefcase" | "flask";
+  inbox_path: string;
+  identity_name: string;
+  identity_email: string;
+  position: number;
+};
+
+const SPACE_COLUMNS = "id, account_id, name, icon, inbox_path, identity_name, identity_email, position";
+
+const toSpace = (r: SpaceRow): StoredSpace => ({
+  id: r.id,
+  accountId: r.account_id,
+  name: r.name,
+  icon: r.icon,
+  inboxPath: r.inbox_path,
+  identityName: r.identity_name,
+  identityEmail: r.identity_email,
+  position: r.position,
+});
+
+/** Les vues de la personne connectée, dans l'ordre d'affichage. */
+export async function listSpaces(): Promise<StoredSpace[]> {
+  const supabase = await supabaseServer();
+  const { data, error } = await supabase
+    .from("mail_spaces")
+    .select(SPACE_COLUMNS)
+    .order("position")
+    .order("created_at");
+  if (error) {
+    /* La table peut ne pas encore exister sur une base qui n'a pas eu la
+       migration : mieux vaut une app sans vues qu'une app en panne. */
+    if (error.code === "42P01") return [];
+    throw new Error(`Lecture des espaces impossible : ${error.message}`);
+  }
+  return (data as SpaceRow[]).map(toSpace);
+}
+
+export type NewSpace = {
+  accountId: string;
+  name: string;
+  icon: StoredSpace["icon"];
+  inboxPath: string;
+  identityName: string;
+  identityEmail: string;
+};
+
+export async function saveSpace(input: NewSpace): Promise<StoredSpace> {
+  const user = await currentUser();
+  if (!user) throw new Error("Personne n'est connecté.");
+  const supabase = await supabaseServer();
+  const { count } = await supabase
+    .from("mail_spaces")
+    .select("id", { count: "exact", head: true })
+    .eq("account_id", input.accountId);
+
+  const { data, error } = await supabase
+    .from("mail_spaces")
+    .insert({
+      user_id: user.id,
+      account_id: input.accountId,
+      name: input.name,
+      icon: input.icon,
+      inbox_path: input.inboxPath,
+      identity_name: input.identityName,
+      identity_email: input.identityEmail,
+      position: count ?? 0,
+    })
+    .select(SPACE_COLUMNS)
+    .single();
+
+  if (error) {
+    if (error.code === "23505") throw new Error("Ce dossier sert déjà de réception à un espace.");
+    if (error.code === "42P01") {
+      throw new Error(
+        "La table des espaces n'existe pas encore : appliquer `supabase/migrations/` à la base.",
+      );
+    }
+    throw new Error(`Enregistrement de l'espace impossible : ${error.message}`);
+  }
+  return toSpace(data as SpaceRow);
+}
+
+export async function deleteSpace(id: string): Promise<void> {
+  const supabase = await supabaseServer();
+  const { error } = await supabase.from("mail_spaces").delete().eq("id", id);
+  if (error) throw new Error(`Suppression impossible : ${error.message}`);
+}
+
 export type NewImapAccount = {
   label: string;
   email: string;

@@ -1,7 +1,14 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 import { accountCredentials } from "@/lib/accounts/server";
-import { folderPaths, parseThreadId, readFolder, readThread, withImap } from "@/lib/mail/imap";
+import {
+  folderPaths,
+  parseThreadId,
+  readFolder,
+  readThread,
+  withImap,
+  writeThread,
+} from "@/lib/mail/imap";
 import { currentUser } from "@/lib/supabase/server";
 import type { FolderId } from "@/lib/types";
 
@@ -21,6 +28,12 @@ export const dynamic = "force-dynamic";
 type Body =
   | { op: "listThreads"; accountId: string; folder: FolderId; limit?: number }
   | { op: "getThread"; accountId: string; id: string }
+  | {
+      op: "modify";
+      accountId: string;
+      id: string;
+      patch: { unread?: boolean; starred?: boolean; folder?: FolderId };
+    }
   | { op: "folders"; accountId: string };
 
 export async function POST(request: NextRequest) {
@@ -49,8 +62,11 @@ export async function POST(request: NextRequest) {
            messages marqués dans la réception plutôt que d'ouvrir un chemin
            qui n'existe pas. */
         if (body.folder === "starred") {
+          /* Ils gardent « inbox » comme dossier : ce sont les mêmes messages,
+             et les marquer « starred » les ferait disparaître de la réception
+             (`threadMatchesFolder` lit `t.folder`). */
           return {
-            threads: await readFolder(client, "INBOX", "starred", {
+            threads: await readFolder(client, "INBOX", "inbox", {
               flaggedOnly: true,
               limit: body.limit,
             }),
@@ -61,6 +77,19 @@ export async function POST(request: NextRequest) {
            liste vide, pas une erreur. */
         if (!path) return { threads: [] };
         return { threads: await readFolder(client, path, body.folder, { limit: body.limit }) };
+      }
+
+      if (body.op === "modify") {
+        const cible = body.patch.folder ? paths[body.patch.folder] : undefined;
+        if (body.patch.folder && !cible) {
+          throw new Error(`Cette boîte n'a pas de dossier « ${body.patch.folder} ».`);
+        }
+        await writeThread(client, body.id, {
+          unread: body.patch.unread,
+          starred: body.patch.starred,
+          path: cible,
+        });
+        return { ok: true };
       }
 
       /* L'identifiant d'un fil porte son chemin : on retrouve le dossier en

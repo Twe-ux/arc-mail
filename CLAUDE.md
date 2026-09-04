@@ -131,7 +131,14 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   absent est une liste vide.
 - La liste ne rapporte que des enveloppes ; le corps arrive par `getThread` à l'ouverture, et
   l'hydratation complète le fil au lieu de le remplacer.
+- `modify` écrit les drapeaux (`\Seen`, `\Flagged`) et déplace ; le déplacement passe en dernier.
 - Un fournisseur ne connaît pas les espaces : il rend `spaceId: ""`, le store tamponne (`stamp`).
+
+**Espaces** → [docs/features/espaces.md](docs/features/espaces.md)
+- Les espaces viennent des comptes branchés (`spacesFromAccounts`) ; sans compte, la maquette reste.
+- Ils vivent dans le store (`spaces`), plus dans une constante : deviner un compte, c'est écrire
+  dans la mauvaise boîte.
+- `loadSpace` ne lit **qu'un dossier**, celui qu'on regarde ; Favoris se fond au lieu de remplacer.
 
 **Recherche** → [docs/features/recherche.md](docs/features/recherche.md)
 

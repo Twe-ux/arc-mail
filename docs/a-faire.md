@@ -17,9 +17,13 @@ Voir [Fournisseurs de mail](roadmap/fournisseurs-mail.md) pour le plan complet e
       jamais dans l'environnement (le schéma et le coffre existent)
 - [x] Écran « Ajouter un compte » avec vérification IMAP avant enregistrement (4 sept.)
 - [x] Lecture IMAP : route `/api/mail`, dossiers par SPECIAL-USE, fils, hydratation à l'ouverture
-- [ ] **Faire apparaître le vrai courrier dans la boîte** : des espaces issus des comptes branchés
-      au lieu des trois espaces mock
-- [ ] Écriture IMAP (`modify` : lu, favori, déplacer) puis SMTP (`nodemailer`) pour l'envoi
+- [x] Le vrai courrier dans la boîte : espaces issus des comptes branchés, lecture par dossier
+      (4 sept.)
+- [x] Écriture IMAP des drapeaux (lu, favori, déplacer)
+- [ ] SMTP (`nodemailer`) : répondre, écrire, brouillons
+- [ ] `modify(): Promise<Thread>` — un déplacement change l'UID donc l'identifiant du fil
+- [ ] `listFolders` pour les compteurs de non-lus des dossiers qu'on n'a pas ouverts
+- [ ] Cache des aperçus : la liste IMAP n'a pas de ligne de résumé tant qu'on n'a pas ouvert
 - [ ] Espaces comme *vues* : un dossier vu et vécu comme une boîte de réception, une identité
       d'envoi par espace (les deux domaines personnalisés d'iCloud)
 - [ ] Envoi réel, aller-retour des drapeaux et des déplacements

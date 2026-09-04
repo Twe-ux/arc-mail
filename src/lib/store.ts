@@ -40,9 +40,16 @@ export type MailState = {
   compose: ComposeDraft | null;
   /** Hue chosen for a space, when the user changed its colour. */
   themes: Partial<Record<SpaceId, number>>;
+  /**
+   * Les espaces à afficher : ceux des comptes branchés, ou les trois de la
+   * maquette tant qu'aucun compte ne l'est. Dans le store et non plus une
+   * constante de module, parce qu'ils viennent maintenant du serveur.
+   */
+  spaces: Space[];
 
   /** Read every folder of a space from its provider and replace what we had. */
-  loadSpace: (id?: SpaceId) => Promise<void>;
+  /** Lit **un** dossier d'un espace. Le reste vient quand on y va. */
+  loadSpace: (id?: SpaceId, folder?: FolderId) => Promise<void>;
   setSpace: (id: SpaceId) => void;
   setFolder: (id: FolderId) => void;
   selectThread: (id: string | null) => void;
@@ -55,6 +62,8 @@ export type MailState = {
   setUnreadOnly: (value: boolean) => void;
   setCommandOpen: (open: boolean) => void;
   setSidebarOpen: (open: boolean) => void;
+  /** Posé une fois par `SpacesInit`, avec ce que le serveur a lu. */
+  setSpaces: (spaces: Space[]) => void;
   toggleSidebarCollapsed: () => void;
   setPreview: (attachmentId: string | null) => void;
   toggleDark: () => void;
@@ -81,9 +90,12 @@ const NO_SUBJECT = "(sans objet)";
 const patchThread = (threads: Thread[], id: string, patch: (t: Thread) => Thread) =>
   threads.map((t) => (t.id === id ? patch(t) : t));
 
-/** Throws rather than guessing: a write on the wrong real account would be worse than no write. */
+/**
+ * L'espace, lu dans l'état courant et jamais deviné : une écriture sur le
+ * mauvais compte réel serait pire qu'une écriture manquée.
+ */
 const spaceOf = (spaceId: SpaceId): Space => {
-  const space = SPACES.find((sp) => sp.id === spaceId);
+  const space = useMail.getState().spaces.find((sp) => sp.id === spaceId);
   if (!space) throw new Error(`Espace inconnu « ${spaceId} »`);
   return space;
 };
@@ -112,9 +124,6 @@ export function replyRecipients(t: Thread): Contact[] {
   });
   return recipients.length ? recipients : [last.from];
 }
-
-/** Folders a provider is asked for: every real one. Favoris is a view over the flag. */
-const REAL_FOLDERS = FOLDERS.map((f) => f.id).filter((id) => id !== "starred");
 
 /**
  * Le tampon d'espace, posé à la réception.
@@ -146,18 +155,33 @@ const hydrate = (before: Thread, full: Thread): Thread => ({
   }),
 });
 
-/** One space's threads replaced by a fresh read, the other spaces untouched. */
-const replaceSpace = (threads: Thread[], spaceId: SpaceId, fresh: Thread[]) => {
+/**
+ * Le contenu d'**un dossier** remplacé par une lecture fraîche ; le reste ne
+ * bouge pas.
+ *
+ * Favoris fait exception : ce n'est pas un dossier mais une vue sur un
+ * drapeau, et ses fils vivent ailleurs. On les fond dans ce qu'on a plutôt que
+ * de remplacer une tranche qui n'existe pas — sans quoi ouvrir Favoris
+ * effacerait la réception.
+ */
+const replaceFolder = (threads: Thread[], spaceId: SpaceId, folder: FolderId, fresh: Thread[]) => {
   const seen = new Set<string>();
   const kept = fresh.filter((t) => (seen.has(t.id) ? false : (seen.add(t.id), true)));
-  return [...kept, ...threads.filter((t) => t.spaceId !== spaceId)];
+  const ids = new Set(kept.map((t) => t.id));
+  if (folder === "starred") {
+    return [...kept, ...threads.filter((t) => !ids.has(t.id))];
+  }
+  return [
+    ...kept,
+    ...threads.filter((t) => !ids.has(t.id) && !(t.spaceId === spaceId && t.folder === folder)),
+  ];
 };
 
 const describe = (err: unknown) => (err instanceof Error ? err.message : String(err));
 
 const isBlank = (d: ComposeDraft) => {
-  const signature = SPACES.find((sp) => sp.id === d.spaceId)?.signature ?? "";
-  const body = d.body.replace(`— ${signature}`, "").trim();
+  const signature = useMail.getState().spaces.find((sp) => sp.id === d.spaceId)?.signature ?? "";
+  const body = (signature ? d.body.replace(`— ${signature}`, "") : d.body).trim();
   return d.to.length === 0 && d.cc.length === 0 && d.bcc.length === 0 && !d.subject.trim() && !body;
 };
 
@@ -214,27 +238,30 @@ export const useMail = create<MailState>()(
   recent: { perso: [], pro: [], side: [] },
   compose: null,
   themes: {},
+  spaces: SPACES,
 
-  loadSpace: async (id) => {
+  loadSpace: async (id, folderId) => {
     const spaceId = id ?? get().spaceId;
+    const folder = folderId ?? get().folderId;
     const account = accountOf(spaceId);
     const token = (loadTokens.get(spaceId) ?? 0) + 1;
     loadTokens.set(spaceId, token);
     /* `loading` only while there is nothing to show: a refresh of a space we
        already have keeps the list on screen and swaps it when the read lands. */
-    if (!get().threads.some((t) => t.spaceId === spaceId))
+    if (!get().threads.some((t) => t.spaceId === spaceId && threadMatchesFolder(t, folder)))
       set((s) => ({ loading: { ...s.loading, [spaceId]: true } }));
     const done = (patch: Partial<MailState>) =>
       set((s) => ({ ...patch, loading: { ...s.loading, [spaceId]: false } }));
     try {
-      const provider = providerFor(account);
-      const perFolder = await Promise.all(
-        REAL_FOLDERS.map((folder) => provider.listThreads(account, { folder })),
-      );
+      /* Un seul dossier, celui qu'on regarde. Les six en parallèle, c'étaient
+         six connexions IMAP et six ouvertures de session pour afficher une
+         seule liste ; le reste arrive quand on y va. Le prix : les compteurs
+         de non-lus des autres dossiers attendent `listFolders`. */
+      const fresh = await providerFor(account).listThreads(account, { folder });
       /* Two reads of the same space can cross; only the latest one may land. */
       if (loadTokens.get(spaceId) !== token) return;
       set((s) => ({
-        threads: replaceSpace(s.threads, spaceId, stamp(spaceId, perFolder.flat())),
+        threads: replaceFolder(s.threads, spaceId, folder, stamp(spaceId, fresh)),
         loading: { ...s.loading, [spaceId]: false },
         error: null,
       }));
@@ -329,6 +356,16 @@ export const useMail = create<MailState>()(
   setUnreadOnly: (unreadOnly) => set({ unreadOnly }),
   setCommandOpen: (commandOpen) => set({ commandOpen }),
   setSidebarOpen: (sidebarOpen) => set({ sidebarOpen }),
+
+  setSpaces: (spaces) =>
+    set((s) => {
+      if (spaces.length === 0) return {};
+      /* L'espace retenu au dernier passage peut ne plus exister : « perso »
+         de la maquette n'est pas l'identifiant d'un compte. On retombe alors
+         sur le premier, sinon toute lecture lèverait « espace inconnu ». */
+      const spaceId = spaces.some((sp) => sp.id === s.spaceId) ? s.spaceId : spaces[0].id;
+      return { spaces, spaceId, threads: [], selectedThreadId: null };
+    }),
   toggleSidebarCollapsed: () => set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
   setPreview: (previewId) => set({ previewId }),
   toggleDark: () => set((s) => ({ dark: !s.dark })),
@@ -367,8 +404,10 @@ export const useMail = create<MailState>()(
   openCompose: (initial) =>
     set((s) => {
       const spaceId = initial?.spaceId ?? s.spaceId;
-      const signature = SPACES.find((sp) => sp.id === spaceId)?.signature ?? "";
-      const body = `\n\n— ${signature}${initial?.body ?? ""}`;
+      const signature = s.spaces.find((sp) => sp.id === spaceId)?.signature ?? "";
+      /* Pas de tiret orphelin quand le compte n'a pas de signature : un vrai
+         compte n'en a pas tant qu'on ne l'a pas demandée. */
+      const body = `\n\n${signature ? `— ${signature}` : ""}${initial?.body ?? ""}`;
       return {
         compose: { spaceId, to: [], cc: [], bcc: [], subject: "", ...initial, body },
         sidebarOpen: false,
@@ -570,7 +609,8 @@ export const selectLoading = (s: MailState) => s.loading[s.spaceId] === true;
 /** Every space with the colour the user gave it; memoised on the overrides. */
 export function useSpaces(): Space[] {
   const themes = useMail((s) => s.themes);
-  return useMemo(() => SPACES.map((sp) => resolveSpace(sp, themes[sp.id])), [themes]);
+  const spaces = useMail((s) => s.spaces);
+  return useMemo(() => spaces.map((sp) => resolveSpace(sp, themes[sp.id])), [spaces, themes]);
 }
 
 /** The current space, coloured as the user wants it. */
@@ -597,7 +637,7 @@ export function selectUnreadCount(s: MailState, spaceId: SpaceId, folderId: Fold
 
 /** Everyone we have exchanged with, for recipient suggestions. */
 export function selectContacts(threads: Thread[]): Contact[] {
-  const mine = new Set(SPACES.map((sp) => sp.identity.email));
+  const mine = new Set(useMail.getState().spaces.map((sp) => sp.identity.email));
   return [...contactBook(threads).values()]
     .filter((c) => !mine.has(c.email))
     .sort((a, b) => a.name.localeCompare(b.name, "fr"));

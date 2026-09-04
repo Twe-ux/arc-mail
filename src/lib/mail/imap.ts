@@ -245,6 +245,47 @@ export async function readFolder(
   }
 }
 
+/**
+ * Marquer lu, mettre en favori, déplacer.
+ *
+ * Le vocabulaire de l'app traduit en drapeaux IMAP, et c'est le seul endroit
+ * où cette traduction existe. Un déplacement change l'UID donc l'identifiant
+ * du fil : celui qu'on a en main devient périmé, et c'est la relecture du
+ * dossier qui rend les nouveaux — d'où le fait qu'on referme la conversation
+ * en la déplaçant.
+ */
+export async function writeThread(
+  client: ImapFlow,
+  id: string,
+  patch: { unread?: boolean; starred?: boolean; path?: string },
+): Promise<void> {
+  const parsed = parseThreadId(id);
+  if (!parsed) throw new Error(`Identifiant de conversation illisible : « ${id} »`);
+  const lock = await client.getMailboxLock(parsed.path);
+  try {
+    const range = [parsed.uid];
+    const uid = { uid: true } as const;
+
+    if (patch.unread !== undefined) {
+      const seen = ["\\Seen"];
+      if (patch.unread) await client.messageFlagsRemove(range, seen, uid);
+      else await client.messageFlagsAdd(range, seen, uid);
+    }
+    if (patch.starred !== undefined) {
+      const flagged = ["\\Flagged"];
+      if (patch.starred) await client.messageFlagsAdd(range, flagged, uid);
+      else await client.messageFlagsRemove(range, flagged, uid);
+    }
+    /* Le déplacement en dernier : après lui, l'UID de départ ne désigne plus
+       rien dans ce dossier, et les drapeaux n'auraient plus de cible. */
+    if (patch.path && patch.path !== parsed.path) {
+      await client.messageMove(range, patch.path, uid);
+    }
+  } finally {
+    lock.release();
+  }
+}
+
 /** Un message entier, corps et pièces jointes : ce que `readFolder` ne rapporte pas. */
 export async function readThread(
   client: ImapFlow,

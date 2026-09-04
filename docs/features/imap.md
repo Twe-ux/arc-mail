@@ -80,8 +80,23 @@ Un fournisseur rend des fils au `spaceId` vide et c'est le **store** qui les tam
 Un seul compte iCloud portera trois espaces — un par domaine — et le fournisseur n'a aucun moyen
 de savoir lequel demande.
 
+## Écrire : les drapeaux
+
+`modify` traduit le vocabulaire de l'app en drapeaux IMAP, et c'est le seul endroit où cette
+traduction existe : `unread` est `\Seen` inversé, `starred` est `\Flagged`, `folder` est un
+`MOVE`. **Le déplacement passe en dernier** : après lui, l'UID de départ ne désigne plus rien dans
+ce dossier et les drapeaux n'auraient plus de cible.
+
+Sans cela, chaque ouverture de message aurait produit un toast d'erreur — le store marque comme lu
+dès qu'on ouvre.
+
+**Un déplacement périme l'identifiant du fil** (l'UID change avec le dossier). Le fil déplacé garde
+donc un identifiant mort jusqu'à la relecture du dossier ; comme un déplacement referme aussi la
+conversation, on ne le voit pas. La correction propre est que `modify` rende le fil plutôt que
+`void` — c'est noté dans [À faire](../a-faire.md).
+
 ## Ce qui n'est pas branché
 
-`modify`, `send`, `saveDraft`, `deleteDraft` **lèvent** avec un message clair. Rendre `void` en
-silence serait pire : l'interface aurait déjà changé (écriture optimiste) et le serveur n'aurait
-rien appris. L'écriture IMAP et SMTP sont les étapes suivantes.
+`send`, `saveDraft`, `deleteDraft` **lèvent** avec un message clair. Rendre `void` en silence serait
+pire : l'interface aurait déjà changé (écriture optimiste) et le serveur n'aurait rien appris.
+SMTP est l'étape suivante.

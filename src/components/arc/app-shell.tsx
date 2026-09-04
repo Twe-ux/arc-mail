@@ -30,6 +30,7 @@ export function AppShell() {
   const selectedThreadId = useMail((s) => s.selectedThreadId);
   const selectThread = useMail((s) => s.selectThread);
   const spaceId = useMail((s) => s.spaceId);
+  const folderId = useMail((s) => s.folderId);
   const loadSpace = useMail((s) => s.loadSpace);
   const previewId = useMail((s) => s.previewId);
 
@@ -40,12 +41,13 @@ export function AppShell() {
     useMail.persist.rehydrate();
   }, []);
 
-  /* The mail itself comes from the space's provider, read on arrival and on
-     every switch — a switch back is also a refresh, and the list already on
-     screen stays until the new read replaces it. */
+  /* Le courrier vient du fournisseur de l'espace, lu à l'arrivée et à chaque
+     changement d'espace **ou de dossier** — une lecture ne rapporte plus que
+     le dossier regardé. Un retour est aussi un rafraîchissement, et la liste
+     déjà à l'écran reste jusqu'à ce que la nouvelle lecture la remplace. */
   useEffect(() => {
-    void loadSpace(spaceId);
-  }, [spaceId, loadSpace]);
+    void loadSpace(spaceId, folderId);
+  }, [spaceId, folderId, loadSpace]);
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", dark);

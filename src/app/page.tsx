@@ -1,7 +1,10 @@
 import { redirect } from "next/navigation";
 
 import { AppShell } from "@/components/arc/app-shell";
+import { SpacesInit } from "@/components/arc/spaces-init";
 import { SessionProvider, type Session } from "@/components/auth/session";
+import { listAccounts } from "@/lib/accounts/server";
+import { spacesFromAccounts } from "@/lib/accounts/spaces";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { currentUser } from "@/lib/supabase/server";
 
@@ -25,8 +28,15 @@ export default async function Home() {
     name: (user.user_metadata?.full_name as string | undefined) ?? null,
     avatar: (user.user_metadata?.avatar_url as string | undefined) ?? null,
   };
+
+  /* Les espaces suivent les boîtes branchées ; sans aucune, la maquette
+     reste, parce qu'une app vide est plus difficile à comprendre qu'une app
+     d'exemple. */
+  const spaces = spacesFromAccounts(await listAccounts());
+
   return (
     <SessionProvider session={session}>
+      {spaces && <SpacesInit spaces={spaces} />}
       <AppShell />
     </SessionProvider>
   );

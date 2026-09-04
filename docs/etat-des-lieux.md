@@ -45,9 +45,13 @@ est dans [À faire](a-faire.md).
 ## Vrai courrier
 
 Depuis le 4 septembre, une boîte IMAP se branche dans `/comptes` (adresse + mot de passe
-d'application, connexion vérifiée avant enregistrement) et se lit vraiment : dossiers découverts
-par SPECIAL-USE, messages regroupés en fils, corps chargé à l'ouverture. Ce qui manque pour le
-voir *dans la boîte* : des espaces issus des comptes branchés, au lieu des trois espaces mock.
+d'application, connexion vérifiée avant enregistrement) et **son courrier s'affiche dans la
+boîte** : un espace par compte, dossiers découverts par SPECIAL-USE, messages regroupés en fils,
+corps chargé à l'ouverture, lu / favori / déplacer écrits sur le serveur.
+
+Ce qui manque : l'envoi (SMTP), les compteurs de non-lus des dossiers non ouverts, la ligne
+d'aperçu dans la liste, et les espaces-vues (un dossier comme réception, une identité par domaine).
+Sans compte branché, l'app reste la maquette d'exemple.
 
 ## Ce qui n'existe pas encore
 

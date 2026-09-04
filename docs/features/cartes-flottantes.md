@@ -85,11 +85,25 @@ Le geste de fermeture par glissement : voir [Gestes](gestes.md).
 
 ## Clavier
 
-**Le clavier ne déplace jamais la carte.** `bottom` reste fixe, jamais `+ var(--keyboard-inset)` :
-faire remonter la feuille ET laisser iOS faire défiler la page pour révéler le champ, ce sont deux
-compensations pour un seul problème, et la feuille finit au milieu de l'écran (leçon de Kairos).
-Seul le conteneur défilant à l'intérieur (`ComposeFields`) reçoit
-`padding-bottom: var(--keyboard-inset)`, ce qui donne à iOS de quoi défiler *dedans*.
+**La carte occupe le rectangle qu'on voit**, pas celui que la page croit avoir :
+`top: var(--vv-top) + --safe-top + 8px`, `height: var(--vv-height) - --safe-top - 16px`.
+
+Ce n'est pas une compensation du clavier, c'est le contraire. Une carte `fixed` est posée dans le
+viewport de **mise en page** ; quand le clavier sort, le navigateur fait défiler le viewport
+**visuel** pour révéler le champ visé, et la carte part vers le haut — en-tête et destinataires
+hors de l'écran — sans qu'aucune de nos règles ne l'ait bougée. `--vv-top` et `--vv-height` sont ce
+rectangle visible ; s'y caler, c'est annuler ce défilement au lieu de lui en ajouter un.
+
+L'ancienne règle (« le clavier ne déplace jamais la carte, `bottom` reste fixe ») visait juste : y
+ajouter `+ var(--keyboard-inset)` faisait deux compensations pour un même problème et la feuille
+finissait au milieu de l'écran (leçon de Kairos). Mais elle supposait que le défilement d'iOS
+resterait dans le conteneur intérieur, et il n'y reste pas.
+
+**Sans `visualViewport`, rien ne change** : les valeurs de repli (`0px`, `100dvh`) redonnent
+exactement la carte d'avant.
+
+Le `padding-bottom: var(--keyboard-inset)` de `ComposeFields` a été **retiré** : la carte s'arrête
+maintenant au-dessus des touches, et ce coussin ne ferait plus que du vide sous le message.
 
 La recherche fait exception, voir [Recherche](recherche.md). Le calcul de `--keyboard-inset` est
 dans [PWA iOS](pwa-ios.md).

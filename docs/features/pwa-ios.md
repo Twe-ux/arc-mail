@@ -2,22 +2,16 @@
 
 ## Les icônes
 
-`scripts/icones.py` les dessine toutes depuis un seul master à 1024 (Pillow requis) :
-`src/app/favicon.ico`, `icon.png`, `apple-icon.png`, et les trois de `public/icons`. On ne les
-retouche pas à la main — on change le script et on relance.
+**La marque** : une enveloppe blanche au rabat en V, sur une tuile violette pleine. Ce sont les
+icônes d'origine (`src/app/icon.png`, `apple-icon.png`, les trois de `public/icons`) : le 4
+septembre elles avaient été redessinées sur le dégradé de Perso, avec un rabat creusé plutôt que
+tracé — le raisonnement tenait à 16 px, le résultat plaisait moins. On est revenu au dessin choisi.
 
-**La marque** : le dégradé de Perso, la signature de l'app (écran de connexion, fond de bureau),
-et une enveloppe blanche **dont le rabat est creusé, pas tracé**. Un rabat en trait fait un pixel
-et demi à 16 px et se confond avec le corps ; retiré du blanc, c'est le dégradé qui dessine le V —
-deux formes au lieu de trois, un contraste garanti, le même dessin à toutes les tailles.
-
-Le `.ico` **porte trois dessins**, pas un réduit trois fois : à 16 et 32 px la marque est agrandie
-et la tuile moins arrondie, sinon l'enveloppe se noie dans les coins. Pillow ne sait pas faire
-varier l'image par taille dans un `.ico`, le conteneur est donc assemblé à la main.
-
-Trois variantes de fond : tuile arrondie (onglet, PWA), **carré plein** pour Apple et pour le
-masquable — les deux posent leur propre masque — et la marque à 78 % pour le masquable, dont la
-zone sûre est les 80 % centraux.
+**Le favicon se dérive, il ne se dessine pas.** `scripts/favicon.py` réduit `icon-512.png` en un
+`.ico` de trois tailles : l'onglet montre la même marque que l'écran d'accueil, et un dessin à part
+finirait par diverger de celui qu'on voit. La marque est **rognée** à 16 et 32 px — donc agrandie —
+sinon l'enveloppe se perd dans la tuile. Pillow ne sait pas faire varier l'image par taille dans un
+`.ico` : le conteneur est assemblé à la main, un en-tête, un annuaire, trois PNG.
 
 Avant le 4 septembre, `favicon.ico` était encore **le triangle de Vercel** du gabarit de départ.
 
@@ -65,11 +59,27 @@ seulement** (enregistré par `PwaRegister`). En standalone, la barre d'état est
 
 ## Clavier
 
-`--keyboard-inset` (`KeyboardInset`) est l'écart entre les deux viewports (`innerHeight −
-visualViewport.height`), **sans `offsetTop`** : celui-ci dit le défilement fait pour révéler un
-champ, et le soustraire soulevait la carte du clavier *plus* ce défilement. Un seuil de 200 px
-écarte ce qui n'est pas un clavier. La classe `keyboard-open` va avec, pour qu'une carte
-abandonne ce qui ne sert pas pendant la saisie (la barre d'outils du composeur).
+`KeyboardInset` publie trois choses : `--keyboard-inset` (la hauteur du clavier), `--vv-top` et
+`--vv-height` (le rectangle que le navigateur montre vraiment).
+
+**Le clavier ne se mesure plus contre `window.innerHeight`.** C'était la méthode classique — le
+viewport de mise en page ne rétrécit pas, le visuel si, et l'écart est le clavier. Sauf que sur iOS
+récent, en app installée, le viewport de mise en page rétrécit *aussi* : l'écart tombe à zéro, on
+croit qu'il n'y a pas de clavier, et tout ce qui en dépend s'éteint. Le symptôme par lequel on l'a
+vu : la barre d'outils du composeur, qui doit disparaître pendant la saisie, restait affichée.
+
+On mesure donc contre **la plus grande hauteur visuelle observée** — celle sans clavier. Elle vaut
+dans les deux mondes, puisqu'elle ne compare que le viewport visuel à lui-même. Elle se remet à
+zéro à la rotation, sans quoi la hauteur en paysage passerait pour un clavier en portrait. Le seuil
+de 200 px écarte ce qui n'est pas un clavier.
+
+`--vv-top` est le défilement que le navigateur s'accorde pour révéler le champ visé. Une carte
+`fixed` est posée dans le viewport de mise en page ; ce défilement-là la fait glisser hors de
+l'écran sans qu'aucune règle ne l'ait bougée. Le composeur s'y cale — voir
+[Cartes flottantes](cartes-flottantes.md).
+
+La classe `keyboard-open` va avec, pour qu'une carte abandonne ce qui ne sert pas pendant la saisie
+(la barre d'outils du composeur).
 
 ## Le thème avant la première peinture
 

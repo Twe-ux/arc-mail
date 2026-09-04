@@ -65,7 +65,9 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - Jamais d'`overflow: hidden` sur `html`/`body`.
 - Le thème sombre est posé par le **script inline bloquant** de `layout.tsx`, avant la première
   peinture ; `color-scheme` est déclaré dans `globals.css`.
-- `--keyboard-inset` = écart entre les deux viewports, **sans `offsetTop`**, seuil 200 px.
+- `--keyboard-inset` se mesure contre la **plus grande hauteur visuelle vue**, jamais contre
+  `innerHeight` (qui rétrécit aussi en app installée) ; seuil 200 px, remis à zéro à la rotation.
+- Les icônes de l'app sont des fichiers choisis ; seul `scripts/favicon.py` en dérive le `.ico`.
 - Un écran figé sur iPhone : d'abord tirer la liste vers le bas, ensuite fermer complètement
   l'app ; bumper `VERSION` de `sw.js` ne suffit jamais seul.
 - On **mesure** en émulation (393×852, insets 59/34 en CDP) avant et après chaque correctif visuel.
@@ -78,7 +80,8 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - L'en-tête est hors du défilant ; la carte garde `pb-3` sous le défilant ; les listes s'effacent
   en bas (`mask-image`) avec `pb-6` dedans.
 - Une seule surface par carte (`Command` en `bg-transparent`).
-- **Le clavier ne déplace jamais la carte** ; seul `ComposeFields` prend le `padding-bottom`.
+- Le composeur occupe le **rectangle visible** (`--vv-top`, `--vv-height`), il ne compense pas le
+  clavier : c'est le défilement du navigateur qu'on annule, pas un décalage qu'on ajoute.
 - Pas de clic-en-dehors Radix ; la recherche a son bouton « Annuler » sur téléphone.
 
 **Gestes** → [docs/features/gestes.md](docs/features/gestes.md)

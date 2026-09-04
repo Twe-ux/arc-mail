@@ -89,17 +89,25 @@ function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
            could have caught. */
         onPointerDownOutside={(e) => e.preventDefault()}
         onInteractOutside={(e) => e.preventDefault()}
-        /* The box itself never moves for the keyboard — see the note on
-           `ComposeFields`'s scroll container below. Moving it here as well
-           fights iOS's own scroll-into-view and the card ends up mid-screen,
-           neither where the keyboard math nor the browser's own compensation
-           put it. */
-        /* One margin, not three: 8px left, right and bottom (`inset-x-2` /
-           `bottom-2`). Only the top still adds `--safe-top`, which is a real
-           obstruction (the notch) rather than a margin. Deriving the bottom
-           from the safe area put it at 34px against 8px on the sides — the
-           card read as floating instead of resting. */
-        className="inset-x-2 top-[calc(var(--safe-top)+0.5rem)] bottom-2 flex h-auto w-auto max-w-none flex-col gap-0 rounded-[36px] border-0 p-0 shadow-2xl transition-none dark:bg-[#26262a] dark:ring-1 dark:ring-white/12"
+        /* **La carte occupe le rectangle qu'on voit**, pas celui que la page
+           croit avoir. Une carte `fixed` est posée dans le viewport de mise en
+           page ; quand le clavier sort, le navigateur fait glisser le viewport
+           visuel pour révéler le champ visé, et la carte part vers le haut —
+           l'en-tête et les destinataires hors de l'écran — sans qu'aucune de
+           nos règles ne l'ait bougée.
+
+           On ne compense donc pas le clavier (deux compensations pour un même
+           problème, et la feuille finit au milieu : leçon de Kairos) : on se
+           cale sur ce que le navigateur montre. `--vv-top` et `--vv-height`
+           sont ce rectangle ; sans eux — premier rendu, pas de
+           `visualViewport` — les valeurs de repli redonnent exactement la
+           carte d'avant. */
+        /* One margin, not three: 8px left, right and bottom (`inset-x-2`).
+           Only the top still adds `--safe-top`, qui reste l'encoche même quand
+           le viewport visuel a défilé : elle obstrue l'écran, pas la page.
+           Deriving the bottom from the safe area put it at 34px against 8px on
+           the sides — the card read as floating instead of resting. */
+        className="inset-x-2 top-[calc(var(--vv-top,0px)+var(--safe-top)+0.5rem)] h-[calc(var(--vv-height,100dvh)-var(--safe-top)-1rem)] flex w-auto max-w-none flex-col gap-0 rounded-[36px] border-0 p-0 shadow-2xl transition-none dark:bg-[#26262a] dark:ring-1 dark:ring-white/12"
       >
         <header className="flex h-14 shrink-0 items-center px-3">
           {/* « Fermer », not « Annuler »: closing keeps the text as a draft,
@@ -339,11 +347,10 @@ function ComposeFields({
 
   return (
     <div
+      /* Plus de `padding-bottom` pour le clavier : la carte s'arrête
+         maintenant au-dessus des touches, et ce coussin ne ferait plus que du
+         vide sous le message. Ce qui dépasse défile ici, comme avant. */
       className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain"
-      /* Room to scroll the focused field clear of the keyboard, inside this
-         box — the box's own position stays put, so iOS scrolls *here* rather
-         than moving the page (which would drag the fixed card along with it). */
-      style={{ paddingBottom: "var(--keyboard-inset, 0px)" }}
     >
       <RecipientField
         label="À"

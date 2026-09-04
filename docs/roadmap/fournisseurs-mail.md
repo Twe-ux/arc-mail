@@ -146,13 +146,15 @@ dans les variables d'environnement — si l'app est partagée, l'autre personne 
 faire seule. Ça retire la « v1 par env » du plan et impose l'ordre : d'abord savoir *qui* est
 connecté, ensuite ranger *ses* comptes, enfin les lire.
 
-- **Authentification de l'app** : Auth.js (NextAuth v5), session en cookie, connexion Google
-  (qui servira aussi à autoriser Gmail plus tard). Liste blanche `ALLOWED_EMAILS` tant que l'app
-  est privée ; à retirer le jour où elle s'ouvre.
-- **Stockage** : une table `accounts` (Neon Postgres via Vercel — deux clics, `DATABASE_URL`),
-  quelques lignes par utilisateur : sorte, adresse, hôte/port, identité, et le secret chiffré
-  **AES-256-GCM** avec une clé serveur `ACCOUNTS_KEY` (jamais le secret en clair, jamais côté
-  client). Drizzle pour le schéma et les migrations.
+- **Authentification de l'app** : **Supabase Auth** (décidé le 4 sept.), session en cookie via
+  `@supabase/ssr`. Supabase apporte Postgres *et* l'authentification d'un seul coup : plus besoin
+  d'Auth.js ni d'un adaptateur de base. La liste blanche devient une politique RLS, ou rien du
+  tout tant que l'app n'est ouverte qu'à soi.
+- **Stockage** : deux tables — `accounts` (lisible par son propriétaire) et `account_secrets`
+  (RLS **sans politique** : serveur seulement). Le mot de passe d'application y arrive chiffré en
+  **AES-256-GCM**, lié à sa ligne par l'AAD, clé `ACCOUNTS_KEY` dans Vercel. Migrations SQL dans
+  `supabase/migrations/`, appliquées par l'intégration GitHub de Supabase à la fusion sur `main`.
+  → [fiche](../features/comptes-et-secrets.md)
 - **Écran « Ajouter un compte »** : iCloud (adresse + mot de passe d'application, avec le lien
   vers account.apple.com et une vérification IMAP immédiate avant d'enregistrer), Google (bouton
   OAuth), IMAP générique (hôte, port, SSL). Modifier, retirer.
@@ -162,30 +164,31 @@ connecté, ensuite ranger *ses* comptes, enfin les lire.
 | # | Étape | Ce qu'on voit à la fin | Effort |
 |---|---|---|---|
 | 1 | `MailProvider` + `MockProvider`, store asynchrone | **Fait** — rien ne change, tout passe par l'interface | ½ jour |
-| 2 | Auth.js, connexion Google, liste blanche | Une page de connexion ; l'app est privée | ½–1 jour |
+| 2 | Supabase Auth : clients, proxy de session, page de connexion | Une page de connexion ; l'app est privée | ½ jour |
 | 3 | Table `accounts` chiffrée + écran « Ajouter un compte » (iCloud d'abord) | On saisit son adresse et son mot de passe d'application **dans l'app** | 1 jour |
 | 4 | `ImapProvider` (imapflow/mailparser) sur le compte stocké | **Tes vrais mails iCloud dans l'app**, lecture + drapeaux | 1–2 jours |
 | 5 | Espaces-vues : dossier-comme-réception + identité | Tes deux domaines comme espaces, écrire depuis la bonne adresse | 1 jour |
 | 6 | Envoi SMTP (`nodemailer`), brouillons, déplacements | Répondre / écrire pour de vrai | ½–1 jour |
-| 7 | `GmailProvider` (googleapis, sur la connexion Google de l'étape 2) | Un espace Gmail à côté des espaces iCloud | 1 jour |
+| 7 | `GmailProvider` (googleapis, sur un jeton Google obtenu par Supabase) | Un espace Gmail à côté des espaces iCloud | 1 jour |
 
-La connexion Google revient donc en étape 2 — non pas pour lire Gmail tout de suite, mais parce
-qu'il faut une identité avant de ranger un compte, et que c'est la porte la plus simple à ouvrir
-pour quelqu'un à qui on partage l'app. Gmail lui-même attend l'étape 7 : iCloud reste ce qui
-compte, et le fournisseur IMAP servira à n'importe quel autre compte.
+L'identité vient donc en étape 2 — non pas pour lire Gmail tout de suite, mais parce qu'il faut
+savoir *qui* est connecté avant de ranger *ses* comptes. Gmail lui-même attend l'étape 7 : iCloud
+reste ce qui compte, et le fournisseur IMAP servira à n'importe quel autre compte. Le jour venu,
+Gmail demandera un client OAuth Google déclaré **dans Supabase**, et le jeton se récupère par
+`provider_token` — c'est le seul point à surveiller dans le choix de Supabase.
 
 ## 4. Ce dont j'ai besoin de toi
 
 Rien qui soit un secret de messagerie : le mot de passe d'application, tu le saisiras dans l'app
 à l'étape 3, il ne passe ni par moi ni par l'environnement.
 
-- **Étape 2** : un client OAuth Google (console Google Cloud → identifiants → client « application
-  web », URI de redirection `https://<ton-domaine>/api/auth/callback/google` et
-  `http://localhost:3000/api/auth/callback/google`) → `GOOGLE_CLIENT_ID` et
-  `GOOGLE_CLIENT_SECRET` dans Vercel. Je te guide pas à pas, dix minutes. `AUTH_SECRET`, je le
-  génère.
-- **Étape 3** : une base Neon Postgres créée depuis l'onglet Storage de Vercel (deux clics), qui
-  pose `DATABASE_URL` toute seule. `ACCOUNTS_KEY`, je la génère.
+- **Étape 2** : un projet Supabase (fait), son **intégration Vercel** installée — elle pose
+  `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` et `SUPABASE_SERVICE_ROLE_KEY`
+  toutes seules et les tient à jour — et le choix de la méthode de connexion (lien par e-mail,
+  Google, GitHub). Aucune clé à me transmettre.
+- **Étape 3** : `ACCOUNTS_KEY` posée à la main dans Vercel (`openssl rand -base64 32`), et
+  l'**intégration GitHub** de Supabase activée avec `.` comme répertoire de travail, pour que
+  `supabase/migrations/` s'applique à la fusion sur `main`.
 - **Étapes 4–5** : les adresses (compte `@me.com`/`@icloud.com` et les deux du domaine) et les
   noms exacts des dossiers où tes règles rangent chaque domaine — pour préparer les trois espaces.
 

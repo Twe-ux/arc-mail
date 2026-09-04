@@ -49,6 +49,19 @@ export function AppShell() {
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", dark);
+    /* La barre de titre de la fenêtre suit le thème. Le script du layout a
+       posé cette balise en tête du `<head>` : la première `theme-color` dont
+       le média correspond gagne, et une balise sans média placée en premier
+       gagne toujours — c'est ce qui la fait primer sur les deux replis
+       `prefers-color-scheme` de `viewport`. */
+    let meta = document.getElementById("theme-color");
+    if (!meta) {
+      meta = document.createElement("meta");
+      meta.id = "theme-color";
+      meta.setAttribute("name", "theme-color");
+      document.head.prepend(meta);
+    }
+    meta.setAttribute("content", dark ? "#0f0f0f" : "#ffffff");
   }, [dark]);
 
   // Dialogs portal to <body>, outside the shell: give them the space colour too.

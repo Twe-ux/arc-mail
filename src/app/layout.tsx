@@ -6,6 +6,18 @@ import "./globals.css";
 
 const APP_NAME = "Arc Mail";
 
+/**
+ * Le fond de page, en hexadécimal, pour la barre de titre de la fenêtre.
+ *
+ * En fenêtre (PWA installée sur macOS, onglet Android), le navigateur peint le
+ * bandeau du haut avec `theme-color`. Il valait `#6d28d9` — un violet qui
+ * n'était ni l'accent d'un espace ni un arrêt de son dégradé, et qui restait
+ * violet au-dessus d'une app en thème sombre. Ce sont maintenant les deux
+ * fonds de `globals.css` : `oklch(1 0 0)` et `oklch(0.17 0 0)`, convertis.
+ */
+const PAGE_LIGHT = "#ffffff";
+const PAGE_DARK = "#0f0f0f";
+
 export const metadata: Metadata = {
   title: APP_NAME,
   applicationName: APP_NAME,
@@ -20,7 +32,14 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#6d28d9",
+  /* Le repli avant que le script ci-dessous ait parlé : la préférence du
+     système. Le thème de l'app est une classe, pas `prefers-color-scheme`,
+     donc c'est le script qui tranche — mais si le JS ne tourne pas, ceci
+     reste plus juste qu'une couleur fixe. */
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: PAGE_LIGHT },
+    { media: "(prefers-color-scheme: dark)", color: PAGE_DARK },
+  ],
   viewportFit: "cover",
   width: "device-width",
   initialScale: 1,
@@ -38,7 +57,7 @@ export const viewport: Viewport = {
  * `colorScheme` goes with it, so the canvas the browser paints around us during
  * the navigation is dark too, not just our own background.
  */
-const THEME_SCRIPT = `try{var s=localStorage.getItem("arc-mail");var d=!!(s&&JSON.parse(s).state&&JSON.parse(s).state.dark);var e=document.documentElement;if(d)e.classList.add("dark");e.style.colorScheme=d?"dark":"light"}catch(_){}`;
+const THEME_SCRIPT = `try{var s=localStorage.getItem("arc-mail");var d=!!(s&&JSON.parse(s).state&&JSON.parse(s).state.dark);var e=document.documentElement;if(d)e.classList.add("dark");e.style.colorScheme=d?"dark":"light";var m=document.createElement("meta");m.name="theme-color";m.id="theme-color";m.content=d?"${PAGE_DARK}":"${PAGE_LIGHT}";document.head.prepend(m)}catch(_){}`;
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (

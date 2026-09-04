@@ -1,5 +1,31 @@
 # PWA sur iPhone
 
+## La barre de titre de la fenêtre (`theme-color`)
+
+En fenêtre — PWA installée sur macOS, onglet Android — le navigateur peint le bandeau du haut avec
+`theme-color`. Il valait `#6d28d9`, un violet qui n'était **ni l'accent d'un espace ni un arrêt de
+son dégradé**, et qui restait violet au-dessus d'une app en thème sombre.
+
+Ce sont maintenant les deux fonds de page de `globals.css` : `#ffffff` (`oklch(1 0 0)`) et
+`#0f0f0f` (`oklch(0.17 0 0)`). Le thème d'Arc Mail étant une **classe** et non
+`prefers-color-scheme`, la couleur ne peut pas venir d'un média :
+
+- `viewport.themeColor` déclare les deux replis `prefers-color-scheme`, pour le cas où le script
+  ne tourne pas ;
+- le **script bloquant** de `layout.tsx` insère `<meta name="theme-color" id="theme-color">` **en
+  tête du `<head>`**, avec la couleur du thème stocké ;
+- `AppShell` met cette même balise à jour quand on bascule.
+
+**Pourquoi en tête** : le navigateur retient la *première* `theme-color` dont le média correspond ;
+une balise sans média placée en premier gagne donc toujours. Vérifié en émulation, cas croisés
+compris — système clair + thème stocké sombre donne `#0f0f0f`, et l'inverse `#ffffff`.
+
+Le manifeste garde des couleurs neutres (`#ffffff`) pour l'écran de lancement ; le document prend
+le relais dès le premier rendu.
+
+---
+
+
 `src/app/manifest.ts`, icônes dans `public/icons`, service worker `public/sw.js` **en production
 seulement** (enregistré par `PwaRegister`). En standalone, la barre d'état est
 `black-translucent` et `viewportFit: cover`.

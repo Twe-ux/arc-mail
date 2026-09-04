@@ -8,9 +8,11 @@ Voir [Fournisseurs de mail](roadmap/fournisseurs-mail.md) pour le plan complet e
 
 - [x] Interface `MailProvider` ; le mock en est la première implémentation, le store lit et
       écrit par lui (4 sept.)
-- [ ] Authentification de l'app (Auth.js, connexion Google, liste blanche)
-- [ ] Table `accounts` chiffrée + écran « Ajouter un compte » — le mot de passe d'application se
-      saisit **dans l'app**, jamais dans l'environnement
+- [x] Ossature Supabase : clients navigateur/serveur, proxy de session, migration SQL des deux
+      tables, coffre AES-256-GCM (4 sept.)
+- [ ] Page de connexion et garde des routes (méthode à choisir : lien e-mail, Google, GitHub)
+- [ ] Écran « Ajouter un compte » — le mot de passe d'application se saisit **dans l'app**,
+      jamais dans l'environnement (le schéma et le coffre existent)
 - [ ] Fournisseur IMAP/SMTP (`imapflow` + `mailparser` + `nodemailer`) sur le compte stocké,
       testé sur iCloud
 - [ ] Espaces comme *vues* : un dossier vu et vécu comme une boîte de réception, une identité

@@ -10,8 +10,11 @@ export default function manifest(): MetadataRoute.Manifest {
     scope: "/",
     display: "standalone",
     orientation: "portrait",
-    background_color: "#6d28d9",
-    theme_color: "#6d28d9",
+    /* Neutres, comme la barre de titre : le violet n'était dérivé de rien et
+       jurait dès que l'app passait en sombre. Le `<meta>` du document prend
+       le relais dès le premier rendu (voir `layout.tsx`). */
+    background_color: "#ffffff",
+    theme_color: "#ffffff",
     icons: [
       { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
       { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },

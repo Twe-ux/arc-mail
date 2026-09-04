@@ -7,38 +7,51 @@ import { supabaseBrowser } from "@/lib/supabase/client";
 /**
  * Une carte posée sur le dégradé de Perso, et deux façons d'entrer.
  *
- * Pas de champ, pas de mot de passe : ce sont Google ou Apple qui identifient,
- * et le mot de passe qui compte ici — celui de la boîte mail — se saisira plus
- * tard, dans l'app, une fois qu'on saura à qui il appartient.
+ * Pas de mot de passe : Google identifie, ou un lien envoyé à une adresse. Le
+ * mot de passe qui compte ici — celui de la boîte mail — se saisira plus tard,
+ * dans l'app, une fois qu'on saura à qui il appartient.
  *
- * **Deux, parce qu'entrer avec Google puis brancher une boîte iCloud fait deux
- * identités pour une seule personne.** Qui n'a qu'Apple entre par Apple, et
- * l'app lui proposera sa boîte iCloud ; qui n'a que Google fait l'inverse.
- * L'identité d'entrée n'ouvre aucune boîte — elle dit seulement à qui les
- * comptes rangés appartiennent — mais c'est elle qu'on propose en premier
- * dans `/comptes`, et proposer la bonne épargne un champ.
+ * **Pourquoi un lien plutôt qu'un second fournisseur.** « Se connecter avec
+ * Apple » demande le programme développeur payant, et n'ouvrirait aucune boîte
+ * de plus : l'identité d'entrée dit seulement à qui appartiennent les comptes
+ * rangés. Un lien par e-mail rend le même service — entrer sans compte Google
+ * — pour n'importe quelle adresse, `@icloud.com` comprise, et sans rien à
+ * configurer.
  */
-export function SignIn() {
-  const [pending, setPending] = useState<Fournisseur | null>(null);
-  const [error, setError] = useState<string | null>(null);
+export function SignIn({ erreur = null }: { erreur?: string | null }) {
+  const [pending, setPending] = useState<"google" | "lien" | null>(null);
+  const [envoye, setEnvoye] = useState<string | null>(null);
+  /* Ce que le retour rapporte est un message de Supabase, pas une phrase :
+     il passe par la même traduction que les erreurs d'ici. */
+  const [error, setError] = useState<string | null>(erreur ? lisible(erreur) : null);
 
-  const go = (provider: Fournisseur) => async () => {
-    setPending(provider);
+  const redirectTo = () => `${window.location.origin}/auth/callback`;
+
+  const google = async () => {
+    setPending("google");
     setError(null);
     const { error } = await supabaseBrowser().auth.signInWithOAuth({
-      provider,
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
+      provider: "google",
+      options: { redirectTo: redirectTo() },
     });
     if (error) {
-      /* Un fournisseur non activé dans Supabase répond « Unsupported
-         provider », ce qui ne dit pas où aller le régler. */
-      setError(
-        /unsupported provider|not enabled/i.test(error.message)
-          ? `La connexion ${NOMS[provider]} n'est pas activée : Supabase → Authentication → Providers → ${NOMS[provider]}.`
-          : error.message,
-      );
+      setError(lisible(error.message));
       setPending(null);
     }
+  };
+
+  const lien = async (form: FormData) => {
+    const email = (form.get("email") ?? "").toString().trim().toLowerCase();
+    if (!email) return;
+    setPending("lien");
+    setError(null);
+    const { error } = await supabaseBrowser().auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: redirectTo() },
+    });
+    setPending(null);
+    if (error) setError(lisible(error.message));
+    else setEnvoye(email);
   };
 
   return (
@@ -51,30 +64,63 @@ export function SignIn() {
           Connecte-toi pour retrouver tes espaces et tes comptes de messagerie.
         </p>
 
-        <div className="mt-6 flex flex-col gap-2">
-          <button
-            type="button"
-            onClick={go("google")}
-            disabled={pending !== null}
-            className={BOUTON}
-          >
-            <GoogleMark />
-            {pending === "google" ? "Ouverture…" : "Continuer avec Google"}
-          </button>
-          <button
-            type="button"
-            onClick={go("apple")}
-            disabled={pending !== null}
-            className={BOUTON}
-          >
-            <AppleMark />
-            {pending === "apple" ? "Ouverture…" : "Continuer avec Apple"}
-          </button>
-        </div>
+        {envoye ? (
+          /* Ce qui compte après l'envoi : où regarder, et dans quel navigateur
+             ouvrir. Le lien porte un code qui ne se vérifie qu'ici. */
+          <div className="mt-6">
+            <p className="rounded-xl bg-emerald-500/10 px-3.5 py-3 text-[13px] leading-relaxed text-emerald-700 dark:text-emerald-400">
+              Un lien vient de partir vers <span className="font-semibold">{envoye}</span>.
+              Ouvre-le <span className="font-semibold">depuis ce navigateur</span> : il se vérifie
+              là où il a été demandé.
+            </p>
+            <button
+              type="button"
+              onClick={() => setEnvoye(null)}
+              className="mt-3 text-[13px] font-medium text-muted-foreground underline underline-offset-2 hover:text-foreground"
+            >
+              Changer d&apos;adresse
+            </button>
+          </div>
+        ) : (
+          <>
+            <button type="button" onClick={google} disabled={pending !== null} className={`mt-6 ${BOUTON}`}>
+              <GoogleMark />
+              {pending === "google" ? "Ouverture…" : "Continuer avec Google"}
+            </button>
+
+            {/* Un « ou » qui sépare vraiment : sans le trait, les deux moyens se
+                lisent comme une suite d'étapes. */}
+            <div className="my-4 flex items-center gap-3">
+              <span className="h-px flex-1 bg-border" />
+              <span className="text-xs text-muted-foreground">ou</span>
+              <span className="h-px flex-1 bg-border" />
+            </div>
+
+            <form action={lien} className="flex flex-col gap-2">
+              <input
+                name="email"
+                type="email"
+                required
+                autoComplete="email"
+                placeholder="prenom@icloud.com"
+                aria-label="Ton adresse e-mail"
+                /* 16px : en dessous, iOS zoome sur le champ à la mise au point. */
+                className="h-11 rounded-xl bg-muted/60 px-3.5 text-base outline-none ring-1 ring-transparent focus-visible:ring-ring/50 dark:bg-white/[0.07]"
+              />
+              <button
+                type="submit"
+                disabled={pending !== null}
+                className="flex h-11 w-full items-center justify-center rounded-xl bg-muted text-[15px] font-semibold transition-[opacity,transform] ease-out active:scale-[0.98] active:duration-0 disabled:opacity-50 dark:bg-white/[0.12]"
+              >
+                {pending === "lien" ? "Envoi…" : "Recevoir un lien de connexion"}
+              </button>
+            </form>
+          </>
+        )}
 
         {error && (
           <p role="alert" className="mt-3 rounded-lg bg-destructive/10 px-3 py-2 text-[13px] text-destructive">
-            La connexion a échoué : {error}
+            {error}
           </p>
         )}
 
@@ -87,23 +133,35 @@ export function SignIn() {
   );
 }
 
-type Fournisseur = "google" | "apple";
-
-const NOMS: Record<Fournisseur, string> = { google: "Google", apple: "Apple" };
-
-/* Les deux boutons ont le même poids : ni l'un ni l'autre n'est « la bonne »
-   façon d'entrer, et en habiller un en secondaire ferait croire le contraire. */
 const BOUTON =
   "flex h-11 w-full items-center justify-center gap-3 rounded-xl bg-foreground text-[15px] font-semibold text-background transition-[opacity,transform] ease-out active:scale-[0.98] active:duration-0 disabled:opacity-50";
 
-/* La pomme, en un chemin : la marque, comme le G, ne se remplace pas par une
-   icône en trait. */
-function AppleMark() {
-  return (
-    <svg viewBox="0 0 24 24" className="size-5 shrink-0" fill="currentColor" aria-hidden>
-      <path d="M16.36 12.79c.02-2.2 1.8-3.26 1.88-3.31-1.03-1.5-2.62-1.71-3.19-1.73-1.36-.14-2.65.8-3.34.8-.69 0-1.75-.78-2.87-.76-1.48.02-2.84.86-3.6 2.18-1.53 2.66-.39 6.6 1.1 8.76.73 1.06 1.6 2.25 2.75 2.2 1.1-.04 1.52-.71 2.85-.71s1.71.71 2.88.69c1.19-.02 1.94-1.08 2.67-2.14.84-1.23 1.19-2.42 1.21-2.48-.03-.01-2.32-.89-2.34-3.5zM14.2 5.98c.6-.74 1.01-1.76.9-2.78-.87.04-1.93.58-2.56 1.31-.56.65-1.05 1.69-.92 2.69.97.07 1.97-.49 2.58-1.22z" />
-    </svg>
-  );
+/**
+ * Les messages de Supabase, en français et actionnables.
+ *
+ * « For security purposes, you can only request this after 51 seconds » est
+ * juste mais illisible au moment où on le lit ; et « Signups not allowed » ne
+ * dit pas que c'est un réglage du projet.
+ */
+function lisible(message: string): string {
+  const secondes = message.match(/after (\d+) seconds?/i)?.[1];
+  if (secondes) return `Un lien vient déjà de partir : attends ${secondes} s avant d'en redemander un.`;
+  if (/signups? not allowed|disabled/i.test(message)) {
+    return "Ce projet n'accepte pas de nouvelles inscriptions (Supabase → Authentication → Providers → Email).";
+  }
+  if (/code verifier|code challenge|both auth code/i.test(message)) {
+    return "Ce lien a été demandé depuis un autre navigateur — il ne s'ouvre que là. Redemandes-en un ici.";
+  }
+  if (/expired|invalid|otp/i.test(message)) {
+    return "Ce lien a expiré ou a déjà servi. Redemandes-en un.";
+  }
+  if (/rate limit/i.test(message)) {
+    return "Trop d'envois pour l'instant. L'expéditeur par défaut de Supabase est limité à quelques mails par heure ; un SMTP à toi lève la limite.";
+  }
+  if (/unsupported provider|not enabled/i.test(message)) {
+    return "Cette façon de se connecter n'est pas activée : Supabase → Authentication → Providers.";
+  }
+  return `La connexion a échoué : ${message}`;
 }
 
 /* Le G officiel, en quatre chemins : une icône Lucide en trait ne ressemblerait

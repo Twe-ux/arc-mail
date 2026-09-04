@@ -125,9 +125,11 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - AES-256-GCM lié à la ligne (`userId:accountId` en AAD) ; `ACCOUNTS_KEY` dans Vercel, jamais ici.
 - Toujours `getUser()`, jamais `getSession()` ; `src/proxy.ts` rafraîchit et redirige de façon
   optimiste, la garde qui compte est dans `page.tsx` puis les politiques RLS.
-- Connexion par Google **ou Apple** ; le retour OAuth est un route handler (seul endroit qui peut
-  écrire un cookie avec les Server Actions), et son `next` est vérifié. L'identité d'entrée n'ouvre
-  aucune boîte : elle sert à proposer la première dans `/comptes`.
+- Connexion par Google **ou par un lien envoyé à une adresse** ; le retour est un route handler
+  (seul endroit qui peut écrire un cookie avec les Server Actions), son `next` est vérifié, et il
+  accepte `code` (PKCE, même navigateur) comme `token_hash` (n'importe où). L'identité d'entrée
+  n'ouvre aucune boîte : elle sert à proposer la première dans `/comptes`.
+- Une erreur de retour se lit : `/connexion` rend `?erreur=` traduit, jamais une porte muette.
 - iCloud, Gmail et « Autre » : les hôtes sont posés par le formulaire, jamais tapés. Gmail passe par
   IMAP avec un mot de passe d'application, pas par son API.
 - Sans `NEXT_PUBLIC_SUPABASE_*`, l'app reste la maquette ouverte d'aujourd'hui.

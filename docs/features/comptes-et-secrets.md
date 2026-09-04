@@ -22,19 +22,38 @@ Le navigateur ne peut donc pas lire un secret, même chiffré, même le sien. C'
 la séparation : sans elle, une faille XSS rendrait le blob, et un blob volé est un blob qu'on a le
 temps d'attaquer.
 
-## Entrer par Google ou par Apple
+## Entrer par Google, ou par un lien
 
-Deux portes, du même poids. Entrer avec Google puis brancher une boîte iCloud fait deux identités
-pour une seule personne ; qui n'a qu'Apple doit pouvoir entrer par Apple.
+Deux portes. Google, et un lien envoyé à une adresse — n'importe laquelle, `@icloud.com` comprise.
 
 **L'identité d'entrée n'ouvre aucune boîte.** Elle dit seulement à qui appartiennent les comptes
 rangés. Mais c'est elle qu'on propose en premier dans `/comptes` : l'adresse est connue, son
 fournisseur se déduit du domaine, et il ne reste qu'un champ à remplir — le mot de passe
 d'application.
 
-Apple demande d'activer le fournisseur dans Supabase (Authentication → Providers → Apple, avec un
-Services ID et une clé du programme développeur). Tant que ce n'est pas fait, le bouton le dit :
-« Unsupported provider » ne disait pas où aller le régler.
+**Pourquoi pas « Se connecter avec Apple ».** Il faut un Services ID et une clé, donc le programme
+développeur payant (99 €/an), pour un résultat strictement identique : entrer sans compte Google.
+Le lien rend le même service, gratuitement, et couvre aussi qui n'a ni l'un ni l'autre.
+
+### Ce qu'un lien rapporte, et où il s'ouvre
+
+| Ce que porte le retour | Se vérifie | D'où il vient |
+|---|---|---|
+| `code` (PKCE) | **dans le navigateur qui l'a demandé** — le vérificateur y est resté | Google, et le lien par défaut |
+| `token_hash` | côté serveur, donc n'importe où | le gabarit d'e-mail avec `{{ .TokenHash }}` |
+
+La route accepte les deux. Par défaut un lien ouvert sur le téléphone alors qu'il a été demandé sur
+le bureau **échoue** — l'écran le dit en toutes lettres au lieu de laisser un « invalid request ».
+Pour qu'il traverse les appareils, il faut pointer le gabarit d'e-mail de Supabase vers
+`{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=email`.
+
+L'expéditeur par défaut de Supabase est limité à quelques mails par heure : au-delà, un SMTP à soi
+(Authentication → Emails → SMTP) lève la limite. Celui d'iCloud fait l'affaire, avec le même mot de
+passe d'application que la boîte.
+
+**Le retour dit ce qui a raté.** `?erreur=` était renvoyé par la route et lu par personne : un lien
+périmé ramenait à une porte muette. Les messages de Supabase sont traduits en une phrase qui dit
+quoi faire — redemander un lien, attendre, ou aller activer quelque chose.
 
 ## Trois façons de brancher une boîte
 

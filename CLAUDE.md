@@ -114,6 +114,12 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - `url` absente = rien à montrer, l'aperçu le dit ; sur bureau le volet prend la place de la liste ;
   un sélecteur qui construit un objet doit être memoïsé (`usePreview`).
 
+**Comptes et secrets** → [docs/features/comptes-et-secrets.md](docs/features/comptes-et-secrets.md)
+- Les secrets vivent dans `account_secrets`, une table RLS **sans politique** : serveur seulement.
+- AES-256-GCM lié à la ligne (`userId:accountId` en AAD) ; `ACCOUNTS_KEY` dans Vercel, jamais ici.
+- Toujours `getUser()`, jamais `getSession()` ; `src/proxy.ts` rafraîchit, il n'autorise pas.
+- Sans `NEXT_PUBLIC_SUPABASE_*`, l'app reste la maquette ouverte d'aujourd'hui.
+
 **Recherche** → [docs/features/recherche.md](docs/features/recherche.md)
 
 ## Où on en est, où on va

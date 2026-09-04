@@ -1010,5 +1010,7 @@ Documentées, pas lissées — à trancher dans les fiches avant de toucher au c
     pilule) et trois opacités de désactivé (0.30 / 0.35 / 0.40 / 0.50 pour la primitive).
 14. **Section headings :** 13 px `tracking-wide` dans le menu téléphone, 11 px `tracking-wider`
     dans la sidebar, 12 px sans capitales dans cmdk.
-15. **Le manifeste PWA (`#6d28d9`) n'est ni l'accent ni un arrêt du dégradé de Perso**
-    (`#7c3aed` / `#a855f7`) — un violet voisin, non dérivé.
+15. ~~**Le manifeste PWA (`#6d28d9`) n'est ni l'accent ni un arrêt du dégradé de Perso**
+    (`#7c3aed` / `#a855f7`) — un violet voisin, non dérivé.~~ **Corrigé le 4 sept.** :
+    `theme-color` suit le thème (`#ffffff` / `#0f0f0f`, les deux fonds de page) et le manifeste est
+    neutre — voir `docs/features/pwa-ios.md`.

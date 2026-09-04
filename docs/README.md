@@ -20,6 +20,7 @@ l'état du projet et ce qui reste à faire.
 - [Recherche ⌘K](features/recherche.md) — la barre de commande
 - [Répondre](features/reponse.md) — à qui part la réponse, et comment la viser
 - [Pièces jointes](features/pieces-jointes.md) — le modèle, les puces, le volet d'aperçu
+- [Comptes et secrets](features/comptes-et-secrets.md) — Supabase, les deux tables, le chiffrement
 - [Données mock](features/donnees-mock.md) — le jeu de données et ses règles
 
 ## Audits

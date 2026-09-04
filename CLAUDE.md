@@ -35,6 +35,10 @@ d'Arc (espaces colorés, sidebar translucide, favoris épinglés, onglets « Auj
   message qui raconte la cause et la vérification.
 - Branches : on développe sur `preview`, on avance `main` en fast-forward après chaque correctif.
   Vercel déploie les deux.
+- Skills du dépôt (`.claude/skills/`, versions Arc Mail des skills globaux écrits pour
+  FOURCONNECT) : **`/safe-commit "…"`** pour tout commit (review selon les règles ci-dessous,
+  puis tsc + lint + build, puis push preview → main) ; **`/review <dossier>`** pour un état des
+  lieux d'un dossier contre les fiches. Le skill global `apple-design` reste utile pour les gestes.
 
 ## Règles à ne pas casser
 

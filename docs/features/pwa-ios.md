@@ -1,5 +1,26 @@
 # PWA sur iPhone
 
+## Les icônes
+
+`scripts/icones.py` les dessine toutes depuis un seul master à 1024 (Pillow requis) :
+`src/app/favicon.ico`, `icon.png`, `apple-icon.png`, et les trois de `public/icons`. On ne les
+retouche pas à la main — on change le script et on relance.
+
+**La marque** : le dégradé de Perso, la signature de l'app (écran de connexion, fond de bureau),
+et une enveloppe blanche **dont le rabat est creusé, pas tracé**. Un rabat en trait fait un pixel
+et demi à 16 px et se confond avec le corps ; retiré du blanc, c'est le dégradé qui dessine le V —
+deux formes au lieu de trois, un contraste garanti, le même dessin à toutes les tailles.
+
+Le `.ico` **porte trois dessins**, pas un réduit trois fois : à 16 et 32 px la marque est agrandie
+et la tuile moins arrondie, sinon l'enveloppe se noie dans les coins. Pillow ne sait pas faire
+varier l'image par taille dans un `.ico`, le conteneur est donc assemblé à la main.
+
+Trois variantes de fond : tuile arrondie (onglet, PWA), **carré plein** pour Apple et pour le
+masquable — les deux posent leur propre masque — et la marque à 78 % pour le masquable, dont la
+zone sûre est les 80 % centraux.
+
+Avant le 4 septembre, `favicon.ico` était encore **le triangle de Vercel** du gabarit de départ.
+
 ## La barre de titre de la fenêtre (`theme-color`)
 
 En fenêtre — PWA installée sur macOS, onglet Android — le navigateur peint le bandeau du haut avec

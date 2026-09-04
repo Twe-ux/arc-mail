@@ -1,10 +1,11 @@
 "use client";
 
-import { Columns2, Inbox, Star } from "lucide-react";
+import { Columns2, Inbox, RefreshCw, Star } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { usePullToRefresh } from "@/hooks/use-pull-to-refresh";
 import { formatShortDate } from "@/lib/format";
 import { selectFolder, useMail, useSpace, useVisibleThreads } from "@/lib/store";
 import type { Thread } from "@/lib/types";
@@ -27,6 +28,14 @@ export function ThreadList({ className }: { className?: string }) {
 
   const unread = threads.filter((t) => t.unread).length;
   const plural = (n: number, word: string) => `${n} ${word}${n > 1 ? "s" : ""}`;
+
+  /* A real reload, not a re-render: installed on the home screen there is no
+     address bar to pull down and no reload button, so this is the only way to
+     get a fresh page — and the way a new deploy arrives without force-quitting
+     the app. When a mail provider lands, this becomes its refetch. */
+  const { ref: cardRef, indicatorRef } = usePullToRefresh(() => {
+    window.location.reload();
+  });
 
   return (
     <section className={cn("min-h-0 min-w-0 flex-col", className)} aria-label={folder.name}>
@@ -62,8 +71,33 @@ export function ThreadList({ className }: { className?: string }) {
         </div>
       </header>
 
-      {/* The list: a floating card on mobile, plain column on desktop */}
-      <div className="min-h-0 flex-1 overflow-hidden rounded-t-[28px] bg-card shadow-[0_-8px_30px_rgb(0_0_0/0.06)] ring-1 ring-black/[0.05] md:rounded-none md:bg-transparent md:shadow-none md:ring-0 dark:ring-white/12">
+      {/* The list: a floating card on mobile, plain column on desktop.
+          The card is what the pull-to-refresh gesture moves, so it sits in a
+          box of its own with the indicator behind it — the card's own opaque
+          background is what hides the mark until the finger reveals it. */}
+      <div className="relative min-h-0 flex-1">
+        <div
+          ref={indicatorRef}
+          aria-hidden
+          data-armed="false"
+          className="group/pull pointer-events-none absolute inset-x-0 top-0 flex h-16 items-center justify-center opacity-0 md:hidden"
+        >
+          <span className="flex size-9 items-center justify-center rounded-full bg-card shadow-sm ring-1 ring-black/[0.06] dark:ring-white/12">
+            <RefreshCw
+              className="size-4 text-muted-foreground transition-colors group-data-[armed=true]/pull:text-[var(--space-accent)] group-data-[refreshing]/pull:animate-spin"
+              /* Turned by the pull itself rather than by a render per frame:
+                 the hook only publishes how far along the gesture is. */
+              style={{
+                rotate:
+                  "calc(var(--pull-progress, 0) * 180deg)",
+              }}
+            />
+          </span>
+        </div>
+        <div
+          ref={cardRef}
+          className="h-full overflow-hidden rounded-t-[28px] bg-card shadow-[0_-8px_30px_rgb(0_0_0/0.06)] ring-1 ring-black/[0.05] md:rounded-none md:bg-transparent md:shadow-none md:ring-0 dark:ring-white/12"
+        >
         <ScrollArea className="h-full">
           {threads.length === 0 ? (
             <div className="flex flex-col items-center gap-2 px-6 py-16 text-center text-muted-foreground">
@@ -85,6 +119,7 @@ export function ThreadList({ className }: { className?: string }) {
             </ul>
           )}
         </ScrollArea>
+        </div>
       </div>
     </section>
   );

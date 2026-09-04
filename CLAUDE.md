@@ -148,6 +148,18 @@ d'Arc (espaces colorés, sidebar translucide, favoris épinglés, onglets « Auj
   sombre, alors que la carte est `#26262a` : tant qu'il la couvrait bord à bord ça ne se voyait pas,
   mais dès qu'un bout de carte dépasse (la bande du bas) il vire à la bande claire. Il est donc en
   `bg-transparent` dans `CommandDialog` — la carte peint, l'intérieur ne repeint pas.
+- **Tirer la liste vers le bas recharge l'app** (`usePullToRefresh`, sur la carte de `ThreadList`).
+  Installée sur l'écran d'accueil, l'app n'a ni barre d'adresse ni bouton recharger : c'est la seule
+  façon d'obtenir une page fraîche depuis l'intérieur, et donc de récupérer un déploiement sans
+  quitter complètement l'app. Le geste suit les mêmes règles que les autres : il laisse d'abord la
+  liste défiler (`scrollTopUnder`) et ne mesure le tirage qu'à partir du moment où le haut est
+  atteint, sinon la carte saute. **Distance seule, pas de raccourci à la vitesse** : un petit coup
+  sec vers le bas en haut d'une liste, c'est comme ça qu'on remonte, et ça ne doit pas recharger.
+  Le `preventDefault` du `touchmove` suffit à empêcher le clic synthétisé — vérifié : un tirage de
+  40 px qui revient n'ouvre pas la conversation sous le doigt, alors qu'un tap franc l'ouvre.
+  L'indicateur est piloté pareil (opacité écrite à la frame, avancement publié en
+  `--pull-progress` pour le CSS) : un état React par `touchmove` se verrait comme un tremblement.
+  Quand un fournisseur de mail arrivera, `onRefresh` deviendra son rafraîchissement de données.
 - **Un rail horizontal (`overflow-x-auto`) rogne aussi verticalement.** CSS transforme le `visible`
   de l'autre axe en `auto` dès qu'un axe défile : le rail des espaces coupait donc le haut du ring
   de la pastille active, qui est un `box-shadow` peint *hors* de la boîte, collé au ras du bord du
@@ -191,7 +203,9 @@ insets d'iPhone à encoche — est correct) : le service worker fait pourtant du
 navigation, donc l'écran figé n'est probablement pas un cache jamais purgé mais une PWA installée
 *reprise* depuis l'arrière-plan (WebView suspendue, jamais rechargée) plutôt que relancée — d'où
 l'importance du « fermer complètement », pas d'un simple bump de `VERSION` qui ne changera rien tant
-que l'app n'a pas fait une vraie navigation réseau.
+que l'app n'a pas fait une vraie navigation réseau. Depuis, **tirer la liste vers le bas recharge**
+(voir plus haut) : c'est la première chose à demander devant un écran figé, avant de faire quitter
+et rouvrir l'app.
 
 ## Commandes
 

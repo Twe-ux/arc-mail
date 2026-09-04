@@ -1,5 +1,12 @@
 import type { Thread } from "../types";
-import type { AccountRef, MailProvider, ThreadPatch, ThreadQuery } from "./provider";
+import type {
+  AccountRef,
+  DraftInput,
+  MailProvider,
+  OutgoingMessage,
+  ThreadPatch,
+  ThreadQuery,
+} from "./provider";
 
 /**
  * Le fournisseur du navigateur pour un compte réel : il ne parle pas IMAP, il
@@ -46,20 +53,25 @@ export class HttpProvider implements MailProvider {
     await this.call({ op: "modify", accountId: account.id, id, patch });
   }
 
-  /*
-   * L'envoi n'est pas branché : ces trois-là lèvent, et le store montre le
-   * message. Rendre `void` en silence serait pire — l'interface aurait déjà
-   * changé, et le serveur n'aurait rien appris.
-   */
-  async send(): Promise<Thread> {
-    throw new Error("L'envoi arrive avec SMTP.");
+  async send(account: AccountRef, message: OutgoingMessage): Promise<Thread> {
+    const { thread } = await this.call<{ thread: Thread }>({
+      op: "send",
+      accountId: account.id,
+      message,
+    });
+    return thread;
   }
 
-  async saveDraft(): Promise<Thread> {
-    throw new Error("Les brouillons arrivent avec l'écriture IMAP.");
+  async saveDraft(account: AccountRef, draft: DraftInput): Promise<Thread> {
+    const { thread } = await this.call<{ thread: Thread }>({
+      op: "saveDraft",
+      accountId: account.id,
+      draft,
+    });
+    return thread;
   }
 
-  async deleteDraft(): Promise<void> {
-    throw new Error("Les brouillons arrivent avec l'écriture IMAP.");
+  async deleteDraft(account: AccountRef, id: string): Promise<void> {
+    await this.call({ op: "deleteDraft", accountId: account.id, id });
   }
 }

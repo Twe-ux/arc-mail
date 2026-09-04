@@ -134,6 +134,9 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - La liste ne rapporte que des enveloppes ; le corps arrive par `getThread` à l'ouverture, et
   l'hydratation complète le fil au lieu de le remplacer.
 - `modify` écrit les drapeaux (`\Seen`, `\Flagged`) et déplace ; le déplacement passe en dernier.
+- Envoyer, c'est SMTP **puis** un `APPEND` dans « Envoyés » — un seul message composé pour les deux ;
+  Gmail range déjà lui-même, on n'y ajoute rien. Une réponse porte `In-Reply-To` et `References`.
+- Un brouillon s'écrit avant que l'ancien ne parte ; le retirer, c'est la corbeille, pas `EXPUNGE`.
 - Un fournisseur ne connaît pas les espaces : il rend `spaceId: ""`, le store tamponne (`stamp`).
 
 **Espaces** → [docs/features/espaces.md](docs/features/espaces.md)

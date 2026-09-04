@@ -83,7 +83,10 @@ export async function folderPaths(client: ImapFlow): Promise<Partial<Record<Fold
     sent: bySpecial("\\Sent"),
     drafts: bySpecial("\\Drafts"),
     trash: bySpecial("\\Trash"),
-    archive: bySpecial("\\Archive"),
+    /* Gmail n'a pas d'« Archive » : archiver, chez lui, c'est retirer le
+       libellé `INBOX`, et le dossier qui reste tout est annoncé `\All`. Le
+       repli le rend équivalent sans que le reste de l'app ait à le savoir. */
+    archive: bySpecial("\\Archive") ?? bySpecial("\\All"),
   };
 }
 

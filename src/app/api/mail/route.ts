@@ -9,6 +9,8 @@ import {
   withImap,
   writeThread,
 } from "@/lib/mail/imap";
+import type { DraftInput, OutgoingMessage } from "@/lib/mail/provider";
+import { deleteDraftMessage, saveDraftMessage, sendMessage } from "@/lib/mail/smtp";
 import { currentUser } from "@/lib/supabase/server";
 import type { FolderId } from "@/lib/types";
 
@@ -34,6 +36,9 @@ type Body =
       id: string;
       patch: { unread?: boolean; starred?: boolean; folder?: FolderId };
     }
+  | { op: "send"; accountId: string; message: OutgoingMessage }
+  | { op: "saveDraft"; accountId: string; draft: DraftInput }
+  | { op: "deleteDraft"; accountId: string; id: string }
   | { op: "folders"; accountId: string };
 
 export async function POST(request: NextRequest) {
@@ -83,6 +88,23 @@ export async function POST(request: NextRequest) {
            liste vide, pas une erreur. */
         if (!path) return { threads: [] };
         return { threads: await readFolder(client, path, body.folder, { limit: body.limit }) };
+      }
+
+      if (body.op === "send") {
+        /* Un envoi, c'est SMTP **et** IMAP : remettre le message, puis en
+           ranger la copie. La connexion déjà ouverte sert aux deux. */
+        return { thread: await sendMessage(client, account, password, paths.sent, body.message) };
+      }
+
+      if (body.op === "saveDraft") {
+        return {
+          thread: await saveDraftMessage(client, paths.drafts, paths.trash, body.draft),
+        };
+      }
+
+      if (body.op === "deleteDraft") {
+        await deleteDraftMessage(client, paths.trash, body.id);
+        return { ok: true };
       }
 
       if (body.op === "modify") {

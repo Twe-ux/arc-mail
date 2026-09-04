@@ -99,8 +99,43 @@ donc un identifiant mort jusqu'à la relecture du dossier ; comme un déplacemen
 conversation, on ne le voit pas. La correction propre est que `modify` rende le fil plutôt que
 `void` — c'est noté dans [À faire](../a-faire.md).
 
-## Ce qui n'est pas branché
+## Envoyer : deux protocoles pour un geste
 
-`send`, `saveDraft`, `deleteDraft` **lèvent** avec un message clair. Rendre `void` en silence serait
-pire : l'interface aurait déjà changé (écriture optimiste) et le serveur n'aurait rien appris.
-SMTP est l'étape suivante.
+SMTP remet le message et **ne range rien**. La copie dans « Envoyés » est un `APPEND` IMAP que nous
+faisons nous-mêmes — sans lui, un message envoyé n'existerait nulle part après un rechargement.
+D'où `sendMessage(client, …)` : la connexion IMAP déjà ouverte sert aux deux moitiés du geste.
+
+**Le message est composé une fois** (`MailComposer`), et le même octet part sur SMTP et s'écrit
+dans « Envoyés ». Recomposer pour la copie donnerait deux `Message-ID` et deux dates, donc un fil
+dédoublé à la relecture.
+
+**SMTP d'abord, la copie ensuite.** Si la remise échoue, rien n'a été rangé et le composeur récupère
+le texte avec la raison ; l'inverse laisserait dans « Envoyés » un message que personne n'a reçu.
+Et une copie qui échoue après une remise réussie n'est *pas* une erreur d'envoi : le message est
+parti, on rend le fil avec un identifiant local plutôt que de faire recomposer — donc renvoyer.
+
+**Gmail fait exception** : son SMTP archive lui-même ce qu'il envoie, et notre copie ferait double.
+On la saute quand l'hôte est celui de Google.
+
+**Une réponse porte `In-Reply-To` et `References`.** Un client ne relie pas par l'objet ; sans ces
+en-têtes, la réponse ouvrirait un fil parallèle chez la personne d'en face. Il faut donc relire le
+`Message-ID` du message auquel on répond — il n'est pas dans notre modèle. La chaîne `References`
+s'allonge, elle ne se remplace pas.
+
+**L'enveloppe porte l'adresse de l'espace**, pas celle du compte : répondre depuis un domaine
+personnalisé part de ce domaine, alors que la session SMTP est ouverte avec le compte principal.
+C'est le serveur qui vérifie que l'alias lui appartient, et son refus est rendu tel quel.
+
+**Ce que `send` rend, le store le complète — il ne remplace pas.** IMAP rend la copie rangée dans
+« Envoyés » ; la substituer au fil perdrait les messages précédents, et surtout l'identifiant du fil
+deviendrait celui de la copie : les drapeaux suivants iraient écrire dans « Envoyés » au lieu de la
+réception.
+
+## Les brouillons
+
+IMAP ne sait pas modifier un message : enregistrer un brouillon, c'est écrire le nouveau puis
+retirer l'ancien — **dans cet ordre**, pour qu'un rangement raté laisse l'ancien en place.
+
+Retirer un brouillon l'envoie à la **corbeille**, pas au néant : un brouillon abandonné par erreur
+se récupère, un `\Deleted` + `EXPUNGE` ne se récupère pas. On ne supprime vraiment que si la boîte
+n'a pas de corbeille.

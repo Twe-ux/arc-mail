@@ -428,7 +428,18 @@ export const useMail = create<MailState>()(
       const sent = await providerFor(account).send(account, {
         from: me, to, subject: t.subject, body, replyTo: threadId,
       });
-      set((s) => ({ threads: patchThread(s.threads, threadId, () => stampOne(t.spaceId, sent)) }));
+      /* On **complète** le fil, on ne le remplace pas. Le mock rend le fil
+         entier, IMAP rend la copie rangée dans « Envoyés » : la remplacer
+         perdrait les messages précédents, et surtout l'identifiant du fil
+         deviendrait celui de la copie — les drapeaux suivants iraient écrire
+         dans « Envoyés » au lieu de la réception. */
+      const ecrit = sent.messages.at(-1);
+      set((s) => ({
+        threads: patchThread(s.threads, threadId, (x) => ({
+          ...x,
+          messages: ecrit ? [...x.messages.slice(0, -1), ecrit] : x.messages,
+        })),
+      }));
       return true;
     } catch (err) {
       /* The thread goes back to what it was; the text goes back to the box

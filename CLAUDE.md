@@ -101,6 +101,8 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - La sidebar bureau n'a pas de fond : une seule encre secondaire (85 %), mesurée à l'endroit où
   elle est dessinée ; les surfaces `glass` sont pour les cibles, pas pour le texte.
 - L'accent se remplit, il ne s'écrit pas : texte et icônes en accent lisent `--space-ink`.
+- Les préférences ne s'enregistrent qu'**après** avoir été relues (stockage `preferences` du
+  store) : un `set` pendant le rendu écrasait sinon la teinte et le thème sombre.
 - Un groupe blanc a un bord (`shadow 0 0 0 1px`) ; un rail horizontal rogne aussi verticalement,
   d'où du `padding` dedans pour tout ring.
 

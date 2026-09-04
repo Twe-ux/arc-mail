@@ -16,6 +16,26 @@ Les espaces ont une icône Lucide sur une tuile dégradée (`SpaceIcon`), pas d'
 barre du bas dessine le même glyphe en trait seul (`SPACE_ICONS`, `SpaceGlyph`), voir
 [Barre du bas](barre-du-bas.md).
 
+### Rien ne s'enregistre avant d'avoir été lu
+
+Les préférences (`themes`, `dark`, `splitView`, `sidebarCollapsed`, `recent`) sont relues **après le
+montage** (`skipHydration`, puis `useMail.persist.rehydrate()` dans `AppShell`) pour que le premier
+rendu du client soit celui du serveur.
+
+Mais zustand ne retarde que la **lecture** : il enregistre à *chaque* `set`. Or `SpacesInit` pose
+les espaces venus du serveur **pendant le rendu**, donc avant cette relecture — et cet
+enregistrement-là repartait des valeurs par défaut. Effacées dans `localStorage` : la teinte
+choisie et le thème sombre. À chaque rechargement, et **seulement une fois un compte branché**,
+puisque sans compte `SpacesInit` ne se rend pas.
+
+D'où le stockage `preferences` de `store.ts` : un `getItem` arme l'écriture, un `setItem` avant
+elle est **ignoré**. Le garde-fou est dans le stockage, pas dans les composants, parce que c'est la
+règle qui compte — et parce que le prochain composant qui écrira pendant un rendu ne saura pas
+qu'il devait s'en méfier.
+
+Mesuré en navigateur, avec `SpacesInit` monté : sans le garde, `{"themes":{"perso":210},
+"dark":true}` revenait à `{"themes":{},"dark":false}` après un `reload` ; avec lui, il survit.
+
 ## Le fond du bureau (`space-backdrop`)
 
 **Le dégradé plein cadre se regarde à travers un verre fumé** : un aplat neutre très sombre

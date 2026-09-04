@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { toast } from "sonner";
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { createJSONStorage, persist } from "zustand/middleware";
 import { firstLine } from "./format";
 import { providerFor } from "./mail";
 import { FOLDERS, SPACES } from "./mock-data";
@@ -201,6 +201,41 @@ function contactBook(threads: Thread[]): Map<string, Contact> {
 function toContacts(emails: string[], book: Map<string, Contact>): Contact[] {
   return emails.map((email) => book.get(email) ?? { name: email, email });
 }
+
+/**
+ * Le stockage des préférences, qui **ne se laisse écrire qu'après avoir été
+ * lu**.
+ *
+ * `skipHydration` retarde la lecture jusqu'après le montage, mais pas
+ * l'écriture : zustand enregistre à *chaque* `set`. Or `SpacesInit` pose les
+ * espaces venus du serveur **pendant le rendu**, donc avant cette lecture — et
+ * cet enregistrement-là repartait des valeurs par défaut, écrasant dans
+ * `localStorage` la teinte choisie et le thème sombre. Symptôme : tout
+ * revenait à zéro à chaque rechargement, et seulement une fois un compte
+ * branché (sans compte, `SpacesInit` ne se rend pas).
+ *
+ * Mesuré sur le vrai middleware : `setSpaces` avant `rehydrate()` réduisait
+ * `{"themes":{"s1":210},"dark":true}` à `{"themes":{},"dark":false}`.
+ *
+ * Le garde-fou est ici plutôt que dans les composants parce que c'est la règle
+ * qui compte : rien ne s'enregistre tant qu'on n'a pas lu ce qui existait.
+ */
+const preferences = createJSONStorage(() => {
+  /* Lever ici sur le serveur, comme le défaut de zustand : la persistance
+     reste inerte au lieu de faire tomber le rendu au premier `set`. */
+  const local = localStorage;
+  let lu = false;
+  return {
+    getItem: (nom) => {
+      lu = true;
+      return local.getItem(nom);
+    },
+    setItem: (nom, valeur) => {
+      if (lu) local.setItem(nom, valeur);
+    },
+    removeItem: (nom) => local.removeItem(nom),
+  };
+});
 
 export const useMail = create<MailState>()(
   persist(
@@ -543,6 +578,7 @@ export const useMail = create<MailState>()(
     },
     {
       name: "arc-mail",
+      storage: preferences,
       /* Bumped with every change to what is persisted, so an old shape is
          migrated rather than read as is. Version 1 changed nothing in the
          shape: the migration only keeps what an earlier install saved, which

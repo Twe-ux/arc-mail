@@ -23,7 +23,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { FOLDERS } from "@/lib/mock-data";
-import { selectFolder, selectUnreadCount, useMail, useSpace } from "@/lib/store";
+import { selectFolder, selectUnreadCount, useMail, useRecentThreads, useSpace } from "@/lib/store";
 import type { FolderId } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { ContactAvatar } from "./contact-avatar";
@@ -123,8 +123,6 @@ function SidebarContent({
   const folder = useMail(selectFolder);
   const folderId = useMail((s) => s.folderId);
   const setFolder = useMail((s) => s.setFolder);
-  const threads = useMail((s) => s.threads);
-  const recentIds = useMail((s) => s.recent[s.spaceId]);
   const selectedThreadId = useMail((s) => s.selectedThreadId);
   const selectThread = useMail((s) => s.selectThread);
   const removeRecent = useMail((s) => s.removeRecent);
@@ -135,9 +133,7 @@ function SidebarContent({
   const toggleDark = useMail((s) => s.toggleDark);
   const inboxUnread = useMail((s) => selectUnreadCount(s, s.spaceId, "inbox"));
 
-  const recentThreads = recentIds
-    .map((id) => threads.find((t) => t.id === id))
-    .filter((t): t is NonNullable<typeof t> => Boolean(t));
+  const recentThreads = useRecentThreads();
 
   const go = (fn: () => void) => () => {
     fn();

@@ -15,7 +15,9 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
+    "imapflow": "^1.7.8",
     "lucide-react": "^1.39.0",
+    "mailparser": "^3.9.20",
     "next": "16.3.4",
     "radix-ui": "^1.6.7",
     "react": "19.2.8",
@@ -27,6 +29,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/mailparser": "^3.4.6",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

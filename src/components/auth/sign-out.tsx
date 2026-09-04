@@ -1,6 +1,7 @@
 "use client";
 
-import { LogOut } from "lucide-react";
+import { LogOut, Settings2 } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -38,6 +39,16 @@ export function SignOut({ className, tone = "sombre" }: { className?: string; to
       >
         {session.email}
       </span>
+      <Link
+        href="/comptes"
+        aria-label="Comptes de messagerie"
+        className={cn(
+          "relative flex size-8 shrink-0 items-center justify-center rounded-lg transition-colors after:absolute after:-inset-1",
+          tone === "clair" ? "text-white/85 hover:bg-white/15 hover:text-white" : "text-muted-foreground active:bg-muted",
+        )}
+      >
+        <Settings2 className="size-4" />
+      </Link>
       <button
         type="button"
         onClick={go}

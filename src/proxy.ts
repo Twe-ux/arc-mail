@@ -44,7 +44,10 @@ export async function proxy(request: NextRequest) {
      rendre une page qui redirigera de toute façon. La décision qui compte
      reste celle de `page.tsx`. */
   const path = request.nextUrl.pathname;
-  const ouvert = path === "/connexion" || path.startsWith("/auth/");
+  /* `/api/**` répond lui-même 401 en JSON : rediriger une requête `fetch`
+     vers une page HTML lui ferait lire du HTML comme du JSON, et l'erreur
+     affichée parlerait de syntaxe au lieu de session. */
+  const ouvert = path === "/connexion" || path.startsWith("/auth/") || path.startsWith("/api/");
   if (!data.user && !ouvert) {
     const url = request.nextUrl.clone();
     url.pathname = "/connexion";

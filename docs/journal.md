@@ -55,6 +55,7 @@ Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérificatio
 | `04273d0` | Tri des skills : 13 gardés sur 33, `/ecran` porté de Kairos, `npm run capture` |
 | `6e896f6` | État des lieux : quatre audits en parallèle (code, UX, mouvement, DESIGN.md) |
 | — | Bandeau de fenêtre (`theme-color`) accordé au thème au lieu d'un violet fixe ; manifeste neutre |
+| — | Lecture IMAP de bout en bout : comptes chiffrés dans Supabase, route `/api/mail`, écran « Comptes » qui vérifie la connexion avant d'enregistrer. `spaceId` sort de l'interface fournisseur, `SpaceId` devient une chaîne, chaque espace porte son identité |
 | — | Connexion Google : `/connexion`, retour OAuth, garde de `/`, déconnexion ; le service worker ne met plus en cache une navigation redirigée ; `sw.js` v5 |
 | — | Ossature Supabase : clients, proxy de session, deux tables avec RLS, coffre AES-256-GCM lié à la ligne |
 | — | Fond du bureau assombri et désaturé (verre fumé) ; sidebar sans fond ni faux boutons de fenêtre, bouton de repli à côté de la recherche, une seule encre secondaire à 85 % |

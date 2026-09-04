@@ -16,6 +16,12 @@
      instead of stopping above it — without something moving behind it, the
      blur had nothing to blur and the material was decoration. */
   --nav-height: calc(56px + 0.625rem + max(14px, env(safe-area-inset-bottom) - 18px));
+  /* L'espace courant repose ces deux-là depuis `AppShell`. Un défaut ici pour
+     tout ce qui vit hors de la boîte — connexion, comptes — où aucun espace
+     n'est choisi : sans lui, `color-mix` sur une variable absente rend une
+     couleur invalide, et l'icône disparaît. Mesuré sur `/comptes`. */
+  --space-accent: #a855f7;
+  --space-gradient: linear-gradient(135deg, #7c3aed 0%, #db2777 55%, #f97316 100%);
   --radius: 0.75rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);

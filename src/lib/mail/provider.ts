@@ -1,4 +1,4 @@
-import type { Contact, FolderId, SpaceId, Thread } from "../types";
+import type { Contact, FolderId, Thread } from "../types";
 
 /**
  * Where a space's mail comes from. One account can back several spaces (an
@@ -26,8 +26,7 @@ export type ThreadPatch = {
 };
 
 export type OutgoingMessage = {
-  /** The space it is sent from: stamps the thread and, later, picks the identity. */
-  spaceId: SpaceId;
+  /** Qui envoie. C'est l'identité de l'espace, et elle suffit : le fournisseur n'a pas à savoir lequel. */
   from: Contact;
   to: Contact[];
   cc?: Contact[];
@@ -47,6 +46,11 @@ export type DraftInput = Omit<OutgoingMessage, "replyTo"> & {
  * Everything the interface needs from a mailbox, and nothing about how it is
  * done. The mock is the first implementation; IMAP (iCloud) and Gmail follow
  * behind the same six calls.
+ *
+ * **Un fournisseur ne connaît pas les espaces.** Il rend des fils tamponnés
+ * d'un `spaceId` vide ; c'est le store qui les marque, parce qu'un même
+ * compte iCloud porte trois espaces et que le fournisseur n'a aucun moyen de
+ * savoir lequel demande.
  */
 export interface MailProvider {
   /** Threads of one folder, newest first. */

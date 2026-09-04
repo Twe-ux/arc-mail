@@ -1,12 +1,12 @@
 import { firstLine } from "../format";
 import { THREADS } from "../mock-data";
-import type { SpaceId, Thread } from "../types";
+import type { Thread } from "../types";
 import type { AccountRef, DraftInput, MailProvider, OutgoingMessage, ThreadPatch, ThreadQuery } from "./provider";
 
 const NO_SUBJECT = "(sans objet)";
 
 /** `mock:perso` → `perso`: the account id carries the space it stands for (see `mockAccount`). */
-const spaceOf = (account: AccountRef): SpaceId => account.id.slice("mock:".length) as SpaceId;
+const spaceOf = (account: AccountRef): string => account.id.slice("mock:".length);
 
 /**
  * The dataset in `mock-data.ts`, behind the provider interface. Holds its own
@@ -43,7 +43,7 @@ export class MockProvider implements MailProvider {
     }));
   }
 
-  async send(_account: AccountRef, message: OutgoingMessage): Promise<Thread> {
+  async send(account: AccountRef, message: OutgoingMessage): Promise<Thread> {
     const stamp = Date.now();
     const msg = {
       id: `msg-sent-${stamp}`,
@@ -64,7 +64,7 @@ export class MockProvider implements MailProvider {
     }
     const thread: Thread = {
       id: `thr-sent-${stamp}`,
-      spaceId: message.spaceId,
+      spaceId: spaceOf(account),
       folder: "sent",
       subject: message.subject.trim() || NO_SUBJECT,
       snippet: firstLine(message.body),
@@ -77,7 +77,7 @@ export class MockProvider implements MailProvider {
     return thread;
   }
 
-  async saveDraft(_account: AccountRef, draft: DraftInput): Promise<Thread> {
+  async saveDraft(account: AccountRef, draft: DraftInput): Promise<Thread> {
     const subject = draft.subject.trim() || NO_SUBJECT;
     const existing = draft.id ? this.threads.find((t) => t.id === draft.id) : undefined;
     const stamp = Date.now();
@@ -91,13 +91,13 @@ export class MockProvider implements MailProvider {
       body: draft.body,
     };
     if (existing) {
-      const next = { ...existing, spaceId: draft.spaceId, subject, snippet: firstLine(draft.body), messages: [msg] };
+      const next = { ...existing, subject, snippet: firstLine(draft.body), messages: [msg] };
       this.patch(existing.id, () => next);
       return next;
     }
     const thread: Thread = {
       id: `thr-draft-${stamp}`,
-      spaceId: draft.spaceId,
+      spaceId: spaceOf(account),
       folder: "drafts",
       subject,
       snippet: firstLine(draft.body),

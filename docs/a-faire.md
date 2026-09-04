@@ -11,11 +11,15 @@ Voir [Fournisseurs de mail](roadmap/fournisseurs-mail.md) pour le plan complet e
 - [x] Ossature Supabase : clients navigateur/serveur, proxy de session, migration SQL des deux
       tables, coffre AES-256-GCM (4 sept.)
 - [x] Page de connexion (Google), retour OAuth, garde de `/`, déconnexion (4 sept.)
-- [ ] Poser les variables : intégration Vercel de Supabase + `ACCOUNTS_KEY` à la main
+- [x] Variables posées et connexion Google vérifiée (4 sept.)
+- [ ] Appliquer `supabase/migrations/` à la base (intégration GitHub, ou le SQL collé à la main)
 - [ ] Écran « Ajouter un compte » — le mot de passe d'application se saisit **dans l'app**,
       jamais dans l'environnement (le schéma et le coffre existent)
-- [ ] Fournisseur IMAP/SMTP (`imapflow` + `mailparser` + `nodemailer`) sur le compte stocké,
-      testé sur iCloud
+- [x] Écran « Ajouter un compte » avec vérification IMAP avant enregistrement (4 sept.)
+- [x] Lecture IMAP : route `/api/mail`, dossiers par SPECIAL-USE, fils, hydratation à l'ouverture
+- [ ] **Faire apparaître le vrai courrier dans la boîte** : des espaces issus des comptes branchés
+      au lieu des trois espaces mock
+- [ ] Écriture IMAP (`modify` : lu, favori, déplacer) puis SMTP (`nodemailer`) pour l'envoi
 - [ ] Espaces comme *vues* : un dossier vu et vécu comme une boîte de réception, une identité
       d'envoi par espace (les deux domaines personnalisés d'iCloud)
 - [ ] Envoi réel, aller-retour des drapeaux et des déplacements

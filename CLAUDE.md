@@ -31,7 +31,9 @@ d'Arc (espaces colorés, sidebar translucide, favoris épinglés, onglets « Auj
   `useVisibleThreads()` (memo).
 - Le courrier passe par `MailProvider` (`src/lib/mail/`) : le store ne lit et n'écrit que par
   `providerFor(space.account)`, écritures optimistes, `loadSpace` à chaque changement d'espace.
-  Seul le mock l'implémente pour l'instant → [plan](docs/roadmap/fournisseurs-mail.md).
+  Le mock et IMAP (en lecture) l'implémentent → [plan](docs/roadmap/fournisseurs-mail.md).
+- `SpaceId` est une **chaîne** (les espaces viendront des comptes) et chaque `Space` porte son
+  `identity` : c'est elle qui signe, pas une table d'adresses.
 - Données mock dans `src/lib/mock-data.ts` → [fiche](docs/features/donnees-mock.md).
 - `DESIGN.md` (racine) : tokens, formes, composants et règles nommées, généré par `impeccable
   document` le 4 sept. ; les fiches gardent l'autorité, DESIGN.md suit.
@@ -122,6 +124,14 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - Connexion par Google ; le retour OAuth est un route handler (seul endroit qui peut écrire un
   cookie avec les Server Actions), et son `next` est vérifié.
 - Sans `NEXT_PUBLIC_SUPABASE_*`, l'app reste la maquette ouverte d'aujourd'hui.
+
+**IMAP** → [docs/features/imap.md](docs/features/imap.md)
+- IMAP ne tourne que côté serveur (`runtime = "nodejs"`) ; le navigateur passe par `/api/mail`.
+- Les chemins de dossiers viennent des attributs SPECIAL-USE, jamais d'un nom deviné ; un dossier
+  absent est une liste vide.
+- La liste ne rapporte que des enveloppes ; le corps arrive par `getThread` à l'ouverture, et
+  l'hydratation complète le fil au lieu de le remplacer.
+- Un fournisseur ne connaît pas les espaces : il rend `spaceId: ""`, le store tamponne (`stamp`).
 
 **Recherche** → [docs/features/recherche.md](docs/features/recherche.md)
 

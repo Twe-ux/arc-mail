@@ -1,3 +1,4 @@
+import { HttpProvider } from "./http-provider";
 import { MockProvider } from "./mock-provider";
 import type { AccountRef, MailProvider, ProviderKind } from "./provider";
 
@@ -11,6 +12,9 @@ export type { AccountRef, DraftInput, MailProvider, OutgoingMessage, ThreadPatch
  */
 const providers: Partial<Record<ProviderKind, MailProvider>> = {
   mock: new MockProvider(),
+  /* IMAP ne tourne pas dans le navigateur : ce fournisseur-ci ne fait que
+     passer par `/api/mail`, où le vrai vit. */
+  imap: new HttpProvider(),
 };
 
 export function providerFor(account: AccountRef): MailProvider {

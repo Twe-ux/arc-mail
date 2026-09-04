@@ -1,4 +1,10 @@
-export type SpaceId = "perso" | "pro" | "side";
+/**
+ * L'identifiant d'un espace. Une chaîne, pas trois valeurs littérales : les
+ * espaces viennent des comptes branchés dès qu'il y en a, et un identifiant
+ * de base n'est pas « perso ». Tout ce qui indexe par espace est donc partiel
+ * et se lit avec un repli.
+ */
+export type SpaceId = string;
 
 export type FolderId =
   | "inbox"
@@ -20,6 +26,8 @@ export type Space = {
   id: SpaceId;
   name: string;
   email: string;
+  /** L'expéditeur quand on écrit depuis cet espace — un domaine peut avoir la sienne. */
+  identity: Contact;
   icon: "house" | "briefcase" | "flask";
   /** Appended to new messages, Apple Mail style. */
   signature: string;

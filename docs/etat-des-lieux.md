@@ -42,6 +42,13 @@ correctifs : les 🔴 des trois rapports qui tenaient dans les fiches sont corri
 listé avec ses arbitrages dans [la synthèse](audits/2026-09-04/README.md). Ce qui reste ouvert
 est dans [À faire](a-faire.md).
 
+## Vrai courrier
+
+Depuis le 4 septembre, une boîte IMAP se branche dans `/comptes` (adresse + mot de passe
+d'application, connexion vérifiée avant enregistrement) et se lit vraiment : dossiers découverts
+par SPECIAL-USE, messages regroupés en fils, corps chargé à l'ouverture. Ce qui manque pour le
+voir *dans la boîte* : des espaces issus des comptes branchés, au lieu des trois espaces mock.
+
 ## Ce qui n'existe pas encore
 
 - Aucun fournisseur réel : ni lecture, ni envoi. L'interface `MailProvider` existe

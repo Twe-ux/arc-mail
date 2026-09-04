@@ -4,11 +4,12 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { firstLine } from "./format";
 import { providerFor } from "./mail";
-import { FOLDERS, ME, SPACES } from "./mock-data";
+import { FOLDERS, SPACES } from "./mock-data";
 import { resolveSpace } from "./theme";
 import type { Attachment, ComposeDraft, Contact, FolderId, Message, Space, SpaceId, Thread } from "./types";
 
-type RecentMap = Record<SpaceId, string[]>;
+/** Partiel : un espace nouveau n'a pas encore de clé, et `?? []` est la lecture. */
+type RecentMap = Partial<Record<SpaceId, string[]>>;
 
 export type MailState = {
   spaceId: SpaceId;
@@ -81,11 +82,16 @@ const patchThread = (threads: Thread[], id: string, patch: (t: Thread) => Thread
   threads.map((t) => (t.id === id ? patch(t) : t));
 
 /** Throws rather than guessing: a write on the wrong real account would be worse than no write. */
-const accountOf = (spaceId: SpaceId) => {
+const spaceOf = (spaceId: SpaceId): Space => {
   const space = SPACES.find((sp) => sp.id === spaceId);
   if (!space) throw new Error(`Espace inconnu « ${spaceId} »`);
-  return space.account;
+  return space;
 };
+
+const accountOf = (spaceId: SpaceId) => spaceOf(spaceId).account;
+
+/** Qui écrit depuis cet espace. Porté par l'espace, pas par une table d'adresses. */
+const identityOf = (spaceId: SpaceId): Contact => spaceOf(spaceId).identity;
 
 /** One thread as it was, put back in place — or back at the top when it had been removed. */
 const restoreThread = (threads: Thread[], before: Thread) =>
@@ -96,7 +102,7 @@ const loadTokens = new Map<SpaceId, number>();
 
 /** The people a reply goes to: everyone on the last message but us, or its sender alone. */
 export function replyRecipients(t: Thread): Contact[] {
-  const me = ME[t.spaceId];
+  const me = identityOf(t.spaceId);
   const last = t.messages[t.messages.length - 1];
   const seen = new Set<string>();
   const recipients = [last.from, ...last.to, ...(last.cc ?? [])].filter((c) => {
@@ -109,6 +115,36 @@ export function replyRecipients(t: Thread): Contact[] {
 
 /** Folders a provider is asked for: every real one. Favoris is a view over the flag. */
 const REAL_FOLDERS = FOLDERS.map((f) => f.id).filter((id) => id !== "starred");
+
+/**
+ * Le tampon d'espace, posé à la réception.
+ *
+ * Un fournisseur ne sait pas de quel espace on parle — un compte iCloud en
+ * portera trois — donc il rend des fils sans espace et c'est ici qu'ils en
+ * reçoivent un. Un seul endroit, celui qui sait.
+ */
+const stamp = (spaceId: SpaceId, threads: Thread[]): Thread[] =>
+  threads.map((t) => (t.spaceId === spaceId ? t : { ...t, spaceId }));
+
+const stampOne = (spaceId: SpaceId, thread: Thread): Thread =>
+  thread.spaceId === spaceId ? thread : { ...thread, spaceId };
+
+/**
+ * Le fil de la liste, complété par ce que le fournisseur vient de lire.
+ *
+ * On ne le remplace pas : la liste a regroupé plusieurs messages en un fil,
+ * la lecture n'en rend qu'un — remplacer perdrait les autres. On verse donc
+ * les corps et les pièces jointes dans les messages qui portent le même
+ * identifiant, et rien d'autre ne bouge.
+ */
+const hydrate = (before: Thread, full: Thread): Thread => ({
+  ...before,
+  snippet: full.snippet || before.snippet,
+  messages: before.messages.map((m) => {
+    const filled = full.messages.find((x) => x.id === m.id);
+    return filled ? { ...m, body: filled.body, attachments: filled.attachments } : m;
+  }),
+});
 
 /** One space's threads replaced by a fresh read, the other spaces untouched. */
 const replaceSpace = (threads: Thread[], spaceId: SpaceId, fresh: Thread[]) => {
@@ -198,7 +234,7 @@ export const useMail = create<MailState>()(
       /* Two reads of the same space can cross; only the latest one may land. */
       if (loadTokens.get(spaceId) !== token) return;
       set((s) => ({
-        threads: replaceSpace(s.threads, spaceId, perFolder.flat()),
+        threads: replaceSpace(s.threads, spaceId, stamp(spaceId, perFolder.flat())),
         loading: { ...s.loading, [spaceId]: false },
         error: null,
       }));
@@ -226,9 +262,27 @@ export const useMail = create<MailState>()(
       recent: { ...recent, [spaceId]: list },
       threads: patchThread(s.threads, id, (t) => ({ ...t, unread: false })),
     }));
-    if (target?.unread) {
-      const account = accountOf(target.spaceId);
+    if (!target) return;
+    const account = accountOf(target.spaceId);
+
+    if (target.unread) {
       commit(target, () => providerFor(account).modify(account, id, { unread: false }), "Impossible de marquer comme lu");
+    }
+
+    /* Une liste ne rapporte que des enveloppes : lire soixante corps pour en
+       afficher un serait payer soixante fois trop. Le corps arrive donc à
+       l'ouverture, et seulement s'il manque — le mock, lui, rend tout d'un
+       coup et ne repasse jamais ici. */
+    if (target.messages.every((m) => !m.body)) {
+      providerFor(account)
+        .getThread(account, id)
+        .then((full) => {
+          if (!full) return;
+          set((s) => ({ threads: patchThread(s.threads, id, (t) => hydrate(t, full)) }));
+        })
+        .catch((err: unknown) => {
+          toast.error("Impossible d'ouvrir ce message", { description: describe(err) });
+        });
     }
   },
 
@@ -283,7 +337,7 @@ export const useMail = create<MailState>()(
     const before = get().threads;
     const t = before.find((x) => x.id === threadId);
     if (!t) return false;
-    const me = ME[t.spaceId];
+    const me = identityOf(t.spaceId);
     const to = only?.length ? only : replyRecipients(t);
     set({
       threads: patchThread(before, threadId, (x) => ({
@@ -295,9 +349,9 @@ export const useMail = create<MailState>()(
     const account = accountOf(t.spaceId);
     try {
       const sent = await providerFor(account).send(account, {
-        spaceId: t.spaceId, from: me, to, subject: t.subject, body, replyTo: threadId,
+        from: me, to, subject: t.subject, body, replyTo: threadId,
       });
-      set((s) => ({ threads: patchThread(s.threads, threadId, () => sent) }));
+      set((s) => ({ threads: patchThread(s.threads, threadId, () => stampOne(t.spaceId, sent)) }));
       return true;
     } catch (err) {
       /* The thread goes back to what it was; the text goes back to the box
@@ -361,19 +415,19 @@ export const useMail = create<MailState>()(
     provider
       .saveDraft(account, {
         id: d.draftId,
-        spaceId: d.spaceId,
-        from: ME[d.spaceId],
+        from: identityOf(d.spaceId),
         to: toContacts(d.to, book),
         cc: d.cc.length ? toContacts(d.cc, book) : undefined,
         bcc: d.bcc.length ? toContacts(d.bcc, book) : undefined,
         subject: d.subject,
         body: d.body,
       })
-      .then((saved) =>
+      .then((saved) => {
+        const draft = stampOne(d.spaceId, saved);
         set((s) => ({
-          threads: d.draftId ? patchThread(s.threads, d.draftId, () => saved) : [saved, ...s.threads],
-        })),
-      )
+          threads: d.draftId ? patchThread(s.threads, d.draftId, () => draft) : [draft, ...s.threads],
+        }));
+      })
       .catch((err: unknown) => {
         /* Nothing on screen to put back: the composer is closed and the old
            draft, if any, is still in the list. The text is not lost either —
@@ -394,8 +448,7 @@ export const useMail = create<MailState>()(
     set({ compose: null, sendError: null, threads: draft ? before.filter((t) => t.id !== draft.id) : before });
     provider
       .send(account, {
-        spaceId: d.spaceId,
-        from: ME[d.spaceId],
+        from: identityOf(d.spaceId),
         to: toContacts(d.to, book),
         cc: d.cc.length ? toContacts(d.cc, book) : undefined,
         bcc: d.bcc.length ? toContacts(d.bcc, book) : undefined,
@@ -404,7 +457,7 @@ export const useMail = create<MailState>()(
       })
       .then(
         (sent) => {
-          set((s) => ({ threads: [sent, ...s.threads] }));
+          set((s) => ({ threads: [stampOne(d.spaceId, sent), ...s.threads] }));
           /* The send is final from here: a draft that will not delete is a
              leftover to warn about, never a reason to reopen the composer —
              that would be the second send waiting to happen. */
@@ -544,10 +597,27 @@ export function selectUnreadCount(s: MailState, spaceId: SpaceId, folderId: Fold
 
 /** Everyone we have exchanged with, for recipient suggestions. */
 export function selectContacts(threads: Thread[]): Contact[] {
-  const mine = new Set(Object.values(ME).map((c) => c.email));
+  const mine = new Set(SPACES.map((sp) => sp.identity.email));
   return [...contactBook(threads).values()]
     .filter((c) => !mine.has(c.email))
     .sort((a, b) => a.name.localeCompare(b.name, "fr"));
+}
+
+/**
+ * Les conversations des onglets « Aujourd'hui », dans l'ordre où on les a
+ * ouvertes. Memoïsée, et une seule fois : la sidebar et le menu la
+ * reconstruisaient chacun de leur côté.
+ */
+export function useRecentThreads(): Thread[] {
+  const threads = useMail((s) => s.threads);
+  const recent = useMail((s) => s.recent[s.spaceId]);
+  return useMemo(
+    () =>
+      (recent ?? [])
+        .map((id) => threads.find((t) => t.id === id))
+        .filter((t): t is Thread => t !== undefined),
+    [threads, recent],
+  );
 }
 
 /** Memoised list for components — a fresh array from the selector would re-render forever. */

@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/sheet";
 import { useSheetDismiss } from "@/hooks/use-sheet-dismiss";
 import { FOLDERS } from "@/lib/mock-data";
-import { selectUnreadCount, useMail, useSpace, useSpaces } from "@/lib/store";
+import { selectUnreadCount, useMail, useRecentThreads, useSpace, useSpaces } from "@/lib/store";
 import type { FolderId } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { ContactAvatar } from "./contact-avatar";
@@ -101,8 +101,6 @@ function MenuBody({
   const setSpace = useMail((s) => s.setSpace);
   const folderId = useMail((s) => s.folderId);
   const setFolder = useMail((s) => s.setFolder);
-  const threads = useMail((s) => s.threads);
-  const recentIds = useMail((s) => s.recent[s.spaceId]);
   const selectedThreadId = useMail((s) => s.selectedThreadId);
   const selectThread = useMail((s) => s.selectThread);
   const removeRecent = useMail((s) => s.removeRecent);
@@ -110,9 +108,7 @@ function MenuBody({
   const dark = useMail((s) => s.dark);
   const toggleDark = useMail((s) => s.toggleDark);
 
-  const recentThreads = recentIds
-    .map((id) => threads.find((t) => t.id === id))
-    .filter((t): t is NonNullable<typeof t> => Boolean(t));
+  const recentThreads = useRecentThreads();
 
   const go = (fn: () => void) => () => {
     fn();

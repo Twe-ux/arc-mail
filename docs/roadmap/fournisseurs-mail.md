@@ -165,8 +165,8 @@ connecté, ensuite ranger *ses* comptes, enfin les lire.
 |---|---|---|---|
 | 1 | `MailProvider` + `MockProvider`, store asynchrone | **Fait** — rien ne change, tout passe par l'interface | ½ jour |
 | 2 | Supabase Auth : clients, proxy de session, page de connexion | **Fait** — une page de connexion Google ; l'app est privée dès que les variables sont posées | ½ jour |
-| 3 | Table `accounts` chiffrée + écran « Ajouter un compte » (iCloud d'abord) | On saisit son adresse et son mot de passe d'application **dans l'app** | 1 jour |
-| 4 | `ImapProvider` (imapflow/mailparser) sur le compte stocké | **Tes vrais mails iCloud dans l'app**, lecture + drapeaux | 1–2 jours |
+| 3 | Table `accounts` chiffrée + écran « Ajouter un compte » (iCloud d'abord) | **Fait** — on saisit son adresse et son mot de passe d'application **dans l'app**, la connexion est vérifiée avant d'enregistrer | 1 jour |
+| 4 | `ImapProvider` (imapflow/mailparser) sur le compte stocké | **Lecture faite** — dossiers, fils, corps à l'ouverture, vérifiables depuis l'écran Comptes. Reste : les afficher dans la boîte (espaces issus des comptes) et l'écriture des drapeaux | 1–2 jours |
 | 5 | Espaces-vues : dossier-comme-réception + identité | Tes deux domaines comme espaces, écrire depuis la bonne adresse | 1 jour |
 | 6 | Envoi SMTP (`nodemailer`), brouillons, déplacements | Répondre / écrire pour de vrai | ½–1 jour |
 | 7 | `GmailProvider` (googleapis, sur un jeton Google obtenu par Supabase) | Un espace Gmail à côté des espaces iCloud | 1 jour |

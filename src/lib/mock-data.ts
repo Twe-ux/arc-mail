@@ -10,6 +10,7 @@ export const SPACES: Space[] = [
     account: mockAccount("perso"),
     name: "Perso",
     email: "thierry@icloud.com",
+    identity: { name: "Thierry", email: "thierry@icloud.com" },
     icon: "house",
     signature: "Thierry",
     theme: {
@@ -23,6 +24,7 @@ export const SPACES: Space[] = [
     account: mockAccount("pro"),
     name: "Pro",
     email: "thierry@coworkingcafe.fr",
+    identity: { name: "Thierry Milone", email: "thierry@coworkingcafe.fr" },
     icon: "briefcase",
     signature: "Thierry Milone\nCoworking Café · coworkingcafe.fr",
     theme: {
@@ -36,6 +38,7 @@ export const SPACES: Space[] = [
     account: mockAccount("side"),
     name: "Side projects",
     email: "hello@twe-ux.dev",
+    identity: { name: "twe-ux", email: "hello@twe-ux.dev" },
     icon: "flask",
     signature: "twe-ux · twe-ux.dev",
     theme: {
@@ -56,7 +59,8 @@ export const FOLDERS: Folder[] = [
   { id: "trash", name: "Corbeille" },
 ];
 
-export const ME: Record<Space["id"], Contact> = {
+/** L'expéditeur de chaque espace mock, pour fabriquer le jeu de données. */
+export const ME: Record<string, Contact> = {
   perso: { name: "Thierry", email: "thierry@icloud.com" },
   pro: { name: "Thierry Milone", email: "thierry@coworkingcafe.fr" },
   side: { name: "twe-ux", email: "hello@twe-ux.dev" },

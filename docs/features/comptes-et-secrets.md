@@ -77,6 +77,23 @@ serveur avec cet état-là — sinon la porte s'afficherait par-dessus une boît
 **Le service worker ne met plus en cache une navigation redirigée** : la page de connexion gardée
 sous « / » se serait servie à quelqu'un de connecté, hors ligne, sans moyen d'en sortir.
 
+## Brancher une boîte
+
+`/comptes` : adresse, mot de passe d'application, et les serveurs pré-remplis pour iCloud.
+
+**La connexion est essayée avant l'enregistrement.** Un mot de passe rangé sans avoir servi est
+une panne différée : on la découvrirait à la première lecture, sans savoir si c'est l'adresse, le
+mot de passe ou l'hôte. Si l'essai échoue, rien n'est gardé, et le message d'IMAP est rendu tel
+quel — « Invalid credentials » dit quoi corriger.
+
+**L'ordre d'écriture compte** : la ligne `accounts` d'abord, parce que son identifiant fait partie
+de ce que le chiffrement authentifie ; le secret ensuite. Si le second échoue, la ligne est
+retirée — un compte sans secret ne servirait qu'à faire échouer chaque lecture.
+
+Le bouton de relecture d'un compte lit vraiment la réception et affiche les derniers messages :
+c'est le test qui traverse toute la chaîne — secret déchiffré, connexion, découverte des dossiers,
+enveloppes, regroupement en fils.
+
 ## Tant que rien n'est configuré
 
 `isSupabaseConfigured()` est faux quand `NEXT_PUBLIC_SUPABASE_*` manquent, et **l'app tourne

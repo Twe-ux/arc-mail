@@ -1,0 +1,282 @@
+import "server-only";
+
+import {
+  ImapFlow,
+  type FetchMessageObject,
+  type FetchQueryObject,
+  type MessageAddressObject,
+} from "imapflow";
+import { simpleParser } from "mailparser";
+
+import type { StoredAccount } from "@/lib/accounts/server";
+import type { Contact, FolderId, Message, Thread } from "@/lib/types";
+
+/**
+ * IMAP, côté serveur uniquement.
+ *
+ * Sur Vercel chaque requête ouvre une connexion, lit, et ferme : il n'y a pas
+ * de processus qui vit entre deux requêtes pour tenir une session ouverte.
+ * C'est 1 à 2 s par lecture, et c'est le prix du serverless — le tirage pour
+ * rafraîchir existe déjà, le push (IMAP IDLE) demandera un vrai serveur.
+ *
+ * Le vocabulaire de l'app (`unread`, `starred`, `folder`) est traduit ici, et
+ * nulle part ailleurs : `\Seen` inversé, `\Flagged`, un chemin de dossier.
+ */
+
+/** Ce qu'une lecture rapporte du serveur, sans le corps des messages. */
+const ENVELOPE_QUERY: FetchQueryObject = {
+  uid: true,
+  flags: true,
+  envelope: true,
+  headers: ["references"],
+};
+
+/** Combien de messages une boîte rend par lecture. Au-delà, iCloud rame et personne ne défile. */
+const WINDOW = 60;
+
+export async function connect(account: StoredAccount, password: string): Promise<ImapFlow> {
+  const client = new ImapFlow({
+    host: account.imapHost ?? "imap.mail.me.com",
+    port: account.imapPort ?? 993,
+    secure: true,
+    auth: { user: account.email, pass: password },
+    /* Rien à journaliser dans une fonction serverless, et le journal par
+       défaut recopie les commandes — dont celle qui porte le mot de passe. */
+    logger: false,
+    /* Une requête, une lecture, un logout : garder IDLE ouvert coûterait un
+       aller-retour de plus à chaque commande pour rien. */
+    disableAutoIdle: true,
+  });
+  await client.connect();
+  return client;
+}
+
+/** Ouvre, fait, ferme — quoi qu'il arrive. */
+export async function withImap<T>(
+  account: StoredAccount,
+  password: string,
+  run: (client: ImapFlow) => Promise<T>,
+): Promise<T> {
+  const client = await connect(account, password);
+  try {
+    return await run(client);
+  } finally {
+    await client.logout().catch(() => {
+      /* La connexion est morte : rien à sauver, et l'erreur d'origine compte plus. */
+    });
+  }
+}
+
+/**
+ * Le chemin réel de chacun de nos dossiers, sur ce serveur-là.
+ *
+ * On ne devine pas les noms : iCloud dit « Sent Messages », Gmail
+ * « [Gmail]/Messages envoyés », et tout cela change avec la langue du compte.
+ * Le serveur les annonce lui-même par les attributs SPECIAL-USE ; `INBOX` est
+ * la seule constante du protocole.
+ */
+export async function folderPaths(client: ImapFlow): Promise<Partial<Record<FolderId, string>>> {
+  const list = await client.list();
+  const bySpecial = (use: string) => list.find((f) => f.specialUse === use)?.path;
+  return {
+    inbox: "INBOX",
+    sent: bySpecial("\\Sent"),
+    drafts: bySpecial("\\Drafts"),
+    trash: bySpecial("\\Trash"),
+    archive: bySpecial("\\Archive"),
+  };
+}
+
+/** Tous les dossiers de la boîte, pour choisir celui qui fera office de réception. */
+export async function listFolders(
+  client: ImapFlow,
+): Promise<{ path: string; name: string; unseen: number }[]> {
+  const list = await client.list({ statusQuery: { unseen: true } });
+  return list
+    .filter((f) => !f.flags?.has("\\Noselect"))
+    .map((f) => ({ path: f.path, name: f.name, unseen: f.status?.unseen ?? 0 }));
+}
+
+const contact = (a: MessageAddressObject | undefined): Contact => ({
+  name: a?.name?.trim() || a?.address || "",
+  email: a?.address ?? "",
+});
+
+const contacts = (list: MessageAddressObject[] | undefined): Contact[] => (list ?? []).map(contact);
+
+/** « Re: Fwd: Objet » vers « objet » : ce qui reste quand on enlève les préfixes de réponse. */
+function bareSubject(subject: string): string {
+  return subject
+    .replace(/^((re|ré|fwd|fw|tr)\s*(\[\d+\])?\s*:\s*)+/i, "")
+    .trim()
+    .toLowerCase();
+}
+
+/**
+ * Regrouper des messages en fils.
+ *
+ * IMAP ne connaît pas la notion de fil : ce sont les en-têtes qui la portent.
+ * On relie par `Message-ID` / `In-Reply-To` / `References` — la seule méthode
+ * exacte — et on retombe sur l'objet normalisé pour les correspondants qui
+ * répondent sans ces en-têtes, ce qui arrive plus souvent qu'on ne voudrait.
+ */
+function groupIntoThreads(messages: FetchMessageObject[]): FetchMessageObject[][] {
+  const parent = new Map<string, string>();
+  const find = (x: string): string => {
+    const up = parent.get(x);
+    if (up === undefined || up === x) return x;
+    const root = find(up);
+    parent.set(x, root);
+    return root;
+  };
+  const union = (a: string, b: string) => {
+    const ra = find(a);
+    const rb = find(b);
+    if (ra !== rb) parent.set(ra, rb);
+  };
+  const key = (m: FetchMessageObject) => `uid:${m.uid}`;
+
+  for (const m of messages) {
+    const own = key(m);
+    if (!parent.has(own)) parent.set(own, own);
+    const ids = [m.envelope?.messageId, m.envelope?.inReplyTo].filter(Boolean) as string[];
+    const refs = (m.headers?.toString() ?? "").match(/<[^>]+>/g) ?? [];
+    for (const id of [...ids, ...refs]) {
+      if (!parent.has(id)) parent.set(id, id);
+      union(own, id);
+    }
+    const subject = bareSubject(m.envelope?.subject ?? "");
+    if (subject) {
+      const s = `subj:${subject}`;
+      if (!parent.has(s)) parent.set(s, s);
+      union(own, s);
+    }
+  }
+
+  const groups = new Map<string, FetchMessageObject[]>();
+  for (const m of messages) {
+    const root = find(key(m));
+    const group = groups.get(root);
+    if (group) group.push(m);
+    else groups.set(root, [m]);
+  }
+  return [...groups.values()].map((g) => g.sort((a, b) => a.uid - b.uid));
+}
+
+/**
+ * L'identifiant d'un fil : le dossier et l'UID de son dernier message.
+ *
+ * Un UID n'a de sens que dans son dossier, et il **change quand le message
+ * est déplacé** — d'où le dossier dedans, et d'où le fait qu'un déplacement
+ * rende un nouvel identifiant plutôt que de garder l'ancien.
+ */
+export const threadId = (path: string, uid: number) => `${path} ${uid}`;
+
+export function parseThreadId(id: string): { path: string; uid: number } | null {
+  const cut = id.lastIndexOf(" ");
+  if (cut < 0) return null;
+  const uid = Number(id.slice(cut + 1));
+  return Number.isFinite(uid) ? { path: id.slice(0, cut), uid } : null;
+}
+
+/**
+ * Un fil sans espace : le fournisseur n'en connaît pas, c'est le store qui
+ * tamponne à la réception (voir `stamp` dans `store.ts`).
+ */
+function toThread(group: FetchMessageObject[], path: string, folder: FolderId): Thread {
+  const last = group[group.length - 1];
+  const messages: Message[] = group.map((m) => ({
+    id: threadId(path, m.uid),
+    from: contact(m.envelope?.from?.[0]),
+    to: contacts(m.envelope?.to),
+    cc: m.envelope?.cc?.length ? contacts(m.envelope.cc) : undefined,
+    date: (m.envelope?.date ?? new Date()).toISOString(),
+    /* Vide à la liste : le corps arrive par `getThread` quand on ouvre. Lire
+       soixante messages entiers pour afficher soixante lignes coûterait des
+       secondes, et presque tout serait jeté. */
+    body: "",
+  }));
+
+  return {
+    id: threadId(path, last.uid),
+    spaceId: "",
+    folder,
+    subject: last.envelope?.subject?.trim() || "(sans objet)",
+    snippet: "",
+    labels: [],
+    unread: group.some((m) => !m.flags?.has("\\Seen")),
+    starred: group.some((m) => m.flags?.has("\\Flagged")),
+    messages,
+  };
+}
+
+/** Les derniers fils d'un dossier, du plus récent au plus ancien. */
+export async function readFolder(
+  client: ImapFlow,
+  path: string,
+  folder: FolderId,
+  options: { flaggedOnly?: boolean; limit?: number } = {},
+): Promise<Thread[]> {
+  const lock = await client.getMailboxLock(path);
+  try {
+    const box = client.mailbox;
+    const total = typeof box === "object" ? box.exists : 0;
+    if (!total) return [];
+
+    const limit = options.limit ?? WINDOW;
+    const messages: FetchMessageObject[] = [];
+
+    if (options.flaggedOnly) {
+      const uids = await client.search({ flagged: true }, { uid: true });
+      const recent = (uids || []).slice(-limit);
+      if (recent.length === 0) return [];
+      for await (const m of client.fetch(recent, ENVELOPE_QUERY, { uid: true })) messages.push(m);
+    } else {
+      /* Par numéro de séquence : « les `limit` derniers » se dit `n:*`, et le
+         serveur n'a rien à chercher. */
+      const from = Math.max(1, total - limit + 1);
+      for await (const m of client.fetch(`${from}:*`, ENVELOPE_QUERY)) messages.push(m);
+    }
+
+    const threads = groupIntoThreads(messages).map((g) => toThread(g, path, folder));
+    return threads.sort((a, b) => (a.messages.at(-1)!.date < b.messages.at(-1)!.date ? 1 : -1));
+  } finally {
+    lock.release();
+  }
+}
+
+/** Un message entier, corps et pièces jointes : ce que `readFolder` ne rapporte pas. */
+export async function readThread(
+  client: ImapFlow,
+  id: string,
+  folder: FolderId,
+): Promise<Thread | null> {
+  const parsed = parseThreadId(id);
+  if (!parsed) return null;
+  const lock = await client.getMailboxLock(parsed.path);
+  try {
+    const envelope = await client.fetchOne(String(parsed.uid), ENVELOPE_QUERY, { uid: true });
+    if (!envelope) return null;
+
+    const { content } = await client.download(String(parsed.uid), undefined, { uid: true });
+    const chunks: Buffer[] = [];
+    for await (const chunk of content) chunks.push(chunk as Buffer);
+    const mime = await simpleParser(Buffer.concat(chunks));
+
+    /* On hydrate le message ouvert, pas tout le fil : c'est celui qu'on
+       regarde, et chaque corps de plus est un aller-retour de plus. */
+    const thread = toThread([envelope], parsed.path, folder);
+    const body = (mime.text ?? "").trim();
+    thread.messages[0].body = body;
+    thread.snippet = body.split("\n").find((line) => line.trim())?.slice(0, 140) ?? "";
+    thread.messages[0].attachments = mime.attachments.map((a, i) => ({
+      id: `${id} ${i}`,
+      name: a.filename ?? `pièce jointe ${i + 1}`,
+      mime: a.contentType,
+      size: a.size,
+    }));
+    return thread;
+  } finally {
+    lock.release();
+  }
+}

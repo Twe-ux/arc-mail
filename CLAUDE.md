@@ -39,8 +39,10 @@ d'Arc (espaces colorés, sidebar translucide, favoris épinglés, onglets « Auj
   bout en bout (porté de Kairos : fiches et capture comme source, téléphone ET bureau dans le
   même passage, checks, captures, compte rendu avec arbitrages) ; **`/safe-commit "…"`** pour
   tout commit (review selon les règles ci-dessous, tsc + lint + build, push preview → main) ;
-  **`/review <dossier>`** pour un état des lieux contre les fiches. Le skill global
-  `apple-design` reste utile pour les gestes.
+  **`/review <dossier>`** pour un état des lieux contre les fiches. Avec eux, ceux qu'ils
+  enchaînent : `impeccable` (design ; `npm ci --prefix .claude/skills/impeccable` sur un clone
+  neuf, `node_modules` jamais commité), `apple-design`, `emil-design-eng`, `animate`,
+  `review-animations`, `shadcn`, `ask-sonner` → [liste et tri](docs/README.md).
 - `npm run capture -- --name <ecran> [--open menu|compose|search] [--space pro]` : les quatre
   captures (téléphone 393×852 avec insets 59/34, bureau 1280×800 ; clair et sombre), erreurs de
   console, et la géométrie de la carte ouverte. C'est l'outil de mesure ; serveur de dev requis.

@@ -37,13 +37,18 @@ qu'on remet en question d'abord — elle a pu être écrite avant la mesure — 
 
 ## 2. Charger les skills, avant d'écrire
 
-Dans cet ordre, ceux qui existent dans cette session :
+Dans cet ordre :
 
-1. `Skill(impeccable)` s'il est présent dans `.claude/skills/` — puis ce qu'il demande lui-même
-   (`context.mjs --target <fichier>`, `reference/craft-floor.md` juste avant d'éditer de l'UI),
-   avec ses chemins relatifs au dépôt, pas à un Mac.
+1. `Skill(impeccable)` — puis ce qu'il demande lui-même :
+   `node .claude/skills/impeccable/scripts/context.mjs --target <fichier>` une fois par session,
+   et `reference/craft-floor.md` **juste avant** d'éditer de l'UI. Sur un clone neuf, ses
+   dépendances d'abord : `npm ci --prefix .claude/skills/impeccable`. Arc Mail n'a ni
+   `PRODUCT.md` ni `DESIGN.md` : il prend alors le code existant comme autorité — ce qui est
+   juste — et **les fiches `docs/features/` tiennent lieu de DESIGN.md** ; en cas de conflit
+   entre son goût et une fiche, la fiche gagne.
 2. `Skill(apple-design)` — dès que l'écran a un geste, un mouvement, une feuille, une
-   transition, un matériau translucide. Ici c'est presque toujours le cas.
+   transition, un matériau translucide. Ici c'est presque toujours le cas. `Skill(animate)`
+   pour une animation nouvelle, décidée dans l'ordre ; `review-animations` est humain seulement.
 3. Pour une primitive nouvelle : `npx shadcn@latest add <x>`. Ce projet est sur **Radix** (paquet
    unifié `radix-ui`), style new-york. Ne pas réécrire une primitive qui existe ; la surcharger
    par `className` depuis l'appelant, comme `CommandDialog` ou `SheetContent` le sont déjà.
@@ -104,15 +109,16 @@ Un geste se vérifie autrement : événements tactiles CDP (`Input.dispatchTouch
 `docs/features/gestes.md` — et l'animation d'entrée d'une carte dure 500 ms, une mesure à
 400 ms donne quelques pixels de décalage qui ressemblent à un bug.
 
-## 6. Le détecteur, une fois, sur l'UI finie — si `impeccable` est là
+## 6. Le détecteur, une fois, sur l'UI finie
 
 ```bash
 node .claude/skills/impeccable/scripts/detect.mjs --json src/components src/app/globals.css
 ```
 
-Doit rendre `[]`. S'il signale une taille ou un rayon, la première question est « est-ce la
-**fiche** qui est incomplète ? » — sur Kairos, les 22 tailles signalées venaient toutes du
-handoff, et c'est le document qu'il a fallu compléter, pas le code.
+Doit rendre `[]` — c'est ce qu'il rendait sur toute l'UI le 4 septembre. S'il signale une
+taille ou un rayon, la première question est « est-ce la **fiche** qui est incomplète ? » — sur
+Kairos, les 22 tailles signalées venaient toutes du handoff, et c'est le document qu'il a fallu
+compléter, pas le code.
 
 ## 7. Rendre compte, puis `/safe-commit`
 

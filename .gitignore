@@ -40,3 +40,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 captures/
+
+# Dépendances des skills : s'installent sur place (npm ci), jamais dans git
+.claude/skills/**/node_modules/

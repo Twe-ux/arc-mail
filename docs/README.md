@@ -27,11 +27,31 @@ l'état du projet et ce qui reste à faire.
 
 ## Skills du dépôt (`.claude/skills/`)
 
+Les nôtres, écrits pour Arc Mail :
 - `/ecran <nom>` — monter ou refondre un écran, de la fiche à la capture (porté de Kairos)
 - `/safe-commit "…"` — commit gardé par review + tsc/lint/build, push preview → main
 - `/review <dossier>` — état des lieux d'un dossier contre les fiches, rapport seulement
 
-Ils prennent le pas sur les skills globaux du même nom, écrits pour un autre projet.
+Ceux qu'ils enchaînent ou qu'on appelle à la main, gardés après tri (4 sept.) :
+- `impeccable` — le moteur de design que `/ecran` charge (`context.mjs`, `craft-floor.md`,
+  `detect.mjs`). Ses dépendances s'installent sur place : `npm ci --prefix
+  .claude/skills/impeccable` ; `node_modules` n'est jamais commité.
+- `apple-design`, `emil-design-eng`, `animate`, `review-animations`, `animation-vocabulary` —
+  le mouvement : philosophie Apple, polish à la Emil Kowalski, décisions d'animation dans
+  l'ordre, revue exigeante (humain seulement), glossaire.
+- `shadcn` — ajouter, composer, déboguer une primitive ; `ask-sonner` — les toasts, qu'il faudra
+  pour les erreurs de fournisseur ; `pick-ui-library` et `prototype` — choix de bibliothèque et
+  variantes derrière un sélecteur, à la main seulement.
+
+Écartés, et pourquoi : les mondes visuels (`gpt-taste`, `minimalist-ui`, `industrial-brutalist-ui`,
+`high-end-visual-design`, `design-taste-frontend*`, `stitch-design-taste`, `redesign-existing-
+projects`) — Arc Mail a le sien, la fiche gagne ; la génération d'images (`image-to-code`,
+`imagegen-frontend-*`, `brandkit`) ; le natif (`animate-expo`, `write-swift`) ; `playwright-cli` et
+`dev` (son dépôt), remplacés par `npm run capture` ; `find-animation-opportunities` (Arc Mail
+retient le mouvement, il ne le cherche pas) et `improve-animations` (doublon de
+`review-animations`) ; `find-skills` et `full-output-enforcement` (méta, pas projet).
+
+Un skill du dépôt prend le pas sur le skill global du même nom.
 
 ## Règle de la maison
 

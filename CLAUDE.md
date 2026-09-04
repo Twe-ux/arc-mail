@@ -101,6 +101,8 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - La sidebar bureau n'a pas de fond : une seule encre secondaire (85 %), mesurée à l'endroit où
   elle est dessinée ; les surfaces `glass` sont pour les cibles, pas pour le texte.
 - L'accent se remplit, il ne s'écrit pas : texte et icônes en accent lisent `--space-ink`.
+- Les espaces de la barre du bas sont des pastilles nues : le nom est dans l'infobulle, pas écrit à
+  côté — tronqué il ne dit plus rien. Même règle pour l'adresse du compte connecté.
 - Les préférences ne s'enregistrent qu'**après** avoir été relues (stockage `preferences` du
   store) : un `set` pendant le rendu écrasait sinon la teinte et le thème sombre.
 - Un groupe blanc a un bord (`shadow 0 0 0 1px`) ; un rail horizontal rogne aussi verticalement,
@@ -123,8 +125,11 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - AES-256-GCM lié à la ligne (`userId:accountId` en AAD) ; `ACCOUNTS_KEY` dans Vercel, jamais ici.
 - Toujours `getUser()`, jamais `getSession()` ; `src/proxy.ts` rafraîchit et redirige de façon
   optimiste, la garde qui compte est dans `page.tsx` puis les politiques RLS.
-- Connexion par Google ; le retour OAuth est un route handler (seul endroit qui peut écrire un
-  cookie avec les Server Actions), et son `next` est vérifié.
+- Connexion par Google **ou Apple** ; le retour OAuth est un route handler (seul endroit qui peut
+  écrire un cookie avec les Server Actions), et son `next` est vérifié. L'identité d'entrée n'ouvre
+  aucune boîte : elle sert à proposer la première dans `/comptes`.
+- iCloud, Gmail et « Autre » : les hôtes sont posés par le formulaire, jamais tapés. Gmail passe par
+  IMAP avec un mot de passe d'application, pas par son API.
 - Sans `NEXT_PUBLIC_SUPABASE_*`, l'app reste la maquette ouverte d'aujourd'hui.
 
 **IMAP** → [docs/features/imap.md](docs/features/imap.md)

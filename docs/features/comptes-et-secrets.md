@@ -22,6 +22,36 @@ Le navigateur ne peut donc pas lire un secret, même chiffré, même le sien. C'
 la séparation : sans elle, une faille XSS rendrait le blob, et un blob volé est un blob qu'on a le
 temps d'attaquer.
 
+## Entrer par Google ou par Apple
+
+Deux portes, du même poids. Entrer avec Google puis brancher une boîte iCloud fait deux identités
+pour une seule personne ; qui n'a qu'Apple doit pouvoir entrer par Apple.
+
+**L'identité d'entrée n'ouvre aucune boîte.** Elle dit seulement à qui appartiennent les comptes
+rangés. Mais c'est elle qu'on propose en premier dans `/comptes` : l'adresse est connue, son
+fournisseur se déduit du domaine, et il ne reste qu'un champ à remplir — le mot de passe
+d'application.
+
+Apple demande d'activer le fournisseur dans Supabase (Authentication → Providers → Apple, avec un
+Services ID et une clé du programme développeur). Tant que ce n'est pas fait, le bouton le dit :
+« Unsupported provider » ne disait pas où aller le régler.
+
+## Trois façons de brancher une boîte
+
+| | Serveurs | Ce qu'il faut |
+|---|---|---|
+| iCloud | `imap.mail.me.com` · `smtp.mail.me.com:587` | un mot de passe d'application Apple |
+| Gmail | `imap.gmail.com` · `smtp.gmail.com:465` | la validation en deux étapes, puis un mot de passe d'application |
+| Autre | à saisir | ce que publie l'hébergeur |
+
+Les hôtes sont posés, pas tapés : `imap.gmail.com` avec un `s` de trop donne une erreur de
+connexion qui ressemble à un mauvais mot de passe.
+
+**Gmail passe par IMAP, pas par son API.** Se connecter avec Google identifie ; lire la boîte
+demanderait le consentement `https://mail.google.com/`, un client OAuth déclaré et une vérification
+Google — un chantier à part, pour un résultat que l'app sait déjà rendre. L'API Gmail reste
+intéressante pour le push et les libellés → [plan](../roadmap/fournisseurs-mail.md).
+
 ## Le chiffrement
 
 AES-256-GCM, clé `ACCOUNTS_KEY` (32 octets, `openssl rand -base64 32`) dans l'environnement Vercel,

@@ -23,6 +23,70 @@ import { cn } from "@/lib/utils";
 const VIDE: Etat = { statut: "vide" };
 
 /**
+ * Les boîtes qu'on sait brancher, et ce qu'il faut savoir pour chacune.
+ *
+ * Les hôtes ne se devinent pas et se tapent mal : `imap.gmail.com` avec un
+ * `s` de trop, c'est une erreur de connexion qui ressemble à un mauvais mot de
+ * passe. On les pose, et « Autre » reste pour tout le reste.
+ *
+ * **Ni l'un ni l'autre n'ouvre d'API sur simple connexion** : Apple n'en a
+ * pas, et Google en a une mais qui demande son propre consentement. Dans les
+ * deux cas, ce qui ouvre la boîte est un mot de passe d'application, et il
+ * s'écrit ici.
+ */
+const FOURNISSEURS = {
+  icloud: {
+    nom: "iCloud",
+    domaines: ["icloud.com", "me.com", "mac.com"],
+    imapHost: "imap.mail.me.com",
+    imapPort: "993",
+    /* 587 pour iCloud : la session commence en clair et monte en TLS. */
+    smtpHost: "smtp.mail.me.com",
+    smtpPort: "587",
+    exemple: "prenom@icloud.com",
+    lien: "https://account.apple.com",
+    lienNom: "mot de passe d'application",
+    aide: "Apple n'ouvre pas d'API : on passe par IMAP.",
+  },
+  gmail: {
+    nom: "Gmail",
+    domaines: ["gmail.com", "googlemail.com"],
+    imapHost: "imap.gmail.com",
+    imapPort: "993",
+    /* 465 pour Google : le chiffrement dès la poignée de main. */
+    smtpHost: "smtp.gmail.com",
+    smtpPort: "465",
+    exemple: "prenom@gmail.com",
+    lien: "https://myaccount.google.com/apppasswords",
+    lienNom: "mot de passe d'application",
+    aide: "Se connecter avec Google dit qui tu es, pas ce que contient ta boîte : on l'ouvre par IMAP, la validation en deux étapes activée.",
+  },
+  autre: {
+    nom: "Autre",
+    domaines: [] as string[],
+    imapHost: "",
+    imapPort: "993",
+    smtpHost: "",
+    smtpPort: "587",
+    exemple: "prenom@domaine.fr",
+    lien: "",
+    lienNom: "",
+    aide: "N'importe quelle boîte IMAP : il faut ses serveurs, que ton hébergeur publie.",
+  },
+} as const;
+
+type Fournisseur = keyof typeof FOURNISSEURS;
+
+/** Celui de l'adresse connectée, quand on le reconnaît : une case de moins à remplir. */
+function fournisseurDe(email: string | null): Fournisseur {
+  const domaine = (email ?? "").split("@")[1]?.toLowerCase() ?? "";
+  const trouve = (Object.keys(FOURNISSEURS) as Fournisseur[]).find((cle) =>
+    (FOURNISSEURS[cle].domaines as readonly string[]).includes(domaine),
+  );
+  return trouve ?? "icloud";
+}
+
+/**
  * Brancher une boîte, et vérifier tout de suite qu'elle répond.
  *
  * Un seul écran pour les deux : enregistrer un mot de passe sans l'avoir vu
@@ -32,12 +96,24 @@ const VIDE: Etat = { statut: "vide" };
 export function ComptesEcran({
   comptes,
   espaces,
+  connecte = null,
 }: {
   comptes: StoredAccount[];
   espaces: StoredSpace[];
+  /** L'adresse avec laquelle on s'est connecté à l'app, si on la connaît. */
+  connecte?: string | null;
 }) {
   const [etat, action, enCours] = useActionState(ajouterCompte, VIDE);
   const [ouvert, setOuvert] = useState(comptes.length === 0);
+  /* La première boîte proposée est celle avec laquelle on vient d'entrer :
+     l'adresse est déjà connue, le fournisseur aussi, et il ne reste qu'un
+     champ à remplir. Ensuite, on n'a plus de raison de deviner. */
+  const premiere = comptes.length === 0;
+  const [fournisseur, setFournisseur] = useState<Fournisseur>(
+    premiere ? fournisseurDe(connecte) : "icloud",
+  );
+  const f = FOURNISSEURS[fournisseur];
+  const adresse = premiere && fournisseurDe(connecte) === fournisseur ? (connecte ?? "") : "";
 
   return (
     <main className="min-h-dvh pt-[var(--safe-top)] [background:linear-gradient(135deg,#7c3aed_0%,#db2777_55%,#f97316_100%)]">
@@ -55,8 +131,16 @@ export function ComptesEcran({
 
         <section className="rounded-[28px] bg-card p-5 text-card-foreground shadow-2xl ring-1 ring-black/[0.06] md:p-6 dark:ring-white/12">
           {comptes.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              Aucune boîte branchée pour l&apos;instant. L&apos;app affiche des données d&apos;exemple.
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              {connecte ? (
+                <>
+                  Tu es entré avec <span className="font-medium text-foreground">{connecte}</span> —
+                  on commence par cette boîte-là. L&apos;app affiche des données d&apos;exemple tant
+                  qu&apos;aucune n&apos;est branchée.
+                </>
+              ) : (
+                <>Aucune boîte branchée pour l&apos;instant. L&apos;app affiche des données d&apos;exemple.</>
+              )}
             </p>
           ) : (
             <ul className="flex flex-col gap-2">
@@ -77,23 +161,53 @@ export function ComptesEcran({
           )}
 
           {ouvert && (
-            <form action={action} className="mt-5 flex flex-col gap-3 border-t pt-5">
-              <h2 className="text-[15px] font-semibold">Boîte iCloud</h2>
-              <p className="-mt-1 text-[13px] leading-relaxed text-muted-foreground">
-                Apple n&apos;ouvre pas d&apos;API : on passe par IMAP, avec un{" "}
-                <a
-                  href="https://account.apple.com"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="font-medium text-[var(--space-ink)] underline underline-offset-2"
-                >
-                  mot de passe d&apos;application
-                </a>{" "}
-                — pas celui de ton compte Apple. Il est chiffré avant d&apos;être rangé, et le
-                navigateur ne peut pas le relire.
+            <form
+              action={action}
+              /* Changer de fournisseur remonte les champs : sans cette clé,
+                 React garderait les valeurs par défaut du précédent. */
+              key={fournisseur}
+              className="mt-5 flex flex-col gap-3 border-t pt-5"
+            >
+              <div role="radiogroup" aria-label="Fournisseur" className="flex gap-1 rounded-xl bg-muted/60 p-1 dark:bg-white/[0.07]">
+                {(Object.keys(FOURNISSEURS) as Fournisseur[]).map((cle) => (
+                  <button
+                    key={cle}
+                    type="button"
+                    role="radio"
+                    aria-checked={cle === fournisseur}
+                    onClick={() => setFournisseur(cle)}
+                    className={cn(
+                      "h-9 flex-1 rounded-lg text-[13px] font-medium transition-colors",
+                      cle === fournisseur
+                        ? "bg-card text-foreground shadow-[0_0_0_1px_rgb(0_0_0/0.06)] dark:bg-white/12"
+                        : "text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    {FOURNISSEURS[cle].nom}
+                  </button>
+                ))}
+              </div>
+
+              <p className="text-[13px] leading-relaxed text-muted-foreground">
+                {f.aide}{" "}
+                {f.lien && (
+                  <>
+                    Il faut un{" "}
+                    <a
+                      href={f.lien}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="font-medium text-[var(--space-ink)] underline underline-offset-2"
+                    >
+                      {f.lienNom}
+                    </a>{" "}
+                    — pas celui de ton compte.{" "}
+                  </>
+                )}
+                Il est chiffré avant d&apos;être rangé, et le navigateur ne peut pas le relire.
               </p>
 
-              <Champ nom="email" label="Adresse" type="email" placeholder="prenom@icloud.com" requis />
+              <Champ nom="email" label="Adresse" type="email" placeholder={f.exemple} valeur={adresse} requis />
               <Champ
                 nom="password"
                 label="Mot de passe d'application"
@@ -101,19 +215,23 @@ export function ComptesEcran({
                 placeholder="xxxx-xxxx-xxxx-xxxx"
                 requis
               />
-              <Champ nom="label" label="Nom affiché" placeholder="iCloud" />
+              <Champ nom="label" label="Nom affiché" placeholder={f.nom} />
 
-              <details className="mt-1">
-                <summary className="cursor-pointer text-[13px] text-muted-foreground">
-                  Serveurs (pré-remplis pour iCloud)
-                </summary>
-                <div className="mt-3 grid grid-cols-2 gap-3">
-                  <Champ nom="imapHost" label="IMAP" placeholder="imap.mail.me.com" />
-                  <Champ nom="imapPort" label="Port" placeholder="993" />
-                  <Champ nom="smtpHost" label="SMTP" placeholder="smtp.mail.me.com" />
-                  <Champ nom="smtpPort" label="Port" placeholder="587" />
+              {fournisseur === "autre" ? (
+                <div className="grid grid-cols-2 gap-3">
+                  <Champ nom="imapHost" label="IMAP" placeholder="imap.domaine.fr" requis />
+                  <Champ nom="imapPort" label="Port" placeholder="993" valeur={f.imapPort} />
+                  <Champ nom="smtpHost" label="SMTP" placeholder="smtp.domaine.fr" requis />
+                  <Champ nom="smtpPort" label="Port" placeholder="587" valeur={f.smtpPort} />
                 </div>
-              </details>
+              ) : (
+                <>
+                  <input type="hidden" name="imapHost" value={f.imapHost} />
+                  <input type="hidden" name="imapPort" value={f.imapPort} />
+                  <input type="hidden" name="smtpHost" value={f.smtpHost} />
+                  <input type="hidden" name="smtpPort" value={f.smtpPort} />
+                </>
+              )}
 
               {etat.statut !== "vide" && (
                 <p
@@ -403,12 +521,14 @@ function Champ({
   label,
   type = "text",
   placeholder,
+  valeur,
   requis,
 }: {
   nom: string;
   label: string;
   type?: string;
   placeholder?: string;
+  valeur?: string;
   requis?: boolean;
 }) {
   return (
@@ -418,6 +538,7 @@ function Champ({
         name={nom}
         type={type}
         placeholder={placeholder}
+        defaultValue={valeur}
         required={requis}
         autoComplete="off"
         spellCheck={false}

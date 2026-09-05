@@ -112,6 +112,26 @@ Le corps arrive donc à l'ouverture, par `getThread`, et **seulement s'il manque
 regarde si les messages du fil ont un corps avant de demander (`selectThread`). Le mock rend tout
 d'un coup et ne repasse jamais par là.
 
+### La lecture commence avant le geste
+
+Le corps arrive par une requête, et cette requête partait au moment du clic : l'attente était
+entièrement devant les yeux. Elle part maintenant plus tôt, de deux façons.
+
+**Les deux premiers fils** d'une liste fraîche vont chercher leur corps tout seuls, pendant qu'on
+lit les objets. Deux et pas dix : un message est lourd, et ce sont des octets sur un forfait mobile
+pour des messages qu'on n'ouvrira peut-être pas.
+
+**Au premier appui** (`onPointerDown`), avant même le clic et l'ouverture de la vue — cent à trois
+cents millisecondes prises sur le geste plutôt que sur l'attente. À l'appui et **pas au survol** :
+un pointeur qui balaie la liste ferait descendre vingt messages qu'on ne lira pas.
+
+`prefetchThread` est silencieux par construction : un préchargement raté ne dit rien, la vraie
+ouverture réessaiera et parlera, elle. Et `remplir` tient la liste de ce qui est déjà en vol, pour
+qu'un appui suivi d'un clic ne fasse qu'une requête.
+
+Mesuré en émulation, fournisseur ralenti à 1200 ms : un message préchargé s'ouvre en **5 ms**, un
+autre en **1164 ms**.
+
 L'hydratation **complète** le fil de la liste, elle ne le remplace pas : la liste a regroupé
 plusieurs messages, la lecture n'en rend qu'un — remplacer perdrait les autres.
 

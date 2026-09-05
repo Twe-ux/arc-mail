@@ -54,6 +54,7 @@ Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérificatio
 | — | `MailProvider` : le mock derrière l'interface, store asynchrone à écritures optimistes |
 | `04273d0` | Tri des skills : 13 gardés sur 33, `/ecran` porté de Kairos, `npm run capture` |
 | `6e896f6` | État des lieux : quatre audits en parallèle (code, UX, mouvement, DESIGN.md) |
+| — | Le corps d'un message part avant le geste : deux premiers fils préchargés, et tout fil dès l'appui (5 ms contre 1164) |
 | — | Les connexions IMAP se gardent d'une requête à l'autre (285 ms → 3 ms sur un serveur de test), clé par empreinte d'identifiants |
 | — | La liste IMAP a ses lignes d'aperçu : 2 Ko de corps demandés dans le même `FETCH` que l'enveloppe, décodés à la main (QP, base64 tronqué, HTML, latin-1) |
 | — | La boîte s'ouvre sans attendre : enveloppes gardées d'une session à l'autre, squelette pendant la première lecture, `folderPaths` paresseux et un seul `FETCH` pour ouvrir un message |

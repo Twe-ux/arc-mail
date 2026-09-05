@@ -54,6 +54,8 @@ export type MailState = {
   setSpace: (id: SpaceId) => void;
   setFolder: (id: FolderId) => void;
   selectThread: (id: string | null) => void;
+  /** Demande le corps d'un fil sans l'ouvrir : l'attente passe avant le geste. */
+  prefetchThread: (id: string) => void;
   toggleStar: (id: string) => void;
   toggleUnread: (id: string) => void;
   moveThread: (id: string, folder: FolderId) => void;
@@ -243,6 +245,37 @@ const enMemoire = (threads: Thread[]): Thread[] =>
     })),
   }));
 
+/** Les corps déjà demandés, pour ne pas les demander deux fois. */
+const enVol = new Set<string>();
+
+/**
+ * Va chercher le corps d'un fil, une seule fois.
+ *
+ * `bruyant` distingue les deux appelants : l'ouverture d'un message doit dire
+ * si elle échoue, un préchargement doit se taire — il n'a été demandé par
+ * personne, et un toast pour un message qu'on n'a pas ouvert serait
+ * incompréhensible.
+ */
+async function remplir(id: string, bruyant: boolean): Promise<void> {
+  const cible = useMail.getState().threads.find((t) => t.id === id);
+  if (!cible || enVol.has(id)) return;
+  /* Déjà lu : le mock rend tout d'un coup, et un fil rouvert garde son corps. */
+  if (cible.messages.some((m) => m.body)) return;
+
+  enVol.add(id);
+  try {
+    const account = accountOf(cible.spaceId);
+    const full = await providerFor(account).getThread(account, id);
+    if (full) {
+      useMail.setState((s) => ({ threads: patchThread(s.threads, id, (t) => hydrate(t, full)) }));
+    }
+  } catch (err: unknown) {
+    if (bruyant) toast.error("Impossible d'ouvrir ce message", { description: describe(err) });
+  } finally {
+    enVol.delete(id);
+  }
+}
+
 /** Une table indexée par espace, dont une clé change de nom. */
 function renomme<T>(table: Partial<Record<SpaceId, T>>, de: SpaceId, vers: SpaceId) {
   if (!(de in table)) return table;
@@ -359,6 +392,11 @@ export const useMail = create<MailState>()(
         loading: { ...s.loading, [spaceId]: false },
         error: null,
       }));
+      /* Les premiers de la liste sont ceux qu'on ouvre : leur corps part
+         chercher lui-même, pendant qu'on lit les objets. Deux, pas dix — un
+         message est lourd, et ce sont des octets sur un forfait mobile pour
+         des messages qu'on n'ouvrira peut-être pas. */
+      for (const t of fresh.slice(0, 2)) void remplir(t.id, false);
     } catch (err) {
       if (loadTokens.get(spaceId) !== token) return;
       done({ error: describe(err) });
@@ -393,18 +431,24 @@ export const useMail = create<MailState>()(
     /* Une liste ne rapporte que des enveloppes : lire soixante corps pour en
        afficher un serait payer soixante fois trop. Le corps arrive donc à
        l'ouverture, et seulement s'il manque — le mock, lui, rend tout d'un
-       coup et ne repasse jamais ici. */
-    if (target.messages.every((m) => !m.body)) {
-      providerFor(account)
-        .getThread(account, id)
-        .then((full) => {
-          if (!full) return;
-          set((s) => ({ threads: patchThread(s.threads, id, (t) => hydrate(t, full)) }));
-        })
-        .catch((err: unknown) => {
-          toast.error("Impossible d'ouvrir ce message", { description: describe(err) });
-        });
-    }
+       coup et ne repasse jamais ici. Le plus souvent il est déjà là, demandé
+       dès que le doigt s'est posé (`prefetchThread`). */
+    void remplir(id, true);
+  },
+
+  /**
+   * Commencer la lecture d'un message **avant** qu'on l'ouvre.
+   *
+   * Le corps arrive par une requête, et cette requête commençait au moment du
+   * clic : l'attente était entièrement devant les yeux. Un appui dure 100 à
+   * 300 ms avant que la vue ne s'ouvre, et une liste qui vient d'arriver dit
+   * déjà lequel on lira en premier — autant s'en servir.
+   *
+   * Silencieux par construction : un préchargement raté ne se dit pas, la
+   * vraie ouverture réessaiera et parlera, elle.
+   */
+  prefetchThread: (id) => {
+    void remplir(id, false);
   },
 
   toggleStar: (id) => {

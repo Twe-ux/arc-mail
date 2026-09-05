@@ -20,6 +20,7 @@ export function ThreadList({ className }: { className?: string }) {
   const threads = useVisibleThreads();
   const selectedThreadId = useMail((s) => s.selectedThreadId);
   const selectThread = useMail((s) => s.selectThread);
+  const prefetchThread = useMail((s) => s.prefetchThread);
   const openDraft = useMail((s) => s.openDraft);
   const toggleStar = useMail((s) => s.toggleStar);
   const unreadOnly = useMail((s) => s.unreadOnly);
@@ -167,6 +168,7 @@ export function ThreadList({ className }: { className?: string }) {
                   accent={space.theme.accent}
                   active={t.id === selectedThreadId}
                   onSelect={() => (t.folder === "drafts" ? openDraft(t.id) : selectThread(t.id))}
+                  onIntent={() => prefetchThread(t.id)}
                   onStar={() => toggleStar(t.id)}
                 />
               ))}
@@ -240,12 +242,15 @@ function ThreadRow({
   accent,
   active,
   onSelect,
+  onIntent,
   onStar,
 }: {
   thread: Thread;
   accent: string;
   active: boolean;
   onSelect: () => void;
+  /** Le doigt s'est posé : on peut déjà aller chercher le message. */
+  onIntent: () => void;
   onStar: () => void;
 }) {
   const last = thread.messages[thread.messages.length - 1];
@@ -266,6 +271,11 @@ function ThreadRow({
         type="button"
         aria-current={active ? "true" : undefined}
         onClick={onSelect}
+        /* Avant le clic, et avant l'ouverture de la vue : cent à trois cents
+           millisecondes de gagnées, prises sur le geste plutôt que sur
+           l'attente. À l'appui et pas au survol — un pointeur qui balaie la
+           liste ferait descendre vingt messages qu'on ne lira pas. */
+        onPointerDown={onIntent}
         className={cn(
           "flex w-full cursor-pointer items-start gap-3 px-4 py-3 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring/50 md:rounded-lg md:px-3 md:py-2.5 md:pr-10",
           active ? "bg-accent" : "active:bg-accent/60 md:hover:bg-accent/60",

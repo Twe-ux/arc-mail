@@ -143,6 +143,8 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   absent est une liste vide.
 - La liste ne rapporte que des enveloppes ; le corps arrive par `getThread` à l'ouverture, et
   l'hydratation complète le fil au lieu de le remplacer.
+- Il part avant le geste : les **deux premiers** fils d'une liste fraîche, et tout fil dès l'appui
+  (`prefetchThread`, muet, jamais au survol).
 - `modify` écrit les drapeaux (`\Seen`, `\Flagged`) et déplace ; le déplacement passe en dernier.
 - Envoyer, c'est SMTP **puis** un `APPEND` dans « Envoyés » — un seul message composé pour les deux ;
   Gmail range déjà lui-même, on n'y ajoute rien. Une réponse porte `In-Reply-To` et `References`.

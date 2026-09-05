@@ -188,8 +188,11 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   verre n'a rien à flouter.
 
 **Répondre** → [docs/features/reponse.md](docs/features/reponse.md)
-- Par défaut à tous ; « Répondre », « Répondre à tous » et l'en-tête d'un message visent ; le champ
-  montre les destinataires réels et prend le focus.
+- Par défaut **l'expéditeur seul** ; « Répondre à tous » n'apparaît que s'il reste quelqu'un d'autre
+  une fois **toutes nos adresses** retirées (tous les espaces, comparaison lavée) — un espace-vue
+  reçoit sur une adresse à nous, et répondre à tous, c'était s'écrire.
+- La visée porte toujours une liste, jamais `null` : sinon « à tous » et « rien de visé » se
+  confondent. Le champ montre les destinataires réels et prend le focus.
 
 **Pièces jointes** → [docs/features/pieces-jointes.md](docs/features/pieces-jointes.md)
 - Les octets viennent de `/api/mail/piece` (GET) : liste blanche de types, `nosniff`, et

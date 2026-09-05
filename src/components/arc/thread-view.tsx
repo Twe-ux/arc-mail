@@ -34,7 +34,7 @@ export function ThreadView({ className }: { className?: string }) {
      La visée porte le fil sur lequel elle a été prise, pour qu'ouvrir une
      autre conversation la laisse tomber pendant le rendu plutôt que dans un
      effet qui peindrait les mauvais destinataires pendant une frame. */
-  const [aim, setAim] = useState<{ threadId: string; to: Contact[] | null; tick: number } | null>(null);
+  const [aim, setAim] = useState<{ threadId: string; to: Contact[]; tick: number } | null>(null);
   /* Une feuille à la fois, et une seule barre en bas : répondre remplace la
      pill, il ne se pose pas dessus. */
   const [sheet, setSheet] = useState<null | "move" | "more">(null);
@@ -43,10 +43,13 @@ export function ThreadView({ className }: { className?: string }) {
   const threadId = thread?.id;
   const vue = useEnteteRepliable<HTMLElement>(threadId ?? null);
   const aimed = aim?.threadId === threadId ? aim : null;
-  const replyTo = aimed?.to ?? null;
   const focusTick = aimed?.tick ?? 0;
 
-  const aimReply = (to: Contact[] | null) => {
+  /* **La visée porte toujours une liste**, jamais `null`. Tant que « répondre à
+     tous » valait `null`, il ne se distinguait pas de « rien de visé » — les
+     deux tombaient sur la même valeur par défaut. Maintenant que le défaut est
+     l'expéditeur seul, il fallait les séparer. */
+  const aimReply = (to: Contact[]) => {
     if (!threadId) return;
     setAim((current) => ({
       threadId,
@@ -80,11 +83,14 @@ export function ThreadView({ className }: { className?: string }) {
       body: `\n\n---------- Message transféré ----------\n${quoted}`,
     });
   };
+  /* **Par défaut, l'expéditeur seul.** Tout le monde comprenait les adresses en
+     copie et, quand un espace-vue reçoit sur une adresse à nous, notre propre
+     boîte : répondre, c'était s'écrire (fiche « Répondre »). */
   const everyone = replyRecipients(thread);
   const sender = thread.messages[thread.messages.length - 1].from;
-  const targets = replyTo ?? everyone;
-  /* « Répondre à tous » ne gagne sa place que s'il y a vraiment quelqu'un
-     d'autre sur le message. */
+  const targets = aimed?.to ?? [sender];
+  /* « Répondre à tous » ne gagne sa place que s'il reste quelqu'un **en plus de
+     l'expéditeur** une fois nos propres adresses retirées. */
   const canReplyAll = everyone.length > 1;
   /* Ranger, c'est **revenir à la liste** : le fil qu'on vient de déplacer n'est
      plus dans le dossier qu'on regardait, et le laisser ouvert donnerait un
@@ -158,7 +164,7 @@ export function ThreadView({ className }: { className?: string }) {
       <ThreadHeaderDesktop
         thread={thread}
         onForward={forward}
-        onReplyAll={() => aimReply(null)}
+        onReplyAll={() => aimReply(everyone)}
         onArchive={() => ranger("archive", "Archive")}
         onTrash={() => (inTrash ? ranger("inbox", "Réception") : ranger("trash", "Corbeille"))}
         onSnooze={() => ranger("snoozed", "En pause")}
@@ -205,7 +211,7 @@ export function ThreadView({ className }: { className?: string }) {
           thread={thread}
           to={targets}
           everyone={everyone}
-          onReplyAll={() => aimReply(null)}
+          onReplyAll={() => aimReply(everyone)}
           focusTick={focusTick}
           className="hidden shrink-0 border-t border-black/[0.06] px-3.5 py-3 md:block dark:border-white/10"
         />
@@ -216,7 +222,7 @@ export function ThreadView({ className }: { className?: string }) {
             thread={thread}
             to={targets}
             everyone={everyone}
-            onReplyAll={() => aimReply(null)}
+            onReplyAll={() => aimReply(everyone)}
             onClose={() => setReplyOpen(false)}
           />
         ) : (
@@ -226,7 +232,7 @@ export function ThreadView({ className }: { className?: string }) {
              exactement comme celle de la liste. */
           <ActionBar className="pointer-events-none absolute inset-x-0 bottom-0 z-20 md:hidden">
             <Pill className="pointer-events-auto w-full justify-between">
-              <PillPrimary label="Répondre" onClick={() => aimReply(canReplyAll ? null : [sender])}>
+              <PillPrimary label="Répondre" onClick={() => aimReply([sender])}>
                 <Reply strokeWidth={2.25} />
                 Répondre
               </PillPrimary>
@@ -259,7 +265,7 @@ export function ThreadView({ className }: { className?: string }) {
         sheet={sheet}
         onSheet={setSheet}
         canReplyAll={canReplyAll}
-        onReplyAll={() => aimReply(null)}
+        onReplyAll={() => aimReply(everyone)}
         onForward={forward}
         onRanger={ranger}
       />

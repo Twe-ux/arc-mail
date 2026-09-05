@@ -6,9 +6,14 @@ Code : `src/components/arc/thread-view.tsx`, `src/lib/store.ts` (`reply`, `reply
 
 ## À qui part la réponse
 
-Par défaut, **à tout le monde** : l'expéditeur du dernier message plus ses destinataires et ses
-copies, nous exclus, dédoublonnés (`replyRecipients`). C'est le comportement d'origine du store ;
-ce qui manquait était de le **dire** et de pouvoir le **restreindre**.
+Par défaut, **à l'expéditeur du dernier message, seul** (`replyDefault`). « Tout le monde » l'a été
+jusqu'au 5 septembre, et c'était faux dans deux cas courants : un courrier de service ou une
+infolettre met des adresses en copie qu'on n'a aucune raison d'écrire, et quand un **espace-vue**
+reçoit sur une adresse à nous, cette adresse est dans les destinataires — répondre à tous, c'était
+s'écrire (signalé sur une vraie conversation).
+
+Élargir reste à un appui, et **« Répondre à tous » ne s'affiche que s'il reste quelqu'un en plus de
+l'expéditeur** une fois nos adresses retirées (`replyRecipients`, `everyone.length > 1`).
 
 Trois façons de viser :
 
@@ -26,7 +31,18 @@ Au-dessus du champ, les **puces des destinataires réels**, et « Répondre à t
 restreint — restreindre est un geste, élargir doit en être un aussi. Rien n'est affiché quand il
 n'y a qu'une seule personne : le texte d'invite la nomme déjà.
 
+## Nos adresses, toutes
+
+Ce qui est « nous » n'est pas l'identité de l'espace regardé mais **celle de tous les espaces
+branchés** : un compte en porte plusieurs, et un message adressé à `moi@me.com` comme à
+`moi@societe.fr` nous a atteints deux fois. La comparaison est **lavée** — les en-têtes portent
+volontiers la casse d'origine (`T.Milone@CoworkingCafe.fr`), et c'est la même boîte.
+
 ## L'invariant
+
+**La visée porte toujours une liste**, jamais `null` : tant que « répondre à tous » valait `null`, il
+ne se distinguait pas de « rien de visé » — les deux tombaient sur la même valeur par défaut, ce qui
+ne se voyait pas tant que ce défaut *était* tout le monde.
 
 **Le ciblage est porté par le fil sur lequel il a été pris** (`{ threadId, to, tick }`), pas par un
 effet qui remettrait à zéro au changement de conversation : un `setState` dans un effet peint une

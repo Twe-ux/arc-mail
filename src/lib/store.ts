@@ -175,14 +175,45 @@ const restoreThread = (threads: Thread[], before: Thread) =>
 /** Reads in flight, one counter per space: a response that is not the latest is dropped. */
 const loadTokens = new Map<SpaceId, number>();
 
-/** The people a reply goes to: everyone on the last message but us, or its sender alone. */
+/** Une adresse se compare **lavée** : les en-têtes portent volontiers la casse
+ *  d'origine (« T.Milone@CoworkingCafe.fr »), et c'est la même boîte. */
+const memeAdresse = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
+
+/**
+ * **Toutes nos adresses, pas seulement celle de l'espace regardé.**
+ *
+ * Un compte porte plusieurs espaces-vues, chacun avec son identité : un message
+ * adressé à la fois à `moi@me.com` et à `moi@societe.fr` nous a atteints deux
+ * fois, et « répondre à tous » nous écrivait dans l'autre boîte. Signalé sur une
+ * vraie conversation — l'adresse qui recevait était dans les destinataires.
+ */
+function nosAdresses(): string[] {
+  return useMail.getState().spaces.map((sp) => sp.identity.email);
+}
+
+const cestNous = (email: string) => nosAdresses().some((mien) => memeAdresse(mien, email));
+
+/**
+ * **La cible par défaut d'une réponse : l'expéditeur, seul.**
+ *
+ * C'était tout le monde. Sur une infolettre ou un courrier de service, « tout le
+ * monde » comprend les adresses en copie et, quand un espace-vue reçoit sur une
+ * adresse à nous, notre propre boîte : répondre, c'était s'écrire. Élargir reste
+ * à un appui — « Répondre à tous » —, et il ne s'affiche que s'il y a vraiment
+ * quelqu'un d'autre.
+ */
+export function replyDefault(t: Thread): Contact[] {
+  return [t.messages[t.messages.length - 1].from];
+}
+
+/** Tout le monde sur le dernier message, **nous exclus**, dédoublonné. */
 export function replyRecipients(t: Thread): Contact[] {
-  const me = identityOf(t.spaceId);
   const last = t.messages[t.messages.length - 1];
-  const seen = new Set<string>();
+  const vus = new Set<string>();
   const recipients = [last.from, ...last.to, ...(last.cc ?? [])].filter((c) => {
-    if (c.email === me.email || seen.has(c.email)) return false;
-    seen.add(c.email);
+    const cle = c.email.trim().toLowerCase();
+    if (cestNous(c.email) || vus.has(cle)) return false;
+    vus.add(cle);
     return true;
   });
   return recipients.length ? recipients : [last.from];
@@ -713,7 +744,7 @@ export const useMail = create<MailState>()(
     const t = before.find((x) => x.id === threadId);
     if (!t) return false;
     const me = identityOf(t.spaceId);
-    const to = only?.length ? only : replyRecipients(t);
+    const to = only?.length ? only : replyDefault(t);
     set({
       threads: patchThread(before, threadId, (x) => ({
         ...x,

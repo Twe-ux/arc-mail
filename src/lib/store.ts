@@ -12,6 +12,26 @@ import type { Attachment, ComposeDraft, Contact, FolderId, Message, Space, Space
 /** Partiel : un espace nouveau n'a pas encore de clé, et `?? []` est la lecture. */
 type RecentMap = Partial<Record<SpaceId, string[]>>;
 
+/**
+ * Les trois états de la barre latérale du bureau.
+ *
+ * `sidebarCollapsed` n'en avait que deux, et il en manquait un : à 1440 px,
+ * barre + liste + conversation + troisième volet ne laissaient que 309 px à la
+ * colonne qu'on lit — trois ou quatre mots par ligne. Le rail de 52 px garde
+ * les espaces et les dossiers à l'écran pour le prix d'une icône.
+ */
+export type SidebarMode = "full" | "rail" | "hidden";
+
+/**
+ * Ce que porte le troisième volet — **un message ou un fichier**, jamais les
+ * deux, et jamais la même clé que sa largeur : le handoff signale le piège, et
+ * il est réel. Une seule clé pour les deux, et tirer la poignée faisait
+ * basculer le volet de « pièce jointe » à « message ».
+ */
+export type Third =
+  | { kind: "message"; messageId: string }
+  | { kind: "file"; attachmentId: string };
+
 export type MailState = {
   spaceId: SpaceId;
   folderId: FolderId;
@@ -30,13 +50,18 @@ export type MailState = {
    */
   settingsOpen: boolean;
   /** Desktop only: the sidebar folded away, the window kept. */
-  sidebarCollapsed: boolean;
+  sidebarMode: SidebarMode;
+  /** Bureau : la hauteur d'une rangée de liste. */
+  listDensity: "confort" | "compact";
   /** Essai : de quel côté la barre latérale se range, sur bureau. */
   sidebarSide: "left" | "right";
   /** Largeur de la liste en vue partagée, sur bureau, en pixels. */
   listWidth: number;
   /** The attachment being looked at, `null` when none; it lives in the open thread. */
-  previewId: string | null;
+  /** Le troisième volet, en fenêtre détachée. `null` : il n'est pas là. */
+  third: Third | null;
+  /** Sa largeur, mémorisée — mais **remise à 460 à chaque ouverture**. */
+  thirdWidth: number;
   /**
    * Comment la liste range : par fil (le défaut) ou par correspondant.
    *
@@ -93,12 +118,19 @@ export type MailState = {
   cycleSpace: (direction?: 1 | -1) => void;
   /** Posé une fois par `SpacesInit`, avec ce que le serveur a lu. */
   setSpaces: (spaces: Space[]) => void;
-  toggleSidebarCollapsed: () => void;
   toggleSidebarSide: () => void;
   setGroupBy: (mode: MailState["groupBy"]) => void;
   setCorrespondent: (email: string | null) => void;
   setListWidth: (px: number) => void;
+  /** Cas particulier d'`openThird` : la pièce jointe. `null` referme. */
   setPreview: (attachmentId: string | null) => void;
+  openThird: (third: Third) => void;
+  closeThird: () => void;
+  setThirdWidth: (px: number) => void;
+  setSidebarMode: (mode: SidebarMode) => void;
+  setListDensity: (d: MailState["listDensity"]) => void;
+  /** ⌘B : attachée → rail → masquée → attachée. */
+  cycleSidebarMode: () => void;
   toggleDark: () => void;
   /**
    * Answers a thread. `to` narrows the recipients (répondre à une seule
@@ -299,7 +331,13 @@ const enVol = new Set<string>();
  */
 export const LISTE_MIN = 300;
 export const LISTE_MAX = 640;
-export const LISTE_DEFAUT = 380;
+export const LISTE_DEFAUT = 360;
+
+/** Le troisième volet : 460 à l'ouverture, 320 au plancher. */
+export const TIERS_DEFAUT = 460;
+export const TIERS_MIN = 320;
+/** Ce qu'on garde à la conversation, quoi qu'il arrive. */
+export const LECTURE_MIN = 420;
 
 export const borne = (px: number) => Math.round(Math.min(LISTE_MAX, Math.max(LISTE_MIN, px)));
 
@@ -456,12 +494,14 @@ export const useMail = create<MailState>()(
   commandOpen: false,
   sidebarOpen: false,
   settingsOpen: false,
-  sidebarCollapsed: false,
+  sidebarMode: "full",
+  listDensity: "confort",
   sidebarSide: "left",
   listWidth: LISTE_DEFAUT,
   groupBy: "fil",
   correspondent: null,
-  previewId: null,
+  third: null,
+  thirdWidth: TIERS_DEFAUT,
   dark: false,
   threads: [],
   loading: {},
@@ -522,7 +562,7 @@ export const useMail = create<MailState>()(
 
   selectThread: (id) => {
     if (id === null) {
-      set({ selectedThreadId: null, previewId: null });
+      set({ selectedThreadId: null, third: null });
       return;
     }
     const { spaceId, recent, threads } = get();
@@ -530,7 +570,7 @@ export const useMail = create<MailState>()(
     const target = threads.find((t) => t.id === id);
     set((s) => ({
       selectedThreadId: id,
-      previewId: null,
+      third: null,
       recent: { ...recent, [spaceId]: list },
       threads: patchThread(s.threads, id, (t) => ({ ...t, unread: false })),
     }));
@@ -640,7 +680,12 @@ export const useMail = create<MailState>()(
       const threads = s.threads.filter((t) => connus.has(t.spaceId));
       return { spaces, spaceId, threads, selectedThreadId: null };
     }),
-  toggleSidebarCollapsed: () => set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
+  setSidebarMode: (sidebarMode) => set({ sidebarMode }),
+  setListDensity: (listDensity) => set({ listDensity }),
+  cycleSidebarMode: () =>
+    set((s) => ({
+      sidebarMode: s.sidebarMode === "full" ? "rail" : s.sidebarMode === "rail" ? "hidden" : "full",
+    })),
   toggleSidebarSide: () =>
     set((s) => ({ sidebarSide: s.sidebarSide === "left" ? "right" : "left" })),
   setListWidth: (px) => set({ listWidth: borne(px) }),
@@ -649,7 +694,24 @@ export const useMail = create<MailState>()(
      saurait plus quitter. */
   setGroupBy: (groupBy) => set({ groupBy, correspondent: null }),
   setCorrespondent: (correspondent) => set({ correspondent }),
-  setPreview: (previewId) => set({ previewId }),
+  setPreview: (attachmentId) =>
+    attachmentId === null ? get().closeThird() : get().openThird({ kind: "file", attachmentId }),
+
+  /* **La largeur repart de 460 à chaque ouverture.** Une glisse mémorisée qui
+     rouvre un volet de 320 px sur un message qu'on vient de demander à lire
+     est une surprise ; la mémoire sert pendant la session, pas d'un objet à
+     l'autre. Et si la barre était attachée, elle passe en rail : trois
+     colonnes utiles, pas quatre colonnes serrées. */
+  openThird: (third) =>
+    set((s) => ({
+      third,
+      thirdWidth: TIERS_DEFAUT,
+      sidebarMode: s.sidebarMode === "full" ? "rail" : s.sidebarMode,
+    })),
+
+  closeThird: () => set({ third: null }),
+
+  setThirdWidth: (px) => set({ thirdWidth: Math.max(TIERS_MIN, Math.round(px)) }),
   toggleDark: () => set((s) => ({ dark: !s.dark })),
 
   reply: async (threadId, body, only) => {
@@ -885,30 +947,44 @@ export const useMail = create<MailState>()(
          migrated rather than read as is. Version 1 changed nothing in the
          shape: the migration only keeps what an earlier install saved, which
          zustand would otherwise drop with a console error. */
-      /* 2 : les enveloppes des fils y sont entrées. */
-      version: 2,
-      migrate: (persisted) =>
-        persisted as Pick<
+      /* 2 : les enveloppes des fils y sont entrées.
+         3 : `sidebarCollapsed` (deux états) devient `sidebarMode` (trois). Une
+         barre repliée revient en **rail** et non masquée : c'est ce que le
+         bouton de repli fait désormais, et personne ne perd ses dossiers au
+         rechargement. */
+      version: 3,
+      migrate: (persisted, version) => {
+        const avant = persisted as Partial<MailState> & { sidebarCollapsed?: boolean };
+        if (version < 3) {
+          avant.sidebarMode = avant.sidebarCollapsed ? "rail" : "full";
+          delete avant.sidebarCollapsed;
+        }
+        return avant as Pick<
           MailState,
           | "themes"
           | "dark"
           | "splitView"
-          | "sidebarCollapsed"
+          | "sidebarMode"
+          | "listDensity"
           | "sidebarSide"
           | "listWidth"
+          | "thirdWidth"
           | "groupBy"
           | "recent"
           | "threads"
-        >,
+        >;
+      },
       /* Ce qui doit survivre à un rechargement : les préférences, et de quoi
          montrer une liste tout de suite. Le composeur est passager. */
       partialize: (s) => ({
         themes: s.themes,
         dark: s.dark,
         splitView: s.splitView,
-        sidebarCollapsed: s.sidebarCollapsed,
+        sidebarMode: s.sidebarMode,
+        listDensity: s.listDensity,
         sidebarSide: s.sidebarSide,
         listWidth: s.listWidth,
+        thirdWidth: s.thirdWidth,
         groupBy: s.groupBy,
         recent: s.recent,
         threads: enMemoire(s.threads),
@@ -952,8 +1028,32 @@ function findPreview(threads: Thread[], threadId: string | null, previewId: stri
  * the same reason as `useVisibleThreads`: a selector that builds a fresh
  * object every call makes `useSyncExternalStore` loop forever.
  */
+/**
+ * Le message que porte le troisième volet, et le fil dont il vient.
+ *
+ * Cherché dans **tous** les fils, pas seulement celui qui est ouvert : ranger
+ * la conversation pendant qu'on lit un de ses messages ne doit pas vider le
+ * volet sous les yeux.
+ */
+export function useThirdMessage(): { thread: Thread; message: Message } | null {
+  const threads = useMail((s) => s.threads);
+  const id = useMail((s) => (s.third?.kind === "message" ? s.third.messageId : null));
+  return useMemo(() => findMessage(threads, id), [threads, id]);
+}
+
+/** Hors du hook, comme `findPreview` : une boucle qui sort tôt à l'intérieur
+ *  d'un `useMemo` fait renoncer le compilateur React à toute la mémoïsation. */
+function findMessage(threads: Thread[], id: string | null): { thread: Thread; message: Message } | null {
+  if (!id) return null;
+  for (const thread of threads) {
+    const message = thread.messages.find((m) => m.id === id);
+    if (message) return { thread, message };
+  }
+  return null;
+}
+
 export function usePreview(): Preview | null {
-  const previewId = useMail((s) => s.previewId);
+  const previewId = useMail((s) => (s.third?.kind === "file" ? s.third.attachmentId : null));
   const threads = useMail((s) => s.threads);
   const selectedThreadId = useMail((s) => s.selectedThreadId);
   return useMemo(

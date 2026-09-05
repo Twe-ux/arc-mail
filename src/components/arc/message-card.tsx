@@ -1,11 +1,12 @@
 "use client";
 
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Reply } from "lucide-react";
 import { useState } from "react";
 
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { formatFullDate } from "@/lib/format";
-import { useSpace } from "@/lib/store";
+import { useMail, useSpace } from "@/lib/store";
 import type { Contact, Message } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { AttachmentRow } from "./attachment";
@@ -21,8 +22,16 @@ import { MessageBody } from "./message-body";
  * écran qui en fait trois cent quatre-vingt-dix. Seul l'en-tête de
  * l'expéditeur garde son retrait ; le corps prend toute la largeur.
  *
- * Sur bureau la carte grise reste : la colonne y est large, et c'est elle qui
- * sépare cinq messages d'un fil les uns des autres.
+ * **Sur bureau c'est un bloc cliquable, pas une carte.** Rayon 10 et encart
+ * comme les rangées de la liste, sans fond au repos : un fil est une suite de
+ * messages, et cinq cartes grises empilées le faisaient lire comme cinq
+ * documents. Le bloc se teinte au survol, et reste teinté quand son message est
+ * ouvert dans le troisième volet.
+ *
+ * **Son en-tête détache le message** (troisième volet) ; c'est le bouton
+ * « Répondre » du survol qui vise la réponse sur cette personne seule. Les deux
+ * gestes étaient sur le même clic : viser la réponse était le seul, et on ne
+ * pouvait plus lire un message à côté du fil.
  */
 export function MessageCard({
   message,
@@ -37,14 +46,22 @@ export function MessageCard({
   const [deplie, setDeplie] = useState(false);
   const space = useSpace();
   const bureau = useMediaQuery("(min-width: 768px)");
+  const openThird = useMail((s) => s.openThird);
+  const detache = useMail((s) => s.third?.kind === "message" && s.third.messageId === message.id);
   const aQui = destinataires(message.to, space.identity.email);
 
   return (
-    <div className="border-t border-black/[0.06] first-of-type:border-0 md:rounded-2xl md:border-0 md:bg-muted/50 md:p-4 dark:border-white/[0.08] md:dark:bg-white/[0.07]">
-      <div className="flex items-center gap-3 px-5 pt-3.5 md:px-0 md:pt-0">
-        {/* **Sur bureau** l'en-tête vise la réponse sur cette personne seule,
-            le geste qu'on attend d'un message dans un fil de cinq (fiche
-            « Répondre »).
+    <div
+      className={cn(
+        "group/msg border-t border-black/[0.06] first-of-type:border-0 dark:border-white/[0.08]",
+        "md:rounded-xl md:border-0 md:px-4 md:py-3.5 md:transition-colors",
+        detache ? "md:bg-foreground/[0.07]" : "md:hover:bg-foreground/[0.04]",
+      )}
+    >
+      <div className="flex items-center gap-3 px-5 pt-3.5 md:gap-2.5 md:px-0 md:pt-0">
+        {/* **Sur bureau** l'en-tête détache le message dans le troisième
+            volet : lire un message à côté du fil est ce qu'on vient y faire, et
+            la réponse ciblée garde son bouton juste à droite.
 
             **Sur téléphone il déplie les destinataires**, comme le chevron qui
             le termine. Viser la réponse d'ici y ouvrait le clavier : le clic
@@ -54,18 +71,19 @@ export function MessageCard({
             lève le clavier. */}
         <button
           type="button"
-          onClick={() => (bureau ? onReplyTo([message.from]) : setDeplie((v) => !v))}
+          onClick={() => (bureau ? openThird({ kind: "message", messageId: message.id }) : setDeplie((v) => !v))}
           aria-expanded={bureau ? undefined : deplie}
+          aria-pressed={bureau ? detache : undefined}
           aria-label={
             bureau
-              ? `Répondre à ${message.from.name} seulement`
+              ? `Ouvrir le message de ${message.from.name} dans le volet`
               : deplie
                 ? "Masquer les destinataires"
                 : "Voir les destinataires"
           }
-          className="flex min-w-0 flex-1 items-center gap-3 rounded-xl text-left outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+          className="flex min-w-0 flex-1 items-center gap-3 rounded-xl text-left outline-none focus-visible:ring-2 focus-visible:ring-ring/50 md:gap-2.5"
         >
-          <ContactAvatar contact={message.from} className="size-10 md:size-9" />
+          <ContactAvatar contact={message.from} className="size-10 md:size-7" />
           <span className="min-w-0 flex-1 leading-tight">
             <span className="block truncate text-[15px] font-semibold md:text-sm">{message.from.name}</span>
             <span className="block truncate text-[13px] text-muted-foreground">
@@ -76,6 +94,22 @@ export function MessageCard({
             </span>
           </span>
         </button>
+        {/* Viser la réponse sur cette personne seule : au survol du bloc, là
+            où l'en-tête l'avait avant de servir à le détacher. Toujours dans le
+            DOM pour rester atteignable au clavier. */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              onClick={() => onReplyTo([message.from])}
+              aria-label={`Répondre à ${message.from.name} seulement`}
+              className="hidden size-7 shrink-0 place-items-center rounded-md text-muted-foreground opacity-0 transition-opacity hover:bg-muted hover:text-foreground focus-visible:opacity-100 group-hover/msg:opacity-100 md:grid"
+            >
+              <Reply className="size-4" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">Répondre à {message.from.name}</TooltipContent>
+        </Tooltip>
         <button
           type="button"
           onClick={() => setDeplie((v) => !v)}
@@ -99,10 +133,12 @@ export function MessageCard({
 
       <MessageBody
         message={message}
-        className="block px-5 py-[18px] text-[15px] leading-[1.6] whitespace-pre-wrap md:mt-4 md:px-0 md:py-0 md:text-sm md:leading-relaxed"
+        /* Sur bureau le texte s'aligne sous le nom, pas sous l'avatar : 28 px
+           de tuile plus 10 de gouttière. */
+        className="block px-5 py-[18px] text-[15px] leading-[1.6] whitespace-pre-wrap md:mt-2.5 md:ms-[38px] md:px-0 md:py-0 md:text-sm md:leading-[1.65]"
       />
       {message.attachments && message.attachments.length > 0 && (
-        <div className="px-5 pb-4 md:px-0 md:pb-0">
+        <div className="px-5 pb-4 md:ms-[38px] md:px-0 md:pb-0">
           <AttachmentRow attachments={message.attachments} />
         </div>
       )}

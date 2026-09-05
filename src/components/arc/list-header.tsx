@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
  * Dossiers, qui est à un appui de là. Une rangée de sept tuiles de 55 px
  * n'aurait plus de libellé lisible et n'aurait rien épinglé du tout.
  */
-const EPINGLES: { id: FolderId; label: string; icon: LucideIcon }[] = [
+export const EPINGLES: { id: FolderId; label: string; icon: LucideIcon }[] = [
   { id: "inbox", label: "Réception", icon: Inbox },
   { id: "starred", label: "Favoris", icon: Star },
   { id: "sent", label: "Envoyés", icon: Send },
@@ -211,7 +211,7 @@ function Tab({
 }
 
 /** Une seule règle d'accord, pour que « 1 conversation » ne prenne pas d's. */
-function plural(n: number, word: string): string {
+export function plural(n: number, word: string): string {
   return `${n} ${word}${n > 1 ? "s" : ""}`;
 }
 

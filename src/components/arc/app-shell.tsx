@@ -15,7 +15,8 @@ import { ComposeDialog } from "./compose-dialog";
 import { MobileNav } from "./mobile-nav";
 import { MobileMenu, MobileSettings } from "./mobile-menu";
 import { Sidebar } from "./sidebar";
-import { SplitHandle } from "./split-handle";
+import { SplitHandle, ThirdHandle } from "./split-handle";
+import { ThirdPane } from "./third-pane";
 import { ThreadList } from "./thread-list";
 import { ThreadView } from "./thread-view";
 
@@ -25,6 +26,13 @@ import { ThreadView } from "./thread-view";
  *
  * Below `md` the sidebar becomes a drawer, the list and the reading pane stack
  * (one at a time) and a bottom bar carries the space, search and compose.
+ *
+ * **Sur bureau la fenêtre est une grille à pistes explicites**, plus une rangée
+ * de boîtes flexibles : liste · poignée · lecture. Chaque enfant y est posé par
+ * son numéro de colonne (`col-start`), jamais par son rang dans le DOM — une
+ * colonne cachée n'est plus un élément de grille du tout, et le placement
+ * automatique faisait alors glisser la lecture dans la piste de la liste. Les
+ * pistes inutiles valent `0px` : elles restent, et rien ne bouge.
  */
 export function AppShell() {
   const space = useSpace();
@@ -35,9 +43,10 @@ export function AppShell() {
   const spaceId = useMail((s) => s.spaceId);
   const folderId = useMail((s) => s.folderId);
   const loadSpace = useMail((s) => s.loadSpace);
-  const previewId = useMail((s) => s.previewId);
+  const third = useMail((s) => s.third);
   const sidebarSide = useMail((s) => s.sidebarSide);
   const listWidth = useMail((s) => s.listWidth);
+  const thirdWidth = useMail((s) => s.thirdWidth);
   const compose = useMail((s) => s.compose);
   const coque = useRef<HTMLDivElement>(null);
 
@@ -80,23 +89,27 @@ export function AppShell() {
   }, [space.theme.accent, space.theme.gradient]);
 
   const hasSelection = selectedThreadId !== null;
-  /* An open attachment takes the list's place rather than squeezing a fourth
-     column into 1280px: sidebar · message · file, and the message stays
-     readable while one looks at what came with it. */
-  /* **Une seule colonne à droite.** Le composeur la prend quand il est ouvert :
-     écrire est ce qu'on est venu faire, et l'aperçu se rouvre d'un clic. */
+  /* **Une seule colonne à droite.** Le composeur la prend au troisième volet
+     quand il est ouvert : écrire est ce qu'on est venu faire, et le volet se
+     rouvre d'un clic — il garde son message. */
   const composeOnDesktop = compose !== null;
-  const previewOnDesktop = previewId !== null && hasSelection && !composeOnDesktop;
-  /* Assez large pour tenir barre, liste, message **et** pièce : au-dessous, la
+  const troisiemeOuvert = third !== null && !composeOnDesktop;
+  /* Assez large pour tenir barre, liste, message **et** volet : au-dessous, la
      liste s'efface le temps qu'on regarde. */
   const troisColonnes = useMediaQuery("(min-width: 1400px)");
-  // Desktop: split view shows both; full view shows one or the other.
   /* Sur un écran étroit, la colonne de droite prend la place de la liste — mais
      seulement s'il reste un message à côté : sinon on n'aurait plus qu'elle. */
-  const colonneDroite = previewOnDesktop || composeOnDesktop;
+  const colonneDroite = troisiemeOuvert || composeOnDesktop;
   const listeCede = colonneDroite && hasSelection && !troisColonnes;
   const listOnDesktop = (splitView || !hasSelection) && !listeCede;
   const viewOnDesktop = splitView || hasSelection;
+
+  /* Les trois pistes. Le composeur, lui, partage la piste de lecture : agrandi
+     il passe en `fixed`, et une piste réservée pour lui aurait laissé 460 px de
+     vide derrière son voile. */
+  const droite = viewOnDesktop ? "minmax(0,1fr)" : composeOnDesktop ? "var(--compose-width)" : "0px";
+  const partage = splitView && listOnDesktop && droite !== "0px";
+  const gauche = !listOnDesktop ? "0px" : partage ? "var(--list-width)" : "minmax(0,1fr)";
 
   return (
     <TooltipProvider>
@@ -115,8 +128,9 @@ export function AppShell() {
             /* La poignée réécrit cette variable à la frame ; React n'apprend la
                largeur qu'au relâchement. */
             "--list-width": `${listWidth}px`,
-            /* Un peu plus large que l'aperçu : on y écrit, avec des champs et
-               une barre d'outils, là où l'aperçu ne fait que montrer. */
+            "--third-width": `${thirdWidth}px`,
+            /* Un peu plus large que le volet : on y écrit, avec des champs et
+               une barre d'outils, là où le volet ne fait que montrer. */
             "--compose-width": "460px",
           } as CSSProperties
         }
@@ -126,42 +140,60 @@ export function AppShell() {
             `window-controls-overlay` (voir `globals.css`). */}
         <div aria-hidden className="titlebar-drag" />
         <Sidebar />
-        <main className="flex min-h-0 min-w-0 flex-1 overflow-hidden text-foreground md:rounded-xl md:bg-background md:shadow-2xl md:ring-1 md:ring-black/10">
+        <main
+          className="flex min-h-0 min-w-0 flex-1 overflow-hidden text-foreground md:grid md:grid-rows-1 md:rounded-xl md:bg-background md:shadow-2xl md:ring-1 md:ring-black/10"
+          style={{ gridTemplateColumns: `${gauche} ${partage ? "11px" : "0px"} ${droite}` }}
+        >
           <ThreadList
             className={cn(
-              "w-full",
+              "w-full min-w-0 md:col-start-1 md:row-start-1 md:w-auto",
               hasSelection ? "hidden" : "flex",
               listOnDesktop ? "md:flex" : "md:hidden",
-              splitView ? "md:w-[var(--list-width)] md:shrink-0 md:border-r" : "md:flex-1",
             )}
           />
-          {splitView && listOnDesktop && <SplitHandle coque={coque} />}
-          <BackSwipe
-            enabled={hasSelection}
-            onBack={() => selectThread(null)}
-            className={cn(hasSelection ? "flex" : "hidden", viewOnDesktop ? "md:flex" : "md:hidden")}
-            under={
-              <>
-                <ThreadList className="flex min-h-0 flex-1" />
-                <MobileNav className="absolute inset-x-0 bottom-0" />
-              </>
-            }
-          >
-            <ThreadView className="flex" />
-          </BackSwipe>
-          <AttachmentPreview />
-          {/* Dans `main`, avec l'aperçu : c'est la même colonne, et elle doit
-              pousser le message plutôt que le couvrir. Sur téléphone le
-              composeur se rend en `Sheet`, portalisée — sa place dans l'arbre
-              n'y change rien. */}
-          <ComposeDialog />
+          {partage && <SplitHandle coque={coque} />}
+          {/* La lecture et le composeur partagent la troisième piste : côte à
+              côte, le composeur pousse le message au lieu de le couvrir. */}
+          <div className="flex min-h-0 min-w-0 flex-1 md:col-start-3 md:row-start-1">
+            <BackSwipe
+              enabled={hasSelection}
+              onBack={() => selectThread(null)}
+              className={cn(
+                "min-w-0 flex-1",
+                hasSelection ? "flex" : "hidden",
+                viewOnDesktop ? "md:flex" : "md:hidden",
+              )}
+              under={
+                <>
+                  <ThreadList className="flex min-h-0 flex-1" />
+                  <MobileNav className="absolute inset-x-0 bottom-0" />
+                </>
+              }
+            >
+              <ThreadView className="flex" />
+            </BackSwipe>
+            {/* Sur téléphone le composeur se rend en `Sheet`, portalisée — sa
+                place dans l'arbre n'y change rien. */}
+            <ComposeDialog />
+          </div>
         </main>
+        {/* Le troisième volet est **une fenêtre à part** : le dégradé passe
+            entre lui et la boîte, et sa poignée mange les deux gouttières de la
+            coque pour que la bande fasse 16 px et non 32. */}
+        {troisiemeOuvert && (
+          <>
+            <ThirdHandle coque={coque} />
+            <ThirdPane />
+          </>
+        )}
         {/* Laid over the list, not beside it: the rows pass under the frosted
             pill, which is what gives the material something to blur. */}
         <MobileNav className={cn("absolute inset-x-0 bottom-0 z-30", hasSelection && "hidden")} />
         <MobileMenu />
         <MobileSettings />
         <CommandPalette />
+        {/* Téléphone seulement : sur bureau la pièce jointe vit dans le volet. */}
+        <AttachmentPreview />
       </div>
       {/* Failures of optimistic writes land here (see `commit` in the store). */}
       <Toaster />

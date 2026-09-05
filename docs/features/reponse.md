@@ -15,8 +15,8 @@ Trois façons de viser :
 - **« Répondre »** dans les actions du fil : l'expéditeur du dernier message, seul.
 - **« Répondre à tous »** : retour à tout le monde. L'action n'apparaît que s'il y a quelqu'un
   d'autre sur le message.
-- **Toucher l'en-tête d'un message** (avatar, nom, date) : cette personne-là, seule. C'est le
-  geste qu'on attend dans un fil à cinq.
+- **Le bouton « Répondre » d'un message** (sur bureau, au survol de son bloc) : cette personne-là,
+  seule. C'est le geste qu'on attend dans un fil à cinq.
 
 Dans les trois cas le champ **prend le focus** : viser, c'est demander à écrire.
 
@@ -52,3 +52,16 @@ lignes plus bas que là où on écrit. Elles ne se posent plus qu'avec ce qu'ell
 Sur téléphone il déplie les destinataires : viser la réponse d'ici levait le clavier à l'ouverture
 du fil, le clic fantôme d'iOS retombant sur cette rangée. C'est « Répondre », dans la pill du bas,
 qui appelle le clavier — et lui seul. Le détail est dans [Le mail ouvert](mail-ouvert.md).
+
+---
+
+## Sur bureau, c'est un bouton et non l'en-tête (5 sept. 2026, lot bureau)
+
+L'en-tête d'un message **détache** maintenant ce message dans le troisième volet : lire un message
+à côté du fil est ce qu'on vient faire d'un clic sur un bloc, et c'est ce que dit le handoff
+bureau. Le ciblage de la réponse n'a pas disparu — il a pris un bouton à lui, une case de 28 px
+qui vient au survol du bloc à droite du nom, avec son infobulle et sa place au clavier. Les deux
+gestes étaient sur le même clic ; celui qui manquait était le plus fréquent.
+
+Le **champ de réponse est hors du défilant**, en bas du volet : à la fin du fil, il était invisible
+sur une conversation de cinq messages. Voir [La fenêtre du bureau](bureau.md).

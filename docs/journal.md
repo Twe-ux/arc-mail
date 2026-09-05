@@ -2,6 +2,14 @@
 
 Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérification.
 
+## 5 septembre 2026 — le lot bureau
+
+Le handoff `design_handoff_arc_mail_desktop` (planche `3a`) monté : la fenêtre en grille à pistes
+explicites, la barre latérale à trois états avec sa révélation au bord, les boîtes en tuiles de
+verre, la tête de liste sur deux rangées, les rangées au gabarit bureau et leur densité, l'en-tête
+de conversation avec son menu et ses détails, les blocs de message cliquables, et le troisième
+volet détaché (message ou fichier) avec sa gouttière et sa poignée.
+
 ## 5 septembre 2026 — le lot mobile
 
 Le handoff `design_handoff_arc_mail_mobile` monté de bout en bout : la pill d'actions partagée, la

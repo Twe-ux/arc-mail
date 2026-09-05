@@ -142,3 +142,19 @@ feuille est injectée à l'exécution, donc *après* celle de Tailwind : à spé
 restait blanc avec du texte blanc dessus.
 
 Un **échec** garde `--error-bg` : il se dirait comme une réussite dans la couleur de l'espace.
+
+---
+
+## Les boîtes sont des tuiles de verre sur bureau (5 sept. 2026, lot bureau)
+
+`SpaceTile` (34 px, 36 sur le rail, rayon 10) remplace le pavé en dégradé de `SpaceIcon` dans la
+barre latérale et le rail : un pavé saturé dénotait au milieu d'une barre entièrement en verre.
+L'identité colorée est un **point d'accent de 6 px** en bas à droite, plus le fond. Contrepartie
+obligatoire, et c'est une règle : chaque tuile porte **nom, adresse et raccourci en infobulle** —
+sans le fond coloré, la tuile seule ne dit plus quelle boîte elle est.
+
+`SpaceIcon` reste ce que rendent le panneau d'apparence, la palette ⌘K et le téléphone.
+
+La **densité de la liste** (`listDensity`) se règle dans le même panneau. Elle se publie en
+`data-densite` sur la colonne et se lit par `group-data-[densite=compact]` sur les rangées : un
+attribut, pas un prop passé à cinquante enfants.

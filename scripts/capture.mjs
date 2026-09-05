@@ -2,7 +2,7 @@
 /**
  * Captures d'un écran d'Arc Mail, aux deux tailles et aux deux thèmes, dans la même passe.
  *
- *   npm run capture -- --name composeur [--open menu|reglages|compose|search|fil|piece-jointe] [--space pro]
+ *   npm run capture -- --name composeur [--open menu|…|fil|rail|masquee|volet-message] [--space pro]
  *                      [--url http://localhost:3000] [--out captures] [--dark-only|--light-only]
  *
  * Téléphone : 393×852 à ×3 avec les insets d'un iPhone à encoche (59 haut / 34 bas) posés en
@@ -67,10 +67,23 @@ const OPENERS = {
     CLICK_TEXT("Photos de l'anniversaire"),
     `document.querySelector('button[aria-pressed] img')?.closest('button')?.click()`,
   ],
+  /* Bureau : la barre réduite en rail, puis masquée — les deux états où la
+     tête de liste reprend ce que la barre portait. */
+  rail: [`document.querySelector('button[aria-label="Réduire la barre latérale en rail"]')?.click()`],
+  masquee: [
+    `document.querySelector('button[aria-label="Réduire la barre latérale en rail"]')?.click()`,
+    `document.querySelector('button[aria-label^="Masquée"]')?.click()`,
+  ],
+  /* Bureau : le troisième volet, sur un message détaché du fil. */
+  "volet-message": [
+    `document.querySelector('button[aria-label="Réduire la barre latérale en rail"]')?.click()`,
+    CLICK_TEXT("Photos de l'anniversaire"),
+    `document.querySelector('button[aria-label^="Ouvrir le message de"]')?.click()`,
+  ],
 };
 
 /** Les écrans qui ne sont pas des cartes flottantes : rien à mesurer, mais à capturer partout. */
-const BOTH_SIZES = new Set(["fil", "piece-jointe"]);
+const BOTH_SIZES = new Set(["fil", "piece-jointe", "rail", "masquee", "volet-message"]);
 
 const CARD = `(() => {
   const el = document.querySelector('[data-slot="sheet-content"], [data-slot="dialog-content"]');

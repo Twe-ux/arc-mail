@@ -106,3 +106,12 @@ demander à répondre puis devoir viser le champ serait deux gestes pour une int
 
 Le reste de la [fiche Répondre](reponse.md) tient : par défaut à tous, « Répondre » et l'en-tête
 d'un message visent, le champ montre les destinataires réels.
+
+---
+
+## Et sur bureau (5 sept. 2026, lot bureau)
+
+Cette fiche décrit le téléphone. Sur bureau, l'en-tête à trois éléments et la pill laissent la
+place à une barre d'en-tête (avatar, expéditeur/objet, Archiver, Supprimer, `⋯`, ⓘ), à des blocs de
+message cliquables qui détachent leur message dans le troisième volet, et à un champ de réponse
+posé hors du défilant. Le détail est dans [La fenêtre du bureau](bureau.md).

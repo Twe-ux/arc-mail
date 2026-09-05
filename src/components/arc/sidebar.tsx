@@ -1,421 +1,81 @@
 "use client";
 
 import { useState } from "react";
-import {
-  Archive,
-  Clock,
-  FileText,
-  Inbox,
-  Moon,
-  Plus,
-  Search,
-  Send,
-  Star,
-  Sun,
-  PanelLeft,
-  PanelLeftClose,
-  PanelRight,
-  Trash2,
-  X,
-  type LucideIcon,
-} from "lucide-react";
 
-import { SignOut } from "@/components/auth/sign-out";
-import { Kbd } from "@/components/ui/kbd";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { FOLDERS } from "@/lib/mock-data";
-import { selectFolder, selectUnreadCount, useMail, useRecentThreads, useSpace } from "@/lib/store";
-import type { FolderId } from "@/lib/types";
+import { useMail } from "@/lib/store";
 import { cn } from "@/lib/utils";
-import { ContactAvatar } from "./contact-avatar";
-import { SpaceIcon } from "./space-icon";
-import { ThemePicker } from "./theme-picker";
-import { SpaceSwitcher } from "./space-switcher";
-
-const FOLDER_ICONS: Record<FolderId, LucideIcon> = {
-  inbox: Inbox,
-  starred: Star,
-  snoozed: Clock,
-  sent: Send,
-  drafts: FileText,
-  archive: Archive,
-  trash: Trash2,
-};
-
-/** The four "favorite" tiles under the address bar, like Arc's pinned favorites. */
-const PINNED: FolderId[] = ["inbox", "starred", "sent", "drafts"];
-
-type Tone = "gradient" | "surface";
-
-/** Desktop sits on the space gradient (white ink); the mobile drawer sits on a frosted surface. */
-const TONES: Record<Tone, Record<string, string>> = {
-  gradient: {
-    /* The barre has no ground of its own: the ink sits straight on the
-       calmed backdrop (see docs/features/theme.md). Measured at the exact
-       spot each one is drawn, worst case Side at the top of the window:
-       plain white 6.14:1, 85 % 4.96:1, 80 % 4.58:1, 75 % 4.22:1. So there is
-       one secondary ink at 85 %, not three that would sit on the AA line,
-       and the hierarchy is carried by size, weight and capitals instead of
-       by four opacities that all look alike anyway. */
-    text: "text-white",
-    sub: "text-white/85",
-    faint: "text-white/85",
-    heading: "text-white/85",
-    bar: "glass text-white/80 hover:bg-white/20 hover:text-white",
-    kbd: "bg-white/15 text-white/70",
-    tile: "bg-white/5 text-white/70 hover:bg-white/15 hover:text-white",
-    tileActive: "glass text-white",
-    item: "text-white/80 hover:bg-white/15 hover:text-white",
-    itemActive: "glass font-medium text-white",
-    count: "bg-white/20",
-    sep: "bg-white/15",
-    close: "hover:bg-white/20",
-    icon: "text-white/70 hover:bg-white/15 hover:text-white",
-    hover: "hover:text-white",
-  },
-  surface: {
-    text: "text-foreground",
-    sub: "text-muted-foreground",
-    faint: "text-muted-foreground/70",
-    heading: "text-muted-foreground",
-    bar: "bg-muted text-muted-foreground hover:bg-muted/70",
-    kbd: "",
-    tile: "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground",
-    tileActive: "bg-muted text-foreground",
-    item: "text-foreground/85 hover:bg-muted",
-    itemActive: "bg-muted font-medium text-foreground",
-    count: "bg-foreground/10",
-    sep: "bg-border",
-    close: "hover:bg-background",
-    icon: "text-muted-foreground hover:bg-muted hover:text-foreground",
-    hover: "hover:text-foreground",
-  },
-};
+import { SidebarContent } from "./sidebar-content";
+import { SidebarRail } from "./sidebar-rail";
 
 /**
- * La barre latérale du bureau, posée sur le dégradé de l'espace.
+ * La barre latérale du bureau, dans ses trois états.
  *
- * **Repliée, elle n'est pas partie : elle revient au survol du bord.** Une
- * bande de 14 px longe le côté où elle se range ; le pointeur qui s'y approche
- * la fait glisser par-dessus la boîte, et elle repart dès qu'on la quitte.
- * Repliée pour de bon, il fallait la rappeler au clavier (⌘B) pour changer de
- * dossier — replier coûtait plus qu'il ne rendait.
+ * | État | Ce qui est à l'écran |
+ * |---|---|
+ * | **attachée** | 260 px, en ligne sur le dégradé |
+ * | **rail** | 52 px : boîtes, dossiers, écriture |
+ * | **masquée** | rien |
+ *
+ * **Dans les deux derniers, elle revient au survol du bord.** Une bande de
+ * 14 px longe le côté où elle se range ; le pointeur qui s'y approche la fait
+ * glisser par-dessus la boîte, et elle repart dès qu'on la quitte. Masquée pour
+ * de bon, il fallait la rappeler au clavier (⌘B) pour changer de dossier :
+ * masquer coûtait plus qu'il ne rendait.
  *
  * Flottante, elle a besoin d'un fond : posée dans le flux elle se lit sur le
- * dégradé, par-dessus la carte blanche de la boîte elle ne se lirait plus. Elle
- * emporte donc **le fond du bureau avec elle** (`space-backdrop`, le dégradé
- * sous son aplat sombre) plutôt qu'un verre translucide — mesuré : à 72 %
- * d'opacité et avec un flou, la liste se lisait encore au travers et le texte
- * blanc passait dessus.
+ * dégradé, par-dessus la carte de la boîte elle ne se lirait plus. Elle emporte
+ * donc **le fond du bureau avec elle** (`space-backdrop`, le dégradé sous son
+ * aplat sombre) plutôt qu'un verre translucide — mesuré : à 72 % d'opacité et
+ * avec un flou, la liste se lisait encore au travers et le texte blanc passait
+ * dessus.
  *
- * *Essai porté d'`arc-messenger` (juillet 2025), à garder ou à retirer.*
+ * Le voile derrière elle est en **`pointer-events: none`** : sans cela, quitter
+ * la barre ne la ferait jamais se retirer, le voile happant le pointeur.
  */
 export function Sidebar() {
-  const collapsed = useMail((s) => s.sidebarCollapsed);
-  const toggle = useMail((s) => s.toggleSidebarCollapsed);
+  const mode = useMail((s) => s.sidebarMode);
   const cote = useMail((s) => s.sidebarSide);
   const [survol, setSurvol] = useState(false);
 
-  if (!collapsed) {
+  if (mode === "full") {
     return (
       <aside className="hidden w-[260px] shrink-0 flex-col gap-3 px-2 py-2 text-white md:flex">
-        <SidebarContent onCollapse={toggle} />
+        <SidebarContent />
       </aside>
     );
   }
 
   return (
     <>
+      {mode === "rail" && <SidebarRail />}
+
       {/* La bande de rappel. Assez large pour être atteinte sans viser, assez
-          étroite pour ne pas manger le bord de la liste. */}
+          étroite pour ne pas manger le bord de la liste — et posée sur le bord
+          de la **fenêtre**, jamais sur le rail. */}
       <div
         onPointerEnter={() => setSurvol(true)}
-        className={cn(
-          "fixed inset-y-0 z-30 hidden w-3.5 md:block",
-          cote === "left" ? "left-0" : "right-0",
-        )}
+        className={cn("fixed inset-y-0 z-30 hidden w-3.5 md:block", cote === "left" ? "left-0" : "right-0")}
       />
+
       {survol && (
-        <aside
-          onPointerLeave={() => setSurvol(false)}
-          className={cn(
-            "space-backdrop fixed inset-y-2 z-40 hidden w-[264px] flex-col gap-3 rounded-2xl px-2 py-2 text-white",
-            "shadow-2xl ring-1 ring-white/15 md:flex",
-            "animate-in fade-in-0 duration-200 ease-out",
-            cote === "left" ? "left-2 slide-in-from-left-3" : "right-2 slide-in-from-right-3",
-          )}
-        >
-          <SidebarContent onCollapse={toggle} />
-        </aside>
+        <>
+          <div aria-hidden className="pointer-events-none fixed inset-0 z-30 hidden bg-black/[0.42] md:block" />
+          <aside
+            onPointerLeave={() => setSurvol(false)}
+            className={cn(
+              "space-backdrop fixed inset-y-2 z-40 hidden w-[264px] flex-col gap-3 rounded-2xl px-2 py-2 text-white",
+              "shadow-[0_40px_90px_-10px_rgb(0_0_0/0.85)] ring-1 ring-white/20 md:flex",
+              "animate-in fade-in-0 duration-200 ease-out",
+              cote === "left" ? "left-2 slide-in-from-left-3" : "right-2 slide-in-from-right-3",
+            )}
+          >
+            {/* Révélée, elle **masque sa rangée du haut** : la tête de liste
+                porte déjà la recherche et le sélecteur, et deux champs de
+                recherche à l'écran ne se justifient pas. */}
+            <SidebarContent topRow={false} />
+          </aside>
+        </>
       )}
     </>
-  );
-}
-
-function SidebarContent({
-  onNavigate,
-  onCollapse,
-  tone = "gradient",
-}: {
-  onNavigate?: () => void;
-  /** Desktop only: folds the whole barre away. */
-  onCollapse?: () => void;
-  tone?: Tone;
-}) {
-  const tn = TONES[tone];
-  const space = useSpace();
-  const folder = useMail(selectFolder);
-  const folderId = useMail((s) => s.folderId);
-  const setFolder = useMail((s) => s.setFolder);
-  const selectedThreadId = useMail((s) => s.selectedThreadId);
-  const selectThread = useMail((s) => s.selectThread);
-  const removeRecent = useMail((s) => s.removeRecent);
-  const clearRecent = useMail((s) => s.clearRecent);
-  const setCommandOpen = useMail((s) => s.setCommandOpen);
-  const cote = useMail((s) => s.sidebarSide);
-  const toggleSide = useMail((s) => s.toggleSidebarSide);
-  const openCompose = useMail((s) => s.openCompose);
-  const dark = useMail((s) => s.dark);
-  const toggleDark = useMail((s) => s.toggleDark);
-  const inboxUnread = useMail((s) => selectUnreadCount(s, s.spaceId, "inbox"));
-
-  const recentThreads = useRecentThreads();
-
-  const go = (fn: () => void) => () => {
-    fn();
-    onNavigate?.();
-  };
-
-  return (
-    <>
-      {/* Address bar → command palette, and the fold beside it: the one
-          control that is about the barre itself, at the top of the barre. */}
-      <div className="flex shrink-0 items-center gap-1.5">
-        <button
-          type="button"
-          onClick={go(() => setCommandOpen(true))}
-          className={cn("flex h-9 min-w-0 flex-1 items-center gap-2 rounded-lg px-3 text-sm transition-colors", tn.bar)}
-        >
-          <Search className="size-4 shrink-0" />
-          <span className="min-w-0 flex-1 truncate text-left">{folder.name}</span>
-          <Kbd className={cn("hidden md:inline-flex", tn.kbd)}>⌘K</Kbd>
-        </button>
-        {onCollapse && (
-          <>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  type="button"
-                  onClick={toggleSide}
-                  aria-label={cote === "left" ? "Passer la barre à droite" : "Passer la barre à gauche"}
-                  className={cn("flex size-9 shrink-0 items-center justify-center rounded-lg transition-colors", tn.bar)}
-                >
-                  {cote === "left" ? <PanelRight className="size-4" /> : <PanelLeft className="size-4" />}
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">
-                {cote === "left" ? "Passer à droite" : "Passer à gauche"}
-              </TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  type="button"
-                  onClick={onCollapse}
-                  aria-label="Replier la barre latérale"
-                  className={cn("flex size-9 shrink-0 items-center justify-center rounded-lg transition-colors", tn.bar)}
-                >
-                  <PanelLeftClose className="size-4" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">Replier · ⌘B</TooltipContent>
-            </Tooltip>
-          </>
-        )}
-      </div>
-
-      {/* Pinned favorites */}
-      <div className="grid shrink-0 grid-cols-4 gap-1.5">
-        {PINNED.map((id) => {
-          const Icon = FOLDER_ICONS[id];
-          const name = FOLDERS.find((f) => f.id === id)?.name ?? id;
-          const active = id === folderId;
-          const dot = id === "inbox" && inboxUnread > 0;
-          return (
-            <Tooltip key={id}>
-              <TooltipTrigger asChild>
-                <button
-                  type="button"
-                  onClick={go(() => setFolder(id))}
-                  aria-label={name}
-                  aria-current={active ? "page" : undefined}
-                  className={cn(
-                    "relative flex h-12 items-center justify-center rounded-xl transition-colors",
-                    active ? tn.tileActive : tn.tile,
-                  )}
-                >
-                  <Icon className="size-5" />
-                  {dot && <span className="absolute top-1.5 right-1.5 size-1.5 rounded-full bg-current" />}
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">{name}</TooltipContent>
-            </Tooltip>
-          );
-        })}
-      </div>
-
-      {/* Space header */}
-      <div className="flex shrink-0 items-center gap-2 px-2 pt-1">
-        <SpaceIcon space={space} size="lg" />
-        <div className="min-w-0">
-          <p className={cn("truncate text-sm font-semibold", tn.text)}>{space.name}</p>
-          <p className={cn("truncate text-xs", tn.sub)}>{space.email}</p>
-        </div>
-        <ThemePicker space={space} tone={tone} className="ml-auto" />
-      </div>
-
-      {/* Folders */}
-      <nav className="flex shrink-0 flex-col gap-0.5" aria-label="Dossiers">
-        {FOLDERS.map((f) => (
-          <FolderRow
-            key={f.id}
-            icon={FOLDER_ICONS[f.id]}
-            name={f.name}
-            active={f.id === folderId}
-            folderId={f.id}
-            onClick={go(() => setFolder(f.id))}
-            tone={tone}
-          />
-        ))}
-      </nav>
-
-      <Separator className={tn.sep} />
-
-      {/* Today — recently opened threads, like Arc's tabs */}
-      <div className="flex min-h-0 flex-1 flex-col gap-1">
-        <div className={cn("flex items-center justify-between px-2.5 text-[11px] font-semibold tracking-wider uppercase", tn.heading)}>
-          <span>Aujourd&apos;hui</span>
-          {recentThreads.length > 0 && (
-            <button type="button" onClick={clearRecent} className={cn("normal-case tracking-normal", tn.hover)}>
-              Effacer
-            </button>
-          )}
-        </div>
-        <ScrollArea className="min-h-0 flex-1">
-          {recentThreads.length === 0 ? (
-            <p className={cn("px-2.5 py-2 text-xs leading-relaxed", tn.faint)}>
-              Les conversations que tu ouvres s&apos;affichent ici, comme les onglets d&apos;Arc.
-            </p>
-          ) : (
-            <ul className="flex flex-col gap-0.5">
-              {recentThreads.map((t) => {
-                const last = t.messages[t.messages.length - 1];
-                const active = t.id === selectedThreadId;
-                return (
-                  <li
-                    key={t.id}
-                    className={cn(
-                      "group flex h-8 items-center gap-1 rounded-lg pr-1 pl-2 text-sm transition-colors",
-                      active ? tn.itemActive : tn.item,
-                    )}
-                  >
-                    <button
-                      type="button"
-                      onClick={go(() => selectThread(t.id))}
-                      className="flex min-w-0 flex-1 items-center gap-2"
-                    >
-                      <ContactAvatar contact={last.from} className="size-5 [&_[data-slot=avatar-fallback]]:text-[9px]" />
-                      <span className="truncate">{t.subject}</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => removeRecent(t.id)}
-                      aria-label="Fermer"
-                      className={cn("rounded p-1 transition-opacity md:opacity-0 md:group-hover:opacity-100 md:focus-visible:opacity-100", tn.close)}
-                    >
-                      <X className="size-3.5" />
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </ScrollArea>
-      </div>
-
-      {/* Qui est connecté, et la sortie. Ne rend rien sans session. */}
-      <SignOut tone={tone === "gradient" ? "clair" : "sombre"} className="shrink-0 px-1.5" />
-
-      {/* Bottom bar: spaces + quick actions */}
-      <div className="flex shrink-0 items-center justify-between gap-1 pt-1">
-        <SpaceSwitcher onSelect={onNavigate} tone={tone} />
-        <div className="flex items-center gap-0.5">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                type="button"
-                onClick={toggleDark}
-                aria-label="Basculer le thème"
-                className={cn("flex size-8 items-center justify-center rounded-lg transition-colors", tn.icon)}
-              >
-                {dark ? <Sun className="size-4" /> : <Moon className="size-4" />}
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="top">Thème</TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                type="button"
-                onClick={go(() => openCompose())}
-                aria-label="Nouveau message"
-                className={cn("flex size-8 items-center justify-center rounded-lg transition-colors", tn.icon)}
-              >
-                <Plus className="size-4" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="top">Nouveau message · ⌘N</TooltipContent>
-          </Tooltip>
-        </div>
-      </div>
-    </>
-  );
-}
-
-function FolderRow({
-  icon: Icon,
-  name,
-  active,
-  folderId,
-  onClick,
-  tone,
-}: {
-  icon: LucideIcon;
-  name: string;
-  active: boolean;
-  folderId: FolderId;
-  onClick: () => void;
-  tone: Tone;
-}) {
-  const tn = TONES[tone];
-  const count = useMail((s) => selectUnreadCount(s, s.spaceId, folderId));
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-current={active ? "page" : undefined}
-      className={cn(
-        "flex h-8 items-center gap-2.5 rounded-lg px-2.5 text-sm transition-colors",
-        active ? tn.itemActive : tn.item,
-      )}
-    >
-      <Icon className="size-4 shrink-0" />
-      <span className="min-w-0 flex-1 truncate text-left">{name}</span>
-      {count > 0 && (
-        <span className={cn("rounded-full px-1.5 text-[11px] font-semibold tabular-nums", tn.count)}>{count}</span>
-      )}
-    </button>
   );
 }

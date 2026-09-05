@@ -575,15 +575,22 @@ déclencher le zoom d'iOS.
 **Deux mises en page, une bascule à 768 px** (`md`). Le composeur bascule plus tôt, à 640 px
 (`sm`, `useMediaQuery("(min-width: 640px)")`), comme la modale de recherche.
 
-**Bureau (≥ 768 px).** La fenêtre d'Arc : `fixed inset-0`, fond `var(--space-gradient)` (transition
-de fond 500 ms au changement d'espace), `p-2 gap-2` (8 px). Sidebar de **260 px** (`px-2 py-2`,
-`gap-3`), trois feux de fenêtre de 12 px en `white/30` en haut. Le `main` est la carte : `rounded-xl`
-(16 px), `bg-background`, `shadow-2xl`, `ring-1 ring-black/10`. En vue partagée la liste fait
-**380 px** avec `border-r`, la lecture prend le reste ; sinon l'une ou l'autre. En-têtes de
-**48 px** (`h-12`, `border-b`, `px-4` / `px-3`). La colonne de lecture est centrée à `max-w-3xl`
-(768 px), `p-6 gap-4`. Le composeur bureau est une fenêtre Gmail épinglée `right-4 bottom-4` :
-**560×600** ancrée (max `100vh − 2rem`), **320** de large réduite, `min(900px, 100vw − 4rem)` ×
-`min(860px, 100vh − 4rem)` étendue sous un voile.
+**Bureau (≥ 768 px).** *Refait le 5 sept. par le lot bureau ; `docs/features/bureau.md` fait
+autorité.* La fenêtre d'Arc : `fixed inset-0`, fond `space-backdrop`, `p-2 gap-2` (8 px). La barre
+latérale a **trois états** — attachée 260 px (`px-2 py-2`, `gap-3`), rail 52 px, masquée — et se
+révèle au survol d'une bande de 14 px au bord dans les deux derniers. Le `main` est la carte
+(`rounded-xl`, `bg-background`, `shadow-2xl`, `ring-1 ring-black/10`) et c'est une **grille à
+pistes explicites** : `<liste> 11px <lecture>`, chaque enfant posé par son `col-start`. Liste
+**360 px** par défaut (bornes 300 → disponible − 420), séparée par une piste de prise de 11 px dont
+le trait fait 1 px et passe à 2 px en accent à l'approche. Tête de liste `px-5 pt-3.5 pb-4`, deux
+rangées, absente quand la barre est attachée. Rangées : rayon **10**, `10px 14px 10px 12px`,
+`gap-1`, liste en `p-2`. En-tête de conversation `px-3.5 py-3`, cases de 30 px rayon 7 ; blocs de
+message rayon 12, `px-4 py-3.5`, texte décalé de 38 px ; champ de réponse hors du défilant
+(`px-3.5 py-3`, 44 px, rayon 12). Le **troisième volet** est une fenêtre à part de 460 px (plancher
+320), précédée d'une gouttière de 16 px de dégradé qui porte sa poignée (pilule 5 × 44, 72 px et
+accent à l'approche). Le composeur bureau reste une colonne de `--compose-width` (460 px) dans le
+flux, à droite du message, étendue sous un voile en `min(900px, 100vw − 4rem)` ×
+`min(860px, 100vh − 4rem)`.
 
 **Téléphone (< 768 px).** Le shell est `space-wash`, `pt-[var(--safe-top)]`, colonne. Le grand
 titre vit sur le voile (`px-5`, 20 px de marge), puis la liste est une carte `rounded-t-[28px]`

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Archive, Clock, Columns2, FileText, Inbox, Moon, PenSquare, Send, Star, Trash2, type LucideIcon } from "lucide-react";
+import { Archive, Clock, Columns2, FileText, Inbox, Moon, PanelLeft, PenSquare, Send, Star, Trash2, type LucideIcon } from "lucide-react";
 
 import {
   CommandDialog,
@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/command";
 import { FOLDERS } from "@/lib/mock-data";
 import { useMediaQuery } from "@/hooks/use-media-query";
-import { sortByDate, useMail, useSpace, useSpaces } from "@/lib/store";
+import { sortByDate, useMail, useSpace, useSpaces, type SidebarMode } from "@/lib/store";
 import type { FolderId } from "@/lib/types";
 import { ContactAvatar } from "./contact-avatar";
 import { SpaceIcon } from "./space-icon";
@@ -28,6 +28,13 @@ const FOLDER_ICONS: Record<FolderId, LucideIcon> = {
   drafts: FileText,
   archive: Archive,
   trash: Trash2,
+};
+
+/** Ce que ⌘B fera au prochain appui : l'entrée dit sa destination, pas son état. */
+const MODE_SUIVANT: Record<SidebarMode, string> = {
+  full: "réduire en rail",
+  rail: "masquer",
+  hidden: "attacher",
 };
 
 /** Arc's ⌘K bar: search threads, jump to folders or spaces, run actions. */
@@ -49,6 +56,8 @@ export function CommandPalette() {
   const openCompose = useMail((s) => s.openCompose);
   const toggleSplit = useMail((s) => s.toggleSplit);
   const toggleDark = useMail((s) => s.toggleDark);
+  const sidebarMode = useMail((s) => s.sidebarMode);
+  const cycleSidebarMode = useMail((s) => s.cycleSidebarMode);
 
   const spaceThreads = useMemo(
     () => sortByDate(threads.filter((t) => t.spaceId === spaceId && t.folder !== "trash")).slice(0, 40),
@@ -159,6 +168,15 @@ export function CommandPalette() {
               <CommandShortcut>⌘⇧D</CommandShortcut>
             </CommandItem>
           )}
+          {/* Attachée, la barre latérale efface la tête de liste — donc le
+              sélecteur de ses trois états. Sans cette entrée, ⌘B serait le seul
+              chemin du retour, et un raccourci ne s'annonce pas. */}
+          {desktop && (
+            <CommandItem onSelect={() => run(cycleSidebarMode)}>
+              <PanelLeft /> Barre latérale : {MODE_SUIVANT[sidebarMode]}
+              <CommandShortcut>⌘B</CommandShortcut>
+            </CommandItem>
+          )}
           <CommandItem onSelect={() => run(toggleDark)}>
             <Moon /> Basculer le thème
           </CommandItem>
@@ -190,8 +208,6 @@ export function CommandPalette() {
             </CommandItem>
           ))}
         </CommandGroup>
-
-        <CommandSeparator />
 
       </CommandList>
     </CommandDialog>

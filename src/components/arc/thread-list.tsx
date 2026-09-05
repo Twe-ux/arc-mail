@@ -1,11 +1,10 @@
 "use client";
 
-import { ArrowLeft, CloudOff, Columns2, PanelLeftOpen, RefreshCw } from "lucide-react";
+import { ArrowLeft, CloudOff, RefreshCw } from "lucide-react";
 import { Fragment } from "react";
 
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { usePullToRefresh } from "@/hooks/use-pull-to-refresh";
 import { useSwipeSpace } from "@/hooks/use-swipe-space";
 import {
@@ -19,7 +18,8 @@ import {
 } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { ContactAvatar } from "./contact-avatar";
-import { GroupByToggle, ListHeader, Segmented } from "./list-header";
+import { ListHeader } from "./list-header";
+import { ListHeaderDesktop } from "./list-header-desktop";
 import { Attente, RangeeCorrespondant, Sentinelle, ThreadRow, Vide } from "./thread-row";
 
 export function ThreadList({ className }: { className?: string }) {
@@ -45,11 +45,8 @@ export function ThreadList({ className }: { className?: string }) {
   const moveThread = useMail((s) => s.moveThread);
   const cycleSpace = useMail((s) => s.cycleSpace);
   const unreadOnly = useMail((s) => s.unreadOnly);
-  const splitView = useMail((s) => s.splitView);
-  const toggleSplit = useMail((s) => s.toggleSplit);
+  const listDensity = useMail((s) => s.listDensity);
   const loading = useMail(selectLoading);
-  const sidebarCollapsed = useMail((s) => s.sidebarCollapsed);
-  const toggleSidebarCollapsed = useMail((s) => s.toggleSidebarCollapsed);
   const error = useMail((s) => s.error);
   const loadSpace = useMail((s) => s.loadSpace);
 
@@ -82,40 +79,15 @@ export function ThreadList({ className }: { className?: string }) {
   return (
     <section
       ref={colonneRef as React.RefObject<HTMLElement>}
-      className={cn("min-h-0 min-w-0 flex-col", className)}
+      className={cn("group/liste min-h-0 min-w-0 flex-col", className)}
+      /* La densité est publiée ici et lue par les rangées : un attribut sur la
+         colonne, pas un prop passé à chacune des cinquante. */
+      data-densite={listDensity}
       aria-label={folder.name}
     >
       <ListHeader />
 
-      {/* Desktop header */}
-      <header className="hidden h-12 shrink-0 items-center gap-2 border-b px-4 md:flex">
-        {/* The only way back to a folded sidebar: it lives where the sidebar
-            was, so the eye finds it where it left off. */}
-        {sidebarCollapsed && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon-xs" onClick={toggleSidebarCollapsed} aria-label="Afficher la barre latérale">
-                <PanelLeftOpen />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Barre latérale · ⌘B</TooltipContent>
-          </Tooltip>
-        )}
-        <h1 className="truncate text-sm font-semibold">{folder.name}</h1>
-        <span className="text-xs text-muted-foreground tabular-nums">{threads.length}</span>
-        <div className="ml-auto flex items-center gap-1">
-          <Segmented tone="muted" />
-          <GroupByToggle />
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon-xs" onClick={toggleSplit} aria-pressed={splitView} aria-label="Vue partagée">
-                <Columns2 />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Vue partagée · ⌘⇧D</TooltipContent>
-          </Tooltip>
-        </div>
-      </header>
+      <ListHeaderDesktop />
 
       {/* A failed read says so where the list is, with the one thing to do
           about it; the store clears it on the next read that lands. */}
@@ -195,7 +167,7 @@ export function ThreadList({ className }: { className?: string }) {
                   <Vide unreadOnly={unreadOnly} />
                 )
               ) : (
-                <ul className="flex flex-col pt-2 max-md:pb-[calc(var(--nav-height)+0.5rem)] md:gap-0.5 md:p-2">
+                <ul className="flex flex-col pt-2 max-md:pb-[calc(var(--nav-height)+0.5rem)] md:gap-1 md:p-2">
                   {correspondants.map((c) => (
                     <RangeeCorrespondant
                       key={c.email}
@@ -219,7 +191,7 @@ export function ThreadList({ className }: { className?: string }) {
             ) : (
               /* The bar floats over the list rather than beside it, so the last
                  rows need room to pass under it — see `--nav-height`. */
-              <ul className="flex flex-col pt-2 max-md:pb-[calc(var(--nav-height)+0.5rem)] md:gap-0.5 md:p-2">
+              <ul className="flex flex-col pt-2 max-md:pb-[calc(var(--nav-height)+0.5rem)] md:gap-1 md:p-2">
                 {visibles.map((t, i) => (
                   <Fragment key={t.id}>
                     <ThreadRow

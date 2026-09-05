@@ -94,9 +94,14 @@ export function ReplyBox({
     });
   };
 
+  const ecrit = body.trim().length > 0;
+
   return (
-    <div className={cn("rounded-2xl border border-border/60 bg-card p-3", className)}>
-      <ReplyTargets to={to} everyone={everyone} onReplyAll={onReplyAll} className="px-1 pb-2" />
+    <div className={cn(className)}>
+      <ReplyTargets to={to} everyone={everyone} onReplyAll={onReplyAll} className="px-1 pb-1.5" />
+      {/* 44 px au repos, et il pousse avec le texte (`field-sizing`) jusqu'à ce
+          qu'il prenne un tiers du volet : posé en bas, un champ de cinq lignes
+          vide aurait mangé la conversation qu'on lit. */}
       <Textarea
         ref={field}
         value={body}
@@ -105,14 +110,17 @@ export function ReplyBox({
           if ((e.metaKey || e.ctrlKey) && e.key === "Enter") send();
         }}
         placeholder={replyPlaceholder(to)}
-        className="min-h-20 resize-none border-0 bg-transparent p-1 shadow-none focus-visible:ring-0 dark:bg-transparent"
+        className="max-h-48 min-h-11 resize-none rounded-xl border-0 bg-muted px-3 py-2.5 shadow-none field-sizing-content focus-visible:ring-0 dark:bg-muted"
       />
-      <div className="mt-2 flex items-center justify-between">
-        <span className="text-xs text-muted-foreground">⌘⏎ pour envoyer</span>
-        <Button size="sm" onClick={send} disabled={!body.trim()}>
-          <Reply /> Répondre
-        </Button>
-      </div>
+      {/* Le pied n'arrive qu'avec le texte : rien à envoyer, rien à dire. */}
+      {ecrit && (
+        <div className="mt-2 flex items-center justify-between">
+          <span className="text-xs text-muted-foreground">⌘⏎ pour envoyer</span>
+          <Button size="sm" onClick={send}>
+            <Reply /> Répondre
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

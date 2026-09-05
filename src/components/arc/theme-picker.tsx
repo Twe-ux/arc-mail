@@ -1,12 +1,12 @@
 "use client";
 
-import { Palette, RotateCcw } from "lucide-react";
-import { useState } from "react";
+import { ChevronRight, RotateCcw } from "lucide-react";
+import Link from "next/link";
+import { useState, type ReactNode } from "react";
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { useMail, useSpace } from "@/lib/store";
 import { PRESET_HUES, themeFromHue } from "@/lib/theme";
-import { useMail } from "@/lib/store";
 import type { Space } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { SPACE_ICONS, SpaceIcon } from "./space-icon";
@@ -14,35 +14,33 @@ import { SPACE_ICONS, SpaceIcon } from "./space-icon";
 const ICONES = Object.keys(SPACE_ICONS) as Space["icon"][];
 
 /**
- * Régler un espace : son nom, son glyphe, sa couleur.
+ * Le panneau d'apparence, ouvert depuis le bas de la barre latérale.
  *
- * Les trois au même endroit, parce que ce sont les trois façons de reconnaître
- * un espace d'un coup d'œil et qu'on les choisit ensemble — un « Coworking »
- * orange à mallette, pas un nom d'un côté et une teinte de l'autre.
+ * Il a remplacé le bloc nom + adresse + palette qui vivait au milieu de la
+ * barre : le nom y faisait doublon avec la rangée de boîtes du bas, et la
+ * palette faisait exactement ce que fait le bouton à côté d'elle.
  *
- * Le nom se valide en quittant le champ ou par Entrée, jamais à chaque frappe :
- * une lettre tapée est un aller-retour serveur, et six lettres feraient six
+ * **Il garde le nom et l'icône**, que le handoff bureau ne mentionne pas : la
+ * fiche des espaces en fait une règle — « le nom et l'icône se règlent depuis
+ * la boîte » — et les perdre aurait retiré le seul chemin pour renommer un
+ * espace. Le nom se valide au blur ou par Entrée, jamais à chaque frappe : une
+ * lettre tapée est un aller-retour serveur, et six lettres feraient six
  * écritures dont cinq à jeter.
  *
  * La couleur, elle, s'applique à la frappe : elle ne quitte pas le navigateur,
  * et la voir bouger *est* la façon de la choisir.
  */
-export function ThemePicker({
-  space,
-  tone = "gradient",
-  className,
-}: {
-  space: Space;
-  tone?: "gradient" | "surface";
-  className?: string;
-}) {
+export function AppearancePanel({ children }: { children: ReactNode }) {
+  const space = useSpace();
   const hue = useMail((s) => s.themes[space.id]);
   const setSpaceHue = useMail((s) => s.setSpaceHue);
   const renameSpace = useMail((s) => s.renameSpace);
+  const dark = useMail((s) => s.dark);
+  const toggleDark = useMail((s) => s.toggleDark);
+  const density = useMail((s) => s.listDensity);
+  const setDensity = useMail((s) => s.setListDensity);
   const custom = hue !== undefined;
 
-  /* Le champ garde ce qu'on tape ; l'espace ne change qu'au moment de valider.
-     La clé le remonte quand on change d'espace sans fermer la carte. */
   const [nom, setNom] = useState(space.name);
   const valider = () => {
     const propre = nom.trim();
@@ -53,40 +51,19 @@ export function ThemePicker({
     void renameSpace(space.id, { name: propre, icon: space.icon });
   };
 
-  const trigger = (
-    <PopoverTrigger
-      aria-label={`Régler l'espace ${space.name}`}
-      className={cn(
-        "flex size-7 shrink-0 items-center justify-center rounded-lg transition-colors",
-        tone === "gradient"
-          ? "text-white/70 hover:bg-white/15 hover:text-white"
-          : "text-muted-foreground hover:bg-muted hover:text-foreground",
-        className,
-      )}
-    >
-      <Palette className="size-4" />
-    </PopoverTrigger>
-  );
-
   return (
     <Popover>
-      {/* A tooltip is a pointer's affordance; on the phone's surface a tap would only summon it. */}
-      {tone === "gradient" ? (
-        <Tooltip>
-          <TooltipTrigger asChild>{trigger}</TooltipTrigger>
-          <TooltipContent side="bottom">Régler l&apos;espace</TooltipContent>
-        </Tooltip>
-      ) : (
-        trigger
-      )}
-
+      <PopoverTrigger asChild>{children}</PopoverTrigger>
       <PopoverContent
         align="start"
+        /* Vers le haut : le bouton vit tout en bas de la barre, et un panneau
+           qui descendrait sortirait de la fenêtre. */
+        side="top"
+        sideOffset={8}
         /* Sans cela Radix met le champ du nom au premier plan à l'ouverture :
-           sur téléphone, toucher la palette pour changer de couleur lèverait
-           le clavier. On n'écrit que si on vise le champ. */
+           ouvrir l'apparence lèverait le clavier sur un écran tactile. */
         onOpenAutoFocus={(e) => e.preventDefault()}
-        className="w-64 rounded-2xl p-3"
+        className="w-[244px] rounded-xl p-3"
       >
         <div className="flex items-center gap-2.5">
           <SpaceIcon space={space} size="lg" />
@@ -101,29 +78,26 @@ export function ThemePicker({
                 if (e.key === "Escape") setNom(space.name);
               }}
               aria-label="Nom de l'espace"
-              /* 16px : en dessous, iOS zoome sur le champ à la mise au point. */
+              /* 16 px : en dessous, iOS zoome sur le champ à la mise au point. */
               className="w-full rounded-md bg-transparent text-base font-semibold outline-none ring-1 ring-transparent focus-visible:bg-muted focus-visible:px-1.5 focus-visible:ring-ring/50"
             />
             <p className="truncate text-xs text-muted-foreground">{space.email}</p>
           </div>
           {custom && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  type="button"
-                  onClick={() => setSpaceHue(space.id, null)}
-                  aria-label="Revenir à la couleur d'origine"
-                  className="ml-auto flex size-7 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground"
-                >
-                  <RotateCcw className="size-4" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>Couleur d&apos;origine</TooltipContent>
-            </Tooltip>
+            <button
+              type="button"
+              onClick={() => setSpaceHue(space.id, null)}
+              aria-label="Revenir à la couleur d'origine"
+              title="Couleur d'origine"
+              className="flex size-7 shrink-0 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground"
+            >
+              <RotateCcw className="size-4" />
+            </button>
           )}
         </div>
 
-        <div className="mt-3 grid grid-cols-8 gap-1" role="radiogroup" aria-label="Icône de l'espace">
+        <Titre>Icône</Titre>
+        <div className="grid grid-cols-8 gap-1" role="radiogroup" aria-label="Icône de l'espace">
           {ICONES.map((cle) => {
             const Glyphe = SPACE_ICONS[cle];
             const choisi = space.icon === cle;
@@ -146,20 +120,21 @@ export function ThemePicker({
           })}
         </div>
 
-        <div className="mt-3 grid grid-cols-8 gap-1.5" role="radiogroup" aria-label="Couleurs proposées">
+        <Titre>Couleur de l&apos;espace</Titre>
+        <div className="grid grid-cols-4 gap-2" role="radiogroup" aria-label="Couleur de l'espace">
           {PRESET_HUES.map((h) => {
-            const selected = hue === h;
+            const choisi = hue === h;
             return (
               <button
                 key={h}
                 type="button"
                 role="radio"
-                aria-checked={selected}
+                aria-checked={choisi}
                 aria-label={`Teinte ${h}`}
                 onClick={() => setSpaceHue(space.id, h)}
                 className={cn(
-                  "aspect-square rounded-full ring-offset-2 ring-offset-popover transition-transform hover:scale-110",
-                  selected && "ring-2 ring-foreground",
+                  "aspect-square rounded-full transition-transform hover:scale-105",
+                  choisi && "border-2 border-white ring-2 ring-white/[0.22]",
                 )}
                 style={{ background: themeFromHue(h).gradient }}
               />
@@ -167,19 +142,66 @@ export function ThemePicker({
           })}
         </div>
 
-        <label className="mt-3 block">
-          <span className="text-xs text-muted-foreground">Teinte</span>
-          <input
-            type="range"
-            min={0}
-            max={359}
-            value={hue ?? 285}
-            onChange={(e) => setSpaceHue(space.id, Number(e.target.value))}
-            aria-label="Teinte"
-            className="mt-1 h-3 w-full cursor-pointer appearance-none rounded-full [background:linear-gradient(to_right,oklch(0.7_0.18_0),oklch(0.7_0.18_60),oklch(0.7_0.18_120),oklch(0.7_0.18_180),oklch(0.7_0.18_240),oklch(0.7_0.18_300),oklch(0.7_0.18_360))] [&::-webkit-slider-thumb]:size-5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:bg-[var(--space-accent)] [&::-webkit-slider-thumb]:shadow-md"
-          />
-        </label>
+        <Titre>Thème sombre</Titre>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={dark}
+          onClick={toggleDark}
+          className="flex w-full items-center justify-between rounded-lg px-1 py-1 text-sm hover:bg-muted"
+        >
+          <span>Sombre</span>
+          <span
+            aria-hidden
+            className={cn(
+              "relative inline-block h-7 w-[46px] shrink-0 rounded-full transition-colors",
+              dark ? "[background:var(--space-gradient)]" : "bg-muted-foreground/30",
+            )}
+          >
+            <span
+              className={cn(
+                "absolute top-0.5 left-0.5 size-6 rounded-full bg-white shadow-sm transition-transform",
+                dark && "translate-x-[18px]",
+              )}
+            />
+          </span>
+        </button>
+
+        <Titre>Densité de la liste</Titre>
+        <div role="radiogroup" aria-label="Densité de la liste" className="flex rounded-lg bg-muted p-0.5 text-xs">
+          {(["confort", "compact"] as const).map((d) => (
+            <button
+              key={d}
+              type="button"
+              role="radio"
+              aria-checked={density === d}
+              onClick={() => setDensity(d)}
+              className={cn(
+                "flex-1 rounded-md py-1 font-medium capitalize transition-colors",
+                density === d ? "bg-background text-foreground shadow-xs" : "text-muted-foreground",
+              )}
+            >
+              {d}
+            </button>
+          ))}
+        </div>
+
+        <Link
+          href="/comptes"
+          className="mt-3 flex items-center gap-2 rounded-lg px-1 py-2 text-sm hover:bg-muted"
+        >
+          <span className="min-w-0 flex-1">Comptes et signatures</span>
+          <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+        </Link>
       </PopoverContent>
     </Popover>
+  );
+}
+
+function Titre({ children }: { children: ReactNode }) {
+  return (
+    <h3 className="mt-3 mb-1.5 text-[11px] font-semibold tracking-[0.08em] text-muted-foreground uppercase">
+      {children}
+    </h3>
   );
 }

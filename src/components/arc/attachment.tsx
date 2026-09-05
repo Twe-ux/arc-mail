@@ -16,7 +16,7 @@ const isImage = (a: Attachment) => a.mime.startsWith("image/");
 
 /** The files hanging off one message, as a row of chips under its body. */
 export function AttachmentRow({ attachments }: { attachments: Attachment[] }) {
-  const previewId = useMail((s) => s.previewId);
+  const previewId = useMail((s) => (s.third?.kind === "file" ? s.third.attachmentId : null));
   const setPreview = useMail((s) => s.setPreview);
 
   return (
@@ -59,13 +59,12 @@ export function AttachmentRow({ attachments }: { attachments: Attachment[] }) {
 }
 
 /**
- * Le fichier qu'on a ouvert, en entier.
+ * Le fichier qu'on a ouvert, en entier — **sur téléphone**.
  *
- * Sur bureau, **une colonne de plus à droite du message** — c'est la demande :
- * on lit la pièce *à côté* de ce qu'on lit, pas à la place. Au-dessus de
- * 1400 px les trois tiennent (liste, message, pièce) ; en dessous c'est la
- * liste qui s'efface, parce qu'un message serré à 300 px ne se lit plus et que
- * la liste, elle, est à une touche de retour.
+ * Sur bureau il vit dans `ThirdPane`, la fenêtre détachée à droite : c'est la
+ * même intention (lire la pièce *à côté* de ce qu'on lit, pas à la place) mais
+ * elle y partage sa place et sa poignée avec le message détaché, et deux
+ * colonnes qui se disputaient la même largeur en faisaient deux réglages.
  *
  * Sur téléphone, c'est une carte flottante comme les autres, refermée par le
  * même tirage.
@@ -77,20 +76,11 @@ export function AttachmentPreview() {
   const close = () => setPreview(null);
   const sheetRef = useSheetDismiss(close);
 
-  if (!preview) return null;
+  /* Pas de classe `md:hidden` ici : la feuille se rend dans `<body>`, hors de
+     la coque, et une carte portalisée ne se cache pas par une media query de
+     son point d'appel. */
+  if (!preview || desktop) return null;
   const { attachment, message } = preview;
-
-  if (desktop) {
-    return (
-      <aside
-        aria-label={`Aperçu de ${attachment.name}`}
-        className="hidden w-[400px] shrink-0 flex-col border-l bg-background md:flex"
-      >
-        <Header attachment={attachment} from={message.from.name} onClose={close} />
-        <Body attachment={attachment} />
-      </aside>
-    );
-  }
 
   return (
     <Sheet open onOpenChange={(open) => !open && close()}>
@@ -106,14 +96,15 @@ export function AttachmentPreview() {
       >
         <SheetTitle className="sr-only">{attachment.name}</SheetTitle>
         <SheetDescription className="sr-only">Pièce jointe de {message.from.name}</SheetDescription>
-        <Header attachment={attachment} from={message.from.name} onClose={close} />
-        <Body attachment={attachment} />
+        <AttachmentHead attachment={attachment} from={message.from.name} onClose={close} />
+        <AttachmentBody attachment={attachment} />
       </SheetContent>
     </Sheet>
   );
 }
 
-function Header({
+/** L'en-tête du fichier, partagé par la carte du téléphone et le volet du bureau. */
+export function AttachmentHead({
   attachment,
   from,
   onClose,
@@ -146,7 +137,8 @@ function Header({
   );
 }
 
-function Body({ attachment }: { attachment: Attachment }) {
+/** Ses octets, rendus selon son type — même règle des deux côtés. */
+export function AttachmentBody({ attachment }: { attachment: Attachment }) {
   if (attachment.mime === "application/pdf" && attachment.url) {
     return <PdfView url={attachment.url} name={attachment.name} />;
   }

@@ -2,6 +2,18 @@
 
 Liste vivante. Le détail des gros chantiers est dans [roadmap/](roadmap/).
 
+## Ce que le lot bureau a laissé ouvert
+
+- [ ] « Signaler comme indésirable » — demande un dossier Junk dans `FolderId` et son chemin
+      SPECIAL-USE côté IMAP ; retiré du volet et du `⋯` tant qu'il n'a rien derrière lui
+- [ ] « Étiqueter… » — demande un moyen d'ajouter une étiquette à un fil, qu'aucun écran n'offre
+- [ ] « Marquer comme traité » — demande un état qui n'existe pas dans `Thread`
+- [ ] La signature de l'expéditeur sous le message du troisième volet (le handoff la dessine ;
+      aucun message n'en porte)
+- [ ] Documenter dans `DESIGN.md` les valeurs que le détecteur signale encore : le titre de 22 px
+      du lot mobile, les trois dégradés d'espace, le voile `rgb(16 14 24 / 0.45)`, le bleu de lien
+      des messages HTML — quatre valeurs voulues, pas de la dérive
+
 ## Priorité — brancher de vrais mails
 
 Voir [Fournisseurs de mail](roadmap/fournisseurs-mail.md) pour le plan complet et l'ordre.

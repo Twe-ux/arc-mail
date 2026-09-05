@@ -40,7 +40,7 @@ export function useKeyboardShortcuts() {
       }
       if (mod && e.key.toLowerCase() === "b") {
         e.preventDefault();
-        s.toggleSidebarCollapsed();
+        s.cycleSidebarMode();
         return;
       }
       if (mod && e.shiftKey && e.key.toLowerCase() === "d") {

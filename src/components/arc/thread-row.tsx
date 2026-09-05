@@ -126,7 +126,12 @@ export function ThreadRow({
         onPointerEnter={survole}
         onPointerLeave={quitte}
         className={cn(
-          "relative flex w-full cursor-pointer touch-pan-y items-start gap-3 bg-card px-4 py-3.5 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring/50 md:rounded-lg md:bg-transparent md:px-3 md:py-2.5 md:pr-10 md:transition-colors",
+          /* Bureau : 10 px de rayon, 10/14/10/12 de marges, et **pas de
+             réserve à droite** — les 40 px gardés pour l'étoile poussaient la
+             largeur minimale de la colonne à 390 px, et la liste débordait en
+             dessous. L'étoile se pose par-dessus, la date lui fait de la place
+             au survol. */
+          "relative flex w-full cursor-pointer touch-pan-y items-start gap-3 bg-card px-4 py-3.5 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring/50 md:rounded-[10px] md:bg-transparent md:py-2.5 md:pr-3.5 md:pl-3 md:transition-colors md:group-data-[densite=compact]/liste:py-1.5",
           active ? "md:bg-accent" : "md:hover:bg-accent/60",
         )}
       >
@@ -157,7 +162,10 @@ export function ThreadRow({
               <time
                 dateTime={last.date}
                 suppressHydrationWarning
-                className="ml-auto shrink-0 text-xs text-muted-foreground tabular-nums"
+                className={cn(
+                  "ml-auto shrink-0 text-xs text-muted-foreground transition-[margin] tabular-nums",
+                  thread.starred ? "md:me-[22px]" : "md:group-hover:me-[22px]",
+                )}
               >
                 {formatShortDate(last.date)}
               </time>
@@ -171,7 +179,10 @@ export function ThreadRow({
             >
               {thread.subject}
             </span>
-            <span className="mt-1 flex items-center gap-2">
+            {/* En densité compacte la rangée perd son aperçu : c'est la ligne
+                qui coûte le plus de hauteur et la moins nécessaire quand on
+                balaie une longue liste. */}
+            <span className="mt-1 flex items-center gap-2 md:group-data-[densite=compact]/liste:hidden">
               <span className="min-w-0 flex-1 truncate text-[13px] text-muted-foreground md:text-xs">
                 {thread.snippet}
               </span>
@@ -188,7 +199,7 @@ export function ThreadRow({
         aria-label={thread.starred ? "Retirer des favoris" : "Ajouter aux favoris"}
         aria-pressed={thread.starred}
         className={cn(
-          "absolute top-3 right-3 hidden rounded p-1 transition-opacity hover:bg-background md:block",
+          "absolute top-[9px] right-[11px] hidden rounded p-1 transition-opacity hover:bg-background md:block",
           thread.starred
             ? "text-amber-400"
             : "text-muted-foreground opacity-0 group-hover:opacity-100 focus-visible:opacity-100",

@@ -18,6 +18,7 @@ l'état du projet et ce qui reste à faire.
 - [Thème et couleurs](features/theme.md) — sombre, voile d'espace, contrastes, couleur par espace
 - [Pill d'actions](features/pill-actions.md) — le composant partagé des quatre barres du bas
 - [Barre du bas](features/barre-du-bas.md) — la pilule et le bouton composer
+- [La fenêtre du bureau](features/bureau.md) — les trois états de la barre, la grille, le troisième volet
 - [La liste sur téléphone](features/liste-telephone.md) — grand titre, tuiles épinglées, les deux balayages
 - [Le mail ouvert](features/mail-ouvert.md) — l'en-tête, le corps à bord perdu, la pill et ses feuilles
 - [Composeur : panneaux](features/composeur-panneaux.md) — pièces jointes qui voyagent, mise en forme

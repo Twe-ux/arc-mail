@@ -56,3 +56,49 @@ export function SpaceIcon({
     </span>
   );
 }
+
+/**
+ * Une boîte, telle que la barre latérale la dessine — **en verre, pas en
+ * dégradé**.
+ *
+ * Les pavés saturés de `SpaceIcon` dénotaient au milieu d'une barre qui est
+ * entièrement en verre : trois petits logos d'application posés sur une
+ * colonne de texte blanc. Le verre est donc celui de tout le reste, et
+ * l'identité de la boîte n'est plus le fond mais **un point de 6 px** à
+ * l'accent, en bas à droite.
+ *
+ * La contrepartie est obligatoire : sans le fond coloré on ne sait plus
+ * laquelle est laquelle, donc **chaque tuile porte son nom et son adresse en
+ * infobulle**. C'est à l'appelant de la poser.
+ */
+export function SpaceTile({
+  space,
+  active,
+  size = 34,
+  className,
+}: {
+  space: Space;
+  active?: boolean;
+  /** 34 dans la rangée du bas, 36 sur le rail. */
+  size?: 34 | 36;
+  className?: string;
+}) {
+  const Icon = SPACE_ICONS[space.icon];
+  return (
+    <span
+      aria-hidden
+      style={{ width: size, height: size }}
+      className={cn(
+        "relative inline-grid shrink-0 place-items-center rounded-[10px] transition-colors",
+        active ? "bg-white/20 text-white" : "bg-white/[0.07] text-white/75 group-hover:bg-white/[0.22] group-hover:text-white",
+        className,
+      )}
+    >
+      <Icon className="size-[18px]" strokeWidth={2} />
+      <span
+        className="absolute right-1 bottom-1 size-1.5 rounded-full"
+        style={{ backgroundColor: space.theme.accent }}
+      />
+    </span>
+  );
+}

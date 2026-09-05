@@ -1,56 +1,29 @@
 "use client";
 
-import {
-  Archive,
-  ArrowLeft,
-  Clock,
-  Folder,
-  Forward,
-  Mail,
-  MailOpen,
-  MoreHorizontal,
-  Paperclip,
-  Reply,
-  ReplyAll,
-  Star,
-  Trash2,
-  type LucideIcon,
-} from "lucide-react";
+import { Archive, ArrowLeft, Folder, Mail, MoreHorizontal, Reply, Star, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { formatFullDate } from "@/lib/format";
 import { replyRecipients, selectFolder, useMail, useSpace, useVisibleThreads } from "@/lib/store";
 import type { Contact, FolderId } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { ActionBar, Pill, PillCase, PillPrimary } from "./action-pill";
-import { BottomSheet, SheetGroup, SheetRow, SheetScroller, SheetTile } from "./bottom-sheet";
 import { MessageCard } from "./message-card";
+import { ThreadHeaderDesktop } from "./thread-header-desktop";
 import { MobileReply, ReplyBox } from "./thread-reply";
-
-/** Où l'on range depuis « Déplacer vers » : quatre destinations, pas sept. */
-const DESTINATIONS: { id: FolderId; name: string; icon: LucideIcon; tint: string }[] = [
-  { id: "starred", name: "Favoris", icon: Star, tint: "bg-amber-400" },
-  { id: "snoozed", name: "En pause", icon: Clock, tint: "bg-purple-500" },
-  { id: "archive", name: "Archive", icon: Archive, tint: "bg-teal-500" },
-  { id: "trash", name: "Corbeille", icon: Trash2, tint: "bg-red-500" },
-];
+import { ThreadSheets } from "./thread-sheets";
 
 export function ThreadView({ className }: { className?: string }) {
   const thread = useMail((s) => s.threads.find((t) => t.id === s.selectedThreadId) ?? null);
   const folder = useMail(selectFolder);
   const space = useSpace();
   const visibles = useVisibleThreads();
-  const splitView = useMail((s) => s.splitView);
   const selectThread = useMail((s) => s.selectThread);
   const toggleStar = useMail((s) => s.toggleStar);
-  const toggleUnread = useMail((s) => s.toggleUnread);
   const moveThread = useMail((s) => s.moveThread);
   const openCompose = useMail((s) => s.openCompose);
-  const setPreview = useMail((s) => s.setPreview);
 
   /* À qui va la réponse. `null` = tout le monde sur le dernier message, ce que
      le store fait de lui-même ; une liste veut dire qu'on a restreint, par
@@ -111,9 +84,6 @@ export function ThreadView({ className }: { className?: string }) {
   /* « Répondre à tous » ne gagne sa place que s'il y a vraiment quelqu'un
      d'autre sur le message. */
   const canReplyAll = everyone.length > 1;
-  /* La première pièce jointe du fil : ce que « Pièces jointes » ouvre. */
-  const premierePiece = thread.messages.flatMap((m) => m.attachments ?? [])[0];
-
   /* Ranger, c'est **revenir à la liste** : le fil qu'on vient de déplacer n'est
      plus dans le dossier qu'on regardait, et le laisser ouvert donnerait un
      message sans place. Le toast est la seule trace de ce qui s'est passé. */
@@ -125,34 +95,6 @@ export function ThreadView({ className }: { className?: string }) {
   };
 
   const position = visibles.findIndex((t) => t.id === thread.id);
-
-  const actions = (
-    <>
-      <Action label="Répondre" onClick={() => aimReply([sender])}>
-        <Reply />
-      </Action>
-      {canReplyAll && (
-        <Action label="Répondre à tous" onClick={() => aimReply(null)}>
-          <ReplyAll />
-        </Action>
-      )}
-      <Action label="Transférer" onClick={forward}>
-        <Forward />
-      </Action>
-      <Action label="Archiver · e" onClick={() => moveThread(thread.id, "archive")} disabled={thread.folder === "archive"}>
-        <Archive />
-      </Action>
-      <Action label={inTrash ? "Restaurer" : "Supprimer · #"} onClick={() => moveThread(thread.id, inTrash ? "inbox" : "trash")}>
-        <Trash2 />
-      </Action>
-      <Action label={thread.unread ? "Marquer comme lu · u" : "Marquer comme non lu · u"} onClick={() => toggleUnread(thread.id)}>
-        {thread.unread ? <MailOpen /> : <Mail />}
-      </Action>
-      <Action label={thread.starred ? "Retirer des favoris · s" : "Ajouter aux favoris · s"} onClick={() => toggleStar(thread.id)}>
-        <Star className={cn(thread.starred && "fill-amber-400 text-amber-400")} />
-      </Action>
-    </>
-  );
 
   return (
     <article className={cn("min-h-0 min-w-0 flex-1 flex-col", className)}>
@@ -197,20 +139,14 @@ export function ThreadView({ className }: { className?: string }) {
         </button>
       </div>
 
-      {/* Desktop header */}
-      <header className="hidden h-12 shrink-0 items-center gap-1 border-b px-3 md:flex">
-        <Button
-          variant="ghost"
-          size="icon-xs"
-          onClick={() => selectThread(null)}
-          aria-label="Retour"
-          className={cn(splitView && "hidden")}
-        >
-          <ArrowLeft />
-        </Button>
-        <h2 className="min-w-0 flex-1 truncate px-1 text-sm font-semibold">{thread.subject}</h2>
-        {actions}
-      </header>
+      <ThreadHeaderDesktop
+        thread={thread}
+        onForward={forward}
+        onReplyAll={() => aimReply(null)}
+        onArchive={() => ranger("archive", "Archive")}
+        onTrash={() => (inTrash ? ranger("inbox", "Réception") : ranger("trash", "Corbeille"))}
+        onSnooze={() => ranger("snoozed", "En pause")}
+      />
 
       {/* Le message : une carte flottante sur téléphone, une colonne sur bureau. */}
       <div className="list-card relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-t-[28px] bg-card md:rounded-none md:bg-transparent">
@@ -223,29 +159,35 @@ export function ThreadView({ className }: { className?: string }) {
                  comme un texte qu'on perd. La réserve suit `--nav-height`, et
                  disparaît quand la barre de réponse prend la place de la pill
                  (elle, elle est dans le flux). */
-              "mx-auto flex w-full max-w-3xl flex-col md:gap-4 md:p-6 md:pb-6",
+              "mx-auto flex w-full max-w-3xl flex-col md:gap-0.5 md:p-2",
               replyOpen ? "max-md:pb-4" : "max-md:pb-[calc(var(--nav-height)+0.5rem)]",
             )}
           >
             {/* L'objet, à bord perdu comme le reste : sur téléphone il est le
                 titre de la carte, pas celui d'une sous-carte. */}
-            <h1 className="px-5 pt-[22px] text-[22px] leading-[1.25] font-bold tracking-[-0.015em] text-pretty md:px-0 md:pt-0 md:text-xl md:font-semibold md:tracking-tight">
+            {/* Sur bureau l'objet est déjà dans l'en-tête, à deux centimètres
+                au-dessus : l'écrire deux fois ne dit rien de plus. */}
+            <h1 className="px-5 pt-[22px] text-[22px] leading-[1.25] font-bold tracking-[-0.015em] text-pretty md:hidden">
               {thread.subject}
             </h1>
             {thread.messages.map((m) => (
               <MessageCard key={m.id} message={m} onReplyTo={aimReply} />
             ))}
-            <ReplyBox
-              key={thread.id}
-              thread={thread}
-              to={targets}
-              everyone={everyone}
-              onReplyAll={() => aimReply(null)}
-              focusTick={focusTick}
-              className="hidden md:block"
-            />
           </div>
         </ScrollArea>
+
+        {/* **Toujours en bas du volet, hors du défilant** : il était à la fin
+            du fil, donc invisible sur une conversation de cinq messages — et
+            répondre est ce qu'on vient y faire. */}
+        <ReplyBox
+          key={thread.id}
+          thread={thread}
+          to={targets}
+          everyone={everyone}
+          onReplyAll={() => aimReply(null)}
+          focusTick={focusTick}
+          className="hidden shrink-0 border-t border-black/[0.06] px-3.5 py-3 md:block dark:border-white/10"
+        />
 
         {replyOpen ? (
           <MobileReply
@@ -291,110 +233,15 @@ export function ThreadView({ className }: { className?: string }) {
         )}
       </div>
 
-      <BottomSheet
-        open={sheet === "move"}
-        onOpenChange={(o) => setSheet(o ? "move" : null)}
-        title="Déplacer vers"
-        description="Choisir le dossier où ranger cette conversation"
-      >
-        <SheetScroller>
-          <SheetGroup>
-            {DESTINATIONS.map(({ id, name, icon: Icon, tint }) => (
-              <SheetRow key={id} active={thread.folder === id} onClick={() => ranger(id, name)}>
-                <SheetTile tint={tint}>
-                  <Icon />
-                </SheetTile>
-                <span className="min-w-0 flex-1 truncate text-[15px]">{name}</span>
-              </SheetRow>
-            ))}
-          </SheetGroup>
-        </SheetScroller>
-      </BottomSheet>
-
-      <BottomSheet
-        open={sheet === "more"}
-        onOpenChange={(o) => setSheet(o ? "more" : null)}
-        title="Plus"
-        description="Les autres actions sur cette conversation"
-      >
-        <SheetScroller>
-          <SheetGroup>
-            {canReplyAll && (
-              <SheetRow onClick={() => aimReply(null)}>
-                <SheetTile tint="bg-blue-500">
-                  <ReplyAll />
-                </SheetTile>
-                <span className="min-w-0 flex-1 text-[15px]">Répondre à tous</span>
-              </SheetRow>
-            )}
-            <SheetRow
-              onClick={() => {
-                setSheet(null);
-                forward();
-              }}
-            >
-              <SheetTile tint="bg-indigo-500">
-                <Forward />
-              </SheetTile>
-              <span className="min-w-0 flex-1 text-[15px]">Transférer</span>
-            </SheetRow>
-            <SheetRow
-              onClick={() => {
-                toggleUnread(thread.id);
-                setSheet(null);
-                toast(thread.unread ? "Marqué comme lu" : "Marqué comme non lu");
-              }}
-            >
-              <SheetTile tint="bg-sky-500">{thread.unread ? <MailOpen /> : <Mail />}</SheetTile>
-              <span className="min-w-0 flex-1 text-[15px]">
-                {thread.unread ? "Marquer comme lu" : "Marquer comme non lu"}
-              </span>
-            </SheetRow>
-            <SheetRow onClick={() => ranger("snoozed", "En pause")}>
-              <SheetTile tint="bg-purple-500">
-                <Clock />
-              </SheetTile>
-              <span className="min-w-0 flex-1 text-[15px]">Mettre en pause</span>
-            </SheetRow>
-            {premierePiece && (
-              <SheetRow
-                onClick={() => {
-                  setSheet(null);
-                  setPreview(premierePiece.id);
-                }}
-              >
-                <SheetTile tint="bg-teal-500">
-                  <Paperclip />
-                </SheetTile>
-                <span className="min-w-0 flex-1 truncate text-[15px]">Pièces jointes</span>
-              </SheetRow>
-            )}
-          </SheetGroup>
-        </SheetScroller>
-      </BottomSheet>
+      <ThreadSheets
+        thread={thread}
+        sheet={sheet}
+        onSheet={setSheet}
+        canReplyAll={canReplyAll}
+        onReplyAll={() => aimReply(null)}
+        onForward={forward}
+        onRanger={ranger}
+      />
     </article>
-  );
-}
-
-function Action({
-  label,
-  onClick,
-  disabled,
-  children,
-}: {
-  label: string;
-  onClick: () => void;
-  disabled?: boolean;
-  children: React.ReactNode;
-}) {
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Button variant="ghost" size="icon-xs" onClick={onClick} disabled={disabled} aria-label={label}>
-          {children}
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent>{label}</TooltipContent>
-    </Tooltip>
   );
 }

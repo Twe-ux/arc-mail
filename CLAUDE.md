@@ -24,8 +24,9 @@ d'Arc (espaces colorés, sidebar translucide, favoris épinglés, onglets « Auj
   `src/app/globals.css`, sombre par classe `.dark`), shadcn/ui new-york via le paquet unifié
   `radix-ui`, icônes `lucide-react`. `npx shadcn@latest add <x>` pour ajouter une primitive ; ne
   pas réécrire celles qui existent.
-- Barre latérale bureau repliable (`sidebarCollapsed`, persisté, ⌘B) ; le bouton de retour vit
-  dans l'en-tête de la liste, là où la barre était.
+- Barre latérale bureau à **trois états** (`sidebarMode` : attachée · rail · masquée, persisté,
+  ⌘B fait le tour) ; le sélecteur vit dans la tête de liste, qui s'efface quand la barre est
+  attachée → [fiche bureau](docs/features/bureau.md).
 - État UI dans `src/lib/store.ts` (zustand + `persist`, clé `arc-mail`). Le composeur y vit
   aussi ; ne pas dupliquer son état en local. Les sélecteurs qui renvoient des tableaux passent par
   `useVisibleThreads()` (memo).
@@ -126,6 +127,23 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   **56**, verre en `p-[6px_8px] gap-0`, barre à **14 px** des bords et **16 px** du bas — 80 px en
   tout, et la taille des icônes appartient à la pill, pas au point d'appel.
 - Les cases sont `shrink-0` et l'état actif se **remplit** (accent à 22 %, encre `--space-ink`).
+
+**Fenêtre du bureau** → [docs/features/bureau.md](docs/features/bureau.md)
+- La fenêtre principale est une **grille à pistes explicites** et chaque enfant est posé par son
+  `col-start` : un enfant caché n'est plus un élément de grille, et le placement auto décalait tout.
+- Les dossiers n'apparaissent **qu'une fois** : barre attachée, ou rail, ou tuiles de la tête.
+- Ouvrir le troisième volet **réduit une barre attachée en rail** ; il fait 460 px à chaque
+  ouverture, sa largeur a sa propre clé, et il porte un message **ou** un fichier.
+- Une seule colonne à droite : le composeur la prend au volet, et le volet revient en la rendant.
+- La révélation au survol part de la **bande du bord**, jamais du rail ; son voile est en
+  `pointer-events: none`, sinon quitter la barre ne la retire jamais.
+- Les boîtes sont des tuiles de verre (`SpaceTile`) à **point d'accent** ; nom, adresse et raccourci
+  passent en infobulle — sans le fond coloré, la tuile ne dit plus laquelle c'est.
+- Rangées : rayon 10, `pr` **14** (pas 40), l'étoile se superpose et la date lui fait place au
+  survol ; la densité se publie en `data-densite` sur la colonne.
+- En-tête de conversation : Archiver et Supprimer **dehors**, pas de « Répondre » (le champ est en
+  bas, hors du défilant) ; un bloc de message se clique pour le détacher, et c'est le bouton du
+  survol qui vise la réponse.
 
 **Liste sur téléphone** → [docs/features/liste-telephone.md](docs/features/liste-telephone.md)
 - Grand titre 30/1.15/-0.02em, ligne méta tronquée, **quatre** tuiles épinglées ; la carte porte le

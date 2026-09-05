@@ -15,6 +15,9 @@ const eslintConfig = defineConfig([
     // Not ours to lint: the skills' own scripts and the capture output.
     ".claude/**",
     "captures/**",
+    // Les handoffs de design sont des documents livrés, pas notre code : leur
+    // page de prévisualisation embarque son propre React et ses propres règles.
+    "design_handoff_*/**",
   ]),
 ]);
 

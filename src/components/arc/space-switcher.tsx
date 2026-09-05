@@ -1,20 +1,21 @@
 "use client";
 
 import { useMail, useSpaces } from "@/lib/store";
-import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { SpaceIcon } from "./space-icon";
+import { SpaceTile } from "./space-icon";
 
 /**
  * La rangée d'espaces, en bas de la barre latérale.
  *
- * **Rien que les pastilles.** L'espace actif portait son nom écrit à côté, et
- * un nom d'espace un peu long (« Milone Thierry Coworking ») mangeait la
- * rangée puis se faisait tronquer — un texte coupé qui ne dit plus rien, à
- * l'endroit même où la couleur et l'icône disent déjà tout. L'infobulle donne
- * le nom entier, avec son raccourci.
+ * **Rien que les tuiles.** L'espace actif portait son nom écrit à côté, et un
+ * nom un peu long (« Milone Thierry Coworking ») mangeait la rangée puis se
+ * faisait tronquer — un texte coupé qui ne dit plus rien. L'infobulle donne le
+ * nom entier, l'adresse et le raccourci.
+ *
+ * Les tuiles sont en **verre** depuis le lot bureau (`SpaceTile`) : les pavés
+ * en dégradé saturé dénotaient au milieu d'une barre qui l'est entièrement.
  */
-export function SpaceSwitcher({ onSelect, tone = "gradient" }: { onSelect?: () => void; tone?: "gradient" | "surface" }) {
+export function SpaceSwitcher({ onSelect }: { onSelect?: () => void }) {
   const spaces = useSpaces();
   const spaceId = useMail((s) => s.spaceId);
   const setSpace = useMail((s) => s.setSpace);
@@ -34,25 +35,16 @@ export function SpaceSwitcher({ onSelect, tone = "gradient" }: { onSelect?: () =
                 }}
                 aria-label={`Espace ${space.name}`}
                 aria-current={active ? "true" : undefined}
-                className={cn(
-                  "flex size-8 items-center justify-center rounded-lg transition-all",
-                  /* L'actif se lit à sa surface, pas à un texte : le verre en
-                     mode dégradé, le gris de fond sur une surface claire. Les
-                     autres restent en retrait et se rallument à l'approche. */
-                  tone === "gradient"
-                    ? active
-                      ? "glass"
-                      : "opacity-60 hover:bg-white/15 hover:opacity-100"
-                    : active
-                      ? "bg-muted"
-                      : "opacity-70 hover:bg-muted hover:opacity-100",
-                )}
+                className="group flex items-center justify-center rounded-[10px]"
               >
-                <SpaceIcon space={space} size="sm" />
+                <SpaceTile space={space} active={active} />
               </button>
             </TooltipTrigger>
+            {/* Le nom **et** l'adresse. Sans le fond coloré d'avant, la tuile
+                seule ne dit plus quelle boîte elle porte : c'est la
+                contrepartie du passage au verre, pas un ornement. */}
             <TooltipContent side="top">
-              {space.name} · ⌘{i + 1}
+              {space.name} · {space.email} · ⌘{i + 1}
             </TooltipContent>
           </Tooltip>
         );

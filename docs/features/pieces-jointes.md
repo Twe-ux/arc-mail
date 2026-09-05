@@ -103,3 +103,16 @@ notes de version — et c'est le genre de panne qu'on ne voit qu'à la deuxième
 
 L'échelle vient de la largeur de la colonne, pas de la taille d'impression, plafonnée à deux fois
 la densité de l'écran : au-delà c'est de la mémoire pour rien.
+
+---
+
+## Sur bureau, c'est le troisième volet (5 sept. 2026, lot bureau)
+
+Le volet de 400 px collé au message a laissé la place à la **fenêtre détachée** du lot bureau
+(`third-pane.tsx`), qui porte un message **ou** un fichier. `AttachmentPreview` ne rend donc plus
+que la carte du téléphone ; `AttachmentHead` et `AttachmentBody` sont exportés et servent des deux
+côtés — l'état vide honnête compris. La règle des trois colonnes n'a pas changé : au-dessous de
+1400 px c'est la liste qui s'efface, jamais le message.
+
+La largeur du volet vit sur sa **propre clé** (`thirdWidth`, 460 à chaque ouverture) : partagée
+avec ce qu'il porte, tirer la poignée le faisait basculer du fichier au message.

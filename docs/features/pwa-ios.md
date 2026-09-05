@@ -104,7 +104,7 @@ mesuré en émulation était correct, et le réseau-d'abord rend un cache périm
 dans l'ordre :
 
 1. Vérifier que le code sur `preview`/`main` produit déjà le bon rendu (capture en émulation).
-2. Demander de **tirer la liste vers le bas** (recharge l'app).
+2. Demander de **tirer la liste vers le bas** (relit le courrier, et récupère un déploiement s'il y en a un).
 3. Sinon, fermer complètement l'app (la faire disparaître du multitâche), pas juste la mettre en
    arrière-plan ; en dernier recours réinstaller.
 4. Bumper `VERSION` ne change rien tant que l'app n'a pas fait une vraie navigation réseau.

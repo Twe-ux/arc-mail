@@ -93,7 +93,9 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   `none` tant que la feuille est ouverte.
 - Une seule recette d'entrée pour les cartes (400/260 ms, `cubic-bezier(0.32,0.72,0,1)`) ; le
   retour est sur l'appui (`active:`), jamais seulement `hover:` ; reduced-motion respecté.
-- Tirer pour recharger : distance seule, jamais la vitesse ; 550 ms de spin avant le reload.
+- Tirer pour recharger **relit le courrier**, ne recharge plus le document (il emportait les corps
+  préchargés) ; distance seule, jamais la vitesse ; 550 ms de spin minimum ; la version se vérifie
+  à cette occasion et ne recharge que s'il y a du neuf.
 
 **Thème et couleurs** → [docs/features/theme.md](docs/features/theme.md)
 - Espaces lus via `useSpace()` / `useSpaces()`, jamais `SPACES` en direct ; icône Lucide sur tuile
@@ -165,6 +167,7 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   erreur.
 - Les **enveloppes** des 150 derniers fils sont persistées (`enMemoire`) pour que la boîte s'ouvre
   sans attendre ; corps et pièces jointes non, et la déconnexion efface le tout.
+- Une relecture de dossier **fond** les corps déjà connus (`replaceFolder`) au lieu de les jeter.
 
 **Espaces** → [docs/features/espaces.md](docs/features/espaces.md)
 - Les espaces viennent des comptes branchés (`spacesFromAccounts`) ; sans compte, la maquette reste.

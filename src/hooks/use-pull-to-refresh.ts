@@ -103,9 +103,9 @@ export function usePullToRefresh(onRefresh: () => void | Promise<void>) {
       try {
         await latest.current();
       } finally {
-        /* A refresh that reloads the page never gets here — the document is
-           replaced first, which is the point. Anything that resolves (a data
-           refetch, later) hands the list back. */
+        /* Le geste relit maintenant le courrier au lieu de recharger le
+           document : il résout, et rend la liste. Un rechargement, lui, ne
+           passerait jamais ici — la page serait déjà remplacée. */
         running = false;
         indicator.current?.removeAttribute("data-refreshing");
         const caught = settling?.stop() ?? { value: HOLD, velocity: 0 };

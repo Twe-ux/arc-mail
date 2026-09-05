@@ -303,6 +303,17 @@ Retirer un brouillon l'envoie à la **corbeille**, pas au néant : un brouillon 
 se récupère, un `\Deleted` + `EXPUNGE` ne se récupère pas. On ne supprime vraiment que si la boîte
 n'a pas de corbeille.
 
+## Une relecture ne jette pas les corps
+
+Une lecture de dossier ne rapporte que des enveloppes. Remplacer la tranche telle quelle effaçait
+donc tout ce que le préchargement venait de descendre — à chaque tirage pour rafraîchir, à chaque
+retour dans un dossier. `replaceFolder` **fond** maintenant les corps connus dans la liste fraîche :
+un identifiant IMAP porte son dossier et son UID, le même identifiant est le même message, son
+corps est encore bon. Les drapeaux, eux, viennent de la lecture fraîche — c'est elle qui les sait.
+
+Mesuré : après un chargement (lots de 3 puis 7), un détour par Favoris et un retour à la réception
+provoquent **zéro** nouveau lot.
+
 ## La liste est gardée
 
 Les **enveloppes** des 150 derniers fils survivent au rechargement (`enMemoire`, dans le

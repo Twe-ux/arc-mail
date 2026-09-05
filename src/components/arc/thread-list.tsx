@@ -37,17 +37,23 @@ export function ThreadList({ className }: { className?: string }) {
   const unread = threads.filter((t) => t.unread).length;
   const plural = (n: number, word: string) => `${n} ${word}${n > 1 ? "s" : ""}`;
 
-  /* A real reload, not a re-render: installed on the home screen there is no
-     address bar to pull down and no reload button, so this is the only way to
-     get a fresh page — and the way a new deploy arrives without force-quitting
-     the app. When a mail provider lands, this becomes its refetch.
-     The pause is what makes it legible: reloading the instant the finger lifts
-     tears the document down before the spinner has turned once, so the whole
-     gesture reads as a flicker rather than as work being done. The hook holds
-     the list open and spins for as long as this takes. */
+  /* **Tirer relit le courrier, ça ne recharge plus l'app.** C'était un vrai
+     `reload` du document, faute de fournisseur : le geste rendait la seule
+     chose qu'il pouvait rendre, une page neuve. Maintenant qu'il y a du
+     courrier derrière, recharger était devenu le pire des choix — le document
+     emportait avec lui tout ce que le préchargement avait descendu, et le
+     geste censé rafraîchir la boîte la vidait.
+
+     La version, elle, se vérifie quand même : sans barre d'adresse ni bouton
+     de rechargement, une PWA installée n'a pas d'autre occasion de savoir
+     qu'un déploiement existe. Mais on ne recharge que s'il y en a un.
+
+     La pause de 550 ms est ce qui rend le geste lisible : rendre la main dès
+     que le doigt se lève, avant que l'indicateur ait tourné une fois, fait
+     lire tout le geste comme un scintillement plutôt que comme du travail. */
   const { ref: cardRef, indicatorRef } = usePullToRefresh(async () => {
-    await new Promise((resolve) => setTimeout(resolve, 550));
-    window.location.reload();
+    await Promise.all([loadSpace(), new Promise((resolve) => setTimeout(resolve, 550))]);
+    void versionFraiche();
   });
 
   return (
@@ -433,4 +439,26 @@ function Sentinelle({ onVisible }: { onVisible: () => void }) {
   }, []);
 
   return <li ref={ancre} aria-hidden className="h-px" />;
+}
+
+/**
+ * Va voir si un déploiement plus récent existe, et ne recharge que si oui.
+ *
+ * Une PWA installée n'a ni barre d'adresse ni bouton de rechargement : sans
+ * cette vérification, une version pourrait rester en place indéfiniment. Mais
+ * recharger à chaque tirage coûterait tout ce qu'on a en mémoire pour, la
+ * plupart du temps, retomber sur la même version.
+ *
+ * `sw.js` prend la main dès qu'il est installé (`skipWaiting` puis `claim`) :
+ * c'est le changement de contrôleur qui dit qu'il y a vraiment du neuf.
+ */
+async function versionFraiche() {
+  if (!("serviceWorker" in navigator)) return;
+  const enregistrement = await navigator.serviceWorker.getRegistration();
+  if (!enregistrement) return;
+  await enregistrement.update().catch(() => {});
+  if (!enregistrement.installing && !enregistrement.waiting) return;
+  navigator.serviceWorker.addEventListener("controllerchange", () => window.location.reload(), {
+    once: true,
+  });
 }

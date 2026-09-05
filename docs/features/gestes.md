@@ -56,8 +56,17 @@ tap légitime après un ressort.
 ## Tirer pour recharger (`usePullToRefresh`, sur la carte de `ThreadList`)
 
 Installée sur l'écran d'accueil, l'app n'a ni barre d'adresse ni bouton recharger : c'est la seule
-façon d'obtenir une page fraîche de l'intérieur, et donc de récupérer un déploiement sans quitter
-complètement l'app.
+façon de rafraîchir de l'intérieur.
+
+**Le geste relit le courrier ; il ne recharge plus le document.** C'en était un, faute de
+fournisseur : il rendait la seule chose qu'il pouvait rendre, une page neuve. Avec du vrai courrier
+derrière, recharger était devenu le pire des choix — le document emportait tout ce que le
+préchargement avait descendu, et le geste censé rafraîchir la boîte la vidait.
+
+La **version** se vérifie quand même à cette occasion (`versionFraiche` : `registration.update()`,
+puis rechargement **seulement** si un nouveau service worker prend la main). Sans barre d'adresse,
+il n'y a pas d'autre moment pour apprendre qu'un déploiement existe ; mais recharger à chaque
+tirage coûterait la mémoire pour, le plus souvent, retomber sur la même version.
 
 - Seuil `TRIGGER` 72 px, maintien `HOLD` 64 px pendant le travail, résistance au-delà de
   `MAX_PULL` 150 px.
@@ -68,10 +77,10 @@ complètement l'app.
   40 px qui revient n'ouvre pas la conversation sous le doigt, un tap franc l'ouvre.
 - L'indicateur est derrière la carte, révélé par le mouvement ; opacité écrite à la frame,
   avancement publié en `--pull-progress` pour que le CSS tourne l'icône.
-- **Le rechargement attend 550 ms** : lancé à l'instant où le doigt se lève, il démolit le document
-  avant que l'icône ait fait un tour. Le hook tient la liste et fait tourner pendant tout ce que
-  dure `onRefresh` — c'est à l'appelant (`ThreadList`) de s'accorder ce délai. Quand un fournisseur
-  de mail arrivera, `onRefresh` deviendra son rafraîchissement.
+- **550 ms au minimum** : rendre la main dès que le doigt se lève, avant que l'icône ait fait un
+  tour, fait lire tout le geste comme un scintillement plutôt que comme du travail. La relecture et
+  le délai courent ensemble (`Promise.all`), le hook tient la liste et fait tourner pendant tout ce
+  que dure `onRefresh`.
 - Pour que la rotation reparte de zéro, on remet `--pull-progress` à 0 **sur l'icône** : une
   classe ne bat pas un `rotate` en ligne, mais la déclaration locale de la variable bat celle
   héritée, et le `calc()` retombe sur 0deg.

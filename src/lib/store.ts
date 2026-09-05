@@ -180,7 +180,19 @@ const hydrate = (before: Thread, full: Thread): Thread => ({
  */
 const replaceFolder = (threads: Thread[], spaceId: SpaceId, folder: FolderId, fresh: Thread[]) => {
   const seen = new Set<string>();
-  const kept = fresh.filter((t) => (seen.has(t.id) ? false : (seen.add(t.id), true)));
+  const uniques = fresh.filter((t) => (seen.has(t.id) ? false : (seen.add(t.id), true)));
+
+  /* **Une relecture ne jette pas les corps déjà là.** Une lecture de dossier ne
+     rapporte que des enveloppes ; remplacer la tranche telle quelle effaçait
+     tout ce que le préchargement venait de descendre, à chaque tirage pour
+     rafraîchir et à chaque retour dans un dossier. Un identifiant IMAP porte
+     son dossier et son UID : le même identifiant, c'est le même message, donc
+     son corps est encore bon. */
+  const connus = new Map(threads.map((t) => [t.id, t]));
+  const kept = uniques.map((t) => {
+    const avant = connus.get(t.id);
+    return avant && avant.messages.some((m) => m.body) ? hydrate(t, avant) : t;
+  });
   const ids = new Set(kept.map((t) => t.id));
   if (folder === "starred") {
     return [...kept, ...threads.filter((t) => !ids.has(t.id))];

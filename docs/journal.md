@@ -54,6 +54,7 @@ Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérificatio
 | — | `MailProvider` : le mock derrière l'interface, store asynchrone à écritures optimistes |
 | `04273d0` | Tri des skills : 13 gardés sur 33, `/ecran` porté de Kairos, `npm run capture` |
 | `6e896f6` | État des lieux : quatre audits en parallèle (code, UX, mouvement, DESIGN.md) |
+| — | Tirer pour rafraîchir relit le courrier au lieu de recharger l'app, et une relecture ne jette plus les corps préchargés |
 | — | Les corps se préchargent **par lots de dix**, le premier avec la liste et les suivants au défilement ; budget de 1,2 Mo par lot, rien si l'économiseur de données est actif |
 | — | La tête du lot (3) part séparément pour arriver avant le doigt (626 ms contre 2123) ; survol avec temps d'arrêt de 150 ms |
 | — | Les connexions IMAP se gardent d'une requête à l'autre (285 ms → 3 ms sur un serveur de test), clé par empreinte d'identifiants |

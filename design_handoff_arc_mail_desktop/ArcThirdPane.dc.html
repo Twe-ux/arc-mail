@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div data-arc-third style="position:relative;height:100%;min-height:0;min-width:0;display:flex;flex-direction:column;font-family:Geist,system-ui,sans-serif;color:#fafafa">
+
+  <header style="flex:none;display:flex;align-items:center;gap:10px;padding:14px 14px 10px">
+    <h3 style="margin:0;flex:1;min-width:0;font-size:15px;font-weight:600;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ title }}</h3>
+    <button type="button" onClick="{{ close }}" aria-label="Fermer le volet" style="width:30px;height:30px;flex:none;display:grid;place-items:center;border:0;border-radius:7px;background:none;cursor:pointer;color:oklch(.708 0 0)" style-hover="background:oklch(.269 0 0);color:#fafafa"><svg class="ico s18"><use href="#d-x"/></svg></button>
+  </header>
+
+  <sc-if value="{{ isMessage }}" hint-placeholder-val="{{ true }}">
+    <sc-if value="{{ tipShown }}" hint-placeholder-val="{{ false }}">
+      <span style="{{ tipStyle }}">{{ tipLabel }}</span>
+    </sc-if>
+    <div style="flex:none;display:flex;align-items:center;gap:2px;padding:0 12px 12px;border-bottom:1px solid rgba(255,255,255,.1)">
+      <button type="button" aria-label="Archiver" onPointerEnter="{{ tArchive }}" onPointerLeave="{{ tipOff }}" style="width:32px;height:32px;display:grid;place-items:center;border:0;border-radius:7px;background:none;cursor:pointer;color:oklch(.75 0 0)" style-hover="background:oklch(.269 0 0);color:#fafafa"><svg class="ico s18"><use href="#d-archive"/></svg></button>
+      <button type="button" aria-label="Signaler" onPointerEnter="{{ tSpam }}" onPointerLeave="{{ tipOff }}" style="width:32px;height:32px;display:grid;place-items:center;border:0;border-radius:7px;background:none;cursor:pointer;color:oklch(.75 0 0)" style-hover="background:oklch(.269 0 0);color:#fafafa"><svg class="ico s18"><use href="#d-alert"/></svg></button>
+      <button type="button" aria-label="Supprimer" onPointerEnter="{{ tTrash }}" onPointerLeave="{{ tipOff }}" style="width:32px;height:32px;display:grid;place-items:center;border:0;border-radius:7px;background:none;cursor:pointer;color:oklch(.75 0 0)" style-hover="background:oklch(.269 0 0);color:#f87171"><svg class="ico s18"><use href="#d-trash"/></svg></button>
+      <button type="button" aria-label="Marquer comme non lu" onPointerEnter="{{ tUnread }}" onPointerLeave="{{ tipOff }}" style="width:32px;height:32px;display:grid;place-items:center;border:0;border-radius:7px;background:none;cursor:pointer;color:oklch(.75 0 0)" style-hover="background:oklch(.269 0 0);color:#fafafa"><svg class="ico s18"><use href="#d-mailopen"/></svg></button>
+      <button type="button" aria-label="Mettre en pause" onPointerEnter="{{ tSnooze }}" onPointerLeave="{{ tipOff }}" style="width:32px;height:32px;display:grid;place-items:center;border:0;border-radius:7px;background:none;cursor:pointer;color:oklch(.75 0 0)" style-hover="background:oklch(.269 0 0);color:#fafafa"><svg class="ico s18"><use href="#d-clock"/></svg></button>
+      <button type="button" aria-label="Étiqueter" onPointerEnter="{{ tTag }}" onPointerLeave="{{ tipOff }}" style="width:32px;height:32px;display:grid;place-items:center;border:0;border-radius:7px;background:none;cursor:pointer;color:oklch(.75 0 0)" style-hover="background:oklch(.269 0 0);color:#fafafa"><svg class="ico s18"><use href="#d-tag"/></svg></button>
+      <button type="button" aria-label="Marquer comme traité" onPointerEnter="{{ tDone }}" onPointerLeave="{{ tipOff }}" style="width:32px;height:32px;display:grid;place-items:center;border:0;border-radius:7px;background:none;cursor:pointer;color:oklch(.75 0 0)" style-hover="background:oklch(.269 0 0);color:#fafafa"><svg class="ico s18"><use href="#d-check"/></svg></button>
+    </div>
+
+    <div style="flex:1;min-height:0;overflow:hidden;padding:16px">
+      <div style="display:flex;align-items:flex-start;gap:12px">
+        <span style="width:36px;height:36px;flex:none;border-radius:999px;display:grid;place-items:center;font:600 12px Geist,system-ui,sans-serif;color:#fff;background:linear-gradient(135deg,oklch(.78 .12 20),oklch(.58 .17 60))">CD</span>
+        <div style="min-width:0;flex:1">
+          <div style="display:flex;align-items:baseline;gap:10px">
+            <span style="font-size:15px;font-weight:600">Claire Dubois</span>
+            <time style="margin-left:auto;flex:none;font-size:12px;color:oklch(.708 0 0)">5 septembre 2026 à 09:41</time>
+          </div>
+          <p style="margin:2px 0 0;font-size:12px;color:oklch(.708 0 0)">À : moi, Amélie Garnier</p>
+        </div>
+      </div>
+      <p style="margin:18px 0 0;font-size:14px;line-height:1.7;white-space:pre-wrap;text-wrap:pretty">Salut !
+
+J'ai regardé les dispos pour le 20 : le gîte au bord du lac est libre tout le week-end, et il reste deux chambres à l'étage. Si on confirme avant vendredi on garde le tarif de l'an dernier.
+
+Amélie propose de partir le vendredi soir pour éviter les bouchons du samedi matin. Ça vous va ?</p>
+      <div style="margin-top:22px;display:flex;align-items:center;gap:12px">
+        <span style="width:40px;height:40px;flex:none;border-radius:10px;display:grid;place-items:center;font:600 13px Geist,system-ui,sans-serif;color:#fff;background:linear-gradient(135deg,oklch(.78 .12 20),oklch(.58 .17 60))">CD</span>
+        <div style="min-width:0">
+          <p style="margin:0;font-size:14px;font-weight:600">Claire Dubois</p>
+          <p style="margin:0;font-size:13px;color:oklch(.708 0 0)">Organisatrice du week-end</p>
+          <p style="margin:0;font-size:13px;color:oklch(.708 0 0)">claire.dubois@gmail.com</p>
+        </div>
+      </div>
+    </div>
+
+    <div style="flex:none;margin:0 14px 14px;border-radius:14px;background:oklch(.205 0 0);border:1px solid rgba(255,255,255,.12);display:flex;flex-direction:column">
+      <div style="flex:none;display:flex;align-items:center;gap:2px;padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.08)">
+        <button type="button" aria-label="Gras" style="width:28px;height:28px;display:grid;place-items:center;border:0;border-radius:6px;background:none;cursor:pointer;color:oklch(.75 0 0);font:700 14px Geist,system-ui,sans-serif" style-hover="background:oklch(.269 0 0);color:#fafafa">B</button>
+        <button type="button" aria-label="Italique" style="width:28px;height:28px;display:grid;place-items:center;border:0;border-radius:6px;background:none;cursor:pointer;color:oklch(.75 0 0);font:italic 400 14px Geist,system-ui,sans-serif" style-hover="background:oklch(.269 0 0);color:#fafafa">I</button>
+        <button type="button" aria-label="Souligné" style="width:28px;height:28px;display:grid;place-items:center;border:0;border-radius:6px;background:none;cursor:pointer;color:oklch(.75 0 0);font:400 14px Geist,system-ui,sans-serif;text-decoration:underline" style-hover="background:oklch(.269 0 0);color:#fafafa">U</button>
+        <button type="button" aria-label="Lien" style="width:28px;height:28px;display:grid;place-items:center;border:0;border-radius:6px;background:none;cursor:pointer;color:oklch(.75 0 0)" style-hover="background:oklch(.269 0 0);color:#fafafa"><svg class="ico s14"><use href="#d-link"/></svg></button>
+        <button type="button" aria-label="Alignement" style="width:28px;height:28px;display:grid;place-items:center;border:0;border-radius:6px;background:none;cursor:pointer;color:oklch(.75 0 0)" style-hover="background:oklch(.269 0 0);color:#fafafa"><svg class="ico s14"><use href="#d-align"/></svg></button>
+      </div>
+      <p style="margin:0;padding:14px;min-height:96px;font-size:14px;color:oklch(.708 0 0)">Répondre à Claire…</p>
+      <div style="flex:none;display:flex;align-items:center;gap:2px;padding:8px 10px">
+        <button type="button" aria-label="Joindre un fichier" style="width:28px;height:28px;display:grid;place-items:center;border:0;border-radius:6px;background:none;cursor:pointer;color:oklch(.75 0 0)" style-hover="background:oklch(.269 0 0);color:#fafafa"><svg class="ico s14"><use href="#d-clip"/></svg></button>
+        <button type="button" aria-label="Programmer l'envoi" style="width:28px;height:28px;display:grid;place-items:center;border:0;border-radius:6px;background:none;cursor:pointer;color:oklch(.75 0 0)" style-hover="background:oklch(.269 0 0);color:#fafafa"><svg class="ico s14"><use href="#d-cal"/></svg></button>
+        <button type="button" style="margin-left:auto;display:flex;align-items:center;gap:7px;height:34px;padding:0 14px;border:0;border-radius:9px;cursor:pointer;font:600 13px Geist,system-ui,sans-serif;color:#fff;background:{{ gradient }}"><svg class="ico s14" style="stroke-width:2"><use href="#d-send"/></svg>Envoyer</button>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isFile }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:none;display:flex;align-items:center;gap:10px;padding:0 14px 12px;border-bottom:1px solid rgba(255,255,255,.1)">
+      <svg class="ico s14" style="color:oklch(.708 0 0);flex:none"><use href="#d-clip"/></svg>
+      <span style="flex:1;min-width:0;font-size:12px;color:oklch(.708 0 0);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">248 Ko · de Claire Dubois</span>
+      <button type="button" aria-label="Télécharger" style="width:30px;height:30px;flex:none;display:grid;place-items:center;border:0;border-radius:7px;background:oklch(.269 0 0);cursor:pointer;color:#fafafa"><svg class="ico s14"><use href="#d-down"/></svg></button>
+    </div>
+    <div style="flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:24px;text-align:center;background:rgba(255,255,255,.04);color:oklch(.708 0 0)">
+      <svg class="ico" style="width:40px;height:40px;opacity:.4"><use href="#d-file"/></svg>
+      <p style="margin:0;font-size:14px">Aperçu indisponible pour ce format.</p>
+      <p style="margin:0;font-size:12px">application/pdf</p>
+    </div>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:440,&quot;height&quot;:800},&quot;mode&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;message&quot;,&quot;file&quot;],&quot;default&quot;:&quot;message&quot;,&quot;tsType&quot;:&quot;\&quot;message\&quot; | \&quot;file\&quot;&quot;},&quot;gradient&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;string&quot;},&quot;onClose&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;}}">
+class Component extends DCLogic {
+  state = { tip: null };
+
+  renderVals() {
+    const s = this.state;
+    const mode = this.props.mode ?? "message";
+    /* Une rangée de sept glyphes ne se lit pas sans étiquette, et la `title`
+       native arrive trop tard et se place où le système veut. */
+    /* Offsets de mise en page, pas rects d'écran : sous le zoom du canevas un
+       rect est en pixels écran et le `left` en ligne en pixels de mise en
+       page — l'infobulle dérivait de l'échelle. */
+    const tip = (label) => (e) => {
+      const el = e.currentTarget;
+      const root = el.closest("[data-arc-third]");
+      if (!root) return;
+      /* Offsets de mise en page, pas rects d'écran : le canevas applique un
+         zoom, donc un rect est en pixels d'écran alors que le `left` en ligne
+         s'applique en pixels de mise en page. */
+      let x = 0, y = 0, n = el;
+      while (n && n !== root) { x += n.offsetLeft; y += n.offsetTop; n = n.offsetParent; }
+      /* Ancrage par le bord plutôt que centre borné : près d'un bord, la bulle
+         part du bouton et grandit vers l'intérieur. Aucune demi-largeur à
+         devi­ner — c'était ce qui l'arrachait à son bouton. */
+      const w = root.offsetWidth, c = x + el.offsetWidth / 2;
+      const anchor = c < w * 0.33 ? "left" : c > w * 0.67 ? "right" : "center";
+      this.setState({ tip: {
+        label, anchor,
+        v: anchor === "right" ? w - (x + el.offsetWidth) : anchor === "left" ? x : c,
+        y: y + el.offsetHeight + 6,
+      } });
+    };
+    return {
+      tipShown: !!s.tip,
+      tipLabel: s.tip ? s.tip.label : "",
+      tipStyle: s.tip
+        ? "position:absolute;z-index:9;top:" + s.tip.y + "px;"
+          + (s.tip.anchor === "right" ? "right:" + s.tip.v + "px" : "left:" + s.tip.v + "px")
+          + (s.tip.anchor === "center" ? ";transform:translateX(-50%)" : "")
+          + ";max-width:220px;padding:5px 9px;border-radius:7px;background:oklch(.3 0 0)"
+          + ";outline:1px solid rgba(255,255,255,.14);box-shadow:0 8px 24px -4px rgba(0,0,0,.7)"
+          + ";font:500 12px Geist,system-ui,sans-serif;color:#fafafa;white-space:nowrap;pointer-events:none"
+        : "display:none",
+      tipOff: () => this.setState({ tip: null }),
+      tArchive: tip("Archiver · e"),
+      tSpam: tip("Signaler comme indésirable"),
+      tTrash: tip("Supprimer · #"),
+      tUnread: tip("Marquer comme non lu · u"),
+      tSnooze: tip("Mettre en pause"),
+      tTag: tip("Étiqueter"),
+      tDone: tip("Marquer comme traité"),
+      isMessage: mode === "message",
+      isFile: mode === "file",
+      title: mode === "file" ? "gite-lac-annecy.pdf" : "Week-end à Annecy : on confirme ?",
+      gradient: this.props.gradient ?? "linear-gradient(135deg,#7c3aed,#db2777 55%,#f97316)",
+      close: this.props.onClose,
+    };
+  }
+}
+
+</script>
+</body>
+</html>

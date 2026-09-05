@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div style="{{ root }}">
+  <div onClick="{{ close }}" style="position:absolute;inset:0;background:rgba(0,0,0,.5)"></div>
+
+  <sc-if value="{{ isSearch }}" hint-placeholder-val="{{ true }}">
+    <div style="position:relative;width:576px;margin-top:-8%;display:flex;flex-direction:column;border-radius:16px;background:oklch(.205 0 0);outline:1px solid rgba(255,255,255,.14);box-shadow:0 40px 90px -10px rgba(0,0,0,.85);overflow:hidden;font-family:Geist,system-ui,sans-serif;color:#fafafa">
+      <div style="flex:none;display:flex;align-items:center;gap:10px;padding:13px 14px;border-bottom:1px solid rgba(255,255,255,.1)">
+        <svg class="ico s18" style="color:oklch(.708 0 0);flex:none"><use href="#d-search"/></svg>
+        <span style="flex:1;min-width:0;font-size:14px;color:oklch(.708 0 0)">Rechercher ou taper une commande…</span>
+      </div>
+      <div style="flex:none;max-height:300px;overflow:hidden;padding:4px">
+        <p style="{{ heading }}">Actions</p>
+        <button type="button" onClick="{{ close }}" style="{{ rowActive }}"><svg class="ico s18" style="color:oklch(.708 0 0)"><use href="#d-compose"/></svg><span style="flex:1">Nouveau message</span><span style="{{ kbd }}">⌘N</span></button>
+        <button type="button" onClick="{{ close }}" style="{{ row }}" style-hover="background:oklch(.269 0 0)"><svg class="ico s18" style="color:oklch(.708 0 0)"><use href="#d-cols"/></svg><span style="flex:1">Basculer la vue partagée</span><span style="{{ kbd }}">⌘⇧D</span></button>
+        <button type="button" onClick="{{ close }}" style="{{ row }}" style-hover="background:oklch(.269 0 0)"><svg class="ico s18" style="color:oklch(.708 0 0)"><use href="#d-moon"/></svg><span style="flex:1">Basculer le thème</span></button>
+        <div style="height:1px;margin:4px 6px;background:rgba(255,255,255,.1)"></div>
+        <p style="{{ heading }}">Dossiers</p>
+        <button type="button" onClick="{{ close }}" style="{{ row }}" style-hover="background:oklch(.269 0 0)"><svg class="ico s18" style="color:oklch(.708 0 0)"><use href="#d-inbox"/></svg><span style="flex:1">Réception</span></button>
+        <button type="button" onClick="{{ close }}" style="{{ row }}" style-hover="background:oklch(.269 0 0)"><svg class="ico s18" style="color:oklch(.708 0 0)"><use href="#d-star"/></svg><span style="flex:1">Favoris</span></button>
+        <button type="button" onClick="{{ close }}" style="{{ row }}" style-hover="background:oklch(.269 0 0)"><svg class="ico s18" style="color:oklch(.708 0 0)"><use href="#d-archive"/></svg><span style="flex:1">Archive</span></button>
+        <p style="{{ heading }}">Espaces</p>
+        <button type="button" onClick="{{ close }}" style="{{ row }}" style-hover="background:oklch(.269 0 0)"><span style="width:20px;height:20px;flex:none;border-radius:6px;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,#0ea5e9,#2563eb 55%,#0f766e)"><svg class="ico" style="width:12px;height:12px;stroke-width:2.25"><use href="#d-brief"/></svg></span><span style="flex:none">Pro</span><span style="flex:1;min-width:0;font-size:12px;color:oklch(.708 0 0);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">thierry@coworkingcafe.fr</span><span style="{{ kbd }}">⌘2</span></button>
+        <div style="height:1px;margin:4px 6px;background:rgba(255,255,255,.1)"></div>
+        <p style="{{ heading }}">Conversations</p>
+        <button type="button" onClick="{{ close }}" style="{{ row }}" style-hover="background:oklch(.269 0 0)"><span style="width:24px;height:24px;flex:none;border-radius:999px;display:grid;place-items:center;font:600 10px Geist,system-ui,sans-serif;color:#fff;background:linear-gradient(135deg,oklch(.78 .12 20),oklch(.58 .17 60))">CD</span><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Week-end à Annecy : on confirme ?</span><span style="flex:none;font-size:12px;color:oklch(.708 0 0)">Claire Dubois</span></button>
+        <button type="button" onClick="{{ close }}" style="{{ row }}" style-hover="background:oklch(.269 0 0)"><span style="width:24px;height:24px;flex:none;border-radius:999px;display:grid;place-items:center;font:600 10px Geist,system-ui,sans-serif;color:#fff;background:linear-gradient(135deg,oklch(.78 .12 140),oklch(.58 .17 180))">AG</span><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Photos de l'anniversaire</span><span style="flex:none;font-size:12px;color:oklch(.708 0 0)">Amélie Garnier</span></button>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isCompose }}" hint-placeholder-val="{{ false }}">
+    <div style="position:relative;width:760px;height:560px;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr) auto;border-radius:16px;background:oklch(.205 0 0);outline:1px solid rgba(255,255,255,.14);box-shadow:0 40px 90px -10px rgba(0,0,0,.85);overflow:hidden;font-family:Geist,system-ui,sans-serif;color:#fafafa">
+      <header style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.1)">
+        <h3 style="margin:0;flex:1;font-size:15px;font-weight:600">Nouveau message</h3>
+        <button type="button" onClick="{{ close }}" aria-label="Fermer" style="width:30px;height:30px;flex:none;display:grid;place-items:center;border:0;border-radius:7px;background:none;cursor:pointer;color:oklch(.708 0 0)" style-hover="background:oklch(.269 0 0);color:#fafafa"><svg class="ico s18"><use href="#d-x"/></svg></button>
+      </header>
+      <div style="display:flex;flex-direction:column">
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.08)">
+          <span style="width:46px;flex:none;font-size:13px;color:oklch(.708 0 0)">De</span>
+          <button type="button" style="display:flex;align-items:center;gap:8px;height:30px;padding:0 8px 0 6px;border:0;border-radius:8px;cursor:pointer;background:oklch(.269 0 0);color:#fafafa;font:500 13px Geist,system-ui,sans-serif" style-hover="background:oklch(.32 0 0)">
+            <span style="width:20px;height:20px;flex:none;border-radius:6px;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,#7c3aed,#db2777 55%,#f97316)"><svg class="ico" style="width:12px;height:12px;stroke-width:2.25"><use href="#d-house"/></svg></span>
+            thierry@icloud.com
+            <svg class="ico s14" style="color:oklch(.708 0 0)"><use href="#d-chev"/></svg>
+          </button>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.08)">
+          <span style="width:46px;flex:none;font-size:13px;color:oklch(.708 0 0)">À</span>
+          <span style="display:flex;align-items:center;gap:7px;height:28px;padding:0 4px 0 4px;border-radius:999px;background:color-mix(in oklch,#a855f7 18%,transparent);font-size:13px;font-weight:500">
+            <span style="width:20px;height:20px;flex:none;border-radius:999px;display:grid;place-items:center;font:600 9px Geist,system-ui,sans-serif;color:#fff;background:linear-gradient(135deg,oklch(.78 .12 20),oklch(.58 .17 60))">CD</span>
+            Claire Dubois
+            <button type="button" aria-label="Retirer" style="width:20px;height:20px;flex:none;display:grid;place-items:center;border:0;border-radius:999px;background:none;cursor:pointer;color:inherit"><svg class="ico" style="width:12px;height:12px"><use href="#d-x"/></svg></button>
+          </span>
+          <span style="flex:1;min-width:0;font-size:14px;color:oklch(.708 0 0)">Ajouter un destinataire…</span>
+          <button type="button" style="flex:none;border:0;background:none;cursor:pointer;font:500 13px Geist,system-ui,sans-serif;color:oklch(.708 0 0)" style-hover="color:#fafafa">Cc/Cci</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.1)">
+          <span style="width:46px;flex:none;font-size:13px;color:oklch(.708 0 0)">Objet</span>
+          <span style="flex:1;min-width:0;font-size:14px;color:oklch(.708 0 0)">Sans objet</span>
+        </div>
+      </div>
+      <div style="min-height:0;overflow:hidden;padding:16px 14px;font-size:14px;line-height:1.7;color:oklch(.708 0 0)">Écris ton message…</div>
+      <div style="display:flex;align-items:center;gap:2px;padding:10px 12px;border-top:1px solid rgba(255,255,255,.1)">
+        <button type="button" aria-label="Joindre un fichier" style="width:32px;height:32px;display:grid;place-items:center;border:0;border-radius:7px;background:none;cursor:pointer;color:oklch(.75 0 0)" style-hover="background:oklch(.269 0 0);color:#fafafa"><svg class="ico s18"><use href="#d-clip"/></svg></button>
+        <button type="button" aria-label="Mise en forme" style="width:32px;height:32px;display:grid;place-items:center;border:0;border-radius:7px;background:none;cursor:pointer;color:oklch(.75 0 0);font:700 15px Geist,system-ui,sans-serif" style-hover="background:oklch(.269 0 0);color:#fafafa">B</button>
+        <button type="button" aria-label="Lien" style="width:32px;height:32px;display:grid;place-items:center;border:0;border-radius:7px;background:none;cursor:pointer;color:oklch(.75 0 0)" style-hover="background:oklch(.269 0 0);color:#fafafa"><svg class="ico s18"><use href="#d-link"/></svg></button>
+        <button type="button" aria-label="Programmer l'envoi" style="width:32px;height:32px;display:grid;place-items:center;border:0;border-radius:7px;background:none;cursor:pointer;color:oklch(.75 0 0)" style-hover="background:oklch(.269 0 0);color:#fafafa"><svg class="ico s18"><use href="#d-cal"/></svg></button>
+        <button type="button" onClick="{{ close }}" aria-label="Supprimer le brouillon" style="width:32px;height:32px;display:grid;place-items:center;border:0;border-radius:7px;background:none;cursor:pointer;color:oklch(.75 0 0)" style-hover="background:oklch(.269 0 0);color:#f87171"><svg class="ico s18"><use href="#d-trash"/></svg></button>
+        <span style="margin-left:auto;font-size:12px;color:oklch(.708 0 0);padding-right:10px">⌘⏎ pour envoyer</span>
+        <button type="button" onClick="{{ close }}" style="display:flex;align-items:center;gap:7px;height:36px;padding:0 16px;border:0;border-radius:9px;cursor:pointer;font:600 14px Geist,system-ui,sans-serif;color:#fff;background:linear-gradient(135deg,#7c3aed,#db2777 55%,#f97316)"><svg class="ico s14" style="stroke-width:2"><use href="#d-send"/></svg>Envoyer</button>
+      </div>
+    </div>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:900,&quot;height&quot;:700},&quot;kind&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;search&quot;,&quot;compose&quot;],&quot;default&quot;:&quot;search&quot;,&quot;tsType&quot;:&quot;\&quot;search\&quot; | \&quot;compose\&quot; | null&quot;},&quot;onClose&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const kind = this.props.kind ?? null;
+    /* Groupes, libellés et rangées calqués sur `command-palette.tsx` du dépôt
+       (cmdk) : Actions, Dossiers, Espaces, Conversations, dans cet ordre,
+       avec ses raccourcis et son gabarit — 576 px, liste bornée à 300. */
+    const row = "width:100%;display:flex;align-items:center;gap:10px;min-height:36px;padding:0 8px;border:0;border-radius:8px;cursor:pointer;background:none;color:inherit;font:400 14px Geist,system-ui,sans-serif;text-align:left";
+    return {
+      row,
+      rowActive: row.replace("background:none", "background:oklch(.269 0 0)"),
+      heading: "margin:8px 8px 4px;font-size:12px;font-weight:500;color:oklch(.708 0 0)",
+      kbd: "flex:none;font-size:12px;letter-spacing:.06em;color:oklch(.708 0 0)",
+      isSearch: kind === "search",
+      isCompose: kind === "compose",
+      close: this.props.onClose,
+      root: "position:absolute;inset:0;z-index:8;display:" + (kind ? "flex" : "none")
+        + ";align-items:center;justify-content:center",
+    };
+  }
+}
+
+</script>
+</body>
+</html>

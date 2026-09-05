@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div data-arc-thread style="position:relative;height:100%;min-height:0;min-width:0;display:flex;flex-direction:column;font-family:Geist,system-ui,sans-serif;color:#fafafa">
+
+  <header style="flex:none;display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.1)">
+    <span style="width:34px;height:34px;flex:none;border-radius:999px;display:grid;place-items:center;font:600 12px Geist,system-ui,sans-serif;color:#fff;background:linear-gradient(135deg,oklch(.78 .12 20),oklch(.58 .17 60))">CD</span>
+    <div style="min-width:0;flex:1">
+      <p style="margin:0;font-size:12px;color:oklch(.708 0 0);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Claire Dubois</p>
+      <p style="margin:0;font-size:15px;font-weight:600;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Week-end à Annecy : on confirme ?</p>
+    </div>
+    <button type="button" onPointerEnter="{{ tipArchive }}" onPointerLeave="{{ tipOff }}" aria-label="Archiver" style="{{ plainBtn }}" style-hover="background:oklch(.269 0 0);color:#fafafa"><svg class="ico s18"><use href="#d-archive"/></svg></button>
+    <button type="button" onPointerEnter="{{ tipTrash }}" onPointerLeave="{{ tipOff }}" aria-label="Supprimer" style="{{ plainBtn }}" style-hover="background:oklch(.269 0 0);color:#f87171"><svg class="ico s18"><use href="#d-trash"/></svg></button>
+    <span style="width:1px;height:20px;flex:none;margin:0 4px;background:rgba(255,255,255,.12)"></span>
+    <button type="button" onClick="{{ toggleMore }}" onPointerEnter="{{ tipMore }}" onPointerLeave="{{ tipOff }}" aria-label="Plus d'actions" style="{{ moreBtn }}" style-hover="background:oklch(.269 0 0);color:#fafafa"><svg class="ico s18"><use href="#d-dots"/></svg></button>
+    <button type="button" onClick="{{ toggleInfo }}" onPointerEnter="{{ tipInfo }}" onPointerLeave="{{ tipOff }}" aria-label="Détails de la conversation" style="{{ infoBtn }}" style-hover="background:oklch(.269 0 0);color:#fafafa"><svg class="ico s18"><use href="#d-info"/></svg></button>
+  </header>
+
+  <sc-if value="{{ tipShown }}" hint-placeholder-val="{{ false }}">
+    <span style="{{ tipStyle }}">{{ tipLabel }}</span>
+  </sc-if>
+
+  <sc-if value="{{ menuOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeMenu }}" style="position:absolute;inset:0;z-index:6"></div>
+  </sc-if>
+
+  <sc-if value="{{ moreOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;top:56px;right:12px;z-index:7;width:246px;padding:6px;border-radius:12px;background:oklch(.235 0 0);outline:1px solid rgba(255,255,255,.14);box-shadow:0 24px 60px -8px rgba(0,0,0,.8)">
+      <button type="button" onClick="{{ closeMenu }}" style="{{ item }}" style-hover="background:oklch(.3 0 0)"><svg class="ico s18" style="color:oklch(.708 0 0)"><use href="#d-replyall"/></svg><span style="flex:1">Répondre à tous</span></button>
+      <button type="button" onClick="{{ closeMenu }}" style="{{ item }}" style-hover="background:oklch(.3 0 0)"><svg class="ico s18" style="color:oklch(.708 0 0)"><use href="#d-forward"/></svg><span style="flex:1">Transférer</span></button>
+      <div style="height:1px;margin:5px 8px;background:rgba(255,255,255,.1)"></div>
+      <button type="button" onClick="{{ closeMenu }}" style="{{ item }}" style-hover="background:oklch(.3 0 0)"><svg class="ico s18" style="color:oklch(.708 0 0)"><use href="#d-mailopen"/></svg><span style="flex:1">Marquer comme non lu</span><span style="font-size:12px;color:oklch(.708 0 0)">u</span></button>
+      <button type="button" onClick="{{ closeMenu }}" style="{{ item }}" style-hover="background:oklch(.3 0 0)"><svg class="ico s18" style="color:oklch(.708 0 0)"><use href="#d-clock"/></svg><span style="flex:1">Mettre en pause</span></button>
+      <button type="button" onClick="{{ closeMenu }}" style="{{ item }}" style-hover="background:oklch(.3 0 0)"><svg class="ico s18" style="color:oklch(.708 0 0)"><use href="#d-tag"/></svg><span style="flex:1">Étiqueter…</span></button>
+      <div style="height:1px;margin:5px 8px;background:rgba(255,255,255,.1)"></div>
+      <button type="button" onClick="{{ closeMenu }}" style="{{ item }}" style-hover="background:oklch(.3 0 0)"><svg class="ico s18" style="color:oklch(.708 0 0)"><use href="#d-check"/></svg><span style="flex:1">Marquer comme traité</span></button>
+      <button type="button" onClick="{{ closeMenu }}" style="{{ item }}" style-hover="background:oklch(.3 0 0)"><svg class="ico s18" style="color:oklch(.708 0 0)"><use href="#d-alert"/></svg><span style="flex:1">Signaler comme indésirable</span></button>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ infoOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;top:56px;right:12px;z-index:7;width:302px;border-radius:12px;background:oklch(.235 0 0);outline:1px solid rgba(255,255,255,.14);box-shadow:0 24px 60px -8px rgba(0,0,0,.8);overflow:hidden">
+      <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.1)">
+        <h4 style="margin:0;flex:1;font-size:14px;font-weight:600">Détails</h4>
+        <button type="button" onClick="{{ closeMenu }}" aria-label="Fermer" style="width:26px;height:26px;flex:none;display:grid;place-items:center;border:0;border-radius:6px;background:none;cursor:pointer;color:oklch(.708 0 0)" style-hover="background:oklch(.3 0 0);color:#fafafa"><svg class="ico s14"><use href="#d-x"/></svg></button>
+      </div>
+      <div style="padding:12px 14px;display:flex;flex-direction:column;gap:14px">
+        <div>
+          <p style="margin:0 0 8px;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:oklch(.708 0 0)">Participants</p>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;align-items:center;gap:10px">
+              <span style="width:28px;height:28px;flex:none;border-radius:999px;display:grid;place-items:center;font:600 10px Geist,system-ui,sans-serif;color:#fff;background:linear-gradient(135deg,oklch(.78 .12 20),oklch(.58 .17 60))">CD</span>
+              <span style="min-width:0;flex:1"><span style="display:block;font-size:13px;font-weight:500">Claire Dubois</span><span style="display:block;font-size:12px;color:oklch(.708 0 0);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">claire.dubois@gmail.com</span></span>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px">
+              <span style="width:28px;height:28px;flex:none;border-radius:999px;display:grid;place-items:center;font:600 10px Geist,system-ui,sans-serif;color:#fff;background:linear-gradient(135deg,oklch(.78 .12 140),oklch(.58 .17 180))">AG</span>
+              <span style="min-width:0;flex:1"><span style="display:block;font-size:13px;font-weight:500">Amélie Garnier</span><span style="display:block;font-size:12px;color:oklch(.708 0 0);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">amelie.garnier@gmail.com</span></span>
+            </div>
+          </div>
+        </div>
+        <div>
+          <p style="margin:0 0 8px;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:oklch(.708 0 0)">Étiquettes</p>
+          <div style="display:flex;flex-wrap:wrap;gap:6px">
+            <span style="padding:3px 9px;border-radius:999px;font-size:12px;font-weight:500;background:color-mix(in oklch,#a855f7 20%,transparent);color:#e9d5ff">Famille</span>
+            <button type="button" onClick="{{ closeMenu }}" style="display:flex;align-items:center;gap:4px;padding:3px 9px;border:1px dashed rgba(255,255,255,.22);border-radius:999px;background:none;cursor:pointer;font:500 12px Geist,system-ui,sans-serif;color:oklch(.708 0 0)" style-hover="color:#fafafa"><svg class="ico" style="width:11px;height:11px"><use href="#d-plus"/></svg>Ajouter</button>
+          </div>
+        </div>
+        <div>
+          <p style="margin:0 0 8px;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:oklch(.708 0 0)">Pièces jointes</p>
+          <button type="button" onClick="{{ openFileFromInfo }}" style="width:100%;display:flex;align-items:center;gap:10px;padding:7px 8px;border:0;border-radius:9px;cursor:pointer;background:oklch(.28 0 0);color:inherit;font:inherit;text-align:left" style-hover="background:oklch(.32 0 0)">
+            <span style="width:26px;height:26px;flex:none;border-radius:6px;display:grid;place-items:center;background:oklch(.36 0 0);color:oklch(.75 0 0)"><svg class="ico s14"><use href="#d-file"/></svg></span>
+            <span style="min-width:0;flex:1"><span style="display:block;font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">gite-lac-annecy.pdf</span><span style="display:block;font-size:11px;color:oklch(.708 0 0);font-variant-numeric:tabular-nums">248 Ko</span></span>
+          </button>
+        </div>
+        <div style="display:flex;justify-content:space-between;gap:10px;font-size:12px;color:oklch(.708 0 0)">
+          <span>3 messages</span><span>Depuis le 5 septembre 2026</span>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <div style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;align-items:stretch;padding:8px;gap:2px">
+    <sc-for list="{{ msgs }}" as="m" hint-placeholder-count="3">
+      <div onClick="{{ m.open }}" style="{{ m.block }}" style-hover="background:oklch(.225 0 0)">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="{{ m.avatar }}">{{ m.ini }}</span>
+          <span style="font-size:14px;font-weight:600">{{ m.who }}</span>
+          <span style="font-size:12px;color:oklch(.708 0 0)">{{ m.when }}</span>
+        </div>
+        <p style="margin:6px 0 0;padding-left:38px;font-size:14px;line-height:1.65;white-space:pre-wrap;text-wrap:pretty">{{ m.body }}</p>
+        <div style="{{ m.clips }}">
+          <button type="button" onClick="{{ m.openFile }}" style="display:flex;align-items:center;gap:10px;height:44px;max-width:250px;padding:0 12px 0 10px;border:0;border-radius:12px;cursor:pointer;text-align:left;background:oklch(.245 0 0);outline:1px solid rgba(255,255,255,.12)" style-hover="outline-color:#a855f7">
+            <span style="width:28px;height:28px;flex:none;border-radius:6px;display:grid;place-items:center;background:oklch(.32 0 0);color:oklch(.75 0 0)"><svg class="ico s14"><use href="#d-file"/></svg></span>
+            <span style="min-width:0">
+              <span style="display:block;font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">gite-lac-annecy.pdf</span>
+              <span style="display:block;font-size:11px;color:oklch(.708 0 0);font-variant-numeric:tabular-nums">248 Ko</span>
+            </span>
+          </button>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="flex:none;display:flex;align-items:center;gap:10px;padding:12px 14px">
+    <div style="flex:1;min-width:0;display:flex;align-items:center;height:44px;padding:0 16px;border-radius:12px;background:oklch(.269 0 0);font-size:14px;color:oklch(.708 0 0)">Message pour Claire</div>
+    <button type="button" aria-label="Joindre un fichier" style="width:38px;height:38px;flex:none;display:grid;place-items:center;border:0;border-radius:9px;background:none;cursor:pointer;color:oklch(.708 0 0)" style-hover="background:oklch(.269 0 0);color:#fafafa"><svg class="ico s20"><use href="#d-clip"/></svg></button>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:620,&quot;height&quot;:700},&quot;activeMessage&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:-1,&quot;tsType&quot;:&quot;number&quot;,&quot;min&quot;:-1,&quot;max&quot;:2},&quot;onOpenMessage&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(i: number) =&gt; void&quot;},&quot;onOpenFile&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;}}">
+const MSGS = [
+  { ini:"CD", hue:[20,60], who:"Claire Dubois", when:"09:41", clip:true,
+    body:"Salut !\n\nJ'ai regardé les dispos pour le 20 : le gîte au bord du lac est libre tout le week-end, et il reste deux chambres à l'étage. Si on confirme avant vendredi on garde le tarif de l'an dernier." },
+  { ini:"AG", hue:[140,180], who:"Amélie Garnier", when:"10:02", clip:false,
+    body:"Vendredi soir parfait pour moi. Je peux prendre trois personnes dans la voiture." },
+  { ini:"CD", hue:[20,60], who:"Claire Dubois", when:"10:14", clip:false,
+    body:"Alors je réserve. Je vous envoie la confirmation et le plan d'accès dès que c'est fait.\n\nÀ vendredi,\nClaire" },
+];
+
+class Component extends DCLogic {
+  state = { menu: null, tip: null };
+
+  componentDidMount() {
+    this.onKey = (e) => { if (e.key === "Escape") this.setState({ menu: null }); };
+    window.addEventListener("keydown", this.onKey);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener("keydown", this.onKey);
+  }
+
+  renderVals() {
+    const s = this.state;
+    const active = this.props.activeMessage ?? -1;
+    const onOpen = this.props.onOpenMessage;
+    const onFile = this.props.onOpenFile;
+    const hdrBtn = (on) => "width:30px;height:30px;flex:none;display:grid;place-items:center;border:0;border-radius:7px;cursor:pointer;transition:background .16s,color .16s;background:"
+      + (on ? "oklch(.269 0 0)" : "none") + ";color:" + (on ? "#fafafa" : "oklch(.708 0 0)");
+    /* Infobulles maison plutôt que `title` : la native met une seconde à
+       venir, se place où le système veut et déborde la fenêtre. Celle-ci est
+       posée sous le bouton survolé, mesuré au moment du survol. */
+    const tip = (label) => (e) => {
+      const el = e.currentTarget;
+      const root = el.closest("[data-arc-thread]");
+      if (!root) return;
+      /* Offsets de mise en page, pas rects d'écran : le canevas applique un
+         zoom, donc un rect est en pixels d'écran alors que le `left` en ligne
+         s'applique en pixels de mise en page. */
+      let x = 0, y = 0, n = el;
+      while (n && n !== root) { x += n.offsetLeft; y += n.offsetTop; n = n.offsetParent; }
+      /* Ancrage par le bord plutôt que centre borné : près d'un bord, la bulle
+         part du bouton et grandit vers l'intérieur. Aucune demi-largeur à
+         devi­ner — c'était ce qui l'arrachait à son bouton. */
+      const w = root.offsetWidth, c = x + el.offsetWidth / 2;
+      const anchor = c < w * 0.33 ? "left" : c > w * 0.67 ? "right" : "center";
+      this.setState({ tip: {
+        label, anchor,
+        v: anchor === "right" ? w - (x + el.offsetWidth) : anchor === "left" ? x : c,
+        y: y + el.offsetHeight + 8,
+      } });
+    };
+    return {
+      /* Archiver et Supprimer restent visibles : les deux actions du
+         quotidien, les enterrer dans « ⋯ » coûtait un clic de plus à chacune.
+         Pas de flèche « Répondre » — le champ de réponse est déjà en bas du
+         volet, et deux entrées pour le même geste sèment le doute. */
+      plainBtn: hdrBtn(false),
+      tipShown: !!s.tip,
+      tipLabel: s.tip ? s.tip.label : "",
+      tipStyle: s.tip
+        ? "position:absolute;z-index:9;top:" + s.tip.y + "px;"
+          + (s.tip.anchor === "right" ? "right:" + s.tip.v + "px" : "left:" + s.tip.v + "px")
+          + (s.tip.anchor === "center" ? ";transform:translateX(-50%)" : "")
+          + ";max-width:220px;padding:5px 9px;border-radius:7px;background:oklch(.3 0 0)"
+          + ";outline:1px solid rgba(255,255,255,.14);box-shadow:0 8px 24px -4px rgba(0,0,0,.7)"
+          + ";font:500 12px Geist,system-ui,sans-serif;color:#fafafa;white-space:nowrap;pointer-events:none"
+        : "display:none",
+      tipArchive: tip("Archiver · e"),
+      tipTrash: tip("Supprimer · #"),
+      tipMore: tip("Plus d'actions"),
+      tipInfo: tip("Détails"),
+      tipOff: () => this.setState({ tip: null }),
+      menuOpen: s.menu !== null,
+      moreOpen: s.menu === "more",
+      infoOpen: s.menu === "info",
+      moreBtn: hdrBtn(s.menu === "more"),
+      infoBtn: hdrBtn(s.menu === "info"),
+      toggleMore: () => this.setState((p) => ({ menu: p.menu === "more" ? null : "more" })),
+      toggleInfo: () => this.setState((p) => ({ menu: p.menu === "info" ? null : "info" })),
+      closeMenu: () => this.setState({ menu: null }),
+      openFileFromInfo: () => { this.setState({ menu: null }); if (onFile) onFile(); },
+      item: "width:100%;display:flex;align-items:center;gap:12px;min-height:38px;padding:0 10px;border:0;border-radius:8px;cursor:pointer;background:none;color:inherit;font:400 14px Geist,system-ui,sans-serif;text-align:left",
+      itemDanger: "width:100%;display:flex;align-items:center;gap:12px;min-height:38px;padding:0 10px;border:0;border-radius:8px;cursor:pointer;background:none;color:#f87171;font:400 14px Geist,system-ui,sans-serif;text-align:left",
+      msgs: MSGS.map((m, i) => ({
+        ini: m.ini, who: m.who, when: m.when, body: m.body,
+        /* Le bloc entier est la cible : dans la référence, cliquer un message
+           de la conversation est ce qui ouvre le volet de détail. */
+        /* Même vocabulaire que les rangées de la liste : encart et arrondi
+           plutôt qu'un bandeau pleine largeur à angles droits. */
+        block: "padding:14px 16px;border-radius:12px;cursor:pointer;transition:background .15s;background:"
+          + (i === active ? "oklch(.245 0 0)" : "transparent"),
+        avatar: "width:28px;height:28px;flex:none;border-radius:999px;display:grid;place-items:center;font:600 10px Geist,system-ui,sans-serif;color:#fff;background:linear-gradient(135deg,oklch(.78 .12 "
+          + m.hue[0] + "),oklch(.58 .17 " + m.hue[1] + "))",
+        clips: m.clip ? "margin-top:10px;padding-left:38px;display:flex;flex-wrap:wrap;gap:8px" : "display:none",
+        open: () => onOpen && onOpen(i),
+        openFile: (e) => { if (onFile) { e.stopPropagation(); onFile(); } },
+      })),
+    };
+  }
+}
+
+</script>
+</body>
+</html>

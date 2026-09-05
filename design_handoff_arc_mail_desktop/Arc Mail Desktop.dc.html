@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Le dépôt est en Tailwind, dont le preflight impose border-box : sans ce
+     reset les mesures des planches dérivent du padding (260 px de barre
+     latérale en rendaient 276) et ne peuvent plus servir de référence. */
+  *, *::before, *::after { box-sizing:border-box; }
+  body { margin:0; background:#0d0d0f; font-family:Geist,system-ui,sans-serif; color:#fafafa; -webkit-font-smoothing:antialiased; }
+  a { color:#a855f7; text-decoration:none; }
+  a:hover { color:#c084fc; }
+  .ico { width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:1.75; stroke-linecap:round; stroke-linejoin:round; display:block; }
+  .s14 { width:14px; height:14px; } .s18 { width:18px; height:18px; } .s20 { width:20px; height:20px; }
+</style>
+</helmet>
+
+<svg width="0" height="0" style="position:absolute"><defs>
+<symbol id="d-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></symbol>
+<symbol id="d-fold" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"></rect><path d="M9 3v18"></path><path d="m16 15-3-3 3-3"></path></symbol>
+<symbol id="d-unfold" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"></rect><path d="M9 3v18"></path><path d="m14 9 3 3-3 3"></path></symbol>
+<symbol id="d-inbox" viewBox="0 0 24 24"><path d="M22 12h-6l-2 3h-4l-2-3H2"></path><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11"></path></symbol>
+<symbol id="d-star" viewBox="0 0 24 24"><path d="M11.5 2.6a.5.5 0 0 1 .9 0l2.3 4.7 5.2.7a.5.5 0 0 1 .3.9l-3.8 3.6.9 5.1a.5.5 0 0 1-.7.6L12 15.8l-4.6 2.4a.5.5 0 0 1-.7-.6l.9-5.1L3.8 8.9a.5.5 0 0 1 .3-.9l5.2-.7z"></path></symbol>
+<symbol id="d-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></symbol>
+<symbol id="d-send" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4Z"></path><path d="M22 2 11 13"></path></symbol>
+<symbol id="d-file" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path></symbol>
+<symbol id="d-archive" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="5" rx="1"></rect><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"></path><path d="M10 12h4"></path></symbol>
+<symbol id="d-trash" viewBox="0 0 24 24"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></symbol>
+<symbol id="d-plus" viewBox="0 0 24 24"><path d="M12 5v14"></path><path d="M5 12h14"></path></symbol>
+<symbol id="d-compose" viewBox="0 0 24 24"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.4 2.6a1 1 0 0 1 3 3l-9 9-3.6 1 1-3.6z"></path></symbol>
+<symbol id="d-moon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9"></path></symbol>
+<symbol id="d-x" viewBox="0 0 24 24"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></symbol>
+<symbol id="d-cols" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"></rect><path d="M12 3v18"></path></symbol>
+<symbol id="d-reply" viewBox="0 0 24 24"><path d="M9 17l-5-5 5-5"></path><path d="M20 18v-2a4 4 0 0 0-4-4H4"></path></symbol>
+<symbol id="d-replyall" viewBox="0 0 24 24"><path d="m7 17-5-5 5-5"></path><path d="m12 17-5-5 5-5"></path><path d="M22 18v-2a4 4 0 0 0-4-4h-8"></path></symbol>
+<symbol id="d-forward" viewBox="0 0 24 24"><path d="m15 17 5-5-5-5"></path><path d="M4 18v-2a4 4 0 0 1 4-4h12"></path></symbol>
+<symbol id="d-mailopen" viewBox="0 0 24 24"><path d="M21.2 8.4c.5.38.8.97.8 1.6v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V10a2 2 0 0 1 .8-1.6l8-6a2 2 0 0 1 2.4 0z"></path><path d="m22 10-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 10"></path></symbol>
+<symbol id="d-back" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></symbol>
+<symbol id="d-house" viewBox="0 0 24 24"><path d="M15 21v-8H9v8"></path><path d="M3 10a2 2 0 0 1 .7-1.5l7-5.8a2 2 0 0 1 2.6 0l7 5.8A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></symbol>
+<symbol id="d-brief" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></symbol>
+<symbol id="d-flask" viewBox="0 0 24 24"><path d="M10 2v7.5L4.6 18A2 2 0 0 0 6.3 21h11.4a2 2 0 0 0 1.7-3L14 9.5V2"></path><path d="M8.5 2h7"></path><path d="M7 15h10"></path></symbol>
+<symbol id="d-clip" viewBox="0 0 24 24"><path d="M13.2 6.6 7.1 12.7a3 3 0 0 0 4.2 4.2l6.4-6.4a5 5 0 0 0-7-7L4 10.2a7 7 0 0 0 9.9 9.9l4.6-4.6"></path></symbol>
+<symbol id="d-grip" viewBox="0 0 24 24"><circle cx="9" cy="6" r="1"></circle><circle cx="9" cy="12" r="1"></circle><circle cx="9" cy="18" r="1"></circle><circle cx="15" cy="6" r="1"></circle><circle cx="15" cy="12" r="1"></circle><circle cx="15" cy="18" r="1"></circle></symbol>
+<symbol id="d-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"></path></symbol>
+<symbol id="d-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"></path></symbol>
+<symbol id="d-dots" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></symbol>
+<symbol id="d-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></symbol>
+<symbol id="d-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4"></path><path d="M12 16h.01"></path></symbol>
+<symbol id="d-tag" viewBox="0 0 24 24"><path d="M12.6 2.7a2 2 0 0 0-1.4-.6H4a2 2 0 0 0-2 2v7.2a2 2 0 0 0 .6 1.4l8 8a2 2 0 0 0 2.8 0l6.8-6.8a2 2 0 0 0 0-2.8z"></path><circle cx="7.5" cy="7.5" r="1"></circle></symbol>
+<symbol id="d-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="m8.5 12.5 2.5 2.5 5-5"></path></symbol>
+<symbol id="d-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.8 1.8"></path><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7L12.3 19"></path></symbol>
+<symbol id="d-align" viewBox="0 0 24 24"><path d="M4 6h16"></path><path d="M4 12h10"></path><path d="M4 18h14"></path></symbol>
+<symbol id="d-cal" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M8 3v4"></path><path d="M16 3v4"></path><path d="M3 11h18"></path></symbol>
+<symbol id="d-down" viewBox="0 0 24 24"><path d="M12 3v12"></path><path d="m7 11 5 5 5-5"></path><path d="M4 21h16"></path></symbol>
+<symbol id="d-chev" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"></path></symbol>
+<symbol id="d-panel" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"></rect><path d="M9 3v18"></path></symbol>
+<symbol id="d-rail" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"></rect><path d="M7 3v18"></path></symbol>
+<symbol id="d-hide" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"></rect></symbol>
+</defs></svg>
+
+<section style="display:flex;flex-direction:column;gap:44px;padding:44px">
+  <header style="max-width:760px">
+    <p style="margin:0 0 8px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#737373;font-weight:600">Tour 3 — desktop</p>
+    <h2 style="margin:0 0 10px;font-size:26px;font-weight:700;letter-spacing:-.02em">La fenêtre retenue</h2>
+    <p style="margin:0;font-size:14px;line-height:1.6;color:#a3a3a3;text-wrap:pretty">Liste et lecture dans une seule fenêtre, séparées par un filet qu'on glisse. Le 3ᵉ volet, lui, est une fenêtre à part avec le dégradé entre les deux — c'est ce qui le distingue du contenu de la conversation. Les deux champs de réponse restent plaqués en bas.</p>
+    <p style="margin:10px 0 0;font-size:14px;line-height:1.6;color:#a3a3a3;text-wrap:pretty">Le sélecteur en haut à gauche donne les trois états de la barre latérale : attachée, rail de 52 px, masquée. Dans les deux derniers, <strong style="color:#d4d4d4;font-weight:600">le survol du bord gauche la fait glisser par-dessus</strong> — approche le curseur du bord. Clique un message ou sa pièce jointe pour ouvrir le 3ᵉ volet : si la barre était attachée, elle se réduit en rail pour ne pas serrer une quatrième colonne.</p>
+    <p style="margin:10px 0 0;font-size:14px;line-height:1.6;color:#a3a3a3;text-wrap:pretty">Les commandes répondent : <strong style="color:#d4d4d4;font-weight:600">Rechercher</strong> ouvre la palette, <strong style="color:#d4d4d4;font-weight:600">+</strong> le composeur, <strong style="color:#d4d4d4;font-weight:600">⋯</strong> le menu de conversation, <strong style="color:#d4d4d4;font-weight:600">ⓘ</strong> les détails (participants, étiquettes, pièces jointes), et <strong style="color:#d4d4d4;font-weight:600">Apparence</strong> en bas de la barre le panneau de thème — huit teintes, sombre/clair, densité. Les boîtes se choisissent en bas de la barre ou sur le rail, leur nom au survol.</p>
+  </header>
+
+  <div id="3a" style="display:flex;flex-direction:column;gap:12px">
+    <div style="display:flex;align-items:baseline;gap:10px">
+      <span style="display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:999px;background:rgba(168,85,247,.22);font:600 12px Geist,system-ui,sans-serif;letter-spacing:.04em;color:#d8b4fe">3a</span>
+      <h3 style="margin:0;font-size:15px;font-weight:600">Filet redimensionnable, 3ᵉ volet détaché, barre latérale à trois états</h3>
+    </div>
+    <div data-arc-window style="{{ winStyle }}">
+
+      <div onPointerEnter="{{ peekOn }}" onPointerLeave="{{ peekOff }}" style="{{ edgeStrip }}"></div>
+
+      <sc-if value="{{ sbFull }}" hint-placeholder-val="{{ true }}">
+        <dc-import name="ArcSidebar" on-collapse="{{ setRail }}" on-search="{{ openSearch }}" on-compose="{{ openCompose3 }}" hint-size="260px,100%"></dc-import>
+        <div style="width:8px;flex:none"></div>
+      </sc-if>
+
+      <sc-if value="{{ sbRail }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:none;width:52px;display:flex;flex-direction:column;align-items:center;gap:8px;padding:10px 0 2px">
+          <button type="button" aria-label="Perso" onPointerEnter="{{ tPerso }}" onPointerLeave="{{ tipOff }}" style="position:relative;width:36px;height:36px;flex:none;border-radius:10px;border:0;cursor:pointer;display:grid;place-items:center;transition:background .16s;background:rgba(255,255,255,.2);color:#fff" style-hover="background:rgba(255,255,255,.22);color:#fff"><svg class="ico s18" style="stroke-width:2"><use href="#d-house"/></svg><span style="position:absolute;bottom:4px;right:4px;width:6px;height:6px;border-radius:999px;background:#a855f7"></span></button>
+          <button type="button" aria-label="Pro" onPointerEnter="{{ tPro }}" onPointerLeave="{{ tipOff }}" style="position:relative;width:36px;height:36px;flex:none;border-radius:10px;border:0;cursor:pointer;display:grid;place-items:center;transition:background .16s;background:rgba(255,255,255,.07);color:rgba(255,255,255,.75)" style-hover="background:rgba(255,255,255,.22);color:#fff"><svg class="ico s18" style="stroke-width:2"><use href="#d-brief"/></svg><span style="position:absolute;bottom:4px;right:4px;width:6px;height:6px;border-radius:999px;background:#38bdf8"></span></button>
+          <button type="button" aria-label="Side projects" onPointerEnter="{{ tSide }}" onPointerLeave="{{ tipOff }}" style="position:relative;width:36px;height:36px;flex:none;border-radius:10px;border:0;cursor:pointer;display:grid;place-items:center;transition:background .16s;background:rgba(255,255,255,.07);color:rgba(255,255,255,.75)" style-hover="background:rgba(255,255,255,.22);color:#fff"><svg class="ico s18" style="stroke-width:2"><use href="#d-flask"/></svg><span style="position:absolute;bottom:4px;right:4px;width:6px;height:6px;border-radius:999px;background:#fbbf24"></span></button>
+          <div style="width:24px;height:1px;background:rgba(255,255,255,.2)"></div>
+          <span onPointerEnter="{{ tInbox }}" onPointerLeave="{{ tipOff }}" style="position:relative;width:36px;height:36px;flex:none;display:grid;place-items:center;border-radius:9px;background:rgba(255,255,255,.14);backdrop-filter:blur(24px);color:#fff"><svg class="ico s18"><use href="#d-inbox"/></svg><span style="position:absolute;top:5px;right:5px;width:6px;height:6px;border-radius:999px;background:currentColor"></span></span>
+          <button type="button" aria-label="Favoris" onPointerEnter="{{ tFav }}" onPointerLeave="{{ tipOff }}" style="width:36px;height:36px;flex:none;display:grid;place-items:center;border:0;border-radius:9px;cursor:pointer;background:none;color:rgba(255,255,255,.7)" style-hover="background:rgba(255,255,255,.15);color:#fff"><svg class="ico s18"><use href="#d-star"/></svg></button>
+          <button type="button" aria-label="Envoyés" onPointerEnter="{{ tSent }}" onPointerLeave="{{ tipOff }}" style="width:36px;height:36px;flex:none;display:grid;place-items:center;border:0;border-radius:9px;cursor:pointer;background:none;color:rgba(255,255,255,.7)" style-hover="background:rgba(255,255,255,.15);color:#fff"><svg class="ico s18"><use href="#d-send"/></svg></button>
+          <button type="button" aria-label="Brouillons" onPointerEnter="{{ tDrafts }}" onPointerLeave="{{ tipOff }}" style="width:36px;height:36px;flex:none;display:grid;place-items:center;border:0;border-radius:9px;cursor:pointer;background:none;color:rgba(255,255,255,.7)" style-hover="background:rgba(255,255,255,.15);color:#fff"><svg class="ico s18"><use href="#d-file"/></svg></button>
+          <button type="button" aria-label="Corbeille" onPointerEnter="{{ tTrash }}" onPointerLeave="{{ tipOff }}" style="width:36px;height:36px;flex:none;display:grid;place-items:center;border:0;border-radius:9px;cursor:pointer;background:none;color:rgba(255,255,255,.7)" style-hover="background:rgba(255,255,255,.15);color:#fff"><svg class="ico s18"><use href="#d-trash"/></svg></button>
+          <button type="button" onClick="{{ openCompose3 }}" aria-label="Nouveau message" onPointerEnter="{{ tNew }}" onPointerLeave="{{ tipOff }}" style="width:36px;height:36px;flex:none;margin-top:auto;display:grid;place-items:center;border:0;border-radius:10px;cursor:pointer;color:#fff;background:linear-gradient(135deg,#7c3aed,#db2777 55%,#f97316)"><svg class="ico s18" style="stroke-width:2"><use href="#d-compose"/></svg></button>
+        </div>
+        <div style="width:8px;flex:none"></div>
+      </sc-if>
+
+      <div style="{{ mainWin }}">
+        <div style="min-width:0;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);overflow:hidden">
+          <div style="{{ listHead }}">
+            <div style="display:flex;align-items:center;gap:8px">
+              <div role="radiogroup" aria-label="Barre latérale" style="display:flex;flex:none;gap:2px;padding:2px;border-radius:9px;background:oklch(.269 0 0)">
+                <button type="button" role="radio" aria-checked="{{ sbFull }}" onClick="{{ setFull }}" aria-label="Barre latérale attachée" onPointerEnter="{{ tFull }}" onPointerLeave="{{ tipOff }}" style="{{ segFull }}"><svg class="ico s14"><use href="#d-panel"/></svg></button>
+                <button type="button" role="radio" aria-checked="{{ sbRail }}" onClick="{{ setRail }}" aria-label="Rail d'icônes" onPointerEnter="{{ tRail }}" onPointerLeave="{{ tipOff }}" style="{{ segRail }}"><svg class="ico s14"><use href="#d-rail"/></svg></button>
+                <button type="button" role="radio" aria-checked="{{ sbHidden }}" onClick="{{ setHidden }}" aria-label="Barre latérale masquée" onPointerEnter="{{ tHide }}" onPointerLeave="{{ tipOff }}" style="{{ segHide }}"><svg class="ico s14"><use href="#d-hide"/></svg></button>
+              </div>
+              <button type="button" onClick="{{ openSearch }}" style="display:flex;flex:1;min-width:0;align-items:center;gap:8px;height:32px;padding:0 10px;border:0;border-radius:8px;cursor:pointer;font:400 13px Geist,system-ui,sans-serif;background:oklch(.269 0 0);color:oklch(.708 0 0)" style-hover="color:#fafafa">
+                <svg class="ico s14" style="flex:none"><use href="#d-search"/></svg>
+                <span style="flex:1;min-width:0;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Rechercher</span>
+                <span style="flex:none;padding:1px 5px;border-radius:5px;font:500 11px Geist,system-ui,sans-serif;background:oklch(.32 0 0)">⌘K</span>
+              </button>
+            </div>
+            <div style="{{ tilesRow }}">
+              <span style="height:34px;display:flex;align-items:center;justify-content:center;gap:6px;border-radius:9px;background:oklch(.269 0 0);color:#fafafa;font:500 11px Geist,system-ui,sans-serif"><svg class="ico s14"><use href="#d-inbox"/></svg>3</span>
+              <button type="button" aria-label="Favoris" style="height:34px;display:grid;place-items:center;border:0;border-radius:9px;cursor:pointer;background:rgba(255,255,255,.05);color:oklch(.708 0 0)" style-hover="background:oklch(.269 0 0);color:#fafafa"><svg class="ico s14"><use href="#d-star"/></svg></button>
+              <button type="button" aria-label="Envoyés" style="height:34px;display:grid;place-items:center;border:0;border-radius:9px;cursor:pointer;background:rgba(255,255,255,.05);color:oklch(.708 0 0)" style-hover="background:oklch(.269 0 0);color:#fafafa"><svg class="ico s14"><use href="#d-send"/></svg></button>
+              <button type="button" aria-label="Corbeille" style="height:34px;display:grid;place-items:center;border:0;border-radius:9px;cursor:pointer;background:rgba(255,255,255,.05);color:oklch(.708 0 0)" style-hover="background:oklch(.269 0 0);color:#fafafa"><svg class="ico s14"><use href="#d-trash"/></svg></button>
+            </div>
+          </div>
+          <dc-import name="ArcListRows" hint-size="100%,100%"></dc-import>
+        </div>
+
+        <div onPointerDown="{{ grabSeam }}" onDoubleClick="{{ evenSeam }}" onPointerEnter="{{ seamOn }}" onPointerLeave="{{ seamOff }}" aria-label="Redimensionner" style="{{ seamCol }}">
+          <span style="{{ seamLine }}"></span>
+        </div>
+
+        <div style="min-width:0;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr);overflow:hidden">
+          <dc-import name="ArcThread" active-message="{{ activeMsg3 }}" on-open-message="{{ openMsg3 }}" on-open-file="{{ openFile3 }}" hint-size="100%,100%"></dc-import>
+        </div>
+      </div>
+
+      <sc-if value="{{ third3Open }}" hint-placeholder-val="{{ true }}">
+        <div onPointerDown="{{ grabThird3 }}" onDoubleClick="{{ evenThird3 }}" aria-label="Redimensionner" style="{{ gutter }}"><span style="{{ handleThird3 }}"></span></div>
+        <div style="{{ pane3rd }}">
+          <dc-import name="ArcThirdPane" mode="{{ third3Mode }}" on-close="{{ closeThird3 }}" hint-size="100%,100%"></dc-import>
+        </div>
+      </sc-if>
+
+      <div style="{{ peekScrim }}"></div>
+      <div onPointerEnter="{{ peekOn }}" onPointerLeave="{{ peekOff }}" style="{{ peekPane }}">
+        <dc-import name="ArcSidebar" hide-search="{{ yes }}" on-collapse="{{ setRail }}" on-search="{{ openSearch }}" on-compose="{{ openCompose3 }}" hint-size="260px,100%"></dc-import>
+      </div>
+
+      <sc-if value="{{ tipShown }}" hint-placeholder-val="{{ false }}">
+        <span style="{{ tipStyle }}">{{ tipLabel }}</span>
+      </sc-if>
+
+      <dc-import name="ArcOverlay" kind="{{ overlay }}" on-close="{{ closeOverlay }}" hint-size="100%,100%"></dc-import>
+    </div>
+  </div>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:44px;padding:44px">
+  <header style="max-width:760px">
+    <p style="margin:0 0 8px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#737373;font-weight:600">Tour 2 — desktop</p>
+    <h2 style="margin:0 0 10px;font-size:26px;font-weight:700;letter-spacing:-.02em">Barre latérale escamotable, et un troisième volet à la demande</h2>
+    <p style="margin:0;font-size:14px;line-height:1.6;color:#a3a3a3;text-wrap:pretty">La barre latérale se détache et glisse par-dessus la liste : la fenêtre garde trois colonnes utiles au lieu de quatre. La liste devient la 1ʳᵉ fenêtre, la lecture la 2ᵉ, et cliquer un message de la conversation ouvre un 3ᵉ volet — le message seul, ou la pièce jointe.</p>
+    <p style="margin:10px 0 0;font-size:14px;line-height:1.6;color:#a3a3a3;text-wrap:pretty">La question ouverte est l'accès aux dossiers quand la barre est escamotée : <a href="#2a">2a</a> les met en tête de liste, <a href="#2b">2b</a> garde un rail permanent de 52 px. <a href="#2c">2c</a> montre les trois fenêtres à l'œuvre : clique un message, clique la pièce jointe, glisse les poignées.</p>
+  </header>
+
+  <div style="display:flex;flex-wrap:wrap;gap:44px;align-items:flex-start">
+
+    <div id="2a" style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;align-items:baseline;gap:10px">
+        <span style="display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:999px;background:rgba(168,85,247,.22);font:600 12px Geist,system-ui,sans-serif;letter-spacing:.04em;color:#d8b4fe">2a</span>
+        <h3 style="margin:0;font-size:15px;font-weight:600">Dossiers en tête de liste</h3>
+        <p style="margin:0;font-size:13px;color:#737373">Espace + dossier courant en menu, favoris en rangée d'icônes — clique l'icône en haut à gauche</p>
+      </div>
+      <div data-arc-window style="{{ windowStyle }}">
+        <div style="{{ paneA }}">
+          <div style="flex:none;padding:12px 14px 10px;border-bottom:1px solid rgba(255,255,255,.1)">
+            <div style="display:flex;align-items:center;gap:8px">
+              <button type="button" onClick="{{ toggleA }}" aria-label="Afficher la barre latérale" style="{{ drawerBtn }}"><svg class="ico s18"><use href="#d-panel"/></svg></button>
+              <button type="button" style="display:flex;flex:1;min-width:0;align-items:center;gap:8px;height:32px;padding:0 10px;border:0;border-radius:8px;cursor:pointer;font:400 13px Geist,system-ui,sans-serif;background:oklch(.269 0 0);color:oklch(.708 0 0)" style-hover="color:#fafafa">
+                <svg class="ico s14" style="flex:none"><use href="#d-search"/></svg>
+                <span style="flex:1;min-width:0;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Rechercher</span>
+                <span style="flex:none;padding:1px 5px;border-radius:5px;font:500 11px Geist,system-ui,sans-serif;background:oklch(.32 0 0)">⌘K</span>
+              </button>
+            </div>
+            <div style="margin-top:12px;display:flex;align-items:center;gap:8px">
+              <span style="width:22px;height:22px;flex:none;border-radius:7px;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,#7c3aed,#db2777 55%,#f97316)"><svg class="ico" style="width:13px;height:13px;stroke-width:2.25"><use href="#d-house"/></svg></span>
+              <span style="font-size:14px;font-weight:600">Perso</span>
+              <button type="button" style="margin-left:auto;display:flex;align-items:center;gap:5px;height:28px;padding:0 8px 0 10px;border:0;border-radius:8px;cursor:pointer;font:600 14px Geist,system-ui,sans-serif;background:none;color:#fafafa" style-hover="background:oklch(.269 0 0)">Réception<svg class="ico s14" style="color:oklch(.708 0 0)"><use href="#d-chev"/></svg></button>
+            </div>
+            <div style="margin-top:10px;display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
+              <span style="height:34px;display:flex;align-items:center;justify-content:center;gap:6px;border-radius:9px;background:oklch(.269 0 0);color:#fafafa;font:500 11px Geist,system-ui,sans-serif"><svg class="ico s14"><use href="#d-inbox"/></svg>3</span>
+              <button type="button" aria-label="Favoris" style="height:34px;display:grid;place-items:center;border:0;border-radius:9px;cursor:pointer;background:rgba(255,255,255,.05);color:oklch(.708 0 0)" style-hover="background:oklch(.269 0 0);color:#fafafa"><svg class="ico s14"><use href="#d-star"/></svg></button>
+              <button type="button" aria-label="Envoyés" style="height:34px;display:grid;place-items:center;border:0;border-radius:9px;cursor:pointer;background:rgba(255,255,255,.05);color:oklch(.708 0 0)" style-hover="background:oklch(.269 0 0);color:#fafafa"><svg class="ico s14"><use href="#d-send"/></svg></button>
+              <button type="button" aria-label="Corbeille" style="height:34px;display:grid;place-items:center;border:0;border-radius:9px;cursor:pointer;background:rgba(255,255,255,.05);color:oklch(.708 0 0)" style-hover="background:oklch(.269 0 0);color:#fafafa"><svg class="ico s14"><use href="#d-trash"/></svg></button>
+            </div>
+          </div>
+          <dc-import name="ArcListRows" hint-size="100%,100%"></dc-import>
+        </div>
+        <div onPointerDown="{{ grabA }}" onDoubleClick="{{ evenA }}" aria-label="Redimensionner" style="{{ gutter }}"><span style="{{ handleA }}"></span></div>
+        <div style="{{ readPane }}">
+          <dc-import name="ArcThread" hint-size="100%,100%"></dc-import>
+        </div>
+        <div style="{{ scrimA }}" onClick="{{ toggleA }}"></div>
+        <div style="{{ drawerA }}">
+          <dc-import name="ArcSidebar" hint-size="260px,100%"></dc-import>
+        </div>
+      </div>
+    </div>
+
+    <div id="2b" style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;align-items:baseline;gap:10px">
+        <span style="display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:999px;background:rgba(168,85,247,.22);font:600 12px Geist,system-ui,sans-serif;letter-spacing:.04em;color:#d8b4fe">2b</span>
+        <h3 style="margin:0;font-size:15px;font-weight:600">Rail permanent de 52 px</h3>
+        <p style="margin:0;font-size:13px;color:#737373">Espaces et dossiers toujours atteignables ; la barre complète glisse par-dessus</p>
+      </div>
+      <div data-arc-window style="{{ windowStyle }}">
+        <div style="flex:none;width:52px;display:flex;flex-direction:column;align-items:center;gap:8px;padding:8px 0">
+          <button type="button" onClick="{{ toggleB }}" aria-label="Afficher la barre latérale" style="width:36px;height:36px;flex:none;display:grid;place-items:center;border:0;border-radius:9px;cursor:pointer;background:rgba(255,255,255,.12);backdrop-filter:blur(24px);color:#fff"><svg class="ico s18"><use href="#d-panel"/></svg></button>
+          <div style="width:24px;height:1px;background:rgba(255,255,255,.2)"></div>
+          <button type="button" aria-label="Perso" style="width:36px;height:36px;flex:none;border-radius:10px;border:1.5px solid rgba(255,255,255,.6);cursor:pointer;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,#7c3aed,#db2777 55%,#f97316)"><svg class="ico s18" style="stroke-width:2.25"><use href="#d-house"/></svg></button>
+          <button type="button" aria-label="Pro" style="width:36px;height:36px;flex:none;border-radius:10px;border:0;cursor:pointer;display:grid;place-items:center;color:#fff;opacity:.6;background:linear-gradient(135deg,#0ea5e9,#2563eb 55%,#0f766e)" style-hover="opacity:1"><svg class="ico s18" style="stroke-width:2.25"><use href="#d-brief"/></svg></button>
+          <button type="button" aria-label="Side projects" style="width:36px;height:36px;flex:none;border-radius:10px;border:0;cursor:pointer;display:grid;place-items:center;color:#fff;opacity:.6;background:linear-gradient(135deg,#f59e0b,#ea580c 55%,#b91c1c)" style-hover="opacity:1"><svg class="ico s18" style="stroke-width:2.25"><use href="#d-flask"/></svg></button>
+          <div style="width:24px;height:1px;background:rgba(255,255,255,.2)"></div>
+          <span style="position:relative;width:36px;height:36px;flex:none;display:grid;place-items:center;border-radius:9px;background:rgba(255,255,255,.12);backdrop-filter:blur(24px);color:#fff"><svg class="ico s18"><use href="#d-inbox"/></svg><span style="position:absolute;top:5px;right:5px;width:6px;height:6px;border-radius:999px;background:currentColor"></span></span>
+          <button type="button" aria-label="Favoris" style="width:36px;height:36px;flex:none;display:grid;place-items:center;border:0;border-radius:9px;cursor:pointer;background:none;color:rgba(255,255,255,.7)" style-hover="background:rgba(255,255,255,.15);color:#fff"><svg class="ico s18"><use href="#d-star"/></svg></button>
+          <button type="button" aria-label="Envoyés" style="width:36px;height:36px;flex:none;display:grid;place-items:center;border:0;border-radius:9px;cursor:pointer;background:none;color:rgba(255,255,255,.7)" style-hover="background:rgba(255,255,255,.15);color:#fff"><svg class="ico s18"><use href="#d-send"/></svg></button>
+          <button type="button" aria-label="Brouillons" style="width:36px;height:36px;flex:none;display:grid;place-items:center;border:0;border-radius:9px;cursor:pointer;background:none;color:rgba(255,255,255,.7)" style-hover="background:rgba(255,255,255,.15);color:#fff"><svg class="ico s18"><use href="#d-file"/></svg></button>
+          <button type="button" aria-label="Corbeille" style="width:36px;height:36px;flex:none;display:grid;place-items:center;border:0;border-radius:9px;cursor:pointer;background:none;color:rgba(255,255,255,.7)" style-hover="background:rgba(255,255,255,.15);color:#fff"><svg class="ico s18"><use href="#d-trash"/></svg></button>
+          <button type="button" onClick="{{ noop }}" aria-label="Nouveau message" style="width:36px;height:36px;flex:none;margin-top:auto;display:grid;place-items:center;border:0;border-radius:10px;cursor:pointer;color:#fff;background:linear-gradient(135deg,#7c3aed,#db2777 55%,#f97316)"><svg class="ico s18" style="stroke-width:2"><use href="#d-compose"/></svg></button>
+        </div>
+        <div style="{{ paneB2 }}">
+          <dc-import name="ArcListHeader" hint-size="100%,48px"></dc-import>
+          <dc-import name="ArcListRows" hint-size="100%,100%"></dc-import>
+        </div>
+        <div onPointerDown="{{ grabB2 }}" onDoubleClick="{{ evenB2 }}" aria-label="Redimensionner" style="{{ gutter }}"><span style="{{ handleB2 }}"></span></div>
+        <div style="{{ readPane }}">
+          <dc-import name="ArcThread" hint-size="100%,100%"></dc-import>
+        </div>
+        <div style="{{ scrimB }}" onClick="{{ toggleB }}"></div>
+        <div style="{{ drawerB }}">
+          <dc-import name="ArcSidebar" hint-size="260px,100%"></dc-import>
+        </div>
+      </div>
+    </div>
+
+    <div id="2c" style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;align-items:baseline;gap:10px">
+        <span style="display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:999px;background:rgba(168,85,247,.22);font:600 12px Geist,system-ui,sans-serif;letter-spacing:.04em;color:#d8b4fe">2c</span>
+        <h3 style="margin:0;font-size:15px;font-weight:600">Trois fenêtres — liste, conversation, volet</h3>
+        <p style="margin:0;font-size:13px;color:#737373">Clique un message de la conversation, ou sa pièce jointe. Deux poignées à glisser.</p>
+      </div>
+      <div data-arc-window style="{{ windowStyle }}">
+        <div style="{{ paneC2 }}">
+          <div style="flex:none;padding:12px 14px 10px;border-bottom:1px solid rgba(255,255,255,.1)">
+            <div style="display:flex;align-items:center;gap:8px">
+              <button type="button" onClick="{{ toggleC }}" aria-label="Afficher la barre latérale" style="{{ drawerBtn }}"><svg class="ico s18"><use href="#d-panel"/></svg></button>
+              <button type="button" style="display:flex;flex:1;min-width:0;align-items:center;gap:8px;height:32px;padding:0 10px;border:0;border-radius:8px;cursor:pointer;font:400 13px Geist,system-ui,sans-serif;background:oklch(.269 0 0);color:oklch(.708 0 0)" style-hover="color:#fafafa">
+                <svg class="ico s14" style="flex:none"><use href="#d-search"/></svg>
+                <span style="flex:1;min-width:0;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Rechercher</span>
+              </button>
+            </div>
+            <div style="margin-top:12px;display:flex;align-items:center;gap:8px">
+              <span style="width:22px;height:22px;flex:none;border-radius:7px;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,#7c3aed,#db2777 55%,#f97316)"><svg class="ico" style="width:13px;height:13px;stroke-width:2.25"><use href="#d-house"/></svg></span>
+              <span style="font-size:14px;font-weight:600">Perso</span>
+              <button type="button" style="margin-left:auto;display:flex;align-items:center;gap:5px;height:28px;padding:0 8px 0 10px;border:0;border-radius:8px;cursor:pointer;font:600 14px Geist,system-ui,sans-serif;background:none;color:#fafafa" style-hover="background:oklch(.269 0 0)">Réception<svg class="ico s14" style="color:oklch(.708 0 0)"><use href="#d-chev"/></svg></button>
+            </div>
+          </div>
+          <dc-import name="ArcListRows" hint-size="100%,100%"></dc-import>
+        </div>
+        <div onPointerDown="{{ grabC1 }}" onDoubleClick="{{ evenC1 }}" aria-label="Redimensionner" style="{{ gutter }}"><span style="{{ handleC1 }}"></span></div>
+        <div style="{{ readPane }}">
+          <dc-import name="ArcThread" active-message="{{ activeMsg }}" on-open-message="{{ openMsg }}" on-open-file="{{ openFile }}" hint-size="100%,100%"></dc-import>
+        </div>
+        <sc-if value="{{ thirdOpen }}" hint-placeholder-val="{{ true }}">
+          <div onPointerDown="{{ grabC3 }}" onDoubleClick="{{ evenC3 }}" aria-label="Redimensionner" style="{{ gutter }}"><span style="{{ handleC3 }}"></span></div>
+          <div style="{{ paneThird }}">
+            <dc-import name="ArcThirdPane" mode="{{ thirdMode }}" on-close="{{ closeThird }}" hint-size="100%,100%"></dc-import>
+          </div>
+        </sc-if>
+        <div style="{{ scrimC }}" onClick="{{ toggleC }}"></div>
+        <div style="{{ drawerC }}">
+          <dc-import name="ArcSidebar" hint-size="260px,100%"></dc-import>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:44px;padding:44px">
+  <header style="max-width:720px">
+    <p style="margin:0 0 8px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#737373;font-weight:600">Tour 1 — desktop</p>
+    <h2 style="margin:0 0 10px;font-size:26px;font-weight:700;letter-spacing:-.02em">La fenêtre Arc, et la vue partagée en deux fenêtres</h2>
+    <p style="margin:0;font-size:14px;line-height:1.6;color:#a3a3a3;text-wrap:pretty"><a href="#1a">1a</a> est l'état actuel du dépôt, pour comparaison. <a href="#1b">1b</a> sépare la liste et la lecture en deux fenêtres distinctes, redimensionnables à la poignée : glisse-la, double-clique pour revenir à 50/50.</p>
+  </header>
+
+  <div style="display:flex;flex-wrap:wrap;gap:44px;align-items:flex-start">
+
+    <div id="1a" style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;align-items:baseline;gap:10px">
+        <span style="display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:999px;background:rgba(255,255,255,.1);font:600 12px Geist,system-ui,sans-serif;letter-spacing:.04em;color:#e5e5e5">1a</span>
+        <h3 style="margin:0;font-size:15px;font-weight:600">État actuel — une seule fenêtre</h3>
+        <p style="margin:0;font-size:13px;color:#737373">Liste et lecture séparées par un filet, largeur figée à 380 px</p>
+      </div>
+      <div style="width:1440px;height:900px;overflow:hidden;border-radius:14px;display:flex;padding:8px;gap:8px;background-image:linear-gradient(rgba(16,14,24,.45),rgba(16,14,24,.45)),linear-gradient(135deg,#7c3aed 0%,#db2777 55%,#f97316 100%)">
+        <dc-import name="ArcSidebar" hint-size="260px,100%"></dc-import>
+        <div style="flex:1;min-width:0;display:flex;border-radius:12px;background:oklch(.17 0 0);box-shadow:0 25px 50px -12px rgba(0,0,0,.5);outline:1px solid rgba(0,0,0,.1);overflow:hidden">
+          <div style="width:380px;flex:none;border-right:1px solid rgba(255,255,255,.1);display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);overflow:hidden">
+            <dc-import name="ArcListHeader" hint-size="100%,48px"></dc-import>
+            <dc-import name="ArcListRows" hint-size="100%,100%"></dc-import>
+          </div>
+          <div style="flex:1;min-width:0;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);overflow:hidden">
+            <dc-import name="ArcReadHeader" split="{{ yes }}" hint-size="100%,48px"></dc-import>
+            <dc-import name="ArcReadBody" hint-size="100%,100%"></dc-import>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="1b" style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;align-items:baseline;gap:10px">
+        <span style="display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:999px;background:rgba(168,85,247,.22);font:600 12px Geist,system-ui,sans-serif;letter-spacing:.04em;color:#d8b4fe">1b</span>
+        <h3 style="margin:0;font-size:15px;font-weight:600">Deux fenêtres, poignée au milieu</h3>
+        <p style="margin:0;font-size:13px;color:#737373">Chacune son fond, son arrondi et son ombre — le dégradé passe entre les deux</p>
+      </div>
+      <div style="width:1440px;height:900px;overflow:hidden;border-radius:14px;display:flex;padding:8px;gap:8px;background-image:linear-gradient(rgba(16,14,24,.45),rgba(16,14,24,.45)),linear-gradient(135deg,#7c3aed 0%,#db2777 55%,#f97316 100%)">
+        <dc-import name="ArcSidebar" hint-size="260px,100%"></dc-import>
+        <div style="flex:1;min-width:0;display:flex">
+          <div style="{{ paneB }}">
+            <dc-import name="ArcListHeader" hint-size="100%,48px"></dc-import>
+            <dc-import name="ArcListRows" hint-size="100%,100%"></dc-import>
+          </div>
+          <div onPointerDown="{{ grabB }}" onDoubleClick="{{ evenB }}" aria-label="Redimensionner" style="{{ gutterB }}">
+            <span style="{{ handleB }}"></span>
+          </div>
+          <div style="flex:1;min-width:0;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);border-radius:12px;background:oklch(.17 0 0);box-shadow:0 25px 50px -12px rgba(0,0,0,.5);outline:1px solid rgba(0,0,0,.1);overflow:hidden">
+            <dc-import name="ArcReadHeader" hint-size="100%,48px"></dc-import>
+            <dc-import name="ArcReadBody" hint-size="100%,100%"></dc-import>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    b: 480,
+    a: 400, b2: 400,
+    c1: 380, c3: 440,
+    drawer: null, activeMsg: -1, third: null,
+    sb: "rail", peek: false, seam: false, overlay: null, tip: null,
+    list3: 360, third3W: 460, activeMsg3: -1, third3: null,
+  };
+
+  /* Les mêmes deux touches que `use-keyboard-shortcuts.ts` du dépôt : la
+     pastille ⌘K est affichée deux fois à l'écran, elle doit répondre. */
+  componentDidMount() {
+    this.onKey = (e) => {
+      const mod = e.metaKey || e.ctrlKey;
+      if (mod && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        this.setState((p) => ({ overlay: p.overlay === "search" ? null : "search", peek: false }));
+        return;
+      }
+      if (mod && e.key.toLowerCase() === "n") {
+        e.preventDefault();
+        this.setState({ overlay: "compose", peek: false });
+        return;
+      }
+      if (e.key === "Escape") this.setState({ overlay: null, peek: false });
+    };
+    window.addEventListener("keydown", this.onKey);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener("keydown", this.onKey);
+  }
+
+  /* Repère commun aux deux placements : la fenêtre de la planche, seul
+     ancêtre positionné qui contienne à la fois le rail et la tête de liste. */
+  tipAt(label, side) {
+    return (e) => {
+      const el = e.currentTarget;
+      const root = el.closest("[data-arc-window]");
+      if (!root) return;
+      /* Offsets de mise en page : sous le zoom du canevas, un rect est en
+         pixels d'écran et le `left` en ligne en pixels de mise en page —
+         l'infobulle dérivait du facteur d'échelle. */
+      let x = 0, y = 0, n = el;
+      while (n && n !== root) { x += n.offsetLeft; y += n.offsetTop; n = n.offsetParent; }
+      this.setState({
+        tip: side
+          ? { label, side: true, x: x + el.offsetWidth + 10, y: y + el.offsetHeight / 2 }
+          : { label, side: false, x: x + el.offsetWidth / 2, y: y + el.offsetHeight + 8 },
+      });
+    };
+  }
+
+  tipSide(label) { return this.tipAt(label, true); }
+  tipUnder(label) { return this.tipAt(label, false); }
+
+  seg(on) {
+    return "width:26px;height:26px;display:grid;place-items:center;border:0;border-radius:7px;cursor:pointer;transition:background .16s,color .16s;background:"
+      + (on ? "oklch(.17 0 0)" : "transparent") + ";color:" + (on ? "#fafafa" : "oklch(.708 0 0)");
+  }
+
+  /* La barre latérale escamotée glisse par-dessus la liste : trois colonnes
+     utiles dans 1440 px au lieu de quatre serrées. */
+  drawerPane(open) {
+    return "position:absolute;top:8px;bottom:8px;left:8px;z-index:3;display:flex;border-radius:12px"
+      + ";background:rgba(28,20,44,.72);backdrop-filter:blur(28px);box-shadow:0 25px 60px -12px rgba(0,0,0,.7)"
+      + ";transition:transform .26s cubic-bezier(.2,.8,.2,1),opacity .2s"
+      + ";transform:translateX(" + (open ? "0" : "-16px") + ")"
+      + ";opacity:" + (open ? "1" : "0")
+      + ";pointer-events:" + (open ? "auto" : "none");
+  }
+
+  scrim(open) {
+    return "position:absolute;inset:0;z-index:2;background:rgba(0,0,0,.35)"
+      + ";transition:opacity .22s;opacity:" + (open ? "1" : "0")
+      + ";display:" + (open ? "block" : "none");
+  }
+
+  handle(on) {
+    return "width:5px;height:44px;border-radius:999px;transition:background .18s,height .18s;background:"
+      + (on ? "#a855f7" : "rgba(255,255,255,.32)") + (on ? ";height:72px" : "");
+  }
+
+  /* Une seule mécanique de glisse pour les deux planches : on mesure depuis le
+     bord gauche du volet saisi, et on borne à ce qui laisse les deux fenêtres
+     lisibles (une liste sous 320 px tronque tout, une lecture sous 420 px
+     casse la colonne de texte). */
+  drag(key, e) {
+    const pane = e.currentTarget.previousElementSibling;
+    if (!pane) return;
+    const left = pane.getBoundingClientRect().left;
+    const row = e.currentTarget.parentElement.getBoundingClientRect();
+    const gutter = e.currentTarget.getBoundingClientRect().width;
+    const max = row.right - left - 420 - gutter;
+    /* 300 : plancher de l'en-tête de liste une fois son contenu compressible. */
+    const move = (ev) => {
+      const w = Math.max(300, Math.min(max, ev.clientX - left));
+      this.setState({ [key]: w });
+    };
+    const up = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+      this.setState({ dragging: null });
+    };
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+    this.setState({ dragging: key });
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+    e.preventDefault();
+  }
+
+  /* Miroir de `drag` pour un volet ancré à droite : sa largeur croît quand le
+     pointeur va vers la gauche. */
+  dragRight(key, e) {
+    const pane = e.currentTarget.nextElementSibling;
+    if (!pane) return;
+    const right = pane.getBoundingClientRect().right;
+    const row = e.currentTarget.parentElement.getBoundingClientRect();
+    const gutter = e.currentTarget.getBoundingClientRect().width;
+    const max = right - row.left - 420 - gutter;
+    const move = (ev) => {
+      this.setState({ [key]: Math.max(320, Math.min(max, right - ev.clientX)) });
+    };
+    const up = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+      this.setState({ dragging: null });
+    };
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+    this.setState({ dragging: key });
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+    e.preventDefault();
+  }
+
+  even(key, e) {
+    const row = e.currentTarget.parentElement.getBoundingClientRect();
+    /* La gouttière est mesurée, pas supposée : celle de 1c en fait 26. */
+    const gutter = e.currentTarget.getBoundingClientRect().width;
+    this.setState({ [key]: Math.round((row.width - gutter) / 2) });
+  }
+
+  /* `grow` : le volet replié laisse toute la place à l'autre — un repli doit
+     donner une seule fenêtre, pas une fenêtre et un trou de dégradé. */
+  /* Grille, pas flex-colonne : le runtime ne transmet ni `flex` ni
+     `min-height` au montage d'un enfant, et un item de flex-colonne en
+     `flex:0 1 auto` se dimensionne sur son contenu — le composeur flottait
+     alors au milieu du volet. Une piste de grille étire son item quel que
+     soit son `flex`. `tracks` décrit les rangées : "minmax(0,1fr)" pour un
+     volet à enfant unique, "auto minmax(0,1fr)" quand un en-tête le précède. */
+  pane(w, tracks) {
+    return "width:" + w + "px;flex:none;min-width:0;display:grid"
+      + ";grid-template-columns:minmax(0,1fr);grid-template-rows:" + (tracks || "auto minmax(0,1fr)")
+      + ";border-radius:12px;background:oklch(.17 0 0)"
+      + ";box-shadow:0 25px 50px -12px rgba(0,0,0,.5);outline:1px solid rgba(0,0,0,.1);overflow:hidden";
+  }
+
+  renderVals() {
+    const s = this.state;
+    const gutter = "width:16px;flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:col-resize;touch-action:none";
+    return {
+      yes: true,
+
+      paneB: this.pane(s.b),
+      gutterB: gutter,
+      handleB: "width:5px;height:44px;border-radius:999px;transition:background .18s,height .18s;background:"
+        + (s.dragging === "b" ? "#a855f7" : "rgba(255,255,255,.32)")
+        + (s.dragging === "b" ? ";height:72px" : ""),
+      grabB: (e) => this.drag("b", e),
+      evenB: (e) => this.even("b", e),
+
+      windowStyle: "position:relative;width:1440px;height:900px;overflow:hidden;border-radius:14px;display:flex;padding:8px;gap:0"
+        + ";background-image:linear-gradient(rgba(16,14,24,.45),rgba(16,14,24,.45)),linear-gradient(135deg,#7c3aed 0%,#db2777 55%,#f97316 100%)",
+      gutter: "width:16px;flex:none;display:flex;align-items:center;justify-content:center;cursor:col-resize;touch-action:none",
+      readPane: "flex:1;min-width:0;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr);border-radius:12px;background:oklch(.17 0 0)"
+        + ";box-shadow:0 25px 50px -12px rgba(0,0,0,.5);outline:1px solid rgba(0,0,0,.1);overflow:hidden",
+      drawerBtn: "width:32px;height:32px;flex:none;display:grid;place-items:center;border:0;border-radius:8px;cursor:pointer;background:oklch(.269 0 0);color:#fafafa",
+      noop: () => {},
+
+      /* ── Tour 3 ── */
+      /* Un seul mécanisme d'infobulle dans la planche. Sur le rail elle sort
+         à droite : 52 px de large n'ont pas la place en dessous. Le
+         sélecteur, lui, la pose sous le bouton. */
+      tipShown: !!s.tip,
+      tipLabel: s.tip ? s.tip.label : "",
+      tipStyle: s.tip
+        ? "position:absolute;z-index:9;left:" + s.tip.x + "px;top:" + s.tip.y + "px;transform:"
+          + (s.tip.side ? "translateY(-50%)" : "translateX(-50%)")
+          + ";max-width:220px;padding:5px 9px;border-radius:7px;background:oklch(.3 0 0)"
+          + ";outline:1px solid rgba(255,255,255,.14);box-shadow:0 8px 24px -4px rgba(0,0,0,.7)"
+          + ";font:500 12px Geist,system-ui,sans-serif;color:#fafafa;white-space:nowrap;pointer-events:none"
+        : "display:none",
+      tipOff: () => this.setState({ tip: null }),
+      tPerso: this.tipSide("Perso · thierry@icloud.com"),
+      tPro: this.tipSide("Pro · thierry@coworkingcafe.fr"),
+      tSide: this.tipSide("Side projects · hello@twe-ux.dev"),
+      tInbox: this.tipSide("Réception"),
+      tFav: this.tipSide("Favoris"),
+      tSent: this.tipSide("Envoyés"),
+      tDrafts: this.tipSide("Brouillons"),
+      tTrash: this.tipSide("Corbeille"),
+      tNew: this.tipSide("Nouveau message · ⌘N"),
+      tFull: this.tipUnder("Barre latérale attachée · ⌘B"),
+      tRail: this.tipUnder("Rail d'icônes"),
+      tHide: this.tipUnder("Masquée — survole le bord gauche"),
+
+      winStyle: "position:relative;width:1440px;height:900px;overflow:hidden;border-radius:14px;display:flex;padding:8px;gap:0"
+        + ";background-image:linear-gradient(rgba(16,14,24,.45),rgba(16,14,24,.45)),linear-gradient(135deg,#7c3aed 0%,#db2777 55%,#f97316 100%)",
+      sbFull: s.sb === "full",
+      sbRail: s.sb === "rail",
+      sbHidden: s.sb === "hidden",
+      segFull: this.seg(s.sb === "full"),
+      segRail: this.seg(s.sb === "rail"),
+      segHide: this.seg(s.sb === "hidden"),
+      /* Barre attachée : elle porte déjà la recherche et le repli, la tête de
+         liste n'aurait que des doublons — elle s'effface entièrement.
+         20 px sur les côtés : c'est là que tombent les avatars des rangées
+         (8 de l'ul + 12 de la rangée), donc sélecteur, recherche et tuiles
+         s'alignent sur eux ; 16 en bas pour que les tuiles ne collent pas à
+         la première conversation. */
+      listHead: s.sb === "full"
+        ? "display:none"
+        : "flex:none;padding:14px 20px 16px;border-bottom:1px solid rgba(255,255,255,.1)",
+      /* Les dossiers n'apparaissent qu'une fois : la barre attachée les liste,
+         le rail les porte en icônes, et ce n'est que masquée que la tête de
+         liste les reprend. */
+      tilesRow: s.sb === "hidden"
+        ? "margin-top:12px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px"
+        : "display:none",
+
+      overlay: s.overlay,
+      openSearch: () => this.setState({ overlay: "search", peek: false }),
+      openCompose3: () => this.setState({ overlay: "compose", peek: false }),
+      closeOverlay: () => this.setState({ overlay: null }),
+
+      setFull: () => this.setState({ sb: "full", peek: false }),
+      setRail: () => this.setState({ sb: "rail", peek: false }),
+      setHidden: () => this.setState({ sb: "hidden", peek: false }),
+
+      /* Le bord gauche est une zone d'approche : la barre glisse par-dessus
+         sans clic, et se retire dès que le curseur la quitte. Inutile quand
+         elle est déjà attachée. */
+      edgeStrip: "position:absolute;top:8px;bottom:8px;left:0;width:14px;z-index:4"
+        + ";display:" + (s.sb === "full" ? "none" : "block"),
+      peekOn: () => { if (this.state.sb !== "full") this.setState({ peek: true }); },
+      peekOff: () => this.setState({ peek: false }),
+      /* Voile sous la barre révélée : sans lui elle se lisait comme une
+         colonne de plus, pas comme une couche au-dessus. Il ne capte pas le
+         pointeur, sinon quitter la barre ne la ferait pas se retirer. */
+      peekScrim: "position:absolute;inset:0;z-index:4;pointer-events:none;background:rgba(0,0,0,.42)"
+        + ";transition:opacity .2s;opacity:" + (s.peek ? "1" : "0"),
+      peekPane: "position:absolute;top:8px;bottom:8px;left:8px;z-index:5;display:flex;border-radius:12px"
+        + ";background:rgba(46,26,72,.92);backdrop-filter:blur(36px) saturate(1.4)"
+        + ";outline:1px solid rgba(255,255,255,.2);box-shadow:0 40px 90px -10px rgba(0,0,0,.85),0 0 0 1px rgba(0,0,0,.4)"
+        + ";transition:transform .24s cubic-bezier(.2,.8,.2,1),opacity .18s"
+        + ";transform:translateX(" + (s.peek ? "0" : "-20px") + ")"
+        + ";opacity:" + (s.peek ? "1" : "0")
+        + ";pointer-events:" + (s.peek ? "auto" : "none"),
+
+      /* Liste et lecture partagent une fenêtre : le filet est une frontière
+         interne, pas une gouttière de dégradé — c'est ce qui sépare les deux
+         premiers volets du troisième, qui est une fenêtre à part entière. */
+      /* Grille, pas flex : en flex les deux colonnes étaient `flex:0 1 auto`
+         et la lecture comprimait la liste — 400 px déclarés en rendaient 336.
+         Une piste explicite rend le px déclaré. */
+      mainWin: "flex:1;min-width:0;display:grid;grid-template-columns:" + s.list3 + "px 11px minmax(0,1fr)"
+        + ";border-radius:12px;background:oklch(.17 0 0)"
+        + ";box-shadow:0 25px 50px -12px rgba(0,0,0,.5);outline:1px solid rgba(0,0,0,.1);overflow:hidden",
+      seamCol: "width:11px;flex:none;display:flex;justify-content:center;cursor:col-resize;touch-action:none;transition:background .16s;background:"
+        + (s.seam || s.dragging === "list3" ? "rgba(168,85,247,.12)" : "transparent"),
+      seamLine: "width:1px;height:100%;transition:background .16s,width .16s;background:"
+        + (s.dragging === "list3" ? "#a855f7" : s.seam ? "rgba(168,85,247,.6)" : "rgba(255,255,255,.1)")
+        + (s.dragging === "list3" || s.seam ? ";width:2px" : ""),
+      seamOn: () => this.setState({ seam: true }),
+      seamOff: () => this.setState({ seam: false }),
+      grabSeam: (e) => this.drag("list3", e),
+      evenSeam: (e) => {
+        const row = e.currentTarget.parentElement.getBoundingClientRect();
+        this.setState({ list3: Math.round((row.width - 11) / 2) });
+      },
+
+      third3Open: s.third3 !== null,
+      third3Mode: s.third3 === "file" ? "file" : "message",
+      activeMsg3: s.third3 === "message" ? s.activeMsg3 : -1,
+      /* Le 3ᵉ volet réduit la barre en rail au lieu d'ajouter une quatrième
+         colonne : à 1440 px, barre + liste + conversation + volet laissaient
+         309 px à la colonne qu'on lit. Le dépôt s'est donné la même règle
+         dans `attachment.tsx` (l'aperçu prend la place de la liste plutôt
+         que de serrer une quatrième colonne). */
+      openMsg3: (i) => this.setState((p) => ({ third3: "message", activeMsg3: i, third3W: 460, sb: p.sb === "full" ? "rail" : p.sb })),
+      openFile3: () => this.setState((p) => ({ third3: "file", third3W: 460, sb: p.sb === "full" ? "rail" : p.sb })),
+      closeThird3: () => this.setState({ third3: null, activeMsg3: -1 }),
+      pane3rd: this.pane(s.third3W, "minmax(0,1fr)"),
+      handleThird3: this.handle(s.dragging === "third3W"),
+      grabThird3: (e) => this.dragRight("third3W", e),
+      evenThird3: () => this.setState({ third3W: 460 }),
+
+      paneA: this.pane(s.a),
+      handleA: this.handle(s.dragging === "a"),
+      grabA: (e) => this.drag("a", e),
+      evenA: (e) => this.even("a", e),
+      drawerA: this.drawerPane(s.drawer === "a"),
+      scrimA: this.scrim(s.drawer === "a"),
+      toggleA: () => this.setState((p) => ({ drawer: p.drawer === "a" ? null : "a" })),
+
+      paneB2: this.pane(s.b2),
+      handleB2: this.handle(s.dragging === "b2"),
+      grabB2: (e) => this.drag("b2", e),
+      evenB2: (e) => this.even("b2", e),
+      drawerB: this.drawerPane(s.drawer === "b"),
+      scrimB: this.scrim(s.drawer === "b"),
+      toggleB: () => this.setState((p) => ({ drawer: p.drawer === "b" ? null : "b" })),
+
+      paneC2: this.pane(s.c1),
+      handleC1: this.handle(s.dragging === "c1"),
+      grabC1: (e) => this.drag("c1", e),
+      evenC1: (e) => this.even("c1", e),
+      handleC3: this.handle(s.dragging === "c3"),
+      /* Le 3ᵉ volet est le seul à droite : on le dimensionne depuis son bord
+         droit, l'inverse des autres poignées. */
+      grabC3: (e) => this.dragRight("c3", e),
+      evenC3: () => this.setState({ c3: 440 }),
+      paneThird: this.pane(s.c3, "minmax(0,1fr)"),
+      thirdOpen: s.third !== null,
+      thirdMode: s.third === "file" ? "file" : "message",
+      activeMsg: s.third === "message" ? s.activeMsg : -1,
+      openMsg: (i) => this.setState({ third: "message", activeMsg: i }),
+      openFile: () => this.setState({ third: "file" }),
+      closeThird: () => this.setState({ third: null, activeMsg: -1 }),
+      drawerC: this.drawerPane(s.drawer === "c"),
+      scrimC: this.scrim(s.drawer === "c"),
+      toggleC: () => this.setState((p) => ({ drawer: p.drawer === "c" ? null : "c" })),
+
+    };
+  }
+}
+
+</script>
+</body>
+</html>

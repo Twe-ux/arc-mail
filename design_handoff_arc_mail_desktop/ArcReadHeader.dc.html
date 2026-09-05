@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<header style="height:48px;flex:none;display:flex;align-items:center;gap:4px;padding:0 12px;border-bottom:1px solid rgba(255,255,255,.1);font-family:Geist,system-ui,sans-serif;color:#fafafa">
+  <button type="button" aria-label="Retour" style="{{ backStyle }}"><svg class="ico"><use href="#d-back"/></svg></button>
+  <h2 style="margin:0;flex:1;min-width:0;padding:0 4px;font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Week-end à Annecy : on confirme ?</h2>
+  <button type="button" aria-label="Répondre" title="Répondre" style="width:28px;height:28px;display:grid;place-items:center;border:0;border-radius:6px;background:none;cursor:pointer;color:#fafafa" style-hover="background:oklch(.269 0 0)"><svg class="ico"><use href="#d-reply"/></svg></button>
+  <button type="button" aria-label="Répondre à tous" title="Répondre à tous" style="width:28px;height:28px;display:grid;place-items:center;border:0;border-radius:6px;background:none;cursor:pointer;color:#fafafa" style-hover="background:oklch(.269 0 0)"><svg class="ico"><use href="#d-replyall"/></svg></button>
+  <button type="button" aria-label="Transférer" title="Transférer" style="width:28px;height:28px;display:grid;place-items:center;border:0;border-radius:6px;background:none;cursor:pointer;color:#fafafa" style-hover="background:oklch(.269 0 0)"><svg class="ico"><use href="#d-forward"/></svg></button>
+  <button type="button" aria-label="Archiver" title="Archiver · e" style="width:28px;height:28px;display:grid;place-items:center;border:0;border-radius:6px;background:none;cursor:pointer;color:#fafafa" style-hover="background:oklch(.269 0 0)"><svg class="ico"><use href="#d-archive"/></svg></button>
+  <button type="button" aria-label="Supprimer" title="Supprimer · #" style="width:28px;height:28px;display:grid;place-items:center;border:0;border-radius:6px;background:none;cursor:pointer;color:#fafafa" style-hover="background:oklch(.269 0 0)"><svg class="ico"><use href="#d-trash"/></svg></button>
+  <button type="button" aria-label="Marquer comme non lu" title="Marquer comme non lu · u" style="width:28px;height:28px;display:grid;place-items:center;border:0;border-radius:6px;background:none;cursor:pointer;color:#fafafa" style-hover="background:oklch(.269 0 0)"><svg class="ico"><use href="#d-mailopen"/></svg></button>
+  <button type="button" aria-label="Ajouter aux favoris" title="Ajouter aux favoris · s" style="width:28px;height:28px;display:grid;place-items:center;border:0;border-radius:6px;background:none;cursor:pointer;color:#fafafa" style-hover="background:oklch(.269 0 0)"><svg class="ico"><use href="#d-star"/></svg></button>
+</header>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:700,&quot;height&quot;:48},&quot;split&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    /* En vue partagée la liste ne quitte jamais l'écran : la flèche de retour
+       n'a nulle part où ramener, et le dépôt la masque déjà. */
+    return {
+      /* Défaut : vue partagée. Les planches desktop le sont toutes, et une
+         flèche laissée par omission est un contrôle mort de 28 px qui décale
+         l'en-tête. Passer split="{{ no }}" pour la fenêtre pleine. */
+      backStyle: (this.props.split ?? true)
+        ? "display:none"
+        : "width:28px;height:28px;flex:none;display:grid;place-items:center;border:0;border-radius:6px;background:none;cursor:pointer;color:#fafafa",
+    };
+  }
+}
+
+</script>
+</body>
+</html>

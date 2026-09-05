@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div data-arc-sb style="position:relative;width:260px;height:100%;flex:none;display:flex;flex-direction:column;gap:12px;padding:8px;color:#fff;font-family:Geist,system-ui,sans-serif">
+  <sc-if value="{{ tipShown }}" hint-placeholder-val="{{ false }}">
+    <span style="{{ tipStyle }}">{{ tipLabel }}</span>
+  </sc-if>
+
+  <div style="{{ topRow }}">
+    <button type="button" onClick="{{ search }}" style="display:flex;flex:1;min-width:0;align-items:center;gap:8px;height:36px;padding:0 12px;border:0;border-radius:8px;cursor:pointer;font:400 14px Geist,system-ui,sans-serif;background:rgba(255,255,255,.12);backdrop-filter:blur(24px);color:rgba(255,255,255,.8)" style-hover="background:rgba(255,255,255,.2);color:#fff">
+      <svg class="ico" style="flex:none"><use href="#d-search"/></svg>
+      <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left">Réception</span>
+      <span style="flex:none;padding:1px 5px;border-radius:5px;font:500 11px Geist,system-ui,sans-serif;background:rgba(255,255,255,.15);color:rgba(255,255,255,.7)">⌘K</span>
+    </button>
+    <button type="button" onClick="{{ collapse }}" aria-label="Réduire en rail" onPointerEnter="{{ tFold }}" onPointerLeave="{{ tipOff }}" style="width:36px;height:36px;flex:none;display:grid;place-items:center;border:0;border-radius:8px;cursor:pointer;background:rgba(255,255,255,.12);backdrop-filter:blur(24px);color:rgba(255,255,255,.8)" style-hover="background:rgba(255,255,255,.2);color:#fff"><svg class="ico"><use href="#d-fold"/></svg></button>
+  </div>
+
+  <div style="flex:none;display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
+    <button type="button" aria-label="Réception" style="position:relative;height:48px;display:grid;place-items:center;border:0;border-radius:12px;cursor:pointer;background:rgba(255,255,255,.12);backdrop-filter:blur(24px);color:#fff"><svg class="ico s20"><use href="#d-inbox"/></svg><span style="position:absolute;top:6px;right:6px;width:6px;height:6px;border-radius:999px;background:currentColor"></span></button>
+    <button type="button" aria-label="Favoris" style="height:48px;display:grid;place-items:center;border:0;border-radius:12px;cursor:pointer;background:rgba(255,255,255,.05);color:rgba(255,255,255,.7)" style-hover="background:rgba(255,255,255,.15);color:#fff"><svg class="ico s20"><use href="#d-star"/></svg></button>
+    <button type="button" aria-label="Envoyés" style="height:48px;display:grid;place-items:center;border:0;border-radius:12px;cursor:pointer;background:rgba(255,255,255,.05);color:rgba(255,255,255,.7)" style-hover="background:rgba(255,255,255,.15);color:#fff"><svg class="ico s20"><use href="#d-send"/></svg></button>
+    <button type="button" aria-label="Brouillons" style="height:48px;display:grid;place-items:center;border:0;border-radius:12px;cursor:pointer;background:rgba(255,255,255,.05);color:rgba(255,255,255,.7)" style-hover="background:rgba(255,255,255,.15);color:#fff"><svg class="ico s20"><use href="#d-file"/></svg></button>
+  </div>
+
+  <nav aria-label="Dossiers" style="flex:none;display:flex;flex-direction:column;gap:2px">
+    <span style="display:flex;align-items:center;gap:10px;height:32px;padding:0 10px;border-radius:8px;font-size:14px;font-weight:500;background:rgba(255,255,255,.12);backdrop-filter:blur(24px);color:#fff"><svg class="ico" style="flex:none"><use href="#d-inbox"/></svg><span style="flex:1">Réception</span><span style="padding:0 6px;border-radius:999px;background:rgba(255,255,255,.2);font:600 11px Geist,system-ui,sans-serif;font-variant-numeric:tabular-nums">3</span></span>
+    <button type="button" style="display:flex;align-items:center;gap:10px;height:32px;padding:0 10px;border:0;border-radius:8px;cursor:pointer;font:400 14px Geist,system-ui,sans-serif;background:none;color:rgba(255,255,255,.8);text-align:left" style-hover="background:rgba(255,255,255,.15);color:#fff"><svg class="ico" style="flex:none"><use href="#d-star"/></svg><span style="flex:1">Favoris</span></button>
+    <button type="button" style="display:flex;align-items:center;gap:10px;height:32px;padding:0 10px;border:0;border-radius:8px;cursor:pointer;font:400 14px Geist,system-ui,sans-serif;background:none;color:rgba(255,255,255,.8);text-align:left" style-hover="background:rgba(255,255,255,.15);color:#fff"><svg class="ico" style="flex:none"><use href="#d-clock"/></svg><span style="flex:1">En pause</span></button>
+    <button type="button" style="display:flex;align-items:center;gap:10px;height:32px;padding:0 10px;border:0;border-radius:8px;cursor:pointer;font:400 14px Geist,system-ui,sans-serif;background:none;color:rgba(255,255,255,.8);text-align:left" style-hover="background:rgba(255,255,255,.15);color:#fff"><svg class="ico" style="flex:none"><use href="#d-send"/></svg><span style="flex:1">Envoyés</span></button>
+    <button type="button" style="display:flex;align-items:center;gap:10px;height:32px;padding:0 10px;border:0;border-radius:8px;cursor:pointer;font:400 14px Geist,system-ui,sans-serif;background:none;color:rgba(255,255,255,.8);text-align:left" style-hover="background:rgba(255,255,255,.15);color:#fff"><svg class="ico" style="flex:none"><use href="#d-file"/></svg><span style="flex:1">Brouillons</span><span style="padding:0 6px;border-radius:999px;background:rgba(255,255,255,.2);font:600 11px Geist,system-ui,sans-serif;font-variant-numeric:tabular-nums">1</span></button>
+    <button type="button" style="display:flex;align-items:center;gap:10px;height:32px;padding:0 10px;border:0;border-radius:8px;cursor:pointer;font:400 14px Geist,system-ui,sans-serif;background:none;color:rgba(255,255,255,.8);text-align:left" style-hover="background:rgba(255,255,255,.15);color:#fff"><svg class="ico" style="flex:none"><use href="#d-archive"/></svg><span style="flex:1">Archive</span></button>
+    <button type="button" style="display:flex;align-items:center;gap:10px;height:32px;padding:0 10px;border:0;border-radius:8px;cursor:pointer;font:400 14px Geist,system-ui,sans-serif;background:none;color:rgba(255,255,255,.8);text-align:left" style-hover="background:rgba(255,255,255,.15);color:#fff"><svg class="ico" style="flex:none"><use href="#d-trash"/></svg><span style="flex:1">Corbeille</span></button>
+  </nav>
+
+  <div style="flex:none;height:1px;background:rgba(255,255,255,.15)"></div>
+
+  <div style="flex:1;min-height:0;display:flex;flex-direction:column;gap:4px">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:0 10px;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.85)">
+      <span>Aujourd'hui</span>
+      <button type="button" style="border:0;background:none;cursor:pointer;font:400 11px Geist,system-ui,sans-serif;letter-spacing:normal;text-transform:none;color:rgba(255,255,255,.85)" style-hover="color:#fff">Effacer</button>
+    </div>
+    <ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:2px">
+      <li style="display:flex;align-items:center;gap:6px;height:32px;padding:0 4px 0 8px;border-radius:8px;font-size:14px;font-weight:500;background:rgba(255,255,255,.12);backdrop-filter:blur(24px);color:#fff">
+        <span style="width:20px;height:20px;flex:none;border-radius:999px;display:grid;place-items:center;font:600 9px Geist,system-ui,sans-serif;color:#fff;background:linear-gradient(135deg,oklch(.78 .12 20),oklch(.58 .17 60))">CD</span>
+        <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Week-end à Annecy : on confirme ?</span>
+        <button type="button" aria-label="Fermer" style="flex:none;padding:4px;border:0;border-radius:4px;background:none;cursor:pointer;color:inherit"><svg class="ico s14"><use href="#d-x"/></svg></button>
+      </li>
+      <li style="display:flex;align-items:center;gap:6px;height:32px;padding:0 4px 0 8px;border-radius:8px;font-size:14px;color:rgba(255,255,255,.8)" style-hover="background:rgba(255,255,255,.15);color:#fff">
+        <span style="width:20px;height:20px;flex:none;border-radius:999px;display:grid;place-items:center;font:600 9px Geist,system-ui,sans-serif;color:#fff;background:linear-gradient(135deg,oklch(.78 .12 140),oklch(.58 .17 180))">AG</span>
+        <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Photos de l'anniversaire</span>
+      </li>
+      <li style="display:flex;align-items:center;gap:6px;height:32px;padding:0 4px 0 8px;border-radius:8px;font-size:14px;color:rgba(255,255,255,.8)" style-hover="background:rgba(255,255,255,.15);color:#fff">
+        <span style="width:20px;height:20px;flex:none;border-radius:999px;display:grid;place-items:center;font:600 9px Geist,system-ui,sans-serif;color:#fff;background:linear-gradient(135deg,oklch(.78 .12 260),oklch(.58 .17 300))">DO</span>
+        <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Rappel : rendez-vous mardi 9h30</span>
+      </li>
+    </ul>
+  </div>
+
+  <div style="position:relative;flex:none;display:flex;align-items:center;justify-content:space-between;gap:4px;padding-top:4px">
+
+    <sc-if value="{{ themeOpen }}" hint-placeholder-val="{{ false }}">
+      <div onClick="{{ closeTheme }}" style="position:fixed;inset:0;z-index:9"></div>
+      <div style="position:absolute;bottom:40px;left:0;z-index:10;width:244px;border-radius:14px;background:oklch(.235 0 0);outline:1px solid rgba(255,255,255,.16);box-shadow:0 28px 70px -8px rgba(0,0,0,.85);overflow:hidden;color:#fafafa">
+        <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.1)">
+          <h4 style="margin:0;flex:1;font-size:14px;font-weight:600">Apparence</h4>
+          <button type="button" onClick="{{ closeTheme }}" aria-label="Fermer" style="width:26px;height:26px;flex:none;display:grid;place-items:center;border:0;border-radius:6px;background:none;cursor:pointer;color:oklch(.708 0 0)" style-hover="background:oklch(.3 0 0);color:#fafafa"><svg class="ico s14"><use href="#d-x"/></svg></button>
+        </div>
+        <div style="padding:14px;display:flex;flex-direction:column;gap:16px">
+          <div>
+            <p style="margin:0 0 10px;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:oklch(.708 0 0)">Couleur de l'espace</p>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
+              <sc-for list="{{ hues }}" as="c" hint-placeholder-count="8">
+                <button type="button" onClick="{{ c.pick }}" aria-label="{{ c.label }}" style="{{ c.style }}"></button>
+              </sc-for>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <svg class="ico s18" style="color:oklch(.708 0 0);flex:none"><use href="#d-moon"/></svg>
+            <span style="flex:1;font-size:14px">Thème sombre</span>
+            <button type="button" onClick="{{ toggleDark }}" role="switch" aria-checked="{{ dark }}" aria-label="Thème sombre" style="{{ switchTrack }}"><span style="{{ switchKnob }}"></span></button>
+          </div>
+          <div>
+            <p style="margin:0 0 10px;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:oklch(.708 0 0)">Densité de la liste</p>
+            <div role="radiogroup" aria-label="Densité" style="display:flex;padding:3px;border-radius:9px;background:oklch(.17 0 0)">
+              <button type="button" role="radio" aria-checked="{{ roomy }}" onClick="{{ setRoomy }}" style="{{ densRoomy }}">Confort</button>
+              <button type="button" role="radio" aria-checked="{{ compact }}" onClick="{{ setCompact }}" style="{{ densCompact }}">Compact</button>
+            </div>
+          </div>
+          <button type="button" onClick="{{ closeTheme }}" style="display:flex;align-items:center;gap:10px;min-height:36px;margin:-2px -6px -4px;padding:0 6px;border:0;border-radius:8px;cursor:pointer;background:none;color:inherit;font:400 14px Geist,system-ui,sans-serif;text-align:left" style-hover="background:oklch(.3 0 0)">
+            <span style="flex:1">Comptes et signatures</span>
+            <svg class="ico s14" style="color:oklch(.708 0 0)"><use href="#d-right"/></svg>
+          </button>
+        </div>
+      </div>
+    </sc-if>
+    <div style="display:flex;align-items:center;gap:4px">
+      <button type="button" aria-label="Perso" onPointerEnter="{{ tPerso }}" onPointerLeave="{{ tipOff }}" style="position:relative;width:34px;height:34px;flex:none;border-radius:10px;border:0;cursor:pointer;display:grid;place-items:center;transition:background .16s;background:rgba(255,255,255,.2);color:#fff" style-hover="background:rgba(255,255,255,.22);color:#fff"><svg class="ico s18" style="stroke-width:2"><use href="#d-house"/></svg><span style="position:absolute;bottom:4px;right:4px;width:6px;height:6px;border-radius:999px;background:#a855f7"></span></button>
+      <button type="button" aria-label="Pro" onPointerEnter="{{ tPro }}" onPointerLeave="{{ tipOff }}" style="position:relative;width:34px;height:34px;flex:none;border-radius:10px;border:0;cursor:pointer;display:grid;place-items:center;transition:background .16s;background:rgba(255,255,255,.07);color:rgba(255,255,255,.75)" style-hover="background:rgba(255,255,255,.22);color:#fff"><svg class="ico s18" style="stroke-width:2"><use href="#d-brief"/></svg><span style="position:absolute;bottom:4px;right:4px;width:6px;height:6px;border-radius:999px;background:#38bdf8"></span></button>
+      <button type="button" aria-label="Side projects" onPointerEnter="{{ tSide }}" onPointerLeave="{{ tipOff }}" style="position:relative;width:34px;height:34px;flex:none;border-radius:10px;border:0;cursor:pointer;display:grid;place-items:center;transition:background .16s;background:rgba(255,255,255,.07);color:rgba(255,255,255,.75)" style-hover="background:rgba(255,255,255,.22);color:#fff"><svg class="ico s18" style="stroke-width:2"><use href="#d-flask"/></svg><span style="position:absolute;bottom:4px;right:4px;width:6px;height:6px;border-radius:999px;background:#fbbf24"></span></button>
+    </div>
+    <div style="display:flex;align-items:center;gap:2px">
+      <button type="button" onClick="{{ toggleTheme }}" aria-label="Apparence" onPointerEnter="{{ tAppear }}" onPointerLeave="{{ tipOff }}" style="width:32px;height:32px;border-radius:8px;border:0;background:none;cursor:pointer;display:grid;place-items:center;color:rgba(255,255,255,.7)" style-hover="background:rgba(255,255,255,.15);color:#fff"><svg class="ico"><use href="#d-moon"/></svg></button>
+      <button type="button" onClick="{{ compose }}" aria-label="Nouveau message" onPointerEnter="{{ tNew }}" onPointerLeave="{{ tipOff }}" style="width:32px;height:32px;border-radius:8px;border:0;background:none;cursor:pointer;display:grid;place-items:center;color:rgba(255,255,255,.7)" style-hover="background:rgba(255,255,255,.15);color:#fff"><svg class="ico"><use href="#d-compose"/></svg></button>
+    </div>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:260,&quot;height&quot;:860},&quot;onCollapse&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;},&quot;onSearch&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;},&quot;onCompose&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;},&quot;hideSearch&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;}}">class Component extends DCLogic {
+  state = { theme: false, hue: 285, light: false, compact: false, tip: null };
+
+  componentDidMount() {
+    this.onKey = (e) => { if (e.key === "Escape") this.setState({ theme: false }); };
+    window.addEventListener("keydown", this.onKey);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener("keydown", this.onKey);
+  }
+
+  renderVals() {
+    /* Le bouton de repli réduit en rail, il ne masque pas : l'accès aux
+       espaces et aux dossiers reste à l'écran. */
+    const s = this.state;
+    /* Les huit teintes de `spaceTheme(h)` du dépôt : accent oklch(.7 .18 h),
+       dégradé à trois arrêts calculé sur la même teinte. */
+    const HUES = [30, 70, 145, 190, 250, 285, 320, 355];
+    const grad = (h) => "linear-gradient(135deg,oklch(.56 .22 " + h + "),oklch(.62 .23 " + (h + 30)
+      + ") 55%,oklch(.7 .2 " + (h + 60) + "))";
+    const dens = (on) => "flex:1;padding:6px 0;border:0;border-radius:7px;cursor:pointer;font:500 13px Geist,system-ui,sans-serif;transition:background .16s,color .16s;background:"
+      + (on ? "oklch(.32 0 0)" : "none") + ";color:" + (on ? "#fafafa" : "oklch(.708 0 0)");
+    /* Même infobulle que le rail et l'en-tête de conversation, pour n'avoir
+       qu'un seul comportement dans la planche. */
+    const tip = (label) => (e) => {
+      const el = e.currentTarget;
+      const root = el.closest("[data-arc-sb]");
+      if (!root) return;
+      /* Offsets de mise en page, pas rects d'écran : le canevas applique un
+         zoom, donc un rect est en pixels d'écran alors que le `left` en ligne
+         s'applique en pixels de mise en page. */
+      let x = 0, y = 0, n = el;
+      while (n && n !== root) { x += n.offsetLeft; y += n.offsetTop; n = n.offsetParent; }
+      /* Ancrage par le bord plutôt que centre borné : près d'un bord, la bulle
+         part du bouton et grandit vers l'intérieur. Aucune demi-largeur à
+         devi­ner — c'était ce qui l'arrachait à son bouton. */
+      const w = root.offsetWidth, c = x + el.offsetWidth / 2;
+      const anchor = c < w * 0.33 ? "left" : c > w * 0.67 ? "right" : "center";
+      this.setState({ tip: {
+        label, anchor,
+        v: anchor === "right" ? w - (x + el.offsetWidth) : anchor === "left" ? x : c,
+        y: y < root.offsetHeight / 2 ? y + el.offsetHeight + 8 : y - 32,
+      } });
+    };
+    return {
+      collapse: this.props.onCollapse,
+      search: this.props.onSearch,
+      compose: this.props.onCompose,
+
+      tipShown: !!s.tip,
+      tipLabel: s.tip ? s.tip.label : "",
+      tipStyle: s.tip
+        ? "position:absolute;z-index:11;top:" + s.tip.y + "px;"
+          + (s.tip.anchor === "right" ? "right:" + s.tip.v + "px" : "left:" + s.tip.v + "px")
+          + (s.tip.anchor === "center" ? ";transform:translateX(-50%)" : "")
+          + ";max-width:220px;padding:5px 9px;border-radius:7px;background:oklch(.3 0 0)"
+          + ";outline:1px solid rgba(255,255,255,.14);box-shadow:0 8px 24px -4px rgba(0,0,0,.7)"
+          + ";font:500 12px Geist,system-ui,sans-serif;color:#fafafa;white-space:nowrap;pointer-events:none"
+        : "display:none",
+      tipOff: () => this.setState({ tip: null }),
+      tPerso: tip("Perso · thierry@icloud.com"),
+      tPro: tip("Pro · thierry@coworkingcafe.fr"),
+      tSide: tip("Side projects · hello@twe-ux.dev"),
+      tFold: tip("Réduire en rail · ⌘B"),
+      tAppear: tip("Apparence"),
+      tNew: tip("Nouveau message · ⌘N"),
+
+      themeOpen: !!s.theme,
+      toggleTheme: () => this.setState((p) => ({ theme: !p.theme })),
+      closeTheme: () => this.setState({ theme: false }),
+      hues: HUES.map((h) => ({
+        label: "Teinte " + h,
+        pick: () => this.setState({ hue: h }),
+        style: "width:100%;aspect-ratio:1;border-radius:999px;cursor:pointer;background:" + grad(h)
+          + ";border:2px solid " + ((s.hue ?? 285) === h ? "#fff" : "transparent")
+          + ";box-shadow:" + ((s.hue ?? 285) === h ? "0 0 0 3px rgba(255,255,255,.22)" : "none"),
+      })),
+
+      dark: s.light !== true,
+      toggleDark: () => this.setState((p) => ({ light: !p.light })),
+      switchTrack: "width:46px;height:28px;flex:none;padding:2px;border:0;border-radius:999px;cursor:pointer;display:flex;transition:background .2s;justify-content:"
+        + (s.light ? "flex-start" : "flex-end") + ";background:" + (s.light ? "oklch(.36 0 0)" : grad(s.hue ?? 285)),
+      switchKnob: "width:24px;height:24px;border-radius:999px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.4)",
+
+      roomy: s.compact !== true,
+      compact: s.compact === true,
+      setRoomy: () => this.setState({ compact: false }),
+      setCompact: () => this.setState({ compact: true }),
+      densRoomy: dens(s.compact !== true),
+      densCompact: dens(s.compact === true),
+      /* Révélée au survol, la barre laisse la recherche et le repli à la tête
+         de liste, qui les porte déjà — sinon on les voit deux fois. */
+      topRow: this.props.hideSearch
+        ? "display:none"
+        : "display:flex;flex:none;align-items:center;gap:6px",
+    };
+  }
+}
+</script>
+</body>
+</html>

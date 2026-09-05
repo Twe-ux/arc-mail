@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   Archive,
   Clock,
@@ -11,7 +12,9 @@ import {
   Send,
   Star,
   Sun,
+  PanelLeft,
   PanelLeftClose,
+  PanelRight,
   Trash2,
   X,
   type LucideIcon,
@@ -91,20 +94,63 @@ const TONES: Record<Tone, Record<string, string>> = {
   },
 };
 
-/** Desktop sidebar, inline on the space gradient. Folds away on demand. */
+/**
+ * La barre latérale du bureau, posée sur le dégradé de l'espace.
+ *
+ * **Repliée, elle n'est pas partie : elle revient au survol du bord.** Une
+ * bande de 14 px longe le côté où elle se range ; le pointeur qui s'y approche
+ * la fait glisser par-dessus la boîte, et elle repart dès qu'on la quitte.
+ * Repliée pour de bon, il fallait la rappeler au clavier (⌘B) pour changer de
+ * dossier — replier coûtait plus qu'il ne rendait.
+ *
+ * Flottante, elle a besoin d'un fond : posée dans le flux elle se lit sur le
+ * dégradé, par-dessus la carte blanche de la boîte elle ne se lirait plus. Elle
+ * emporte donc **le fond du bureau avec elle** (`space-backdrop`, le dégradé
+ * sous son aplat sombre) plutôt qu'un verre translucide — mesuré : à 72 %
+ * d'opacité et avec un flou, la liste se lisait encore au travers et le texte
+ * blanc passait dessus.
+ *
+ * *Essai porté d'`arc-messenger` (juillet 2025), à garder ou à retirer.*
+ */
 export function Sidebar() {
   const collapsed = useMail((s) => s.sidebarCollapsed);
   const toggle = useMail((s) => s.toggleSidebarCollapsed);
+  const cote = useMail((s) => s.sidebarSide);
+  const [survol, setSurvol] = useState(false);
+
+  if (!collapsed) {
+    return (
+      <aside className="hidden w-[260px] shrink-0 flex-col gap-3 px-2 py-2 text-white md:flex">
+        <SidebarContent onCollapse={toggle} />
+      </aside>
+    );
+  }
 
   return (
-    <aside
-      className={cn(
-        "hidden w-[260px] shrink-0 flex-col gap-3 px-2 py-2 text-white",
-        collapsed ? "md:hidden" : "md:flex",
+    <>
+      {/* La bande de rappel. Assez large pour être atteinte sans viser, assez
+          étroite pour ne pas manger le bord de la liste. */}
+      <div
+        onPointerEnter={() => setSurvol(true)}
+        className={cn(
+          "fixed inset-y-0 z-30 hidden w-3.5 md:block",
+          cote === "left" ? "left-0" : "right-0",
+        )}
+      />
+      {survol && (
+        <aside
+          onPointerLeave={() => setSurvol(false)}
+          className={cn(
+            "space-backdrop fixed inset-y-2 z-40 hidden w-[264px] flex-col gap-3 rounded-2xl px-2 py-2 text-white",
+            "shadow-2xl ring-1 ring-white/15 md:flex",
+            "animate-in fade-in-0 duration-200 ease-out",
+            cote === "left" ? "left-2 slide-in-from-left-3" : "right-2 slide-in-from-right-3",
+          )}
+        >
+          <SidebarContent onCollapse={toggle} />
+        </aside>
       )}
-    >
-      <SidebarContent onCollapse={toggle} />
-    </aside>
+    </>
   );
 }
 
@@ -128,6 +174,8 @@ function SidebarContent({
   const removeRecent = useMail((s) => s.removeRecent);
   const clearRecent = useMail((s) => s.clearRecent);
   const setCommandOpen = useMail((s) => s.setCommandOpen);
+  const cote = useMail((s) => s.sidebarSide);
+  const toggleSide = useMail((s) => s.toggleSidebarSide);
   const openCompose = useMail((s) => s.openCompose);
   const dark = useMail((s) => s.dark);
   const toggleDark = useMail((s) => s.toggleDark);
@@ -155,19 +203,36 @@ function SidebarContent({
           <Kbd className={cn("hidden md:inline-flex", tn.kbd)}>⌘K</Kbd>
         </button>
         {onCollapse && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                type="button"
-                onClick={onCollapse}
-                aria-label="Replier la barre latérale"
-                className={cn("flex size-9 shrink-0 items-center justify-center rounded-lg transition-colors", tn.bar)}
-              >
-                <PanelLeftClose className="size-4" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">Replier · ⌘B</TooltipContent>
-          </Tooltip>
+          <>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  onClick={toggleSide}
+                  aria-label={cote === "left" ? "Passer la barre à droite" : "Passer la barre à gauche"}
+                  className={cn("flex size-9 shrink-0 items-center justify-center rounded-lg transition-colors", tn.bar)}
+                >
+                  {cote === "left" ? <PanelRight className="size-4" /> : <PanelLeft className="size-4" />}
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                {cote === "left" ? "Passer à droite" : "Passer à gauche"}
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  onClick={onCollapse}
+                  aria-label="Replier la barre latérale"
+                  className={cn("flex size-9 shrink-0 items-center justify-center rounded-lg transition-colors", tn.bar)}
+                >
+                  <PanelLeftClose className="size-4" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">Replier · ⌘B</TooltipContent>
+            </Tooltip>
+          </>
         )}
       </div>
 

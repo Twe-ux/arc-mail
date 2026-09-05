@@ -39,6 +39,19 @@ Voir [Fournisseurs de mail](roadmap/fournisseurs-mail.md) pour le plan complet e
 - [ ] `listFolders` pour les compteurs de non-lus sans tout lire ; cache avec péremption pour ne
       pas relire un espace à chaque retour
 
+## À valider ou à effacer
+
+Essais portés d'`arc-messenger` sur le bureau (5 sept.), poussés sur `preview` **sans avancer
+`main`** :
+
+- [ ] La barre repliée revient **au survol du bord** au lieu de disparaître (bande de 14 px, panneau
+      flottant qui emporte le fond du bureau avec lui).
+- [ ] La barre se range **à gauche ou à droite** (bouton à côté du repli, choix persisté).
+
+Non repris : le style plat violet, les bulles de conversation, la barre de catégories réordonnable
+et le panneau de réglages déplaçable — le premier change le langage visuel d'Arc Mail, les autres
+appartiennent à une app de messagerie instantanée.
+
 ## Reste de l'état des lieux du 4 septembre
 
 Voir la [synthèse](audits/2026-09-04/README.md) pour le détail et les arbitrages.

@@ -24,6 +24,8 @@ export type MailState = {
   sidebarOpen: boolean;
   /** Desktop only: the sidebar folded away, the window kept. */
   sidebarCollapsed: boolean;
+  /** Essai : de quel côté la barre latérale se range, sur bureau. */
+  sidebarSide: "left" | "right";
   /** The attachment being looked at, `null` when none; it lives in the open thread. */
   previewId: string | null;
   dark: boolean;
@@ -70,6 +72,7 @@ export type MailState = {
   /** Posé une fois par `SpacesInit`, avec ce que le serveur a lu. */
   setSpaces: (spaces: Space[]) => void;
   toggleSidebarCollapsed: () => void;
+  toggleSidebarSide: () => void;
   setPreview: (attachmentId: string | null) => void;
   toggleDark: () => void;
   /**
@@ -415,6 +418,7 @@ export const useMail = create<MailState>()(
   commandOpen: false,
   sidebarOpen: false,
   sidebarCollapsed: false,
+  sidebarSide: "left",
   previewId: null,
   dark: false,
   threads: [],
@@ -582,6 +586,8 @@ export const useMail = create<MailState>()(
       return { spaces, spaceId, threads, selectedThreadId: null };
     }),
   toggleSidebarCollapsed: () => set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
+  toggleSidebarSide: () =>
+    set((s) => ({ sidebarSide: s.sidebarSide === "left" ? "right" : "left" })),
   setPreview: (previewId) => set({ previewId }),
   toggleDark: () => set((s) => ({ dark: !s.dark })),
 
@@ -820,7 +826,7 @@ export const useMail = create<MailState>()(
       migrate: (persisted) =>
         persisted as Pick<
           MailState,
-          "themes" | "dark" | "splitView" | "sidebarCollapsed" | "recent" | "threads"
+          "themes" | "dark" | "splitView" | "sidebarCollapsed" | "sidebarSide" | "recent" | "threads"
         >,
       /* Ce qui doit survivre à un rechargement : les préférences, et de quoi
          montrer une liste tout de suite. Le composeur est passager. */
@@ -829,6 +835,7 @@ export const useMail = create<MailState>()(
         dark: s.dark,
         splitView: s.splitView,
         sidebarCollapsed: s.sidebarCollapsed,
+        sidebarSide: s.sidebarSide,
         recent: s.recent,
         threads: enMemoire(s.threads),
       }),

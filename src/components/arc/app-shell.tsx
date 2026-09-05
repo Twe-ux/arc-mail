@@ -33,6 +33,7 @@ export function AppShell() {
   const folderId = useMail((s) => s.folderId);
   const loadSpace = useMail((s) => s.loadSpace);
   const previewId = useMail((s) => s.previewId);
+  const sidebarSide = useMail((s) => s.sidebarSide);
 
   useKeyboardShortcuts();
 
@@ -84,7 +85,12 @@ export function AppShell() {
   return (
     <TooltipProvider>
       <div
-        className="space-wash fixed inset-0 flex flex-col pt-[var(--safe-top)] transition-[background] duration-500 md:flex-row md:gap-2 md:p-2 md:space-backdrop"
+        className={cn(
+          "space-wash fixed inset-0 flex flex-col pt-[var(--safe-top)] transition-[background] duration-500 md:gap-2 md:p-2 md:space-backdrop",
+          /* Essai : la barre peut se ranger à droite. Inverser la rangée
+             suffit — rien d'autre ne connaît son côté. */
+          sidebarSide === "right" ? "md:flex-row-reverse" : "md:flex-row",
+        )}
         style={{ "--space-gradient": space.theme.gradient, "--space-accent": space.theme.accent } as CSSProperties}
       >
         <Sidebar />

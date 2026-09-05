@@ -95,7 +95,11 @@ export function AppShell() {
      s'il reste un message à côté : sinon on n'aurait plus que lui. */
   const listeCede = troisiemeOuvert && hasSelection && !troisColonnes;
   const listOnDesktop = (splitView || !hasSelection) && !listeCede;
-  const viewOnDesktop = splitView || hasSelection;
+  /* **Rien d'ouvert, pas de colonne de lecture.** Elle rendait « Sélectionne une
+     conversation » sur les deux tiers de la fenêtre pendant que la liste tenait
+     dans 360 px : la liste *est* ce qu'on regarde tant qu'on n'a rien ouvert, et
+     c'est elle qui prend la place. */
+  const viewOnDesktop = hasSelection;
 
   /* Les trois pistes. Le composeur n'en prend aucune : c'est une **fenêtre
      posée sur la boîte**, pas une colonne — il ne dispute donc plus sa largeur
@@ -129,7 +133,12 @@ export function AppShell() {
           className="flex min-h-0 min-w-0 flex-1 overflow-hidden text-foreground md:grid md:grid-rows-1 md:rounded-xl md:bg-background md:shadow-2xl md:ring-1 md:ring-black/10"
           style={{ gridTemplateColumns: `${gauche} ${partage ? "11px" : "0px"} ${droite}` }}
         >
+          {/* **Pleine largeur tant qu'aucun message n'est ouvert** : la liste
+              prend toute la fenêtre et passe en rangées d'une ligne, comme une
+              boîte de courrier large. Ouvrir un message la ramène à sa colonne
+              de 360 px à côté de la lecture, et fermer la lecture la rend. */}
           <ThreadList
+            large={!hasSelection}
             className={cn(
               "w-full min-w-0 md:col-start-1 md:row-start-1 md:w-auto",
               hasSelection ? "hidden" : "flex",

@@ -141,7 +141,9 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - Les boîtes sont des tuiles de verre (`SpaceTile`) à **point d'accent** ; nom, adresse et raccourci
   passent en infobulle — sans le fond coloré, la tuile ne dit plus laquelle c'est.
 - Rangées : rayon 10, `pr` **14** (pas 40), l'étoile se superpose et la date lui fait place au
-  survol ; la densité se publie en `data-densite` sur la colonne.
+  survol ; densité et pleine largeur se publient en `data-densite` / `data-large` sur la colonne.
+- **Rien d'ouvert : la liste prend toute la fenêtre**, en rangées d'une ligne ; un message ouvert la
+  ramène à 360 px à côté de la lecture, et la croix de la lecture (ou `Échap`) lui rend la place.
 - En-tête de conversation : Archiver et Supprimer **dehors**, pas de « Répondre » (le champ est en
   bas, hors du défilant) ; un bloc de message se clique pour le détacher, et c'est le bouton du
   survol qui vise la réponse.

@@ -132,6 +132,12 @@ export function ThreadRow({
              dessous. L'étoile se pose par-dessus, la date lui fait de la place
              au survol. */
           "relative flex w-full cursor-pointer touch-pan-y items-start gap-3 bg-card px-4 py-3.5 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring/50 md:rounded-[10px] md:bg-transparent md:py-2.5 md:pr-3.5 md:pl-3 md:transition-colors md:group-data-[densite=compact]/liste:py-1.5",
+          /* **Pleine largeur : une seule ligne.** Trois lignes empilées sur
+             1400 px de colonne, c'est une rangée de 76 px pour une phrase et
+             deux tiers de vide à droite. La liste devient alors ce qu'une boîte
+             large doit être — un tableau qu'on balaie — et retrouve ses trois
+             lignes dès qu'elle se range à 360 px à côté d'un message. */
+          "md:group-data-[large=true]/liste:items-center md:group-data-[large=true]/liste:py-1.5",
           active ? "md:bg-accent" : "md:hover:bg-accent/60",
         )}
       >
@@ -143,10 +149,13 @@ export function ThreadRow({
           aria-hidden
           className="pointer-events-none absolute inset-x-2 inset-y-1 rounded-2xl bg-foreground/[0.07] opacity-0 transition-opacity duration-200 ease-out group-data-[press=true]/swipe:opacity-100 group-data-[press=true]/swipe:duration-0 md:hidden"
         />
-        <span className="relative flex w-full items-start gap-3 transition-transform duration-200 ease-out group-data-[press=true]/swipe:scale-[0.985] group-data-[press=true]/swipe:duration-100 md:transition-none">
-          <ContactAvatar contact={last.from} className="mt-0.5 size-10 md:size-9" />
-          <span className="min-w-0 flex-1">
-            <span className="flex items-center gap-2">
+        <span className="relative flex w-full items-start gap-3 transition-transform duration-200 ease-out group-data-[press=true]/swipe:scale-[0.985] group-data-[press=true]/swipe:duration-100 md:transition-none md:group-data-[large=true]/liste:items-center md:group-data-[large=true]/liste:gap-2.5">
+          <ContactAvatar contact={last.from} className="mt-0.5 size-10 md:size-9 md:group-data-[large=true]/liste:mt-0 md:group-data-[large=true]/liste:size-6" />
+          <span className="min-w-0 flex-1 md:group-data-[large=true]/liste:flex md:group-data-[large=true]/liste:items-center md:group-data-[large=true]/liste:gap-2.5">
+            {/* L'expéditeur prend une colonne fixe en pleine largeur : c'est ce
+                qui aligne les objets les uns sous les autres, et sans cet
+                alignement la liste ne se balaie plus. */}
+            <span className="flex items-center gap-2 md:group-data-[large=true]/liste:w-44 md:group-data-[large=true]/liste:shrink-0">
               {thread.unread && (
                 <span className="size-2 shrink-0 rounded-full" style={{ backgroundColor: accent }}>
                   <span className="sr-only">Non lu</span>
@@ -165,6 +174,12 @@ export function ThreadRow({
                 className={cn(
                   "ml-auto shrink-0 text-xs text-muted-foreground transition-[margin] tabular-nums",
                   thread.starred ? "md:me-[22px]" : "md:group-hover:me-[22px]",
+                  /* En pleine largeur la date part à l'autre bout de la ligne :
+                     elle est donc écrite deux fois, et chaque état en cache une
+                     — la déplacer par le CSS demanderait de la sortir du bloc
+                     de l'expéditeur, où elle est chez elle quand la colonne est
+                     étroite. */
+                  "md:group-data-[large=true]/liste:hidden",
                 )}
               >
                 {formatShortDate(last.date)}
@@ -175,6 +190,8 @@ export function ThreadRow({
               className={cn(
                 "block truncate text-[15px] md:text-sm",
                 thread.unread ? "font-medium text-foreground" : "text-muted-foreground",
+                "md:group-data-[large=true]/liste:max-w-[46%] md:group-data-[large=true]/liste:shrink-0",
+                thread.unread && "md:group-data-[large=true]/liste:font-semibold",
               )}
             >
               {thread.subject}
@@ -182,7 +199,7 @@ export function ThreadRow({
             {/* En densité compacte la rangée perd son aperçu : c'est la ligne
                 qui coûte le plus de hauteur et la moins nécessaire quand on
                 balaie une longue liste. */}
-            <span className="mt-1 flex items-center gap-2 md:group-data-[densite=compact]/liste:hidden">
+            <span className="mt-1 flex min-w-0 items-center gap-2 md:group-data-[densite=compact]/liste:hidden md:group-data-[large=true]/liste:mt-0 md:group-data-[large=true]/liste:flex-1">
               <span className="min-w-0 flex-1 truncate text-[13px] text-muted-foreground md:text-xs">
                 {thread.snippet}
               </span>
@@ -190,6 +207,18 @@ export function ThreadRow({
                 <LabelChip key={label} label={label} />
               ))}
             </span>
+            {/* La date, au bout de la ligne. Voir plus haut : deux exemplaires,
+                un par disposition. */}
+            <time
+              dateTime={last.date}
+              suppressHydrationWarning
+              className={cn(
+                "hidden shrink-0 text-xs text-muted-foreground transition-[margin] tabular-nums md:group-data-[large=true]/liste:block",
+                thread.starred ? "md:me-[22px]" : "md:group-hover:me-[22px]",
+              )}
+            >
+              {formatShortDate(last.date)}
+            </time>
           </span>
         </span>
       </button>

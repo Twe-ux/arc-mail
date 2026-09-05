@@ -2,7 +2,6 @@
 
 import {
   Archive,
-  ArrowLeft,
   Clock,
   Forward,
   Mail,
@@ -11,6 +10,7 @@ import {
   ReplyAll,
   Star,
   Trash2,
+  X,
   type LucideIcon,
 } from "lucide-react";
 import { useState } from "react";
@@ -35,9 +35,10 @@ import { ThreadDetails } from "./thread-details";
  * deux entrées pour un même geste sèment le doute sur ce qu'elles font de
  * différent.
  *
- * Le retour ne se rend qu'en vue pleine : en vue partagée la liste n'a jamais
- * quitté l'écran, et une flèche qui ne ramène nulle part est un contrôle mort
- * de 30 px qui décale tout l'en-tête.
+ * **Fermer la lecture est à gauche**, là où la barre latérale a mis le retour :
+ * refermer rend sa pleine largeur à la liste, qui s'y étale en rangées d'une
+ * ligne. Ce n'est plus une flèche — on ne recule pas d'un écran, on referme un
+ * volet — et ce n'est plus conditionnel : l'action existe dans les deux vues.
  */
 export function ThreadHeaderDesktop({
   thread,
@@ -54,7 +55,6 @@ export function ThreadHeaderDesktop({
   onTrash: () => void;
   onSnooze: () => void;
 }) {
-  const splitView = useMail((s) => s.splitView);
   const selectThread = useMail((s) => s.selectThread);
   const toggleUnread = useMail((s) => s.toggleUnread);
   const toggleStar = useMail((s) => s.toggleStar);
@@ -65,11 +65,14 @@ export function ThreadHeaderDesktop({
 
   return (
     <header className="hidden shrink-0 items-center gap-1 border-b border-black/[0.06] px-3.5 py-3 md:flex dark:border-white/10">
-      {!splitView && (
-        <Case label="Retour" onClick={() => selectThread(null)}>
-          <ArrowLeft />
-        </Case>
-      )}
+      {/* **Fermer la lecture, toujours.** Elle n'était là qu'en vue pleine, où
+          elle ramenait à la liste ; en vue partagée la liste n'ayant jamais
+          quitté l'écran, une flèche n'avait rien à ramener. Mais depuis que la
+          liste s'étale sur toute la fenêtre quand rien n'est ouvert, refermer
+          la lecture *fait* quelque chose : elle lui rend la place. */}
+      <Case label="Fermer la lecture · Échap" onClick={() => selectThread(null)}>
+        <X />
+      </Case>
       <ContactAvatar contact={dernier.from} className="size-[34px] shrink-0" />
       {/* **16 px avant la première case**, pas 4 : un objet long — un rapport
           DMARC, un identifiant de suivi — venait coller ses points de suspension

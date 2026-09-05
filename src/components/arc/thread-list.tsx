@@ -22,7 +22,7 @@ import { ListHeader } from "./list-header";
 import { ListHeaderDesktop } from "./list-header-desktop";
 import { Attente, RangeeCorrespondant, Sentinelle, ThreadRow, Vide } from "./thread-row";
 
-export function ThreadList({ className }: { className?: string }) {
+export function ThreadList({ className, large }: { className?: string; large?: boolean }) {
   const folder = useMail(selectFolder);
   const space = useSpace();
   const threads = useVisibleThreads();
@@ -80,9 +80,13 @@ export function ThreadList({ className }: { className?: string }) {
     <section
       ref={colonneRef as React.RefObject<HTMLElement>}
       className={cn("group/liste min-h-0 min-w-0 flex-col", className)}
-      /* La densité est publiée ici et lue par les rangées : un attribut sur la
-         colonne, pas un prop passé à chacune des cinquante. */
-      data-densite={listDensity}
+      /* Densité et pleine largeur sont publiées ici et lues par les rangées :
+         des attributs sur la colonne, pas des props passés à chacune des
+         cinquante. En pleine largeur la densité n'a plus d'objet — la rangée
+         tient déjà sur une ligne — et la laisser passer y aurait supprimé
+         l'aperçu, qui est justement ce que la disposition large montre. */
+      data-densite={large ? "confort" : listDensity}
+      data-large={large ? "true" : "false"}
       aria-label={folder.name}
     >
       <ListHeader />

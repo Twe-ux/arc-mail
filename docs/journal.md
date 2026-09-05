@@ -10,7 +10,9 @@ verre, la tête de liste sur deux rangées, les rangées au gabarit bureau et le
 de conversation avec son menu et ses détails, les blocs de message cliquables, et le troisième
 volet détaché (message ou fichier) avec sa gouttière et sa poignée.
 
-Puis une réponse a cessé de partir à tout le monde par défaut — l'expéditeur seul, et « à tous »
+Puis la liste du bureau a pris toute la fenêtre tant qu'aucun message n'est ouvert, en rangées d'une
+ligne, et la lecture a gagné sa croix pour lui rendre la place. Une réponse a cessé de partir à tout
+le monde par défaut — l'expéditeur seul, et « à tous »
 seulement s'il reste quelqu'un une fois toutes nos adresses retirées. L'en-tête du mail ouvert s'est
 mis à se replier quand on descend — 56 px rendus à la lecture
 sur un écran qui en fait 852 — et le `<style>` d'une infolettre a cessé de reprendre la marge du

@@ -83,6 +83,28 @@ Le filtre `Tous / Non lus` et le regroupement ne sont pas dans le handoff : ils 
 parce que l'état attaché n'a pas de tête du tout, et les perdre aurait retiré le seul chemin vers
 la vue par correspondant.
 
+## Deux dispositions, selon qu'un message est ouvert
+
+**Rien d'ouvert : la liste prend toute la fenêtre**, en rangées d'une ligne — expéditeur dans une
+colonne fixe de 176 px, objet, extrait, étiquettes, date au bout. C'est la disposition d'une boîte
+large : un tableau qu'on balaie. Avant, la colonne restait à 360 px et les deux tiers de la fenêtre
+rendaient « Sélectionne une conversation » ; la liste *est* ce qu'on regarde tant qu'on n'a rien
+ouvert, et c'est elle qui doit prendre la place.
+
+**Un message ouvert : deux colonnes**, la liste revenue à 360 px avec ses trois lignes, la lecture
+à côté. **Fermer la lecture** (la croix à gauche de son en-tête, ou `Échap`) lui rend la pleine
+largeur. La croix n'était là qu'en vue pleine, où elle ramenait à la liste ; en vue partagée elle
+n'avait rien à ramener — maintenant si.
+
+La bascule se lit sur la colonne (`data-large`), comme la densité : un attribut, pas un prop passé
+à chacune des cinquante rangées. En pleine largeur la densité n'a plus d'objet — la rangée tient
+déjà sur une ligne — et la laisser passer y aurait supprimé l'extrait, qui est justement ce que
+cette disposition montre.
+
+La date est **écrite deux fois**, une par disposition, chacune cachant l'autre : elle vit dans le
+bloc de l'expéditeur quand la colonne est étroite, et au bout de la ligne quand elle est large — la
+déplacer par le CSS demanderait de la sortir de ce bloc, où elle est chez elle.
+
 ## Les rangées
 
 Rayon **10**, `padding: 10px 14px 10px 12px`, `gap: 4px` entre rangées, `padding: 8px` sur la

@@ -112,7 +112,9 @@ Feuille plein écran encartée de 8 px, `rounded-[32px]`.
 - **Objet**, puis corps `flex-1 min-h-[120px]`.
 - **Pièces jointes** : le trombone ouvre un groupe de 5 lignes de 54 px — Photothèque `#3b82f6`, Prendre une photo `#a855f7`, Fichiers `#14b8a6`, Numériser un document `#f59e0b`, Signature de l'espace `#737373`. Les fichiers joints s'affichent en vignettes 14 px d'arrondi au-dessus de la barre : tuile 30, nom 13/500 tronqué, poids 11 `text-muted-foreground` (formaté par `formatSize`), croix ronde 24 pour retirer.
 - **Mise en forme** : le bouton `Type` ouvre un panneau `rounded-3xl bg-[#26262a]` — gras / italique / souligné / barré, alignement (radio), puces / numéros / citation, police, taille 11→22 px, lien. L'actif prend `color-mix(in oklch, var(--space-accent) 26%, transparent)` + texte blanc. Souligné et barré s'excluent ; puces, numéros et citation s'excluent.
-- **Les deux panneaux sont mutuellement exclusifs** (ouvrir l'un ferme l'autre) — sinon la feuille débordait.
+- **Options du brouillon** : le `⋯` ouvre son propre menu — Enregistrer le brouillon (`FileText`), Programmer l'envoi (`Clock`), Insérer la signature (`PenLine`), Supprimer le brouillon (`Trash2`, `#f87171`). Feuille de 8 px d'encart, lignes de 54 px, séparateurs 8 % de blanc, **voile `rgba(0,0,0,.4)` derrière** qui referme au toucher. Ne pas y remettre les entrées de lecture (Répondre à tous, Transférer) : elles n'ont aucun sens dans un brouillon.
+- **Les trois panneaux sont mutuellement exclusifs** (ouvrir l'un ferme les autres) — sinon la feuille débordait.
+- **Piège d'état rencontré** : le menu du brouillon doit vivre sur un indicateur **distinct** de celui qui porte le composeur. Tant qu'il partageait la même clé (`sheet`), l'ouvrir démontait le composeur. Le menu se superpose, il ne remplace pas.
 - Barre du bas : pill d'icônes (trombone, `Type`, `⋯`) + **bouton rond 68 px** d'envoi, exactement comme l'écran principal.
 
 ### 7. Recherche (`1h`, onglet loupe)
@@ -174,10 +176,10 @@ Contraintes apprises en route, à respecter :
 
 - `folderId` (existe) — piloté aussi par les tuiles et la feuille Dossiers.
 - `spaceId` (existe) — piloté par le balayage, la case d'espace, les pastilles de la feuille.
-- Composeur : `attachOpen`, `attachments[]`, `formatOpen`, `format { bold, italic, under, strike, bullets, numbers, quote }`, `align`, `size` — local au composeur, sauf `attachments` qui rejoint le brouillon.
+- Composeur : `attachOpen`, `attachments[]`, `formatOpen`, `format { bold, italic, under, strike, bullets, numbers, quote }`, `align`, `size` — local au composeur, sauf `attachments` qui rejoint le brouillon. **`draftMenuOpen` est une clé à part**, jamais une valeur de l'état de feuille (voir le piège signalé plus haut).
 - Lecture : `replyOpen`, cible de réponse (`aim`, déjà dans `thread-view.tsx`), `sheet: null | "move" | "more"`.
 - Personnalisation : teinte par espace (déjà persistée par `theme-picker.tsx`).
-- Feuilles : un seul état `sheet` par écran — deux feuilles ne doivent jamais coexister.
+- Feuilles : un seul état `sheet` par écran — deux feuilles ne doivent jamais coexister, **sauf le menu du brouillon**, qui se superpose au composeur et garde donc sa propre clé.
 
 ## Tokens
 
@@ -209,7 +211,7 @@ Aucun nouvel asset. Les avatars restent générés (`hueFor` + `initials` de `sr
 
 ### Captures du parcours (`screens/`)
 
-Rendus du parcours cliquable `2a`, dans l'ordre : `01-liste` · `02-lecture-pill` · `03-deplacer-vers` · `04-dossiers` · `05-personnalisation` · `06-composeur-pieces-jointes` · `07-composeur-mise-en-forme` · `08-recherche`.
+Rendus du parcours cliquable `2a`, dans l'ordre : `01-liste` · `02-lecture-pill` · `03-deplacer-vers` · `04-dossiers` · `05-personnalisation` · `06-composeur-pieces-jointes` · `07-composeur-mise-en-forme` · `08-recherche` · `09-composeur-options-brouillon`.
 
 > Les icônes n'apparaissent pas sur ces captures : le prototype les dessine via un sprite SVG (`<use href="#…">`) que le rasteriseur ne résout pas. Elles sont bien là dans le fichier HTML — **ouvrir `Arc Mail.dc.html` dans un navigateur** pour voir les écrans complets et interagir avec. Les captures servent à la mise en page et aux proportions ; la liste nominative des icônes Lucide est plus haut.
 

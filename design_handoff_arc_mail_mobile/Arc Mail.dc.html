@@ -209,6 +209,16 @@ a{color:#6d28d9}a:hover{color:#4c1d95}
     </div>
   </sc-if>
 
+  <sc-if value="{{ pSheetDraft }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ pCloseDraftMenu }}" style="position:absolute;inset:0;z-index:6;background:rgba(0,0,0,.4)"></div>
+    <div style="position:absolute;left:8px;right:8px;bottom:8px;z-index:7;border-radius:32px;background:#1c1c1e;border:1px solid rgba(255,255,255,.12);box-shadow:0 -10px 40px rgba(0,0,0,.5);overflow:hidden;padding:8px">
+      <button type="button" onClick="{{ pSaveDraft }}" style="width:100%;display:flex;align-items:center;gap:14px;min-height:54px;padding:0 14px;background:none;border:0;color:inherit;font:inherit;text-align:left;cursor:pointer"><svg class="ico s20" style="color:#a3a3a3"><use href="#i-draft"/></svg><span style="flex:1">Enregistrer le brouillon</span></button>
+      <button type="button" onClick="{{ pSchedule }}" style="width:100%;display:flex;align-items:center;gap:14px;min-height:54px;padding:0 14px;background:none;border:0;color:inherit;font:inherit;text-align:left;cursor:pointer;border-top:1px solid rgba(255,255,255,.08)"><svg class="ico s20" style="color:#a3a3a3"><use href="#i-clock"/></svg><span style="flex:1">Programmer l'envoi</span></button>
+      <button type="button" onClick="{{ pAddSignature }}" style="width:100%;display:flex;align-items:center;gap:14px;min-height:54px;padding:0 14px;background:none;border:0;color:inherit;font:inherit;text-align:left;cursor:pointer;border-top:1px solid rgba(255,255,255,.08)"><svg class="ico s20" style="color:#a3a3a3"><use href="#i-pen"/></svg><span style="flex:1">Insérer la signature</span></button>
+      <button type="button" onClick="{{ pDiscardDraft }}" style="width:100%;display:flex;align-items:center;gap:14px;min-height:54px;padding:0 14px;background:none;border:0;color:#f87171;font:inherit;text-align:left;cursor:pointer;border-top:1px solid rgba(255,255,255,.08)"><svg class="ico s20"><use href="#i-trash"/></svg><span style="flex:1">Supprimer le brouillon</span></button>
+    </div>
+  </sc-if>
+
   <sc-if value="{{ pSheetSearch }}" hint-placeholder-val="{{ false }}">
     <div style="position:absolute;left:8px;right:8px;bottom:8px;z-index:5;border-radius:32px;background:#1c1c1e;border:1px solid rgba(255,255,255,.12);overflow:hidden;display:flex;flex-direction:column;max-height:82%">
       <div style="flex:none;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.1);display:flex;align-items:center;gap:12px">
@@ -324,7 +334,7 @@ a{color:#6d28d9}a:hover{color:#4c1d95}
         <div style="display:flex;align-items:center;gap:0;padding:8px 10px;border-radius:999px;background:rgba(28,28,30,.86);backdrop-filter:blur(28px);border:1px solid rgba(255,255,255,.12);box-shadow:0 10px 34px rgba(0,0,0,.45)">
           <button type="button" onClick="{{ pToggleAttach }}" aria-label="Ajouter une pièce jointe" style="{{ pAttachBtn }}" style-hover="background:rgba(255,255,255,.1)"><svg class="ico s24"><use href="#i-paperclip"></use></svg></button>
           <button type="button" onClick="{{ pToggleFmt }}" aria-label="Mise en forme" style="{{ pFmtBtn }}" style-hover="background:rgba(255,255,255,.1)"><svg class="ico s24"><use href="#i-type"></use></svg></button>
-          <button type="button" onClick="{{ pOpenMore }}" aria-label="Plus d'actions" style="width:52px;height:52px;flex:none;border-radius:999px;border:0;background:none;color:#e5e5e5;display:grid;place-items:center;cursor:pointer" style-hover="background:rgba(255,255,255,.1)"><svg class="ico s24"><use href="#i-dots"></use></svg></button>
+          <button type="button" onClick="{{ pOpenDraftMenu }}" aria-label="Options du brouillon" style="width:52px;height:52px;flex:none;border-radius:999px;border:0;background:none;color:#e5e5e5;display:grid;place-items:center;cursor:pointer" style-hover="background:rgba(255,255,255,.1)"><svg class="ico s24"><use href="#i-dots"></use></svg></button>
         </div>
         <button type="button" onClick="{{ pSend }}" aria-label="Envoyer" style="width:68px;height:68px;flex:none;border-radius:999px;display:grid;place-items:center;color:#fff;border:0;cursor:pointer;box-shadow:0 10px 30px rgba(0,0,0,.4);background:{{ pAcctGradient }}"><svg class="ico s24" style="stroke-width:2"><use href="#i-send"></use></svg></button>
       </div>
@@ -1103,8 +1113,17 @@ class Component extends DCLogic {
       pOpenCompose: () => this.setState({ pSheet: "compose" }),
       pOpenMove: () => this.setState({ pSheet: "move" }),
       pOpenMore: () => this.setState({ pSheet: "more" }),
+      /* Le composeur est lui-même une valeur de pSheet : son menu vit à part
+         pour ne pas le démonter. */
+      pSheetDraft: !!s.pDraftMenu,
+      pOpenDraftMenu: () => this.setState({ pDraftMenu: true, pAttach: false, pFmtOpen: false }),
+      pCloseDraftMenu: () => this.setState({ pDraftMenu: false }),
+      pSaveDraft: () => { this.setState({ pDraftMenu: false, pSheet: null, pScreen: "list" }); this.toast("Brouillon enregistré"); },
+      pSchedule: () => { this.setState({ pDraftMenu: false }); this.toast("Envoi programmé à demain 9 h"); },
+      pAddSignature: () => { this.setState({ pDraftMenu: false }); this.toast("Signature insérée"); },
+      pDiscardDraft: () => { this.setState({ pDraftMenu: false, pSheet: null, pScreen: "list", pFiles: [], pAttach: false, pFmtOpen: false }); this.toast("Brouillon supprimé"); },
       pOpenReply: () => this.setState({ pSheet: "reply" }),
-      pSend: () => { this.setState({ pSheet: null, pScreen: "list", pMail: null, pAttach: false, pFiles: [], pFmtOpen: false, pFmt: {}, pAlign: "left", pSize: 16 }); this.toast("Message envoyé"); },
+      pSend: () => { this.setState({ pSheet: null, pDraftMenu: false, pScreen: "list", pMail: null, pAttach: false, pFiles: [], pFmtOpen: false, pFmt: {}, pAlign: "left", pSize: 16 }); this.toast("Message envoyé"); },
       pBack: () => this.setState({ pScreen: "list", pMail: null, pSheet: null }),
       pNextAcct: () => this.setState((st) => ({ acct: (st.acct + 1) % ACCTS.length, pScreen: "list", pMail: null, pSheet: null, pFolder: "inbox" })),
       pGoInbox: () => this.pGo("inbox"),

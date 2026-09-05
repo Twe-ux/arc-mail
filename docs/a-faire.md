@@ -29,7 +29,7 @@ Voir [Fournisseurs de mail](roadmap/fournisseurs-mail.md) pour le plan complet e
       retenues, images jointes affichées (5 sept.)
 - [x] Ouverture immédiate : enveloppes gardées entre deux sessions, squelette de liste, deux
       allers-retours IMAP en moins (5 sept.)
-- [ ] Cache des aperçus : la liste IMAP n'a pas de ligne de résumé tant qu'on n'a pas ouvert
+- [x] Aperçus dans la liste IMAP : 2 Ko de corps demandés avec l'enveloppe, décodés à la main (5 sept.)
 - [x] Espaces comme *vues* : un dossier vu et vécu comme une boîte de réception, une identité
       d'envoi par espace (4 sept.)
 - [ ] Mode `filter` des espaces : `INBOX` filtrée par destinataire, pour se passer d'une règle

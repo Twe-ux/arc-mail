@@ -81,8 +81,28 @@ d'un coup et ne repasse jamais par là.
 L'hydratation **complète** le fil de la liste, elle ne le remplace pas : la liste a regroupé
 plusieurs messages, la lecture n'en rend qu'un — remplacer perdrait les autres.
 
-**Conséquence visible** : dans une liste venant d'IMAP, la ligne d'aperçu est vide tant qu'on n'a
-pas ouvert la conversation. Un cache des aperçus viendra ; il n'existe pas encore.
+### L'aperçu vient avec l'enveloppe
+
+La ligne sous l'objet ne vaut pas un aller-retour par message. Elle arrive donc dans **la même
+commande** : `bodyParts: [{ key: "TEXT", start: 0, maxLength: 2048 }]` — les deux premiers
+kilo-octets du corps, demandés avec l'enveloppe et les drapeaux. `bodyParts` passe par `BODY.PEEK`,
+donc **lire un aperçu ne marque pas comme lu**.
+
+Ce qu'on reçoit n'est pas un message mais son début, coupé au milieu d'une partie MIME.
+`mailparser` ne peut rien en faire : il lui faudrait les en-têtes du message pour connaître la
+frontière des parties, et les demander doublerait les octets d'une liste pour une ligne de 200
+caractères. `apercu.ts` lit donc à la main — première partie textuelle, quoted-printable ou base64
+défait (tronqué au bloc de quatre près), balises retirées si c'est du HTML.
+
+Deux pièges, tous deux trouvés en le mesurant :
+
+- **s'arrêter à la frontière suivante**, sinon l'aperçu d'un `multipart/alternative` finit par
+  « `--_000_boundary_ Content-Type: text/html` » — la version HTML du même texte, recopiée ;
+- **un corps 8 bits sans jeu de caractères déclaré** : on parie sur UTF-8 et on retombe sur
+  latin-1 si le décodage rend des caractères de remplacement. Le pari inverse ne se détecterait
+  pas, le latin-1 acceptant n'importe quel octet.
+
+Sans aperçu lisible, la ligne reste vide : une ligne absente vaut mieux qu'une ligne fausse.
 
 ## Le HTML d'un message
 

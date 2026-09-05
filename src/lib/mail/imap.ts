@@ -10,6 +10,7 @@ import { simpleParser } from "mailparser";
 
 import type { StoredAccount } from "@/lib/accounts/server";
 import type { Contact, FolderId, Message, Thread } from "@/lib/types";
+import { apercuDe } from "./apercu";
 import { inlineImages, nettoyer } from "./html";
 
 /**
@@ -24,12 +25,24 @@ import { inlineImages, nettoyer } from "./html";
  * nulle part ailleurs : `\Seen` inversé, `\Flagged`, un chemin de dossier.
  */
 
-/** Ce qu'une lecture rapporte du serveur, sans le corps des messages. */
+/**
+ * Ce qu'une lecture rapporte du serveur : l'enveloppe, et **les premiers
+ * octets du corps** pour la ligne d'aperçu.
+ *
+ * Les deux dans la même commande : un aperçu qui coûterait un aller-retour de
+ * plus par message ne vaudrait pas la ligne qu'il donne. 2 Ko suffisent à
+ * remplir 200 caractères, même une fois l'encodage défait.
+ *
+ * `bodyParts` passe par `BODY.PEEK` — lire un aperçu ne marque pas comme lu.
+ */
+const APERCU_OCTETS = 2048;
+
 const ENVELOPE_QUERY: FetchQueryObject = {
   uid: true,
   flags: true,
   envelope: true,
   headers: ["references"],
+  bodyParts: [{ key: "TEXT", start: 0, maxLength: APERCU_OCTETS }],
 };
 
 /** Combien de messages une boîte rend par lecture. Au-delà, iCloud rame et personne ne défile. */
@@ -184,6 +197,21 @@ export function parseThreadId(id: string): { path: string; uid: number } | null 
 }
 
 /**
+ * Le fragment de corps rendu par le serveur, quelle que soit la façon dont il
+ * nomme la partie.
+ *
+ * Une lecture partielle revient en `BODY[TEXT]<0>`, et imapflow garde l'octet
+ * d'origine dans la clé : chercher « text » à l'identique manquerait la
+ * réponse. On prend donc la première partie dont la clé commence par là.
+ */
+const fragment = (m: FetchMessageObject): Buffer | undefined => {
+  for (const [cle, valeur] of m.bodyParts ?? []) {
+    if (cle.toLowerCase().startsWith("text")) return valeur;
+  }
+  return undefined;
+};
+
+/**
  * Un fil sans espace : le fournisseur n'en connaît pas, c'est le store qui
  * tamponne à la réception (voir `stamp` dans `store.ts`).
  */
@@ -206,7 +234,10 @@ function toThread(group: FetchMessageObject[], path: string, folder: FolderId): 
     spaceId: "",
     folder,
     subject: last.envelope?.subject?.trim() || "(sans objet)",
-    snippet: "",
+    /* Le début du dernier message, décodé : c'est ce que la liste montre sous
+       l'objet. Vide si le fragment n'a pas pu être lu — une ligne absente vaut
+       mieux qu'une ligne fausse. */
+    snippet: apercuDe(fragment(last)),
     labels: [],
     unread: group.some((m) => !m.flags?.has("\\Seen")),
     starred: group.some((m) => m.flags?.has("\\Flagged")),

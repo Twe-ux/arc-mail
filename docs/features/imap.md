@@ -117,6 +117,12 @@ d'un coup et ne repasse jamais par là.
 Le corps arrive par une requête, et cette requête partait au moment du clic : l'attente était
 entièrement devant les yeux. Elle part maintenant plus tôt, de deux façons.
 
+**La tête d'abord.** Dix messages mettent plusieurs secondes à revenir — plus longtemps qu'il n'en
+faut pour toucher le premier de la liste, qui est justement celui qu'on ouvre. Les **trois
+premiers** partent donc seuls, et les sept autres derrière. Mesuré, 200 ms par message : la tête
+arrive à **626 ms**, le reste à **2123 ms**. En un seul lot de dix, tout arrivait après le doigt —
+autant ne rien précharger.
+
 **Par lots de dix, à mesure qu'on descend.** Le premier écran part avec la liste, en une seule
 requête (`getThreads`) ; une balise invisible posée au bout de chaque lot demande le suivant quand
 le défilement s'en approche (400 px avant, pas plus — plus large, la balise du deuxième lot est
@@ -136,9 +142,13 @@ préchargement est un bonus, jamais une dette. Et si le navigateur annonce l'éc
 **Précharger ne marque pas comme lu** : imapflow lit tout corps en `BODY.PEEK`. Sans cela, dix
 messages seraient passés en « lu » à chaque ouverture de la boîte.
 
-**Au premier appui** (`onPointerDown`), avant même le clic et l'ouverture de la vue — cent à trois
-cents millisecondes prises sur le geste plutôt que sur l'attente. À l'appui et **pas au survol** :
-un pointeur qui balaie la liste ferait descendre vingt messages qu'on ne lira pas.
+**Au premier appui** (`onPointerDown`), avant même le clic et l'ouverture de la vue — les
+millisecondes du geste, prises sur l'attente.
+
+**Au survol, après un temps d'arrêt de 150 ms.** Un pointeur qui traverse la liste passe sur vingt
+rangées en une seconde ; sans ce délai il ferait descendre vingt messages. Mesuré : huit rangées
+balayées à 20 ms ne déclenchent **rien**, la rangée sur laquelle le pointeur s'arrête déclenche
+**une** lecture.
 
 `prefetchThread` est silencieux par construction : un préchargement raté ne dit rien, la vraie
 ouverture réessaiera et parlera, elle. Et `remplir` tient la liste de ce qui est déjà en vol, pour

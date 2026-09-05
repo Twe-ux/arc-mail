@@ -266,6 +266,19 @@ function ThreadRow({
   onIntent: () => void;
   onStar: () => void;
 }) {
+  const minuteur = useRef<number | null>(null);
+  const quitte = () => {
+    if (minuteur.current !== null) window.clearTimeout(minuteur.current);
+    minuteur.current = null;
+  };
+  const survole = () => {
+    quitte();
+    minuteur.current = window.setTimeout(onIntent, 150);
+  };
+  /* Une rangée qui disparaît pendant qu'on la survole ne doit pas laisser son
+     minuteur derrière elle. */
+  useEffect(() => quitte, []);
+
   const last = thread.messages[thread.messages.length - 1];
   const isDraft = thread.folder === "drafts";
   const outgoing = isDraft || thread.folder === "sent";
@@ -284,11 +297,15 @@ function ThreadRow({
         type="button"
         aria-current={active ? "true" : undefined}
         onClick={onSelect}
-        /* Avant le clic, et avant l'ouverture de la vue : cent à trois cents
-           millisecondes de gagnées, prises sur le geste plutôt que sur
-           l'attente. À l'appui et pas au survol — un pointeur qui balaie la
-           liste ferait descendre vingt messages qu'on ne lira pas. */
+        /* Avant le clic, et avant l'ouverture de la vue : les millisecondes du
+           geste, prises sur l'attente. */
         onPointerDown={onIntent}
+        /* Au survol aussi, mais **après un temps d'arrêt** : un pointeur qui
+           traverse la liste passe sur vingt rangées en une seconde, et sans ce
+           délai il ferait descendre vingt messages. Cent cinquante
+           millisecondes suffisent à distinguer « je vise » de « je passe ». */
+        onPointerEnter={survole}
+        onPointerLeave={quitte}
         className={cn(
           "flex w-full cursor-pointer items-start gap-3 px-4 py-3 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring/50 md:rounded-lg md:px-3 md:py-2.5 md:pr-10",
           active ? "bg-accent" : "active:bg-accent/60 md:hover:bg-accent/60",

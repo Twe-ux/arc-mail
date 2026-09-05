@@ -253,6 +253,9 @@ const enVol = new Set<string>();
 /** Combien de fils par lot : à peu près un écran de liste. */
 export const LOT = 10;
 
+/** Ceux qu'on ouvre en premier, demandés à part pour qu'ils arrivent d'abord. */
+const TETE = 3;
+
 /**
  * Va chercher le corps d'un fil, une seule fois.
  *
@@ -441,11 +444,14 @@ export const useMail = create<MailState>()(
         loading: { ...s.loading, [spaceId]: false },
         error: null,
       }));
-      /* Le premier écran de la liste part chercher ses corps ensemble, en une
-         requête, pendant qu'on lit les objets ; la suite viendra au
-         défilement. Dix, parce que c'est ce qu'on voit — et le serveur
-         s'arrête de lui-même si dix infolettres pèsent trop. */
-      void precharger(fresh.slice(0, LOT).map((t) => t.id));
+      /* **La tête d'abord, le reste ensuite.** Dix messages mettent plusieurs
+         secondes à revenir — plus longtemps qu'il n'en faut pour toucher le
+         premier de la liste, qui est celui qu'on ouvre. On demande donc les
+         trois premiers, qui arrivent vite, puis les sept autres derrière. Un
+         seul lot de dix arrivait après le doigt, ce qui revenait à ne rien
+         précharger du tout. */
+      const ids = fresh.map((t) => t.id);
+      void precharger(ids.slice(0, TETE)).then(() => precharger(ids.slice(TETE, LOT)));
     } catch (err) {
       if (loadTokens.get(spaceId) !== token) return;
       done({ error: describe(err) });

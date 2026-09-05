@@ -143,9 +143,9 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   absent est une liste vide.
 - La liste ne rapporte que des enveloppes ; le corps arrive par `getThread` à l'ouverture, et
   l'hydratation complète le fil au lieu de le remplacer.
-- Il part avant le geste : **par lots de dix**, en un seul appel (`getThreads`), le premier avec la
-  liste et les suivants au défilement (`Sentinelle`, 400 px d'avance) ; et tout fil dès l'appui
-  (`prefetchThread`, muet, jamais au survol).
+- Il part avant le geste : **la tête (3) d'abord** puis le reste du lot de dix, en un seul appel
+  chacun (`getThreads`), les lots suivants au défilement (`Sentinelle`, 400 px d'avance) ; et tout
+  fil à l'appui, ou au survol **après 150 ms d'arrêt** (`prefetchThread`, muet).
 - Un lot s'arrête à **1,2 Mo** rendu, et rien ne se précharge si `saveData` est annoncé ; précharger
   ne marque jamais comme lu (`BODY.PEEK`).
 - Un corps qui n'est pas encore là montre un squelette ; un message sans texte le dit.

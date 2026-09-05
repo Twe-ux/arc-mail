@@ -15,6 +15,7 @@ import { ContactAvatar } from "./contact-avatar";
  */
 export function RecipientField({
   label,
+  placeholder,
   value,
   onChange,
   suggestions,
@@ -22,6 +23,12 @@ export function RecipientField({
   trailing,
 }: {
   label: string;
+  /**
+   * Un **exemple de format**, pas le nom du champ : celui-ci est déjà à
+   * gauche. Absent, la ligne vide se lit « Cc » et rien — ce qu'Apple Mail
+   * fait, et ce qui évite deux lignes jumelles pour Cc et Cci.
+   */
+  placeholder?: string;
   value: string[];
   onChange: (next: string[]) => void;
   suggestions: Contact[];
@@ -140,9 +147,11 @@ export function RecipientField({
         aria-controls={listId}
         aria-autocomplete="list"
         aria-invalid={invalid || undefined}
-        placeholder={value.length ? "" : "nom@exemple.fr"}
+        placeholder={value.length ? "" : (placeholder ?? "")}
         className={cn(
-          "h-7 min-w-28 flex-1 bg-transparent text-base outline-none placeholder:text-muted-foreground sm:text-sm",
+          /* L'invite est **plus pâle que le label** : à la même encre, les deux
+             se lisaient comme deux mots de même poids, l'un derrière l'autre. */
+          "h-7 min-w-28 flex-1 bg-transparent text-base outline-none placeholder:text-muted-foreground/60 sm:text-sm",
           invalid && "text-destructive underline decoration-wavy",
         )}
       />

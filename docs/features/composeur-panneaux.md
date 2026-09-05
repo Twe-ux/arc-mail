@@ -14,6 +14,18 @@ colonne a la place.
 L'envoi est descendu de l'en-tête vers le **bouton rond de 68 px** de la barre : c'est là que le
 pouce est, et c'est la même géométrie que sur l'écran principal.
 
+## Un nom par ligne, pas deux
+
+« Objet » était écrit deux fois : une fois en label à gauche, une fois en invite dans le champ. Et
+Cc et Cci, avec le même « nom@exemple.fr », donnaient deux lignes jumelles qu'on ne distinguait plus
+qu'au label.
+
+Le label nomme la ligne ; l'invite ne le répète pas. Il n'en reste qu'une, sur **À** — c'est le seul
+champ qu'il faut remplir, et « nom@exemple.fr » y dit un *format*, pas le nom de la ligne. Elle est
+aussi plus pâle que le label (`text-muted-foreground/60`) : à la même encre, les deux se lisaient
+comme deux mots de même poids l'un derrière l'autre. C'est ce que fait Apple Mail, dont ce composeur
+tient déjà sa forme.
+
 ## Les trois panneaux s'excluent
 
 Ouvrir l'un ferme l'autre, et ouvrir l'un **referme le clavier** : la carte ne fait que la hauteur

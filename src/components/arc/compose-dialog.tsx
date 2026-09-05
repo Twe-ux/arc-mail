@@ -487,6 +487,9 @@ function ComposeFields({
         value={draft.to}
         onChange={(to) => update({ to })}
         suggestions={contacts}
+        /* Le seul champ qui garde une invite : c'est celui qu'il faut remplir,
+           et « nom@exemple.fr » y dit un format, pas le nom de la ligne. */
+        placeholder="nom@exemple.fr"
         autoFocus={draft.to.length === 0}
         trailing={
           !details && (
@@ -544,11 +547,12 @@ function ComposeFields({
         </button>
       )}
       <Row label="Objet">
+        {/* Pas d'invite ici : « Objet » était écrit deux fois, une fois en
+            label et une fois dans le champ. */}
         <input
           value={draft.subject}
           onChange={(e) => update({ subject: e.target.value })}
-          placeholder="Objet"
-          className="h-full flex-1 bg-transparent text-[15px] font-medium outline-none placeholder:font-normal placeholder:text-muted-foreground sm:text-sm"
+          className="h-full flex-1 bg-transparent text-[15px] font-medium outline-none sm:text-sm"
         />
       </Row>
       <textarea

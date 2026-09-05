@@ -25,6 +25,8 @@ Voir [Fournisseurs de mail](roadmap/fournisseurs-mail.md) pour le plan complet e
 - [x] Gmail se branche comme iCloud (IMAP + mot de passe d'application), entrée par Apple (4 sept.)
 - [ ] `modify(): Promise<Thread>` — un déplacement change l'UID donc l'identifiant du fil
 - [ ] `listFolders` pour les compteurs de non-lus des dossiers qu'on n'a pas ouverts
+- [x] Lecture du HTML des messages : lavage serveur, `iframe` en bac à sable, images distantes
+      retenues, images jointes affichées (5 sept.)
 - [ ] Cache des aperçus : la liste IMAP n'a pas de ligne de résumé tant qu'on n'a pas ouvert
 - [x] Espaces comme *vues* : un dossier vu et vécu comme une boîte de réception, une identité
       d'envoi par espace (4 sept.)

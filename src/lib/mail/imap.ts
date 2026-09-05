@@ -10,6 +10,7 @@ import { simpleParser } from "mailparser";
 
 import type { StoredAccount } from "@/lib/accounts/server";
 import type { Contact, FolderId, Message, Thread } from "@/lib/types";
+import { inlineImages, nettoyer } from "./html";
 
 /**
  * IMAP, côté serveur uniquement.
@@ -312,8 +313,27 @@ export async function readThread(
     const thread = toThread([envelope], parsed.path, folder);
     const body = (mime.text ?? "").trim();
     thread.messages[0].body = body;
-    thread.snippet = body.split("\n").find((line) => line.trim())?.slice(0, 140) ?? "";
-    thread.messages[0].attachments = mime.attachments.map((a, i) => ({
+
+    /* La plupart des messages sont écrits en HTML, et une infolettre lue en
+       texte n'est plus qu'une liste d'URL entre crochets. On la lave ici, une
+       fois, côté serveur : le navigateur ne voit jamais le HTML d'origine. */
+    if (mime.html) {
+      const propre = nettoyer(mime.html, inlineImages(mime.attachments));
+      thread.messages[0].html = propre.html;
+      thread.messages[0].blockedImages = propre.bloquees;
+      /* L'aperçu vient du texte quand il existe, du HTML lavé sinon : un
+         message en HTML seul n'avait aucune ligne de résumé. */
+      if (!body) thread.messages[0].body = propre.texte.slice(0, 2000);
+    }
+
+    const apercu = thread.messages[0].body;
+    thread.snippet = apercu.split("\n").find((line) => line.trim())?.slice(0, 140) ?? "";
+
+    /* Les images du corps ne sont pas des pièces jointes : elles sont déjà
+       dans le message, les lister ferait une rangée de fichiers fantômes. */
+    thread.messages[0].attachments = mime.attachments
+      .filter((a) => !a.cid || !a.contentType?.startsWith("image/"))
+      .map((a, i) => ({
       id: `${id} ${i}`,
       name: a.filename ?? `pièce jointe ${i + 1}`,
       mime: a.contentType,

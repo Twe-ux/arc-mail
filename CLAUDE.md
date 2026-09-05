@@ -147,6 +147,10 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - Envoyer, c'est SMTP **puis** un `APPEND` dans « Envoyés » — un seul message composé pour les deux ;
   Gmail range déjà lui-même, on n'y ajoute rien. Une réponse porte `In-Reply-To` et `References`.
 - Un brouillon s'écrit avant que l'ancien ne parte ; le retirer, c'est la corbeille, pas `EXPUNGE`.
+- Le HTML d'un message est lavé **côté serveur** (`html.ts`) puis rendu dans une `iframe` **sans
+  `allow-same-origin`** ; jamais injecté dans la page. Fond blanc, même en sombre.
+- Les images distantes sont **retenues** (suivi à l'ouverture) et proposées par un bandeau ; les
+  images `cid:` deviennent des `data:` et ne comptent pas comme pièces jointes.
 - Un fournisseur ne connaît pas les espaces : il rend `spaceId: ""`, le store tamponne (`stamp`).
 
 **Espaces** → [docs/features/espaces.md](docs/features/espaces.md)

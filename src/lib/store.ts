@@ -153,7 +153,15 @@ const hydrate = (before: Thread, full: Thread): Thread => ({
   snippet: full.snippet || before.snippet,
   messages: before.messages.map((m) => {
     const filled = full.messages.find((x) => x.id === m.id);
-    return filled ? { ...m, body: filled.body, attachments: filled.attachments } : m;
+    return filled
+      ? {
+          ...m,
+          body: filled.body,
+          html: filled.html,
+          blockedImages: filled.blockedImages,
+          attachments: filled.attachments,
+        }
+      : m;
   }),
 });
 

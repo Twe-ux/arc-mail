@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import { AttachmentRow } from "./attachment";
 import { ContactAvatar } from "./contact-avatar";
 import { LabelChip } from "./label-chip";
+import { MessageBody } from "./message-body";
 
 export function ThreadView({ className }: { className?: string }) {
   const thread = useMail(selectSelectedThread);
@@ -239,7 +240,10 @@ function MessageCard({
           </p>
         </div>
       </button>
-      <p className="mt-4 text-[15px] leading-relaxed whitespace-pre-wrap md:text-sm">{message.body}</p>
+      <MessageBody
+        message={message}
+        className="mt-4 block text-[15px] leading-relaxed whitespace-pre-wrap md:text-sm"
+      />
       {message.attachments && message.attachments.length > 0 && (
         <AttachmentRow attachments={message.attachments} />
       )}

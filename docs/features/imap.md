@@ -74,6 +74,52 @@ plusieurs messages, la lecture n'en rend qu'un — remplacer perdrait les autres
 **Conséquence visible** : dans une liste venant d'IMAP, la ligne d'aperçu est vide tant qu'on n'a
 pas ouvert la conversation. Un cache des aperçus viendra ; il n'existe pas encore.
 
+## Le HTML d'un message
+
+La plupart des messages sont écrits en HTML. Lus en texte, ils deviennent une liste d'URL entre
+crochets — une infolettre n'y survit pas. On rend donc le HTML, et cela demande deux protections
+distinctes, pas une.
+
+**Le lavage, côté serveur** (`src/lib/mail/html.ts`, `sanitize-html`) : le navigateur ne voit jamais
+le HTML d'origine. Scripts, `<iframe>`, gestionnaires `onclick` retirés ; les liens repartent avec
+`target="_blank" rel="noreferrer noopener"`, sinon un clic remplacerait le message par le site de
+l'expéditeur, sans barre d'adresse pour le dire.
+
+`<style>` est **gardé** — c'est lui qui porte la mise en page d'une infolettre, sans lui elle
+s'effondre en colonne unique. sanitize-html le classe à risque, et il a raison dans une page
+ordinaire : du CSS peut habiller un lien en bouton officiel. Ici le message est seul dans son
+cadre, sans script à lui, tous liens sortants — il n'y a rien à déguiser.
+
+**Le bac à sable, côté navigateur** (`MessageBody`) : une `iframe` avec
+`sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox"` et **surtout sans
+`allow-same-origin`** — c'est cette absence qui lui donne une origine à lui, sans accès à la page
+ni aux cookies. L'injecter dans la page ferait dépendre toute l'app de la qualité d'un filtre ; et
+son CSS déborderait, une infolettre posant volontiers un `body{margin:0}`.
+
+Le seul script du cadre est le nôtre : dire sa hauteur, et révéler les images à la demande.
+Il la **redit deux fois** après le chargement — un effet React n'attache son écouteur qu'après la
+peinture, et le premier envoi tombait dans le vide : 220 px affichés pour 481 de contenu.
+
+### Les images
+
+| | Ce qu'on en fait |
+|---|---|
+| jointe (`cid:`) | déjà dans le message : elle devient une `data:` et s'affiche |
+| distante (`http`) | **retenue** : l'adresse passe en `data-src`, un bandeau propose de l'afficher |
+| fond CSS (`url(http…)`) | coupé, et compté comme retenu |
+
+Une image chargée depuis le serveur de l'expéditeur signale l'ouverture, l'heure et l'adresse IP :
+c'est le pixel de suivi, et il est dans presque toutes les infolettres. Le choix reste possible —
+il n'est simplement plus fait à notre insu. Le bandeau dit ce qui est retenu et pourquoi, plutôt
+que d'afficher un message troué sans explication.
+
+Une image de corps **n'est pas une pièce jointe** : la lister ferait une rangée de fichiers
+fantômes sous le message. Seules les pièces sans `cid` restent dans la rangée.
+
+**Le fond du cadre reste blanc, même en thème sombre.** Un e-mail est mis en page pour du blanc :
+sur du noir, les logos passent en négatif et le texte foncé devient illisible. Mieux vaut une carte
+claire assumée qu'un message à moitié lisible.
+
 ## L'espace n'appartient pas au fournisseur
 
 Un fournisseur rend des fils au `spaceId` vide et c'est le **store** qui les tamponne (`stamp`).

@@ -94,6 +94,13 @@ export type Message = {
   /** ISO date string. */
   date: string;
   body: string;
+  /**
+   * Le corps HTML, déjà lavé côté serveur et prêt pour son bac à sable.
+   * Absent : le message n'avait que du texte, et `body` suffit.
+   */
+  html?: string;
+  /** Combien d'images distantes ont été retenues, pour proposer de les montrer. */
+  blockedImages?: number;
   attachments?: Attachment[];
 };
 

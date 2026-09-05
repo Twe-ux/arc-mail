@@ -213,12 +213,30 @@ export function ThreadView({ className }: { className?: string }) {
       </header>
 
       {/* Le message : une carte flottante sur téléphone, une colonne sur bureau. */}
-      <div className="list-card flex min-h-0 flex-1 flex-col overflow-hidden rounded-t-[28px] bg-card md:rounded-none md:bg-transparent">
-        {/* Le message se **dissout** au-dessus de la barre plutôt que d'y être
-            coupé net : le bord de défilement d'iOS, et ce qui donne à la barre
-            l'air d'être posée sur quelque chose. */}
-        <ScrollArea className="min-h-0 flex-1 max-md:[mask-image:linear-gradient(to_bottom,#000_calc(100%-1.25rem),transparent)]">
-          <div className="mx-auto flex w-full max-w-3xl flex-col md:gap-4 md:p-6">
+      <div className="list-card relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-t-[28px] bg-card md:rounded-none md:bg-transparent">
+        <ScrollArea className="min-h-0 flex-1">
+          <div
+            className={cn(
+              /* Le message **passe sous la pill**, comme la liste passe sous la
+                 barre : c'est ce qui donne au verre quelque chose à flouter, et
+                 c'est plus juste qu'un fondu — un texte qui se dissout se lit
+                 comme un texte qu'on perd. La réserve suit `--nav-height`, et
+                 disparaît quand la barre de réponse prend la place de la pill
+                 (elle, elle est dans le flux). */
+              "relative mx-auto flex w-full max-w-3xl flex-col md:gap-4 md:p-6 md:pb-6",
+              replyOpen ? "max-md:pb-4" : "max-md:pb-[calc(var(--nav-height)+0.5rem)]",
+            )}
+          >
+            {/* **Le bord gauche, rendu au geste de retour.** Un message HTML est
+                une `iframe` : elle avale tous les touchers qui naissent sur elle,
+                et le balayage de retour n'avait plus où commencer — sur une
+                infolettre, c'est-à-dire la moitié du courrier, l'app n'avait plus
+                de retour au doigt. Cette bande de 20 px (l'encart que le système
+                se réserve lui-même) se pose au-dessus du cadre et laisse le
+                toucher remonter jusqu'à `BackSwipe`. Elle vit **dans le
+                défilant**, pas par-dessus : un glissement vertical qui y naît
+                fait donc défiler le message, comme partout ailleurs. */}
+            <span aria-hidden className="absolute inset-y-0 left-0 z-10 w-5 md:hidden" />
             {/* L'objet, à bord perdu comme le reste : sur téléphone il est le
                 titre de la carte, pas celui d'une sous-carte. */}
             <h1 className="px-5 pt-[22px] text-[22px] leading-[1.25] font-bold tracking-[-0.015em] text-pretty md:px-0 md:pt-0 md:text-xl md:font-semibold md:tracking-tight">
@@ -236,9 +254,6 @@ export function ThreadView({ className }: { className?: string }) {
               focusTick={focusTick}
               className="hidden md:block"
             />
-            {/* De quoi passer sous la barre du bas sans que le dernier
-                paragraphe s'y cache. */}
-            <div aria-hidden className="h-4 md:hidden" />
           </div>
         </ScrollArea>
 
@@ -256,8 +271,8 @@ export function ThreadView({ className }: { className?: string }) {
              flotte ; le mail ouvert, lui, va d'un bord à l'autre, et la barre
              se retrouvait collée aux trois côtés. Les marges pleines la posent
              exactement comme celle de la liste. */
-          <ActionBar className="md:hidden">
-            <Pill className="w-full justify-between">
+          <ActionBar className="pointer-events-none absolute inset-x-0 bottom-0 z-20 md:hidden">
+            <Pill className="pointer-events-auto w-full justify-between">
               <PillPrimary label="Répondre" onClick={() => aimReply(canReplyAll ? null : [sender])}>
                 <Reply strokeWidth={2.25} />
                 Répondre

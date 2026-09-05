@@ -124,3 +124,21 @@ ring de la pastille active — un `box-shadow` peint *hors* de la boîte, collé
 faut du `padding` **dans** le conteneur défilant (`py-1`), pas de la marge autour, et retirer
 d'autant la marge qu'il remplace pour que rien ne bouge (mesuré : le chip garde le même
 `top`/`bottom`). Vaut pour tout ring, ombre ou halo dans un rail.
+
+---
+
+## Le toast porte la couleur de l'espace (5 sept. 2026)
+
+Sur une carte neutre il se confondait avec les feuilles et les cartes, et on ratait le seul mot qui
+disait ce qui venait de se passer. Il prend donc le même habillage que les actions primaires — le
+dégradé de l'espace, l'encre blanche — sous l'aplat sombre de `space-backdrop` : à L≈0.7 les teintes
+claires (ambre, or) ne portaient pas du blanc, et 12 % de noir le rattrapent sans changer la
+couleur. Le texte est **centré** : un toast n'a qu'une phrase, et un mot calé à gauche sur une bande
+de 361 px se lit comme une étiquette oubliée.
+
+**Par les variables de Sonner (`--normal-bg`, `--normal-text`…), jamais par des classes.** Sa
+feuille est injectée à l'exécution, donc *après* celle de Tailwind : à spécificité égale
+(`[data-sonner-toast]` vaut une classe) c'est elle qui gagne. Mesuré — posé en classe, le toast
+restait blanc avec du texte blanc dessus.
+
+Un **échec** garde `--error-bg` : il se dirait comme une réussite dans la couleur de l'espace.

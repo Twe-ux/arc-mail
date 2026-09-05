@@ -53,9 +53,25 @@ deux boutons qui **débordent de 10 px**. Une cible de 44 posée à 20 px mettra
 30 px du bord, décalé de tout le reste de l'app : c'est le dessin qui s'aligne, pas la boîte.
 Mesuré : le trait du retour tombe à 20 px, comme le « B » de « Boîte de réception » dans la liste.
 
-Et le message **se dissout** au-dessus de la barre (`mask-image` sur les 20 derniers pixels) au lieu
-d'y être coupé net — le bord de défilement d'iOS, et ce qui donne à la barre l'air d'être posée sur
-quelque chose.
+Et le message **passe sous la pill**, comme la liste passe sous la barre : la réserve du défilant
+vaut `--nav-height`, et elle disparaît quand la barre de réponse prend la place (elle, elle est dans
+le flux). C'est ce qui donne au verre quelque chose à flouter — un fondu avait été essayé d'abord,
+mais un texte qui se dissout se lit comme un texte qu'on perd.
+
+## Le bord gauche, rendu au geste de retour
+
+**Un message HTML est une `iframe`, et une `iframe` avale tous les touchers qui naissent sur elle.**
+Le balayage de retour n'avait donc plus où commencer sur une infolettre — c'est-à-dire sur la moitié
+du courrier réel : l'app n'avait plus de retour au doigt.
+
+Une bande de **20 px** le long du bord gauche (l'encart que le système se réserve lui-même) se pose
+au-dessus du cadre et laisse le toucher remonter jusqu'à `BackSwipe`, qui n'a rien à changer. Elle
+vit **dans le défilant**, pas par-dessus : un glissement vertical qui y naît fait donc défiler le
+message, comme partout ailleurs.
+
+Mesuré sur une page nue — un toucher au milieu d'une `iframe` n'est **jamais** vu par le conteneur,
+un toucher sur la bande l'est — puis dans l'app : le retour part depuis la bande comme depuis le
+plein milieu d'un message texte.
 
 ## La pill, et ce qu'elle range
 

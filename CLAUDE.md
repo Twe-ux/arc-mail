@@ -112,6 +112,8 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - La sidebar bureau n'a pas de fond : une seule encre secondaire (85 %), mesurée à l'endroit où
   elle est dessinée ; les surfaces `glass` sont pour les cibles, pas pour le texte.
 - L'accent se remplit, il ne s'écrit pas : texte et icônes en accent lisent `--space-ink`.
+- Le toast porte le dégradé de l'espace, texte blanc centré, posé par les **variables de Sonner**
+  (`--normal-bg`…) : sa feuille est injectée après Tailwind et gagne la cascade.
 - Les espaces de la barre du bas sont des pastilles nues : le nom est dans l'infobulle, pas écrit à
   côté — tronqué il ne dit plus rien. Même règle pour l'adresse du compte connecté.
 - Les préférences ne s'enregistrent qu'**après** avoir été relues (stockage `preferences` du
@@ -145,6 +147,9 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - Archiver et Supprimer **renvoient à la liste** avec un toast ; répondre remplace la pill, jamais
   par-dessus — et il prend ses marges (14 / 16), pas la variante `inset` : le mail ouvert n'est pas
   une carte qui flotte. L'en-tête est en `px-5`, boutons débordant de 10 px pour aligner le glyphe.
+- Le message **passe sous la pill** (réserve `--nav-height`), il ne se dissout pas.
+- Une bande de **20 px** au bord gauche, **dans le défilant**, rend son départ au geste de retour :
+  une `iframe` de message HTML avale tous les touchers qui naissent sur elle.
 
 **Composeur** → [docs/features/composeur-panneaux.md](docs/features/composeur-panneaux.md)
 - « De » est une pastille en haut sur téléphone ; l'envoi est le bouton rond de la barre.

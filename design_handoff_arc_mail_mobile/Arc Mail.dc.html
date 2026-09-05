@@ -1,0 +1,1266 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics=""><meta name="design_doc_mode" content="canvas"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""><link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=swap" rel="stylesheet"><style>
+body{margin:0;background:#f0eee9;font-family:Geist,ui-sans-serif,system-ui,sans-serif}
+a{color:#6d28d9}a:hover{color:#4c1d95}
+.dv-turn{padding:40px 44px 32px;border-bottom:1px solid rgba(0,0,0,.08);scroll-margin-top:16px}
+.dv-thd{display:flex;align-items:baseline;gap:10px;margin:0 0 20px}
+.dv-tid{font:600 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#1a1a1a;color:#fff;border-radius:4px;text-decoration:none}
+.dv-tname{font:600 13px/1.2 Geist,system-ui,sans-serif;color:#1a1a1a}
+.dv-opts{display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start}
+.dv-opt{flex:none;display:flex;flex-direction:column;gap:9px;scroll-margin-top:16px}
+.dv-oid{font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(0,0,0,.08);color:#1a1a1a;border-radius:5px;text-decoration:none}
+.dv-olabel{display:flex;align-items:baseline;gap:8px;font:400 11px/1.35 Geist,system-ui,sans-serif;color:rgba(0,0,0,.55);max-width:390px}
+.dv-opt:target .dv-oid{background:#2a78d6;color:#fff}
+.dv-next{margin:22px 0 0;font:12px/1.5 Geist,system-ui,sans-serif;color:rgba(0,0,0,.5)}
+.ph{width:390px;height:844px;border-radius:44px;overflow:hidden;position:relative;background:#111;color:#fafafa;box-shadow:0 18px 50px rgba(0,0,0,.18);border:1px solid rgba(0,0,0,.35);display:flex;flex-direction:column;font-size:15px;-webkit-font-smoothing:antialiased}
+.ico{width:22px;height:22px;stroke:currentColor;stroke-width:1.75;fill:none;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.s16{width:16px;height:16px}.s18{width:18px;height:18px}.s20{width:20px;height:20px}.s24{width:24px;height:24px}
+</style></helmet>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="i-back" viewBox="0 0 24 24"><path d="M19 12H5"></path><path d="m12 19-7-7 7-7"></path></symbol>
+<symbol id="i-reply" viewBox="0 0 24 24"><path d="M20 18v-2a4 4 0 0 0-4-4H4"></path><path d="m9 17-5-5 5-5"></path></symbol>
+<symbol id="i-replyall" viewBox="0 0 24 24"><path d="m7 17-5-5 5-5"></path><path d="m12 17-5-5 5-5"></path><path d="M22 18v-2a4 4 0 0 0-4-4h-8"></path></symbol>
+<symbol id="i-forward" viewBox="0 0 24 24"><path d="m15 17 5-5-5-5"></path><path d="M4 18v-2a4 4 0 0 1 4-4h12"></path></symbol>
+<symbol id="i-archive" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="5" rx="1"></rect><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"></path><path d="M10 12h4"></path></symbol>
+<symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></symbol>
+<symbol id="i-mail" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"></rect><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path></symbol>
+<symbol id="i-mailopen" viewBox="0 0 24 24"><path d="M21.2 8.4c.5.38.8.97.8 1.6v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V10a2 2 0 0 1 .8-1.6l8-6a2 2 0 0 1 2.4 0z"></path><path d="m22 10-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 10"></path></symbol>
+<symbol id="i-star" viewBox="0 0 24 24"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"></path></symbol>
+<symbol id="i-inbox" viewBox="0 0 24 24"><path d="M22 12h-6l-2 3h-4l-2-3H2"></path><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></symbol>
+<symbol id="i-send" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4Z"></path><path d="M22 2 11 13"></path></symbol>
+<symbol id="i-draft" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path><path d="M10 9H8"></path><path d="M16 13H8"></path><path d="M16 17H8"></path></symbol>
+<symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></symbol>
+<symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></symbol>
+<symbol id="i-compose" viewBox="0 0 24 24"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.4 2.6a1 1 0 0 1 3 3l-9 9-3.6 1 1-3.6z"></path></symbol>
+<symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></symbol>
+<symbol id="i-house" viewBox="0 0 24 24"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></symbol>
+<symbol id="i-brief" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"></rect><path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></symbol>
+<symbol id="i-flask" viewBox="0 0 24 24"><path d="M10 2v7.5a2 2 0 0 1-.2.9L4.7 20.5a1 1 0 0 0 .9 1.5h12.8a1 1 0 0 0 .9-1.5l-5.1-10.1a2 2 0 0 1-.2-.9V2"></path><path d="M8.5 2h7"></path><path d="M7 16h10"></path></symbol>
+<symbol id="i-folder" viewBox="0 0 24 24"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"></path></symbol>
+<symbol id="i-up" viewBox="0 0 24 24"><path d="m5 12 7-7 7 7"></path><path d="M12 19V5"></path></symbol>
+<symbol id="i-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"></path></symbol>
+<symbol id="i-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"></path></symbol>
+<symbol id="i-dots" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"></circle><circle cx="19" cy="12" r="1.6" fill="currentColor" stroke="none"></circle><circle cx="5" cy="12" r="1.6" fill="currentColor" stroke="none"></circle></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"></path></symbol>
+<symbol id="i-cols" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"></rect><path d="M12 3v18"></path></symbol>
+<symbol id="i-panel" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"></rect><path d="M9 3v18"></path><path d="m16 15-3-3 3-3"></path></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14"></path><path d="M12 5v14"></path></symbol>
+<symbol id="i-moon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></symbol>
+<symbol id="i-bold" viewBox="0 0 24 24"><path d="M6 4h8a4 4 0 0 1 0 8H6z"></path><path d="M6 12h9a4 4 0 0 1 0 8H6z"></path></symbol>
+<symbol id="i-italic" viewBox="0 0 24 24"><path d="M19 4h-9"></path><path d="M14 20H5"></path><path d="M15 4 9 20"></path></symbol>
+<symbol id="i-underline" viewBox="0 0 24 24"><path d="M6 4v6a6 6 0 0 0 12 0V4"></path><path d="M4 20h16"></path></symbol>
+<symbol id="i-strike" viewBox="0 0 24 24"><path d="M16 4H9a3 3 0 0 0-2.83 4"></path><path d="M14 12a4 4 0 0 1 0 8H6"></path><path d="M4 12h16"></path></symbol>
+<symbol id="i-list" viewBox="0 0 24 24"><path d="M8 6h13"></path><path d="M8 12h13"></path><path d="M8 18h13"></path><path d="M3 6h.01"></path><path d="M3 12h.01"></path><path d="M3 18h.01"></path></symbol>
+<symbol id="i-listnum" viewBox="0 0 24 24"><path d="M10 6h11"></path><path d="M10 12h11"></path><path d="M10 18h11"></path><path d="M4 6h1v4"></path><path d="M4 10h2"></path><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"></path></symbol>
+<symbol id="i-alignl" viewBox="0 0 24 24"><path d="M15 12H3"></path><path d="M17 18H3"></path><path d="M21 6H3"></path></symbol>
+<symbol id="i-alignc" viewBox="0 0 24 24"><path d="M17 12H7"></path><path d="M19 18H5"></path><path d="M21 6H3"></path></symbol>
+<symbol id="i-alignr" viewBox="0 0 24 24"><path d="M21 12H9"></path><path d="M21 18H7"></path><path d="M21 6H3"></path></symbol>
+<symbol id="i-quote" viewBox="0 0 24 24"><path d="M16 3a2 2 0 0 0-2 2v6h6V7a4 4 0 0 0-4-4"></path><path d="M6 3a2 2 0 0 0-2 2v6h6V7a4 4 0 0 0-4-4"></path><path d="M4 11v2a8 8 0 0 0 6 7.75"></path><path d="M14 11v2a8 8 0 0 0 6 7.75"></path></symbol>
+<symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.5 1.5"></path><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7L12 19"></path></symbol>
+<symbol id="i-type" viewBox="0 0 24 24"><path d="M4 7V5h16v2"></path><path d="M9 20h6"></path><path d="M12 5v15"></path></symbol>
+<symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="9" cy="9" r="2"></circle><path d="m21 15-4.6-4.6a2 2 0 0 0-2.8 0L3 21"></path></symbol>
+<symbol id="i-camera" viewBox="0 0 24 24"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z"></path><circle cx="12" cy="13" r="3"></circle></symbol>
+<symbol id="i-scan" viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"></path><path d="M17 3h2a2 2 0 0 1 2 2v2"></path><path d="M21 17v2a2 2 0 0 1-2 2h-2"></path><path d="M7 21H5a2 2 0 0 1-2-2v-2"></path><path d="M7 12h10"></path></symbol>
+<symbol id="i-pen" viewBox="0 0 24 24"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"></path></symbol>
+<symbol id="i-paperclip" viewBox="0 0 24 24"><path d="M13.2 6.6 7.1 12.7a3 3 0 0 0 4.2 4.2l6.4-6.4a5 5 0 0 0-7-7L4 10.2a7 7 0 0 0 9.9 9.9l4.6-4.6"></path></symbol>
+</defs></svg>
+
+<section class="dv-turn" id="t2">
+<div class="dv-thd"><a class="dv-tid" href="#t2">2</a><span class="dv-tname">Parcours mobile cliquable — un seul téléphone, tous les écrans</span></div>
+<div class="dv-opts">
+<div class="dv-opt" id="2a"><div class="dv-olabel"><a class="dv-oid" href="#2a">2a</a><span style="min-width:0">Touche une conversation, la pill du bas, les onglets, la pastille d'espace, le bouton Écrire — tout navigue. <b>{{ pWhere }}</b></span></div>
+<div class="ph" style="{{ pWash }}">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 26px 0;font-size:14px;font-weight:600;flex:none"><span>9:41</span><span style="opacity:.7;font-size:12px">{{ pAcctName }}</span></div>
+
+  <sc-if value="{{ pIsList }}" hint-placeholder-val="{{ true }}">
+    <div style="flex:none;padding:12px 20px 0">
+      <h1 style="margin:0;font-size:30px;line-height:1.15;font-weight:700;letter-spacing:-.02em">{{ pFolderName }}</h1>
+      <div style="margin-top:6px;display:flex;align-items:center;justify-content:space-between;gap:12px">
+        <p style="margin:0;min-width:0;flex:1;font-size:13px;color:#a3a3a3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ pAcctEmail }} · {{ pCount }} conversations</p>
+        <div style="display:flex;flex:none;background:rgba(255,255,255,.07);border-radius:999px;padding:2px;font-size:12px">
+          <span style="padding:7px 12px;border-radius:999px;background:#171717;font-weight:500;white-space:nowrap">Tous</span>
+          <span style="padding:7px 12px;border-radius:999px;color:#a3a3a3;white-space:nowrap">Non lus</span>
+        </div>
+      </div>
+    </div>
+    <div style="flex:none;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:14px 20px 12px">
+      <button type="button" onClick="{{ pGoInbox }}" style="{{ pTileInbox }}"><svg class="ico s20"><use href="#i-inbox"></use></svg>Réception</button>
+      <button type="button" onClick="{{ pGoStarred }}" style="{{ pTileStarred }}"><svg class="ico s20"><use href="#i-star"></use></svg>Favoris</button>
+      <button type="button" onClick="{{ pGoSent }}" style="{{ pTileSent }}"><svg class="ico s20"><use href="#i-send"></use></svg>Envoyés</button>
+      <button type="button" onClick="{{ pGoTrash }}" style="{{ pTileTrash }}"><svg class="ico s20"><use href="#i-trash"></use></svg>Corbeille</button>
+    </div>
+    <div style="flex:1;min-height:0;background:#171717;border-radius:28px 28px 0 0;border-top:1px solid rgba(255,255,255,.28);border-left:1px solid rgba(255,255,255,.14);border-right:1px solid rgba(255,255,255,.14);box-shadow:0 -10px 34px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.08);overflow:hidden;padding-top:6px">
+      <sc-for list="{{ pRows }}" as="row" hint-placeholder-count="5">
+        <button type="button" onClick="{{ row.open }}" style="width:100%;display:flex;gap:12px;padding:12px 16px;background:none;border:0;color:inherit;font:inherit;text-align:left;cursor:pointer">
+          <span style="width:40px;height:40px;border-radius:999px;display:grid;place-items:center;font-size:12px;font-weight:600;color:#fff;flex:none;background:{{ row.av }}">{{ row.ini }}</span>
+          <span style="min-width:0;flex:1;border-bottom:1px solid rgba(255,255,255,.1);padding-bottom:12px;display:block">
+            <span style="display:flex;align-items:center;gap:8px"><span style="font-weight:600;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ row.who }}</span><span style="margin-left:auto;font-size:12px;color:#a3a3a3;flex:none">{{ row.when }}</span></span>
+            <span style="display:block;font-size:15px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ row.subject }}</span>
+            <span style="display:block;margin-top:4px;font-size:13px;color:#a3a3a3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ row.snippet }}</span>
+          </span>
+        </button>
+      </sc-for>
+      <p style="margin:0;padding:14px 20px 120px;font-size:13px;color:#737373">{{ pEmptyNote }}</p>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ pIsMail }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:none;display:flex;align-items:center;gap:4px;padding:6px 12px 10px">
+      <button type="button" onClick="{{ pBack }}" style="width:44px;height:44px;display:grid;place-items:center;flex:none;color:#fafafa;background:none;border:0;padding:0;cursor:pointer;margin-left:-8px"><svg class="ico s24"><use href="#i-back"></use></svg></button>
+      <div style="min-width:0;flex:1">
+        <p style="margin:0;font-size:12px;color:#a3a3a3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ pFolderName }} · {{ pAcctName }}</p>
+        <p style="margin:0;font-size:13px;color:#a3a3a3">{{ pPosition }}</p>
+      </div>
+      <button type="button" onClick="{{ pToggleStar }}" style="width:44px;height:44px;display:grid;place-items:center;flex:none;background:none;border:0;padding:0;cursor:pointer;color:{{ pStarColor }}"><svg class="ico s20" style="{{ pStarFill }}"><use href="#i-star"></use></svg></button>
+    </div>
+    <div style="flex:1;min-height:0;background:#171717;border-radius:28px 28px 0 0;border-top:1px solid rgba(255,255,255,.28);border-left:1px solid rgba(255,255,255,.14);border-right:1px solid rgba(255,255,255,.14);box-shadow:0 -10px 34px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.08);overflow:hidden">
+      <div style="padding:22px 20px 0">
+        <h1 style="margin:0;font-size:22px;line-height:1.25;font-weight:700;letter-spacing:-.015em;text-wrap:pretty">{{ pMailSubject }}</h1>
+        <div style="margin-top:14px;display:flex;gap:12px;align-items:center">
+          <span style="width:40px;height:40px;border-radius:999px;display:grid;place-items:center;font-size:13px;font-weight:600;color:#fff;flex:none;background:{{ pMailAv }}">{{ pMailIni }}</span>
+          <div style="min-width:0;flex:1">
+            <p style="margin:0;font-size:15px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ pMailWho }}</p>
+            <p style="margin:0;font-size:13px;color:#a3a3a3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">à moi · {{ pMailWhen }}</p>
+          </div>
+        </div>
+      </div>
+      <div style="padding:20px;font-size:15px;line-height:1.6;white-space:pre-wrap">{{ pMailBody }}</div>
+    </div>
+    <div style="position:absolute;inset:auto 0 0 0;z-index:2;padding:10px 15px 18px">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:0;padding:8px 10px;border-radius:999px;background:rgba(28,28,30,.86);backdrop-filter:blur(28px);border:1px solid rgba(255,255,255,.12);box-shadow:0 10px 34px rgba(0,0,0,.45)">
+        <button type="button" onClick="{{ pOpenReply }}" style="display:flex;align-items:center;gap:8px;height:52px;padding:0 16px 0 14px;border-radius:999px;border:0;cursor:pointer;color:#fff;font:600 15px Geist,system-ui,sans-serif;background:{{ pAcctGradient }}"><svg class="ico s20" style="stroke-width:2"><use href="#i-reply"></use></svg>Répondre</button>
+        <button type="button" onClick="{{ pArchive }}" style="width:52px;height:52px;flex:none;border-radius:999px;border:0;background:none;color:#e5e5e5;display:grid;place-items:center;cursor:pointer" style-hover="background:rgba(255,255,255,.1)"><svg class="ico s24"><use href="#i-archive"></use></svg></button>
+        <button type="button" onClick="{{ pTrash }}" style="width:52px;height:52px;flex:none;border-radius:999px;border:0;background:none;color:#f87171;display:grid;place-items:center;cursor:pointer" style-hover="background:rgba(248,113,113,.14)"><svg class="ico s24"><use href="#i-trash"></use></svg></button>
+        <button type="button" onClick="{{ pOpenMove }}" style="width:52px;height:52px;flex:none;border-radius:999px;border:0;background:none;color:#e5e5e5;display:grid;place-items:center;cursor:pointer" style-hover="background:rgba(255,255,255,.1)"><svg class="ico s24"><use href="#i-folder"></use></svg></button>
+        <button type="button" onClick="{{ pOpenMore }}" style="width:52px;height:52px;flex:none;border-radius:999px;border:0;background:none;color:#e5e5e5;display:grid;place-items:center;cursor:pointer" style-hover="background:rgba(255,255,255,.1)"><svg class="ico s24"><use href="#i-dots"></use></svg></button>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ pShowNav }}" hint-placeholder-val="{{ true }}">
+    <div style="position:absolute;inset:auto 0 0 0;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 15px 18px">
+      <div style="display:flex;align-items:center;gap:0;padding:8px 10px;border-radius:999px;background:rgba(28,28,30,.86);backdrop-filter:blur(28px);border:1px solid rgba(255,255,255,.12);box-shadow:0 10px 34px rgba(0,0,0,.45)">
+        <button type="button" onClick="{{ pNextAcct }}" style="{{ pNavSpace }}" title="Changer d'espace">{{ pAcctIcon }}</button>
+        <button type="button" onClick="{{ pOpenFolders }}" style="{{ pNavFolders }}"><svg class="ico s24"><use href="#i-folder"></use></svg></button>
+        <button type="button" onClick="{{ pOpenSearch }}" style="{{ pNavSearch }}"><svg class="ico s24"><use href="#i-search"></use></svg></button>
+        <button type="button" onClick="{{ pOpenSettings }}" style="{{ pNavSettings }}" title="Personnalisation"><svg class="ico s24"><use href="#i-dots"></use></svg></button>
+      </div>
+      <button type="button" onClick="{{ pOpenCompose }}" aria-label="Écrire" style="width:68px;height:68px;flex:none;border-radius:999px;display:grid;place-items:center;color:#fff;border:0;cursor:pointer;box-shadow:0 10px 30px rgba(0,0,0,.4);background:{{ pAcctGradient }}"><svg class="ico s24" style="stroke-width:2"><use href="#i-compose"></use></svg></button>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ pOverlay }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;background:rgba(0,0,0,.55);z-index:4" onClick="{{ pClose }}"></div>
+  </sc-if>
+
+  <sc-if value="{{ pSheetFolders }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;left:8px;right:8px;bottom:8px;z-index:5;border-radius:32px;background:#1c1c1e;border:1px solid rgba(255,255,255,.12);box-shadow:0 -10px 40px rgba(0,0,0,.5);overflow:hidden;display:flex;flex-direction:column;max-height:86%">
+      <div style="flex:none;padding:16px 16px 8px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <p style="margin:0;flex:1;font-size:17px;font-weight:600">Dossiers</p>
+          <button type="button" onClick="{{ pClose }}" style="width:36px;height:36px;border-radius:999px;background:rgba(255,255,255,.1);color:#a3a3a3;border:0;display:grid;place-items:center;cursor:pointer"><svg class="ico s18"><use href="#i-x"></use></svg></button>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:12px;overflow:hidden">{{ pAcctChips }}</div>
+      </div>
+      <div style="flex:1;min-height:0;overflow:hidden;padding:8px 16px 20px">
+        <div style="border-radius:18px;background:#26262a;overflow:hidden">
+          <button type="button" onClick="{{ pGoInbox }}" style="{{ pFolderRowInbox }}"><span style="width:28px;height:28px;border-radius:8px;background:#3b82f6;display:grid;place-items:center;flex:none"><svg class="ico s16" style="color:#fff"><use href="#i-inbox"></use></svg></span><span style="flex:1;text-align:left">Boîte de réception</span><span style="color:#a3a3a3">{{ pUnread }}</span></button>
+          <button type="button" onClick="{{ pGoStarred }}" style="{{ pFolderRowStarred }}"><span style="width:28px;height:28px;border-radius:8px;background:#fbbf24;display:grid;place-items:center;flex:none"><svg class="ico s16" style="color:#fff"><use href="#i-star"></use></svg></span><span style="flex:1;text-align:left">Favoris</span></button>
+          <button type="button" onClick="{{ pGoSnoozed }}" style="{{ pFolderRowSnoozed }}"><span style="width:28px;height:28px;border-radius:8px;background:#a855f7;display:grid;place-items:center;flex:none"><svg class="ico s16" style="color:#fff"><use href="#i-clock"></use></svg></span><span style="flex:1;text-align:left">En pause</span></button>
+          <button type="button" onClick="{{ pGoSent }}" style="{{ pFolderRowSent }}"><span style="width:28px;height:28px;border-radius:8px;background:#10b981;display:grid;place-items:center;flex:none"><svg class="ico s16" style="color:#fff"><use href="#i-send"></use></svg></span><span style="flex:1;text-align:left">Envoyés</span></button>
+          <button type="button" onClick="{{ pGoDrafts }}" style="{{ pFolderRowDrafts }}"><span style="width:28px;height:28px;border-radius:8px;background:#737373;display:grid;place-items:center;flex:none"><svg class="ico s16" style="color:#fff"><use href="#i-draft"></use></svg></span><span style="flex:1;text-align:left">Brouillons</span></button>
+          <button type="button" onClick="{{ pGoArchive }}" style="{{ pFolderRowArchive }}"><span style="width:28px;height:28px;border-radius:8px;background:#14b8a6;display:grid;place-items:center;flex:none"><svg class="ico s16" style="color:#fff"><use href="#i-archive"></use></svg></span><span style="flex:1;text-align:left">Archive</span></button>
+          <button type="button" onClick="{{ pGoTrash }}" style="{{ pFolderRowTrash }}"><span style="width:28px;height:28px;border-radius:8px;background:#ef4444;display:grid;place-items:center;flex:none"><svg class="ico s16" style="color:#fff"><use href="#i-trash"></use></svg></span><span style="flex:1;text-align:left">Corbeille</span></button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ pSheetMove }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;left:8px;right:8px;bottom:8px;z-index:5;border-radius:32px;background:#1c1c1e;border:1px solid rgba(255,255,255,.12);box-shadow:0 -10px 40px rgba(0,0,0,.5);overflow:hidden">
+      <div style="display:flex;align-items:center;gap:10px;padding:16px 18px 10px">
+        <p style="margin:0;flex:1;font-size:15px;font-weight:600">Déplacer vers</p>
+        <button type="button" onClick="{{ pClose }}" style="width:36px;height:36px;border-radius:999px;background:rgba(255,255,255,.1);color:#a3a3a3;border:0;display:grid;place-items:center;cursor:pointer"><svg class="ico s18"><use href="#i-x"></use></svg></button>
+      </div>
+      <div style="padding:0 8px 16px">
+        <button type="button" onClick="{{ pMoveStarred }}" style="width:100%;display:flex;align-items:center;gap:12px;min-height:52px;padding:0 12px;background:none;border:0;color:inherit;font:inherit;text-align:left;cursor:pointer;border-radius:14px"><span style="width:28px;height:28px;border-radius:8px;background:#fbbf24;display:grid;place-items:center;flex:none"><svg class="ico s16" style="color:#fff"><use href="#i-star"></use></svg></span><span style="flex:1">Favoris</span></button>
+        <button type="button" onClick="{{ pMoveSnoozed }}" style="width:100%;display:flex;align-items:center;gap:12px;min-height:52px;padding:0 12px;background:none;border:0;color:inherit;font:inherit;text-align:left;cursor:pointer;border-radius:14px"><span style="width:28px;height:28px;border-radius:8px;background:#a855f7;display:grid;place-items:center;flex:none"><svg class="ico s16" style="color:#fff"><use href="#i-clock"></use></svg></span><span style="flex:1">En pause</span></button>
+        <button type="button" onClick="{{ pMoveArchive }}" style="width:100%;display:flex;align-items:center;gap:12px;min-height:52px;padding:0 12px;background:none;border:0;color:inherit;font:inherit;text-align:left;cursor:pointer;border-radius:14px"><span style="width:28px;height:28px;border-radius:8px;background:#14b8a6;display:grid;place-items:center;flex:none"><svg class="ico s16" style="color:#fff"><use href="#i-archive"></use></svg></span><span style="flex:1">Archive</span></button>
+        <button type="button" onClick="{{ pMoveTrash }}" style="width:100%;display:flex;align-items:center;gap:12px;min-height:52px;padding:0 12px;background:none;border:0;color:inherit;font:inherit;text-align:left;cursor:pointer;border-radius:14px"><span style="width:28px;height:28px;border-radius:8px;background:#ef4444;display:grid;place-items:center;flex:none"><svg class="ico s16" style="color:#fff"><use href="#i-trash"></use></svg></span><span style="flex:1">Corbeille</span></button>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ pSheetMore }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;left:8px;right:8px;bottom:8px;z-index:5;border-radius:32px;background:#1c1c1e;border:1px solid rgba(255,255,255,.12);box-shadow:0 -10px 40px rgba(0,0,0,.5);overflow:hidden;padding:8px">
+      <button type="button" onClick="{{ pOpenReply }}" style="width:100%;display:flex;align-items:center;gap:14px;min-height:54px;padding:0 14px;background:none;border:0;color:inherit;font:inherit;text-align:left;cursor:pointer"><svg class="ico s20" style="color:#a3a3a3"><use href="#i-replyall"></use></svg><span style="flex:1">Répondre à tous</span></button>
+      <button type="button" onClick="{{ pOpenCompose }}" style="width:100%;display:flex;align-items:center;gap:14px;min-height:54px;padding:0 14px;background:none;border:0;color:inherit;font:inherit;text-align:left;cursor:pointer;border-top:1px solid rgba(255,255,255,.08)"><svg class="ico s20" style="color:#a3a3a3"><use href="#i-forward"></use></svg><span style="flex:1">Transférer</span></button>
+      <button type="button" onClick="{{ pMarkUnread }}" style="width:100%;display:flex;align-items:center;gap:14px;min-height:54px;padding:0 14px;background:none;border:0;color:inherit;font:inherit;text-align:left;cursor:pointer;border-top:1px solid rgba(255,255,255,.08)"><svg class="ico s20" style="color:#a3a3a3"><use href="#i-mailopen"></use></svg><span style="flex:1">Marquer comme non lu</span></button>
+      <button type="button" onClick="{{ pMoveSnoozed }}" style="width:100%;display:flex;align-items:center;gap:14px;min-height:54px;padding:0 14px;background:none;border:0;color:inherit;font:inherit;text-align:left;cursor:pointer;border-top:1px solid rgba(255,255,255,.08)"><svg class="ico s20" style="color:#a3a3a3"><use href="#i-clock"></use></svg><span style="flex:1">Mettre en pause</span></button>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ pSheetSearch }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;left:8px;right:8px;bottom:8px;z-index:5;border-radius:32px;background:#1c1c1e;border:1px solid rgba(255,255,255,.12);overflow:hidden;display:flex;flex-direction:column;max-height:82%">
+      <div style="flex:none;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.1);display:flex;align-items:center;gap:12px">
+        <svg class="ico s20" style="color:#737373"><use href="#i-search"></use></svg>
+        <span style="flex:1;font-size:17px;color:#737373">Rechercher dans {{ pAcctName }}…</span>
+        <button type="button" onClick="{{ pClose }}" style="width:32px;height:32px;border-radius:999px;background:rgba(255,255,255,.1);color:#a3a3a3;border:0;display:grid;place-items:center;cursor:pointer"><svg class="ico s16"><use href="#i-x"></use></svg></button>
+      </div>
+      <div style="flex:1;min-height:0;overflow:hidden;padding:10px 8px 16px">
+        <p style="margin:6px 10px 8px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#737373;font-weight:500">Conversations récentes</p>
+        <sc-for list="{{ pRows }}" as="row" hint-placeholder-count="3">
+          <button type="button" onClick="{{ row.openFromSearch }}" style="width:100%;display:flex;align-items:center;gap:12px;min-height:52px;padding:0 12px;background:none;border:0;color:inherit;font:inherit;text-align:left;cursor:pointer;border-radius:14px"><span style="width:32px;height:32px;border-radius:999px;display:grid;place-items:center;font-size:11px;font-weight:600;color:#fff;flex:none;background:{{ row.av }}">{{ row.ini }}</span><span style="min-width:0;flex:1"><span style="display:block;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ row.subject }}</span><span style="display:block;font-size:12px;color:#737373">{{ row.who }}</span></span></button>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ pSheetSettings }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;left:8px;right:8px;bottom:8px;z-index:5;border-radius:32px;background:#1c1c1e;border:1px solid rgba(255,255,255,.12);box-shadow:0 -10px 40px rgba(0,0,0,.5);overflow:hidden">
+      <div style="display:flex;align-items:center;gap:12px;padding:16px 16px 12px">
+        <span style="width:40px;height:40px;border-radius:12px;display:grid;place-items:center;flex:none;background:{{ pAcctGradient }}">{{ pAcctIconSm }}</span>
+        <div style="min-width:0;flex:1"><p style="margin:0;font-size:16px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ pAcctName }}</p><p style="margin:0;font-size:13px;color:#a3a3a3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ pAcctEmail }}</p></div>
+        <button type="button" onClick="{{ pClose }}" style="width:36px;height:36px;border-radius:999px;background:rgba(255,255,255,.1);color:#a3a3a3;border:0;display:grid;place-items:center;cursor:pointer;flex:none"><svg class="ico s18"><use href="#i-x"></use></svg></button>
+      </div>
+      <div style="padding:0 16px 8px">
+        <p style="margin:0 0 8px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#737373;font-weight:500">Couleur de l'espace</p>
+        <div style="display:flex;gap:10px">{{ pSwatches }}</div>
+      </div>
+      <div style="padding:12px 16px 20px">
+        <div style="border-radius:18px;background:#26262a;overflow:hidden">
+          <button type="button" onClick="{{ pToggleTheme }}" style="width:100%;display:flex;align-items:center;gap:12px;min-height:52px;padding:0 16px;border:0;cursor:pointer;background:none;color:#fafafa;font:15px Geist,system-ui,sans-serif;text-align:left"><span style="width:28px;height:28px;border-radius:8px;background:#6366f1;display:grid;place-items:center;flex:none"><svg class="ico s16" style="color:#fff"><use href="#i-moon"></use></svg></span><span style="flex:1">Thème sombre</span>{{ pThemeSwitch }}</button>
+          <button type="button" onClick="{{ pClose }}" style="width:100%;display:flex;align-items:center;gap:12px;min-height:52px;padding:0 16px;border:0;border-top:1px solid rgba(255,255,255,.09);cursor:pointer;background:none;color:#fafafa;font:15px Geist,system-ui,sans-serif;text-align:left"><span style="width:28px;height:28px;border-radius:8px;background:#737373;display:grid;place-items:center;flex:none"><svg class="ico s16" style="color:#fff"><use href="#i-mail"></use></svg></span><span style="flex:1">Comptes et signatures</span><svg class="ico s16" style="color:#737373"><use href="#i-right"></use></svg></button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ pSheetReply }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:auto 0 0 0;z-index:5;background:#1c1c1e;border-top:1px solid rgba(255,255,255,.12);padding:10px 12px 18px;box-shadow:0 -14px 40px rgba(0,0,0,.4)">
+      <div style="display:flex;align-items:center;gap:8px;padding:0 4px 8px;font-size:12px;color:#737373"><span>À : {{ pMailWho }}</span><button type="button" onClick="{{ pClose }}" style="margin-left:auto;background:none;border:0;color:#a3a3a3;font:inherit;cursor:pointer;padding:6px">Annuler</button></div>
+      <div style="display:flex;align-items:flex-end;gap:8px;border-radius:24px;background:rgba(255,255,255,.08);padding:8px 8px 8px 18px">
+        <span style="flex:1;padding:10px 0;font-size:16px;color:#fafafa">Bonjour,<span style="opacity:.55">|</span></span>
+        <button type="button" onClick="{{ pSend }}" style="width:40px;height:40px;flex:none;border-radius:999px;border:0;cursor:pointer;color:#000;display:grid;place-items:center;background:{{ pAcctAccent }}"><svg class="ico s20" style="stroke-width:2.5"><use href="#i-up"></use></svg></button>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ pSheetCompose }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;left:8px;right:8px;top:8px;bottom:8px;z-index:5;border-radius:32px;background:#171717;border:1px solid rgba(255,255,255,.12);overflow:hidden;display:flex;flex-direction:column">
+      <div style="flex:none;display:flex;align-items:center;gap:8px;padding:10px 12px">
+        <button type="button" onClick="{{ pClose }}" style="min-height:44px;padding:0 8px;background:none;border:0;color:#a3a3a3;font:15px Geist,system-ui,sans-serif;cursor:pointer">Annuler</button>
+        <p style="margin:0;flex:1;text-align:center;font-size:16px;font-weight:600">Nouveau message</p>
+        <span style="width:44px"></span>
+      </div>
+      <div style="flex:none;display:flex;align-items:center;gap:10px;padding:12px 20px;border-top:1px solid rgba(255,255,255,.1);border-bottom:1px solid rgba(255,255,255,.1)">
+        <span style="font-size:13px;color:#737373;width:26px">De</span>
+        <button type="button" onClick="{{ pNextAcct }}" style="display:flex;align-items:center;gap:8px;padding:6px 14px 6px 6px;border-radius:999px;border:0;cursor:pointer;color:#fafafa;font:500 14px Geist,system-ui,sans-serif;background:rgba(255,255,255,.09)"><span style="width:22px;height:22px;border-radius:7px;display:grid;place-items:center;background:{{ pAcctGradient }}">{{ pAcctIconSm }}</span>{{ pAcctEmail }}<svg class="ico s16" style="color:#737373"><use href="#i-down"></use></svg></button>
+      </div>
+      <div style="flex:none;display:flex;align-items:center;gap:10px;padding:12px 20px;border-bottom:1px solid rgba(255,255,255,.1)"><span style="font-size:13px;color:#737373;width:26px">À</span><span style="color:#737373;font-size:15px;flex:1">Destinataire…</span><span style="font-size:13px;color:#737373">Cc/Cci</span></div>
+      <div style="flex:none;padding:14px 20px;border-bottom:1px solid rgba(255,255,255,.1);font-size:17px;color:#737373">Objet</div>
+      <div style="flex:1;min-height:120px;overflow:hidden;padding:16px 20px;color:#737373;{{ pBodyStyle }}">Écris ton message…</div>
+
+      <sc-if value="{{ pFmtOpen }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:none;margin:0 12px 10px;border-radius:24px;background:#26262a;border:1px solid rgba(255,255,255,.1);padding:12px;display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <p style="margin:0;flex:1;font-size:15px;font-weight:600;color:#fafafa">Mise en forme</p>
+            <button type="button" onClick="{{ pCloseFmt }}" style="width:32px;height:32px;border-radius:999px;background:rgba(255,255,255,.1);color:#a3a3a3;border:0;display:grid;place-items:center;cursor:pointer"><svg class="ico s16"><use href="#i-x"></use></svg></button>
+          </div>
+          <div style="display:flex;gap:2px;background:rgba(255,255,255,.06);border-radius:14px;padding:3px">
+            <button type="button" onClick="{{ pBold }}" aria-label="Gras" style="{{ pBtnBold }}"><svg class="ico s20"><use href="#i-bold"></use></svg></button>
+            <button type="button" onClick="{{ pItalic }}" aria-label="Italique" style="{{ pBtnItalic }}"><svg class="ico s20"><use href="#i-italic"></use></svg></button>
+            <button type="button" onClick="{{ pUnder }}" aria-label="Souligné" style="{{ pBtnUnder }}"><svg class="ico s20"><use href="#i-underline"></use></svg></button>
+            <button type="button" onClick="{{ pStrike }}" aria-label="Barré" style="{{ pBtnStrike }}"><svg class="ico s20"><use href="#i-strike"></use></svg></button>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <div style="display:flex;gap:2px;flex:1;background:rgba(255,255,255,.06);border-radius:14px;padding:3px">
+              <button type="button" onClick="{{ pAlignL }}" aria-label="Aligner à gauche" style="{{ pBtnAlignL }}"><svg class="ico s20"><use href="#i-alignl"></use></svg></button>
+              <button type="button" onClick="{{ pAlignC }}" aria-label="Centrer" style="{{ pBtnAlignC }}"><svg class="ico s20"><use href="#i-alignc"></use></svg></button>
+              <button type="button" onClick="{{ pAlignR }}" aria-label="Aligner à droite" style="{{ pBtnAlignR }}"><svg class="ico s20"><use href="#i-alignr"></use></svg></button>
+            </div>
+            <div style="display:flex;gap:2px;background:rgba(255,255,255,.06);border-radius:14px;padding:3px">
+              <button type="button" onClick="{{ pBullets }}" aria-label="Liste à puces" style="{{ pBtnBullets }}"><svg class="ico s20"><use href="#i-list"></use></svg></button>
+              <button type="button" onClick="{{ pNumbers }}" aria-label="Liste numérotée" style="{{ pBtnNumbers }}"><svg class="ico s20"><use href="#i-listnum"></use></svg></button>
+              <button type="button" onClick="{{ pQuote }}" aria-label="Citation" style="{{ pBtnQuote }}"><svg class="ico s20"><use href="#i-quote"></use></svg></button>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <div style="flex:1;min-width:0;display:flex;align-items:center;gap:8px;height:44px;padding:0 14px;border-radius:14px;background:rgba(255,255,255,.06);font-size:14px;color:#fafafa"><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ pFontLabel }}</span><svg class="ico s16" style="color:#737373"><use href="#i-right"></use></svg></div>
+            <div style="display:flex;align-items:center;gap:2px;background:rgba(255,255,255,.06);border-radius:14px;padding:3px">
+              <button type="button" onClick="{{ pSmaller }}" aria-label="Réduire" style="width:44px;height:38px;border:0;border-radius:11px;background:none;color:#fafafa;cursor:pointer;font:600 17px Geist,system-ui,sans-serif">−</button>
+              <span style="min-width:34px;text-align:center;font-size:13px;color:#a3a3a3;font-variant-numeric:tabular-nums">{{ pFontSize }}</span>
+              <button type="button" onClick="{{ pBigger }}" aria-label="Agrandir" style="width:44px;height:38px;border:0;border-radius:11px;background:none;color:#fafafa;cursor:pointer;font:600 17px Geist,system-ui,sans-serif">+</button>
+            </div>
+            <button type="button" onClick="{{ pLink }}" aria-label="Lien" style="width:44px;height:44px;flex:none;border:0;border-radius:14px;background:rgba(255,255,255,.06);color:#fafafa;display:grid;place-items:center;cursor:pointer"><svg class="ico s20"><use href="#i-link"></use></svg></button>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ pHasFiles }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:none;display:flex;gap:10px;padding:0 16px 12px;overflow:hidden">{{ pFileChips }}</div>
+      </sc-if>
+
+      <sc-if value="{{ pAttachOpen }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:none;margin:0 12px 10px;border-radius:24px;background:#26262a;border:1px solid rgba(255,255,255,.1);overflow:hidden">
+          <button type="button" onClick="{{ pAddPhoto }}" style="width:100%;display:flex;align-items:center;gap:14px;min-height:54px;padding:0 16px;border:0;cursor:pointer;background:none;color:#fafafa;font:15px Geist,system-ui,sans-serif;text-align:left"><span style="width:30px;height:30px;border-radius:9px;background:#3b82f6;display:grid;place-items:center;flex:none"><svg class="ico s16" style="color:#fff"><use href="#i-image"></use></svg></span><span style="flex:1">Photothèque</span></button>
+          <button type="button" onClick="{{ pAddShot }}" style="width:100%;display:flex;align-items:center;gap:14px;min-height:54px;padding:0 16px;border:0;border-top:1px solid rgba(255,255,255,.09);cursor:pointer;background:none;color:#fafafa;font:15px Geist,system-ui,sans-serif;text-align:left"><span style="width:30px;height:30px;border-radius:9px;background:#a855f7;display:grid;place-items:center;flex:none"><svg class="ico s16" style="color:#fff"><use href="#i-camera"></use></svg></span><span style="flex:1">Prendre une photo</span></button>
+          <button type="button" onClick="{{ pAddDoc }}" style="width:100%;display:flex;align-items:center;gap:14px;min-height:54px;padding:0 16px;border:0;border-top:1px solid rgba(255,255,255,.09);cursor:pointer;background:none;color:#fafafa;font:15px Geist,system-ui,sans-serif;text-align:left"><span style="width:30px;height:30px;border-radius:9px;background:#14b8a6;display:grid;place-items:center;flex:none"><svg class="ico s16" style="color:#fff"><use href="#i-draft"></use></svg></span><span style="flex:1">Fichiers</span></button>
+          <button type="button" onClick="{{ pAddScan }}" style="width:100%;display:flex;align-items:center;gap:14px;min-height:54px;padding:0 16px;border:0;border-top:1px solid rgba(255,255,255,.09);cursor:pointer;background:none;color:#fafafa;font:15px Geist,system-ui,sans-serif;text-align:left"><span style="width:30px;height:30px;border-radius:9px;background:#f59e0b;display:grid;place-items:center;flex:none"><svg class="ico s16" style="color:#fff"><use href="#i-scan"></use></svg></span><span style="flex:1">Numériser un document</span></button>
+          <button type="button" onClick="{{ pAddSign }}" style="width:100%;display:flex;align-items:center;gap:14px;min-height:54px;padding:0 16px;border:0;border-top:1px solid rgba(255,255,255,.09);cursor:pointer;background:none;color:#fafafa;font:15px Geist,system-ui,sans-serif;text-align:left"><span style="width:30px;height:30px;border-radius:9px;background:#737373;display:grid;place-items:center;flex:none"><svg class="ico s16" style="color:#fff"><use href="#i-pen"></use></svg></span><span style="flex:1">Signature de l'espace</span></button>
+        </div>
+      </sc-if>
+
+      <div style="flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 6px">
+        <div style="display:flex;align-items:center;gap:0;padding:8px 10px;border-radius:999px;background:rgba(28,28,30,.86);backdrop-filter:blur(28px);border:1px solid rgba(255,255,255,.12);box-shadow:0 10px 34px rgba(0,0,0,.45)">
+          <button type="button" onClick="{{ pToggleAttach }}" aria-label="Ajouter une pièce jointe" style="{{ pAttachBtn }}" style-hover="background:rgba(255,255,255,.1)"><svg class="ico s24"><use href="#i-paperclip"></use></svg></button>
+          <button type="button" onClick="{{ pToggleFmt }}" aria-label="Mise en forme" style="{{ pFmtBtn }}" style-hover="background:rgba(255,255,255,.1)"><svg class="ico s24"><use href="#i-type"></use></svg></button>
+          <button type="button" onClick="{{ pOpenMore }}" aria-label="Plus d'actions" style="width:52px;height:52px;flex:none;border-radius:999px;border:0;background:none;color:#e5e5e5;display:grid;place-items:center;cursor:pointer" style-hover="background:rgba(255,255,255,.1)"><svg class="ico s24"><use href="#i-dots"></use></svg></button>
+        </div>
+        <button type="button" onClick="{{ pSend }}" aria-label="Envoyer" style="width:68px;height:68px;flex:none;border-radius:999px;display:grid;place-items:center;color:#fff;border:0;cursor:pointer;box-shadow:0 10px 30px rgba(0,0,0,.4);background:{{ pAcctGradient }}"><svg class="ico s24" style="stroke-width:2"><use href="#i-send"></use></svg></button>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ pToast }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;left:20px;right:20px;bottom:96px;z-index:6;display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:16px;background:rgba(240,240,240,.96);color:#111;font-size:14px;font-weight:500;box-shadow:0 12px 30px rgba(0,0,0,.4)">
+      <svg class="ico s18" style="stroke-width:2.25"><use href="#i-check"></use></svg><span style="flex:1">{{ pToast }}</span>
+    </div>
+  </sc-if>
+</div></div>
+</div>
+<p class="dv-next">À essayer ensuite : « dans <a class="dv-oid" href="#2a">2a</a>, mets Archiver avant Répondre » · « ajoute l'écran Pièces jointes » · « le passage d'espace doit être un balayage, pas la pastille »</p>
+</section>
+
+<section class="dv-turn" id="t1">
+<div class="dv-thd"><a class="dv-tid" href="#t1">1</a><span class="dv-tname">Arc Mail — mobile plus accessible, desktop en deux fenêtres</span></div>
+<div class="dv-opts">
+
+<div class="dv-opt" id="1a"><div class="dv-olabel"><a class="dv-oid" href="#1a">1a</a>Référence — la liste telle qu'elle est aujourd'hui (barre du bas : espace · réception · recherche · écrire)</div>
+<div class="ph" style="background:radial-gradient(140% 55% at 50% -15%, color-mix(in oklch,#a855f7 26%,#171717), transparent 75%),#171717">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 26px 0;font-size:14px;font-weight:600">
+    <span>9:41</span><span style="display:flex;gap:5px;align-items:center;opacity:.85"><svg class="ico s16" style="stroke-width:2.5"><use href="#i-inbox"></use></svg></span>
+  </div>
+  <div style="padding:14px 20px 12px">
+    <h1 style="margin:0;font-size:30px;line-height:1.15;font-weight:700;letter-spacing:-.02em">Boîte de réception</h1>
+    <div style="margin-top:6px;display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <p style="margin:0;min-width:0;flex:1;display:flex;align-items:center;gap:6px;font-size:13px;color:#a3a3a3">
+        <span style="display:inline-grid;place-items:center;width:16px;height:16px;border-radius:5px;background:linear-gradient(135deg,#7c3aed,#db2777 55%,#f97316);color:#fff;flex:none"><svg class="ico" style="width:10px;height:10px;stroke-width:2.25"><use href="#i-house"></use></svg></span>
+        <span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Perso · 21 conversations · 6 non lues</span>
+      </p>
+      <div style="display:flex;flex:none;background:rgba(255,255,255,.06);border-radius:999px;padding:2px;font-size:12px">
+        <span style="padding:7px 12px;border-radius:999px;background:#171717;font-weight:500;white-space:nowrap">Tous</span>
+        <span style="padding:7px 12px;border-radius:999px;color:#a3a3a3;white-space:nowrap">Non lus</span>
+      </div>
+    </div>
+  </div>
+  <div style="flex:1;min-height:0;background:#171717;border-radius:28px 28px 0 0;border-top:1px solid rgba(255,255,255,.28);border-left:1px solid rgba(255,255,255,.14);border-right:1px solid rgba(255,255,255,.14);box-shadow:0 -10px 34px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.08);overflow:hidden;padding-top:8px">
+    <div style="display:flex;gap:12px;padding:12px 16px">
+      <span style="width:40px;height:40px;border-radius:999px;background:linear-gradient(135deg,oklch(.78 .12 20),oklch(.58 .17 60));display:grid;place-items:center;font-size:12px;font-weight:600;color:#fff;flex:none">CD</span>
+      <div style="min-width:0;flex:1;border-bottom:1px solid rgba(255,255,255,.1);padding-bottom:12px">
+        <div style="display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:999px;background:#a855f7;flex:none"></span><span style="font-weight:600;font-size:15px">Claire Dubois</span><time style="margin-left:auto;font-size:12px;color:#a3a3a3">09:41</time></div>
+        <p style="margin:1px 0 0;font-size:15px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Week-end à Annecy : on confirme ?</p>
+        <div style="margin-top:4px;display:flex;align-items:center;gap:8px"><p style="margin:0;flex:1;min-width:0;font-size:13px;color:#a3a3a3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">J'ai regardé les dispos pour le chalet</p><span style="font-size:11px;font-weight:500;padding:2px 8px;border-radius:999px;background:oklch(.72 .14 30/.24);color:oklch(.88 .11 30)">Amis</span></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:12px;padding:12px 16px">
+      <span style="width:40px;height:40px;border-radius:999px;background:linear-gradient(135deg,oklch(.78 .12 220),oklch(.58 .17 260));display:grid;place-items:center;font-size:12px;font-weight:600;color:#fff;flex:none">LP</span>
+      <div style="min-width:0;flex:1;border-bottom:1px solid rgba(255,255,255,.1);padding-bottom:12px">
+        <div style="display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:999px;background:#a855f7;flex:none"></span><span style="font-weight:600;font-size:15px">La Poste</span><time style="margin-left:auto;font-size:12px;color:#a3a3a3">06:40</time></div>
+        <p style="margin:1px 0 0;font-size:15px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Votre colis est en route</p>
+        <div style="margin-top:4px;display:flex;align-items:center;gap:8px"><p style="margin:0;flex:1;min-width:0;font-size:13px;color:#a3a3a3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Votre colis n° 6A12345678901 est pris en charge</p><span style="font-size:11px;font-weight:500;padding:2px 8px;border-radius:999px;background:oklch(.72 .14 200/.24);color:oklch(.88 .11 200)">Achats</span></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:12px;padding:12px 16px">
+      <span style="width:40px;height:40px;border-radius:999px;background:linear-gradient(135deg,oklch(.78 .12 140),oklch(.58 .17 180));display:grid;place-items:center;font-size:12px;font-weight:600;color:#fff;flex:none">AG</span>
+      <div style="min-width:0;flex:1;border-bottom:1px solid rgba(255,255,255,.1);padding-bottom:12px">
+        <div style="display:flex;align-items:center;gap:8px"><span style="font-weight:500;font-size:15px">Amélie Garnier</span><span style="font-size:12px;color:#a3a3a3">3</span><time style="margin-left:auto;font-size:12px;color:#a3a3a3">4 sept.</time><svg class="ico" style="width:14px;height:14px;fill:#fbbf24;stroke:#fbbf24"><use href="#i-star"></use></svg></div>
+        <p style="margin:1px 0 0;font-size:15px;color:#a3a3a3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Photos de l'anniversaire</p>
+        <div style="margin-top:4px;display:flex;align-items:center;gap:8px"><p style="margin:0;flex:1;min-width:0;font-size:13px;color:#a3a3a3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Celle avec le gâteau qui tombe est incroyable.</p><span style="font-size:11px;font-weight:500;padding:2px 8px;border-radius:999px;background:oklch(.72 .14 300/.24);color:oklch(.88 .11 300)">Famille</span></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:12px;padding:12px 16px">
+      <span style="width:40px;height:40px;border-radius:999px;background:linear-gradient(135deg,oklch(.78 .12 90),oklch(.58 .17 130));display:grid;place-items:center;font-size:12px;font-weight:600;color:#fff;flex:none">S</span>
+      <div style="min-width:0;flex:1;border-bottom:1px solid rgba(255,255,255,.1);padding-bottom:12px">
+        <div style="display:flex;align-items:center;gap:8px"><span style="font-weight:500;font-size:15px">Stripe</span><time style="margin-left:auto;font-size:12px;color:#a3a3a3">3 sept.</time></div>
+        <p style="margin:1px 0 0;font-size:15px;color:#a3a3a3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Reçu de votre paiement — Spotify</p>
+        <div style="margin-top:4px;display:flex;align-items:center;gap:8px"><p style="margin:0;flex:1;min-width:0;font-size:13px;color:#a3a3a3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Merci pour votre paiement de 10,99 € à Spotify AB.</p></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:12px;padding:12px 16px">
+      <span style="width:40px;height:40px;border-radius:999px;background:linear-gradient(135deg,oklch(.78 .12 320),oklch(.58 .17 0));display:grid;place-items:center;font-size:12px;font-weight:600;color:#fff;flex:none">NB</span>
+      <div style="min-width:0;flex:1;border-bottom:1px solid rgba(255,255,255,.1);padding-bottom:12px">
+        <div style="display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:999px;background:#a855f7;flex:none"></span><span style="font-weight:600;font-size:15px">Nina Bernard</span><time style="margin-left:auto;font-size:12px;color:#a3a3a3">2 sept.</time></div>
+        <p style="margin:1px 0 0;font-size:15px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Cours d'escalade — rentrée</p>
+        <div style="margin-top:4px;display:flex;align-items:center;gap:8px"><p style="margin:0;flex:1;min-width:0;font-size:13px;color:#a3a3a3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Les inscriptions pour la saison sont ouvertes.</p></div>
+      </div>
+    </div>
+  </div>
+  <div style="position:absolute;inset:auto 0 0 0;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 20px 18px">
+    <div style="display:flex;align-items:center;height:56px;padding:6px;border-radius:999px;background:rgba(255,255,255,.07);backdrop-filter:blur(24px);box-shadow:0 8px 30px rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);position:relative">
+      <span style="position:absolute;top:6px;bottom:6px;left:6px;width:56px;border-radius:999px;background:color-mix(in oklch,#a855f7 18%,transparent);transform:translateX(56px)"></span>
+      <span style="width:56px;height:44px;display:grid;place-items:center;color:#a3a3a3;position:relative;z-index:1"><svg class="ico s24"><use href="#i-house"></use></svg></span>
+      <span style="width:56px;height:44px;display:grid;place-items:center;color:#a855f7;position:relative;z-index:1"><svg class="ico s24" style="stroke-width:2.25"><use href="#i-inbox"></use></svg><span style="position:absolute;top:2px;right:9px;min-width:16px;padding:0 4px;border-radius:999px;background:#a855f7;color:#000;font-size:10px;line-height:16px;font-weight:700;text-align:center">6</span></span>
+      <span style="width:56px;height:44px;display:grid;place-items:center;color:#a3a3a3;position:relative;z-index:1"><svg class="ico s24"><use href="#i-search"></use></svg></span>
+    </div>
+    <span style="width:56px;height:56px;flex:none;border-radius:999px;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,#7c3aed,#db2777 55%,#f97316);box-shadow:0 8px 24px rgba(0,0,0,.35)"><svg class="ico s24" style="stroke-width:2"><use href="#i-compose"></use></svg></span>
+  </div>
+</div></div>
+
+<div class="dv-opt" id="1b"><div class="dv-olabel"><a class="dv-oid" href="#1b">1b</a>Référence — mail ouvert aujourd'hui : six petites cibles en haut, et le corps enfermé dans trois cadres emboîtés</div>
+<div class="ph" style="background:radial-gradient(140% 55% at 50% -15%, color-mix(in oklch,#a855f7 26%,#171717), transparent 75%),#171717">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 26px 0;font-size:14px;font-weight:600"><span>9:41</span></div>
+  <div style="padding:6px 8px 8px">
+    <div style="display:flex;align-items:flex-start;gap:2px">
+      <span style="width:36px;height:36px;display:grid;place-items:center;flex:none;color:#fafafa"><svg class="ico s20"><use href="#i-back"></use></svg></span>
+      <h1 style="margin:0;padding-top:7px;font-size:19px;line-height:1.2;font-weight:700;letter-spacing:-.01em">Votre réclamation est prise en charge</h1>
+    </div>
+    <div style="margin-top:2px;display:flex;align-items:center;justify-content:flex-end;gap:2px;padding-left:12px;color:#a3a3a3">
+      <span style="width:36px;height:36px;display:grid;place-items:center"><svg class="ico s20"><use href="#i-reply"></use></svg></span>
+      <span style="width:36px;height:36px;display:grid;place-items:center"><svg class="ico s20"><use href="#i-forward"></use></svg></span>
+      <span style="width:36px;height:36px;display:grid;place-items:center"><svg class="ico s20"><use href="#i-archive"></use></svg></span>
+      <span style="width:36px;height:36px;display:grid;place-items:center"><svg class="ico s20"><use href="#i-trash"></use></svg></span>
+      <span style="width:36px;height:36px;display:grid;place-items:center"><svg class="ico s20"><use href="#i-mailopen"></use></svg></span>
+      <span style="width:36px;height:36px;display:grid;place-items:center"><svg class="ico s20"><use href="#i-star"></use></svg></span>
+    </div>
+  </div>
+  <div style="flex:1;min-height:0;background:#171717;border-radius:28px 28px 0 0;overflow:hidden;display:flex;flex-direction:column">
+    <div style="flex:1;min-height:0;overflow:hidden;padding:16px">
+      <div style="border-radius:16px;background:rgba(255,255,255,.07);padding:16px">
+        <div style="display:flex;gap:12px">
+          <span style="width:36px;height:36px;border-radius:999px;background:linear-gradient(135deg,oklch(.78 .12 170),oklch(.58 .17 210));display:grid;place-items:center;font-size:12px;font-weight:600;color:#fff;flex:none">BP</span>
+          <div style="min-width:0;flex:1">
+            <div style="display:flex;flex-wrap:wrap;gap:0 8px;align-items:baseline"><span style="font-size:15px;font-weight:600">BNP Paribas</span><span style="font-size:12px;color:#a3a3a3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">relation-client@gestion.bnpparibas.com</span><time style="margin-left:auto;font-size:12px;color:#a3a3a3">lundi 31 août à 16:08</time></div>
+            <p style="margin:0;font-size:12px;color:#a3a3a3">À : milone.thierry@me.com</p>
+          </div>
+        </div>
+        <div style="margin-top:16px;border-radius:12px;overflow:hidden;background:#fff;color:#0a0a0a">
+          <div style="display:flex;align-items:center;gap:10px;padding:12px;background:#f5f5f5;border-bottom:1px solid #e5e5e5;font-size:13px"><svg class="ico s18" style="color:#525252"><use href="#i-mail"></use></svg><span style="flex:1">14 images distantes retenues — les charger signale la lecture.</span><span style="padding:6px 12px;border-radius:999px;background:#fff;border:1px solid #e5e5e5;color:#2563eb;font-weight:500">Afficher</span></div>
+          <div style="padding:16px;font-size:14px;line-height:1.5">
+            <p style="margin:0 0 10px;font-weight:700">Chèr(e) client(e),</p>
+            <p style="margin:0 0 10px">Nous vous remercions d'avoir pris le temps de nous faire part de votre réclamation (réf. REC267907018) le 31/08/2026 concernant :</p>
+            <p style="margin:0">Moyens de paiement et Cartes</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="flex:none;border-top:1px solid rgba(255,255,255,.1);padding:8px 12px 18px">
+      <div style="display:flex;align-items:flex-end;gap:8px;border-radius:22px;background:rgba(255,255,255,.07);padding:6px 6px 6px 16px">
+        <span style="flex:1;padding:8px 0;color:#a3a3a3;font-size:16px">Répondre à BNP…</span>
+        <span style="width:32px;height:32px;flex:none;border-radius:999px;background:#fafafa;color:#171717;display:grid;place-items:center"><svg class="ico s16" style="stroke-width:2.5"><use href="#i-up"></use></svg></span>
+      </div>
+    </div>
+  </div>
+</div></div>
+
+<div class="dv-opt" id="1c"><div class="dv-olabel"><a class="dv-oid" href="#1c">1c</a>Mail ouvert — corps à bord perdu, pill d'actions en bas. Cliquable : <b>Répondre</b> ouvre le champ, <b>Déplacer</b> la feuille de dossiers, <b>⋯</b> le reste.</div>
+<div class="ph" style="background:radial-gradient(140% 55% at 50% -15%, color-mix(in oklch,#a855f7 26%,#171717), transparent 75%),#171717">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 26px 0;font-size:14px;font-weight:600"><span>9:41</span></div>
+  <div style="display:flex;align-items:center;gap:4px;padding:6px 12px 10px">
+    <button type="button" style="width:44px;height:44px;display:grid;place-items:center;flex:none;color:#fafafa;background:none;border:0;padding:0;cursor:pointer;margin-left:-8px"><svg class="ico s24"><use href="#i-back"></use></svg></button>
+    <div style="min-width:0;flex:1">
+      <p style="margin:0;font-size:12px;color:#a3a3a3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Boîte de réception · Perso</p>
+      <p style="margin:0;font-size:13px;color:#a3a3a3">1 sur 21</p>
+    </div>
+    <button type="button" style="width:44px;height:44px;display:grid;place-items:center;flex:none;color:#a3a3a3;background:none;border:0;padding:0;cursor:pointer"><svg class="ico s20"><use href="#i-star"></use></svg></button>
+  </div>
+  <div style="flex:1;min-height:0;background:#171717;border-radius:28px 28px 0 0;border-top:1px solid rgba(255,255,255,.28);border-left:1px solid rgba(255,255,255,.14);border-right:1px solid rgba(255,255,255,.14);box-shadow:0 -10px 34px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.08);overflow:hidden;display:flex;flex-direction:column;position:relative">
+    <div style="flex:1;min-height:0;overflow:hidden">
+      <div style="padding:22px 20px 0">
+        <h1 style="margin:0;font-size:22px;line-height:1.25;font-weight:700;letter-spacing:-.015em;text-wrap:pretty">Votre réclamation est prise en charge</h1>
+        <div style="margin-top:14px;display:flex;gap:12px;align-items:center">
+          <span style="width:40px;height:40px;border-radius:999px;background:linear-gradient(135deg,oklch(.78 .12 170),oklch(.58 .17 210));display:grid;place-items:center;font-size:13px;font-weight:600;color:#fff;flex:none">BP</span>
+          <div style="min-width:0;flex:1">
+            <p style="margin:0;font-size:15px;font-weight:600">BNP Paribas</p>
+            <p style="margin:0;font-size:13px;color:#a3a3a3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">à moi · lundi 31 août, 16:08</p>
+          </div>
+          <button type="button" style="width:36px;height:36px;display:grid;place-items:center;flex:none;border-radius:999px;background:rgba(255,255,255,.07);color:#a3a3a3;border:0;cursor:pointer"><svg class="ico s18"><use href="#i-down"></use></svg></button>
+        </div>
+      </div>
+      <div style="margin-top:16px;display:flex;align-items:center;gap:10px;padding:10px 20px;background:rgba(255,255,255,.05);font-size:13px;color:#a3a3a3">
+        <svg class="ico s18"><use href="#i-mail"></use></svg><span style="flex:1">14 images distantes retenues.</span><span style="color:#a855f7;font-weight:600">Afficher</span>
+      </div>
+      <div style="padding:18px 20px 0;font-size:15px;line-height:1.6">
+        <p style="margin:0 0 14px;font-weight:600">Chèr(e) client(e),</p>
+        <p style="margin:0 0 14px">Nous vous remercions d'avoir pris le temps de nous faire part de votre réclamation (réf. REC267907018) le 31/08/2026 concernant : <b>Moyens de paiement et Cartes</b>.</p>
+        <p style="margin:0 0 14px">Votre demande est enregistrée sous le dossier E30004260810 et confiée au Service Litiges Émetteurs. Un conseiller reviendra vers vous sous huit jours ouvrés.</p>
+        <p style="margin:0;color:#a3a3a3">Cordialement,<br>Service Relation Client</p>
+      </div>
+    </div>
+
+    <sc-if value="{{ sheetMove }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;inset:0;background:rgba(0,0,0,.5);z-index:4" onClick="{{ closeSheet }}"></div>
+      <div style="position:absolute;left:8px;right:8px;bottom:8px;z-index:5;border-radius:32px;background:#1c1c1e;border:1px solid rgba(255,255,255,.12);box-shadow:0 -10px 40px rgba(0,0,0,.5);overflow:hidden">
+        <div style="display:flex;align-items:center;gap:10px;padding:16px 18px 10px">
+          <p style="margin:0;flex:1;font-size:15px;font-weight:600">Déplacer vers</p>
+          <button type="button" onClick="{{ closeSheet }}" style="width:36px;height:36px;border-radius:999px;background:rgba(255,255,255,.1);color:#a3a3a3;border:0;display:grid;place-items:center;cursor:pointer"><svg class="ico s18"><use href="#i-x"></use></svg></button>
+        </div>
+        <div style="padding:0 8px 8px">
+          <button type="button" onClick="{{ closeSheet }}" style="width:100%;display:flex;align-items:center;gap:12px;min-height:52px;padding:0 12px;background:none;border:0;color:inherit;font:inherit;text-align:left;cursor:pointer;border-radius:14px"><span style="width:28px;height:28px;border-radius:8px;background:#f59e0b;display:grid;place-items:center;flex:none"><svg class="ico s16" style="color:#fff"><use href="#i-star"></use></svg></span><span style="flex:1">Favoris</span></button>
+          <button type="button" onClick="{{ closeSheet }}" style="width:100%;display:flex;align-items:center;gap:12px;min-height:52px;padding:0 12px;background:none;border:0;color:inherit;font:inherit;text-align:left;cursor:pointer;border-radius:14px"><span style="width:28px;height:28px;border-radius:8px;background:#a855f7;display:grid;place-items:center;flex:none"><svg class="ico s16" style="color:#fff"><use href="#i-clock"></use></svg></span><span style="flex:1">En pause</span></button>
+          <button type="button" onClick="{{ closeSheet }}" style="width:100%;display:flex;align-items:center;gap:12px;min-height:52px;padding:0 12px;background:none;border:0;color:inherit;font:inherit;text-align:left;cursor:pointer;border-radius:14px"><span style="width:28px;height:28px;border-radius:8px;background:#14b8a6;display:grid;place-items:center;flex:none"><svg class="ico s16" style="color:#fff"><use href="#i-archive"></use></svg></span><span style="flex:1">Archive</span></button>
+          <button type="button" onClick="{{ closeSheet }}" style="width:100%;display:flex;align-items:center;gap:12px;min-height:52px;padding:0 12px;background:none;border:0;color:inherit;font:inherit;text-align:left;cursor:pointer;border-radius:14px"><span style="width:28px;height:28px;border-radius:8px;background:#ef4444;display:grid;place-items:center;flex:none"><svg class="ico s16" style="color:#fff"><use href="#i-trash"></use></svg></span><span style="flex:1">Corbeille</span></button>
+        </div>
+        <div style="height:1px;background:rgba(255,255,255,.1);margin:0 18px"></div>
+        <div style="padding:10px 18px 20px;font-size:13px;color:#737373">Les dossiers de l'espace <b style="color:#a3a3a3">Perso</b>.</div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ sheetMore }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;inset:0;background:rgba(0,0,0,.5);z-index:4" onClick="{{ closeSheet }}"></div>
+      <div style="position:absolute;left:8px;right:8px;bottom:8px;z-index:5;border-radius:32px;background:#1c1c1e;border:1px solid rgba(255,255,255,.12);box-shadow:0 -10px 40px rgba(0,0,0,.5);overflow:hidden;padding:8px">
+        <button type="button" onClick="{{ closeSheet }}" style="width:100%;display:flex;align-items:center;gap:14px;min-height:54px;padding:0 14px;background:none;border:0;color:inherit;font:inherit;text-align:left;cursor:pointer"><svg class="ico s20" style="color:#a3a3a3"><use href="#i-replyall"></use></svg><span style="flex:1">Répondre à tous</span></button>
+        <button type="button" onClick="{{ closeSheet }}" style="width:100%;display:flex;align-items:center;gap:14px;min-height:54px;padding:0 14px;background:none;border:0;color:inherit;font:inherit;text-align:left;cursor:pointer;border-top:1px solid rgba(255,255,255,.08)"><svg class="ico s20" style="color:#a3a3a3"><use href="#i-forward"></use></svg><span style="flex:1">Transférer</span></button>
+        <button type="button" onClick="{{ closeSheet }}" style="width:100%;display:flex;align-items:center;gap:14px;min-height:54px;padding:0 14px;background:none;border:0;color:inherit;font:inherit;text-align:left;cursor:pointer;border-top:1px solid rgba(255,255,255,.08)"><svg class="ico s20" style="color:#a3a3a3"><use href="#i-mailopen"></use></svg><span style="flex:1">Marquer comme non lu</span></button>
+        <button type="button" onClick="{{ closeSheet }}" style="width:100%;display:flex;align-items:center;gap:14px;min-height:54px;padding:0 14px;background:none;border:0;color:inherit;font:inherit;text-align:left;cursor:pointer;border-top:1px solid rgba(255,255,255,.08)"><svg class="ico s20" style="color:#a3a3a3"><use href="#i-clock"></use></svg><span style="flex:1">Mettre en pause</span></button>
+        <button type="button" onClick="{{ closeSheet }}" style="width:100%;display:flex;align-items:center;gap:14px;min-height:54px;padding:0 14px;background:none;border:0;color:inherit;font:inherit;text-align:left;cursor:pointer;border-top:1px solid rgba(255,255,255,.08)"><svg class="ico s20" style="color:#a3a3a3"><use href="#i-paperclip"></use></svg><span style="flex:1">Pièces jointes</span><span style="font-size:13px;color:#737373">aucune</span></button>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ replyOpen }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;inset:auto 0 0 0;z-index:3;background:#1c1c1e;border-top:1px solid rgba(255,255,255,.1);padding:10px 12px 18px;box-shadow:0 -14px 40px rgba(0,0,0,.35)">
+        <div style="display:flex;align-items:center;gap:8px;padding:0 4px 8px;font-size:12px;color:#737373"><span>À : BNP Paribas</span><button type="button" onClick="{{ closeReply }}" style="margin-left:auto;background:none;border:0;color:#a3a3a3;font:inherit;cursor:pointer;padding:6px">Annuler</button></div>
+        <div style="display:flex;align-items:flex-end;gap:8px;border-radius:24px;background:rgba(255,255,255,.08);padding:8px 8px 8px 18px">
+          <span style="flex:1;padding:10px 0;font-size:16px;color:#fafafa">Bonjour,<span style="opacity:.55">|</span></span>
+          <span style="width:40px;height:40px;flex:none;border-radius:999px;background:#a855f7;color:#000;display:grid;place-items:center"><svg class="ico s20" style="stroke-width:2.5"><use href="#i-up"></use></svg></span>
+        </div>
+      </div>
+    </sc-if>
+  </div>
+
+  <div style="position:absolute;inset:auto 0 0 0;z-index:2;padding:10px 15px 18px">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:0;padding:8px 10px;border-radius:999px;background:rgba(28,28,30,.86);backdrop-filter:blur(28px);border:1px solid rgba(255,255,255,.12);box-shadow:0 10px 34px rgba(0,0,0,.45)">
+      <button type="button" onClick="{{ openReply }}" style="display:flex;align-items:center;gap:8px;height:52px;padding:0 16px 0 14px;border-radius:999px;border:0;cursor:pointer;background:linear-gradient(135deg,#7c3aed,#db2777 55%,#f97316);color:#fff;font:600 15px Geist,system-ui,sans-serif"><svg class="ico s20" style="stroke-width:2"><use href="#i-reply"></use></svg>Répondre</button>
+      <button type="button" style="width:52px;height:52px;flex:none;border-radius:999px;border:0;background:none;color:#e5e5e5;display:grid;place-items:center;cursor:pointer" style-hover="background:rgba(255,255,255,.1)"><svg class="ico s24"><use href="#i-archive"></use></svg></button>
+      <button type="button" style="width:52px;height:52px;flex:none;border-radius:999px;border:0;background:none;color:#f87171;display:grid;place-items:center;cursor:pointer" style-hover="background:rgba(248,113,113,.14)"><svg class="ico s24"><use href="#i-trash"></use></svg></button>
+      <button type="button" onClick="{{ openMove }}" style="width:52px;height:52px;flex:none;border-radius:999px;border:0;background:none;color:#e5e5e5;display:grid;place-items:center;cursor:pointer" style-hover="background:rgba(255,255,255,.1)"><svg class="ico s24"><use href="#i-folder"></use></svg></button>
+      <button type="button" onClick="{{ openMore }}" style="width:52px;height:52px;flex:none;border-radius:999px;border:0;background:none;color:#e5e5e5;display:grid;place-items:center;cursor:pointer" style-hover="background:rgba(255,255,255,.1)"><svg class="ico s24"><use href="#i-dots"></use></svg></button>
+    </div>
+  </div>
+</div></div>
+
+<div class="dv-opt" id="1d"><div class="dv-olabel"><a class="dv-oid" href="#1d">1d</a>Liste — tuiles de dossiers sous le titre + comptes au balayage. <b>Glisse la liste horizontalement</b> (ou touche les pastilles) pour changer d'espace.</div>
+<div class="ph" style="{{ washStyle }}">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 26px 0;font-size:14px;font-weight:600"><span>9:41</span></div>
+  <div style="padding:10px 20px 0">
+    <div style="display:flex;align-items:center;gap:8px">
+      <button type="button" onClick="{{ prevAcct }}" style="width:36px;height:36px;flex:none;border-radius:999px;border:0;background:rgba(255,255,255,.07);color:#a3a3a3;display:grid;place-items:center;cursor:pointer;transform:rotate(180deg)"><svg class="ico s18"><use href="#i-right"></use></svg></button>
+      <div style="min-width:0;flex:1;text-align:center">
+        <p style="margin:0;font-size:17px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ acctName }}</p>
+        <p style="margin:0;font-size:12px;color:#a3a3a3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ acctEmail }}</p>
+      </div>
+      <button type="button" onClick="{{ nextAcct }}" style="width:36px;height:36px;flex:none;border-radius:999px;border:0;background:rgba(255,255,255,.07);color:#a3a3a3;display:grid;place-items:center;cursor:pointer"><svg class="ico s18"><use href="#i-right"></use></svg></button>
+    </div>
+    <div style="margin-top:8px;display:flex;justify-content:center;gap:6px">{{ dots }}</div>
+    <h1 style="margin:14px 0 0;font-size:30px;line-height:1.15;font-weight:700;letter-spacing:-.02em">Réception</h1>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:14px 20px 12px">
+    <div style="height:62px;border-radius:16px;background:rgba(255,255,255,.14);backdrop-filter:blur(24px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:11px;font-weight:500"><svg class="ico s20"><use href="#i-inbox"></use></svg>Réception</div>
+    <div style="height:62px;border-radius:16px;background:rgba(255,255,255,.05);color:#a3a3a3;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:11px;font-weight:500"><svg class="ico s20"><use href="#i-star"></use></svg>Favoris</div>
+    <div style="height:62px;border-radius:16px;background:rgba(255,255,255,.05);color:#a3a3a3;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:11px;font-weight:500"><svg class="ico s20"><use href="#i-send"></use></svg>Envoyés</div>
+    <div style="height:62px;border-radius:16px;background:rgba(255,255,255,.05);color:#a3a3a3;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:11px;font-weight:500"><svg class="ico s20"><use href="#i-trash"></use></svg>Corbeille</div>
+  </div>
+  <div style="flex:1;min-height:0;background:#171717;border-radius:28px 28px 0 0;border-top:1px solid rgba(255,255,255,.28);border-left:1px solid rgba(255,255,255,.14);border-right:1px solid rgba(255,255,255,.14);box-shadow:0 -10px 34px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.08);overflow:hidden;padding-top:6px;touch-action:pan-y;cursor:grab" onPointerDown="{{ onSwipeDown }}" onPointerMove="{{ onSwipeMove }}" onPointerUp="{{ onSwipeUp }}">
+    <div style="{{ slideStyle }}">
+      <sc-for list="{{ rows }}" as="row" hint-placeholder-count="5">
+        <div style="display:flex;gap:12px;padding:12px 16px">
+          <span style="width:40px;height:40px;border-radius:999px;display:grid;place-items:center;font-size:12px;font-weight:600;color:#fff;flex:none;background:{{ row.av }}">{{ row.ini }}</span>
+          <div style="min-width:0;flex:1;border-bottom:1px solid rgba(255,255,255,.1);padding-bottom:12px">
+            <div style="display:flex;align-items:center;gap:8px"><span style="font-weight:600;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ row.who }}</span><time style="margin-left:auto;font-size:12px;color:#a3a3a3;flex:none">{{ row.when }}</time></div>
+            <p style="margin:1px 0 0;font-size:15px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ row.subject }}</p>
+            <p style="margin:4px 0 0;font-size:13px;color:#a3a3a3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ row.snippet }}</p>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+  <div style="position:absolute;inset:auto 0 0 0;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 15px 18px">
+    <div style="display:flex;align-items:center;gap:0;padding:8px 10px;border-radius:999px;background:rgba(28,28,30,.86);backdrop-filter:blur(28px);border:1px solid rgba(255,255,255,.12);box-shadow:0 10px 34px rgba(0,0,0,.45)">
+      <span style="width:52px;height:52px;flex:none;display:grid;place-items:center;color:#a855f7;position:relative"><svg class="ico s24" style="stroke-width:2.25"><use href="#i-inbox"></use></svg></span>
+      <span style="width:52px;height:52px;flex:none;display:grid;place-items:center;color:#e5e5e5"><svg class="ico s24"><use href="#i-folder"></use></svg></span>
+      <span style="width:52px;height:52px;flex:none;display:grid;place-items:center;color:#e5e5e5"><svg class="ico s24"><use href="#i-search"></use></svg></span>
+      <span style="width:52px;height:52px;flex:none;display:grid;place-items:center;color:#e5e5e5">{{ navSpaceIcon }}</span>
+    </div>
+    <span style="width:68px;height:68px;flex:none;border-radius:999px;display:grid;place-items:center;color:#fff;background:{{ acctGradient }};box-shadow:0 10px 30px rgba(0,0,0,.4)"><svg class="ico s24" style="stroke-width:2"><use href="#i-compose"></use></svg></span>
+  </div>
+</div></div>
+
+<div class="dv-opt" id="1e"><div class="dv-olabel"><a class="dv-oid" href="#1e">1e</a>Balayage sur une ligne — <b>glisse la première ligne</b> : à gauche Supprimer, à droite Archiver. Relâche au-delà de la moitié pour valider.</div>
+<div class="ph" style="background:radial-gradient(140% 55% at 50% -15%, color-mix(in oklch,#a855f7 26%,#171717), transparent 75%),#171717">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 26px 0;font-size:14px;font-weight:600"><span>9:41</span></div>
+  <div style="padding:14px 20px 12px">
+    <h1 style="margin:0;font-size:30px;line-height:1.15;font-weight:700;letter-spacing:-.02em">Réception</h1>
+    <p style="margin:6px 0 0;font-size:13px;color:#a3a3a3">Perso · 21 conversations</p>
+  </div>
+  <div style="flex:1;min-height:0;background:#171717;border-radius:28px 28px 0 0;border-top:1px solid rgba(255,255,255,.28);border-left:1px solid rgba(255,255,255,.14);border-right:1px solid rgba(255,255,255,.14);box-shadow:0 -10px 34px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.08);overflow:hidden;padding-top:6px">
+    <div style="position:relative;overflow:hidden;touch-action:pan-y" onPointerDown="{{ onRowDown }}" onPointerMove="{{ onRowMove }}" onPointerUp="{{ onRowUp }}">
+      <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:space-between;background:#14b8a6">
+        <span style="display:flex;align-items:center;gap:8px;padding-left:20px;color:#fff;font-weight:600;font-size:14px"><svg class="ico s20" style="stroke-width:2"><use href="#i-archive"></use></svg>Archiver</span>
+      </div>
+      <div style="{{ rowTrashStyle }}">
+        <span style="display:flex;align-items:center;gap:8px;padding-right:20px;color:#fff;font-weight:600;font-size:14px">Supprimer<svg class="ico s20" style="stroke-width:2"><use href="#i-trash"></use></svg></span>
+      </div>
+      <div style="{{ rowStyle }}">
+        <div style="display:flex;gap:12px;padding:12px 16px;background:#171717;cursor:grab">
+          <span style="width:40px;height:40px;border-radius:999px;background:linear-gradient(135deg,oklch(.78 .12 20),oklch(.58 .17 60));display:grid;place-items:center;font-size:12px;font-weight:600;color:#fff;flex:none">CD</span>
+          <div style="min-width:0;flex:1;border-bottom:1px solid rgba(255,255,255,.1);padding-bottom:12px">
+            <div style="display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:999px;background:#a855f7;flex:none"></span><span style="font-weight:600;font-size:15px">Claire Dubois</span><time style="margin-left:auto;font-size:12px;color:#a3a3a3">09:41</time></div>
+            <p style="margin:1px 0 0;font-size:15px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Week-end à Annecy : on confirme ?</p>
+            <p style="margin:4px 0 0;font-size:13px;color:#a3a3a3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">J'ai regardé les dispos pour le chalet, il reste…</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;gap:12px;padding:12px 16px">
+      <span style="width:40px;height:40px;border-radius:999px;background:linear-gradient(135deg,oklch(.78 .12 220),oklch(.58 .17 260));display:grid;place-items:center;font-size:12px;font-weight:600;color:#fff;flex:none">LP</span>
+      <div style="min-width:0;flex:1;border-bottom:1px solid rgba(255,255,255,.1);padding-bottom:12px">
+        <div style="display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:999px;background:#a855f7;flex:none"></span><span style="font-weight:600;font-size:15px">La Poste</span><time style="margin-left:auto;font-size:12px;color:#a3a3a3">06:40</time></div>
+        <p style="margin:1px 0 0;font-size:15px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Votre colis est en route</p>
+        <p style="margin:4px 0 0;font-size:13px;color:#a3a3a3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Livraison demain entre 9h et 13h.</p>
+      </div>
+    </div>
+    <div style="display:flex;gap:12px;padding:12px 16px">
+      <span style="width:40px;height:40px;border-radius:999px;background:linear-gradient(135deg,oklch(.78 .12 140),oklch(.58 .17 180));display:grid;place-items:center;font-size:12px;font-weight:600;color:#fff;flex:none">AG</span>
+      <div style="min-width:0;flex:1;border-bottom:1px solid rgba(255,255,255,.1);padding-bottom:12px">
+        <div style="display:flex;align-items:center;gap:8px"><span style="font-weight:500;font-size:15px">Amélie Garnier</span><time style="margin-left:auto;font-size:12px;color:#a3a3a3">4 sept.</time></div>
+        <p style="margin:1px 0 0;font-size:15px;color:#a3a3a3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Photos de l'anniversaire</p>
+        <p style="margin:4px 0 0;font-size:13px;color:#a3a3a3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Voici les trois meilleures en pièce jointe.</p>
+      </div>
+    </div>
+    <div style="padding:14px 20px;font-size:13px;color:#737373">{{ swipeHint }}</div>
+  </div>
+</div></div>
+
+<div class="dv-opt" id="1f"><div class="dv-olabel"><a class="dv-oid" href="#1f">1f</a>Onglet « Dossiers » de la barre du bas — la feuille des boîtes, comptes en pastilles en tête</div>
+<div class="ph" style="background:radial-gradient(140% 55% at 50% -15%, color-mix(in oklch,#a855f7 26%,#171717), transparent 75%),#171717">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 26px 0;font-size:14px;font-weight:600"><span>9:41</span></div>
+  <div style="padding:14px 20px 12px;opacity:.35">
+    <h1 style="margin:0;font-size:30px;line-height:1.15;font-weight:700">Réception</h1>
+    <p style="margin:6px 0 0;font-size:13px;color:#a3a3a3">Perso · 21 conversations</p>
+  </div>
+  <div style="flex:1;min-height:0;background:#171717;border-radius:28px 28px 0 0;opacity:.35"></div>
+  <div style="position:absolute;inset:0;background:rgba(0,0,0,.5)"></div>
+  <div style="position:absolute;left:8px;right:8px;bottom:8px;border-radius:36px;background:#1c1c1e;border:1px solid rgba(255,255,255,.12);box-shadow:0 -10px 40px rgba(0,0,0,.5);overflow:hidden;max-height:86%;display:flex;flex-direction:column">
+    <div style="flex:none;padding:16px 16px 8px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <p style="margin:0;flex:1;font-size:17px;font-weight:600">Dossiers</p>
+        <span style="width:36px;height:36px;border-radius:999px;background:rgba(255,255,255,.1);color:#a3a3a3;display:grid;place-items:center"><svg class="ico s18"><use href="#i-x"></use></svg></span>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:12px;overflow:hidden">
+        <span style="display:flex;align-items:center;gap:8px;flex:none;padding:6px 14px 6px 6px;border-radius:999px;background:color-mix(in oklch,#a855f7 22%,#000);border:1px solid color-mix(in oklch,#a855f7 35%,transparent);font-size:15px;font-weight:500"><span style="width:24px;height:24px;border-radius:7px;background:linear-gradient(135deg,#7c3aed,#db2777 55%,#f97316);display:grid;place-items:center"><svg class="ico" style="width:14px;height:14px;stroke-width:2.25;color:#fff"><use href="#i-house"></use></svg></span>Perso</span>
+        <span style="display:flex;align-items:center;gap:8px;flex:none;padding:6px 14px 6px 6px;border-radius:999px;background:#26262a;color:#a3a3a3;font-size:15px"><span style="width:24px;height:24px;border-radius:7px;background:linear-gradient(135deg,#0ea5e9,#2563eb 55%,#0f766e);display:grid;place-items:center"><svg class="ico" style="width:14px;height:14px;stroke-width:2.25;color:#fff"><use href="#i-brief"></use></svg></span>Pro</span>
+        <span style="display:flex;align-items:center;gap:8px;flex:none;padding:6px 14px 6px 6px;border-radius:999px;background:#26262a;color:#a3a3a3;font-size:15px"><span style="width:24px;height:24px;border-radius:7px;background:linear-gradient(135deg,#f59e0b,#ea580c 55%,#b91c1c);display:grid;place-items:center"><svg class="ico" style="width:14px;height:14px;stroke-width:2.25;color:#fff"><use href="#i-flask"></use></svg></span>Side</span>
+      </div>
+    </div>
+    <div style="flex:1;min-height:0;overflow:hidden;padding:8px 16px 20px">
+      <ul style="list-style:none;margin:0;padding:0;border-radius:18px;background:#26262a;overflow:hidden">
+        <li style="display:flex;align-items:center;gap:12px;min-height:50px;padding:0 16px;background:color-mix(in oklch,#a855f7 12%,transparent)"><span style="width:28px;height:28px;border-radius:8px;background:#3b82f6;display:grid;place-items:center;flex:none"><svg class="ico s16" style="color:#fff"><use href="#i-inbox"></use></svg></span><span style="flex:1;font-weight:500">Boîte de réception</span><span style="color:#a3a3a3">6</span></li>
+        <li style="display:flex;align-items:center;gap:12px;min-height:50px;padding:0 16px;border-top:1px solid rgba(255,255,255,.09)"><span style="width:28px;height:28px;border-radius:8px;background:#fbbf24;display:grid;place-items:center;flex:none"><svg class="ico s16" style="color:#fff"><use href="#i-star"></use></svg></span><span style="flex:1">Favoris</span><span style="color:#a3a3a3">3</span></li>
+        <li style="display:flex;align-items:center;gap:12px;min-height:50px;padding:0 16px;border-top:1px solid rgba(255,255,255,.09)"><span style="width:28px;height:28px;border-radius:8px;background:#a855f7;display:grid;place-items:center;flex:none"><svg class="ico s16" style="color:#fff"><use href="#i-clock"></use></svg></span><span style="flex:1">En pause</span></li>
+        <li style="display:flex;align-items:center;gap:12px;min-height:50px;padding:0 16px;border-top:1px solid rgba(255,255,255,.09)"><span style="width:28px;height:28px;border-radius:8px;background:#10b981;display:grid;place-items:center;flex:none"><svg class="ico s16" style="color:#fff"><use href="#i-send"></use></svg></span><span style="flex:1">Envoyés</span></li>
+        <li style="display:flex;align-items:center;gap:12px;min-height:50px;padding:0 16px;border-top:1px solid rgba(255,255,255,.09)"><span style="width:28px;height:28px;border-radius:8px;background:#737373;display:grid;place-items:center;flex:none"><svg class="ico s16" style="color:#fff"><use href="#i-draft"></use></svg></span><span style="flex:1">Brouillons</span><span style="color:#a3a3a3">1</span></li>
+        <li style="display:flex;align-items:center;gap:12px;min-height:50px;padding:0 16px;border-top:1px solid rgba(255,255,255,.09)"><span style="width:28px;height:28px;border-radius:8px;background:#14b8a6;display:grid;place-items:center;flex:none"><svg class="ico s16" style="color:#fff"><use href="#i-archive"></use></svg></span><span style="flex:1">Archive</span></li>
+        <li style="display:flex;align-items:center;gap:12px;min-height:50px;padding:0 16px;border-top:1px solid rgba(255,255,255,.09)"><span style="width:28px;height:28px;border-radius:8px;background:#ef4444;display:grid;place-items:center;flex:none"><svg class="ico s16" style="color:#fff"><use href="#i-trash"></use></svg></span><span style="flex:1">Corbeille</span></li>
+      </ul>
+      <p style="margin:14px 4px 0;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#737373;font-weight:500">Aujourd'hui</p>
+      <ul style="list-style:none;margin:8px 0 0;padding:0;border-radius:18px;background:#26262a;overflow:hidden">
+        <li style="display:flex;align-items:center;gap:12px;min-height:50px;padding:0 16px"><span style="width:32px;height:32px;border-radius:999px;background:linear-gradient(135deg,oklch(.78 .12 20),oklch(.58 .17 60));display:grid;place-items:center;font-size:11px;font-weight:600;color:#fff;flex:none">CD</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Week-end à Annecy</span><svg class="ico s16" style="color:#737373"><use href="#i-x"></use></svg></li>
+      </ul>
+    </div>
+  </div>
+  <div style="position:absolute;inset:auto 0 0 0;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 15px 18px">
+    <div style="display:flex;align-items:center;gap:0;padding:8px 10px;border-radius:999px;background:rgba(28,28,30,.86);backdrop-filter:blur(28px);border:1px solid rgba(255,255,255,.12);box-shadow:0 10px 34px rgba(0,0,0,.45);position:relative">
+      <span style="position:absolute;top:8px;bottom:8px;left:10px;width:52px;border-radius:999px;background:color-mix(in oklch,#a855f7 22%,transparent);transform:translateX(52px)"></span>
+      <span style="width:52px;height:52px;flex:none;display:grid;place-items:center;color:#e5e5e5;position:relative;z-index:1"><svg class="ico s24"><use href="#i-inbox"></use></svg></span>
+      <span style="width:52px;height:52px;flex:none;display:grid;place-items:center;color:#fff;position:relative;z-index:1"><svg class="ico s24" style="stroke-width:2.25"><use href="#i-folder"></use></svg></span>
+      <span style="width:52px;height:52px;flex:none;display:grid;place-items:center;color:#e5e5e5;position:relative;z-index:1"><svg class="ico s24"><use href="#i-search"></use></svg></span>
+      <span style="width:52px;height:52px;flex:none;display:grid;place-items:center;color:#e5e5e5;position:relative;z-index:1"><svg class="ico s24"><use href="#i-house"></use></svg></span>
+    </div>
+    <span style="width:68px;height:68px;flex:none;border-radius:999px;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,#7c3aed,#db2777 55%,#f97316);box-shadow:0 10px 30px rgba(0,0,0,.4)"><svg class="ico s24" style="stroke-width:2"><use href="#i-compose"></use></svg></span>
+  </div>
+</div></div>
+
+<div class="dv-opt" id="1g"><div class="dv-olabel"><a class="dv-oid" href="#1g">1g</a>Composeur — expéditeur choisi par pastille, envoi sous le pouce</div>
+<div class="ph" style="background:#171717">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 26px 0;font-size:14px;font-weight:600"><span>9:41</span></div>
+  <div style="display:flex;align-items:center;gap:8px;padding:8px 12px 10px">
+    <button type="button" style="min-height:44px;padding:0 8px;background:none;border:0;color:#a3a3a3;font:15px Geist,system-ui,sans-serif;cursor:pointer">Annuler</button>
+    <p style="margin:0;flex:1;text-align:center;font-size:16px;font-weight:600">Nouveau message</p>
+    <button type="button" style="min-height:44px;padding:0 8px;background:none;border:0;color:#737373;font:15px Geist,system-ui,sans-serif;cursor:pointer"><svg class="ico s20"><use href="#i-paperclip"></use></svg></button>
+  </div>
+  <div style="flex:1;min-height:0;background:#171717;display:flex;flex-direction:column">
+    <div style="display:flex;align-items:center;gap:10px;padding:12px 20px;border-top:1px solid rgba(255,255,255,.1);border-bottom:1px solid rgba(255,255,255,.1)">
+      <span style="font-size:13px;color:#737373;width:34px">De</span>
+      <span style="display:flex;align-items:center;gap:8px;padding:6px 14px 6px 6px;border-radius:999px;background:color-mix(in oklch,#a855f7 22%,#000);border:1px solid color-mix(in oklch,#a855f7 35%,transparent);font-size:14px;font-weight:500"><span style="width:22px;height:22px;border-radius:7px;background:linear-gradient(135deg,#7c3aed,#db2777 55%,#f97316);display:grid;place-items:center"><svg class="ico" style="width:13px;height:13px;stroke-width:2.25;color:#fff"><use href="#i-house"></use></svg></span>thierry@icloud.com</span>
+      <span style="margin-left:auto;color:#737373"><svg class="ico s18"><use href="#i-down"></use></svg></span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;padding:12px 20px;border-bottom:1px solid rgba(255,255,255,.1)">
+      <span style="font-size:13px;color:#737373;width:34px">À</span>
+      <span style="display:flex;align-items:center;gap:8px;padding:5px 10px;border-radius:999px;background:rgba(255,255,255,.09);font-size:14px"><span style="width:20px;height:20px;border-radius:999px;background:linear-gradient(135deg,oklch(.78 .12 20),oklch(.58 .17 60));display:grid;place-items:center;font-size:9px;font-weight:600;color:#fff">CD</span>Claire Dubois<svg class="ico" style="width:14px;height:14px;color:#737373"><use href="#i-x"></use></svg></span>
+      <span style="margin-left:auto;color:#737373;font-size:13px">Cc/Cci</span>
+    </div>
+    <div style="padding:14px 20px;border-bottom:1px solid rgba(255,255,255,.1);font-size:17px;font-weight:600">Re: Week-end à Annecy</div>
+    <div style="flex:1;padding:16px 20px;font-size:16px;line-height:1.6">Salut Claire,<br><br>Partant pour le 19. Je peux prendre la voiture, on part vendredi vers 18h ?<span style="opacity:.55">|</span></div>
+    <div style="flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 15px 18px">
+      <div style="display:flex;align-items:center;gap:0;padding:8px 10px;border-radius:999px;background:rgba(28,28,30,.86);backdrop-filter:blur(28px);border:1px solid rgba(255,255,255,.12);box-shadow:0 10px 34px rgba(0,0,0,.45)">
+        <span style="width:52px;height:52px;flex:none;border-radius:999px;color:#e5e5e5;display:grid;place-items:center"><svg class="ico s24"><use href="#i-paperclip"></use></svg></span>
+        <span style="width:52px;height:52px;flex:none;border-radius:999px;color:#e5e5e5;display:grid;place-items:center"><svg class="ico s24"><use href="#i-type"></use></svg></span>
+        <span style="width:52px;height:52px;flex:none;border-radius:999px;color:#e5e5e5;display:grid;place-items:center"><svg class="ico s24"><use href="#i-dots"></use></svg></span>
+      </div>
+      <span style="width:68px;height:68px;flex:none;border-radius:999px;display:grid;place-items:center;color:#fff;box-shadow:0 10px 30px rgba(0,0,0,.4);background:linear-gradient(135deg,#7c3aed,#db2777 55%,#f97316)"><svg class="ico s24" style="stroke-width:2"><use href="#i-send"></use></svg></span>
+    </div>
+  </div>
+</div></div>
+
+<div class="dv-opt" id="1h"><div class="dv-olabel"><a class="dv-oid" href="#1h">1h</a>Recherche ⌘K — feuille basse, le champ au-dessus du clavier</div>
+<div class="ph" style="background:#171717">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 26px 0;font-size:14px;font-weight:600;opacity:.35"><span>9:41</span></div>
+  <div style="flex:1;min-height:0;opacity:.3;padding:14px 20px"><h1 style="margin:0;font-size:30px;font-weight:700">Réception</h1></div>
+  <div style="position:absolute;inset:0;background:rgba(0,0,0,.55)"></div>
+  <div style="position:absolute;left:8px;right:8px;bottom:8px;border-radius:32px;background:#1c1c1e;border:1px solid rgba(255,255,255,.12);overflow:hidden;display:flex;flex-direction:column;max-height:82%">
+    <div style="flex:none;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.1);display:flex;align-items:center;gap:12px">
+      <svg class="ico s20" style="color:#737373"><use href="#i-search"></use></svg>
+      <span style="flex:1;font-size:17px">annecy<span style="opacity:.55">|</span></span>
+      <span style="width:32px;height:32px;border-radius:999px;background:rgba(255,255,255,.1);color:#a3a3a3;display:grid;place-items:center"><svg class="ico s16"><use href="#i-x"></use></svg></span>
+    </div>
+    <div style="flex:1;min-height:0;overflow:hidden;padding:10px 8px 14px">
+      <p style="margin:6px 10px 8px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#737373;font-weight:500">Conversations</p>
+      <div style="display:flex;align-items:center;gap:12px;min-height:52px;padding:0 12px;border-radius:14px;background:rgba(255,255,255,.06)"><span style="width:32px;height:32px;border-radius:999px;background:linear-gradient(135deg,oklch(.78 .12 20),oklch(.58 .17 60));display:grid;place-items:center;font-size:11px;font-weight:600;color:#fff;flex:none">CD</span><span style="min-width:0;flex:1"><span style="display:block;font-size:15px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Week-end à <mark style="background:color-mix(in oklch,#a855f7 30%,transparent);color:inherit;border-radius:3px">Annecy</mark> : on confirme ?</span><span style="display:block;font-size:12px;color:#737373">Perso · Réception</span></span></div>
+      <div style="display:flex;align-items:center;gap:12px;min-height:52px;padding:0 12px"><span style="width:32px;height:32px;border-radius:999px;background:linear-gradient(135deg,oklch(.78 .12 300),oklch(.58 .17 340));display:grid;place-items:center;font-size:11px;font-weight:600;color:#fff;flex:none">MA</span><span style="min-width:0;flex:1"><span style="display:block;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Inscription cantine — dernier rappel</span><span style="display:block;font-size:12px;color:#737373">Mairie d'<mark style="background:color-mix(in oklch,#a855f7 30%,transparent);color:inherit;border-radius:3px">Annecy</mark></span></span></div>
+      <p style="margin:14px 10px 8px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#737373;font-weight:500">Aller à</p>
+      <div style="display:flex;align-items:center;gap:12px;min-height:48px;padding:0 12px"><svg class="ico s18" style="color:#a3a3a3"><use href="#i-star"></use></svg><span style="flex:1;font-size:15px">Favoris</span><span style="font-size:12px;color:#737373">Dossier</span></div>
+      <div style="display:flex;align-items:center;gap:12px;min-height:48px;padding:0 12px"><span style="width:22px;height:22px;border-radius:7px;background:linear-gradient(135deg,#0ea5e9,#2563eb 55%,#0f766e);display:grid;place-items:center;flex:none"><svg class="ico" style="width:13px;height:13px;color:#fff;stroke-width:2.25"><use href="#i-brief"></use></svg></span><span style="flex:1;font-size:15px">Pro</span><span style="font-size:12px;color:#737373">Espace</span></div>
+    </div>
+  </div>
+</div></div>
+
+<div class="dv-opt" id="1i"><div class="dv-olabel"><a class="dv-oid" href="#1i">1i</a>Desktop — deux fenêtres distinctes. <b>Glisse la poignée</b> au milieu, <b>double-clic</b> = 50/50, le chevron replie sur une seule fenêtre. ⌥← / ⌥→ ajustent au clavier.</div>
+<div style="width:1180px;height:720px;border-radius:14px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.22);background-image:linear-gradient(rgba(16,14,24,.45),rgba(16,14,24,.45)),linear-gradient(135deg,#7c3aed 0%,#db2777 55%,#f97316 100%);display:flex;gap:8px;padding:8px;box-sizing:border-box;font-size:14px;color:#fff">
+  <aside style="width:236px;flex:none;display:flex;flex-direction:column;gap:12px;padding:2px 4px">
+    <div style="display:flex;gap:6px">
+      <div style="flex:1;min-width:0;display:flex;align-items:center;gap:8px;height:36px;padding:0 12px;border-radius:10px;background:rgba(255,255,255,.12);backdrop-filter:blur(24px);font-size:13px"><svg class="ico s16"><use href="#i-search"></use></svg><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Boîte de réception</span><span style="font-size:11px;padding:1px 5px;border-radius:5px;background:rgba(255,255,255,.15);color:rgba(255,255,255,.7)">⌘K</span></div>
+      <div style="width:36px;height:36px;flex:none;border-radius:10px;background:rgba(255,255,255,.12);display:grid;place-items:center"><svg class="ico s16"><use href="#i-panel"></use></svg></div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
+      <div style="height:48px;border-radius:12px;background:rgba(255,255,255,.12);display:grid;place-items:center"><svg class="ico s20"><use href="#i-inbox"></use></svg></div>
+      <div style="height:48px;border-radius:12px;background:rgba(255,255,255,.05);color:rgba(255,255,255,.7);display:grid;place-items:center"><svg class="ico s20"><use href="#i-star"></use></svg></div>
+      <div style="height:48px;border-radius:12px;background:rgba(255,255,255,.05);color:rgba(255,255,255,.7);display:grid;place-items:center"><svg class="ico s20"><use href="#i-send"></use></svg></div>
+      <div style="height:48px;border-radius:12px;background:rgba(255,255,255,.05);color:rgba(255,255,255,.7);display:grid;place-items:center"><svg class="ico s20"><use href="#i-draft"></use></svg></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;padding:4px 8px 0">
+      <span style="width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,#7c3aed,#db2777 55%,#f97316);display:grid;place-items:center;flex:none"><svg class="ico s18" style="stroke-width:2.25"><use href="#i-house"></use></svg></span>
+      <div style="min-width:0"><p style="margin:0;font-size:13px;font-weight:600">Perso</p><p style="margin:0;font-size:11px;color:rgba(255,255,255,.85)">thierry@icloud.com</p></div>
+    </div>
+    <nav style="display:flex;flex-direction:column;gap:2px">
+      <div style="display:flex;align-items:center;gap:10px;height:32px;padding:0 10px;border-radius:10px;background:rgba(255,255,255,.12);font-weight:500"><svg class="ico s16"><use href="#i-inbox"></use></svg><span style="flex:1">Boîte de réception</span><span style="font-size:11px;font-weight:600;padding:1px 6px;border-radius:999px;background:rgba(255,255,255,.2)">6</span></div>
+      <div style="display:flex;align-items:center;gap:10px;height:32px;padding:0 10px;border-radius:10px;color:rgba(255,255,255,.8)"><svg class="ico s16"><use href="#i-star"></use></svg><span style="flex:1">Favoris</span><span style="font-size:11px;font-weight:600;padding:1px 6px;border-radius:999px;background:rgba(255,255,255,.2)">3</span></div>
+      <div style="display:flex;align-items:center;gap:10px;height:32px;padding:0 10px;border-radius:10px;color:rgba(255,255,255,.8)"><svg class="ico s16"><use href="#i-clock"></use></svg><span style="flex:1">En pause</span></div>
+      <div style="display:flex;align-items:center;gap:10px;height:32px;padding:0 10px;border-radius:10px;color:rgba(255,255,255,.8)"><svg class="ico s16"><use href="#i-send"></use></svg><span style="flex:1">Envoyés</span></div>
+      <div style="display:flex;align-items:center;gap:10px;height:32px;padding:0 10px;border-radius:10px;color:rgba(255,255,255,.8)"><svg class="ico s16"><use href="#i-draft"></use></svg><span style="flex:1">Brouillons</span><span style="font-size:11px;font-weight:600;padding:1px 6px;border-radius:999px;background:rgba(255,255,255,.2)">1</span></div>
+      <div style="display:flex;align-items:center;gap:10px;height:32px;padding:0 10px;border-radius:10px;color:rgba(255,255,255,.8)"><svg class="ico s16"><use href="#i-archive"></use></svg><span style="flex:1">Archive</span></div>
+      <div style="display:flex;align-items:center;gap:10px;height:32px;padding:0 10px;border-radius:10px;color:rgba(255,255,255,.8)"><svg class="ico s16"><use href="#i-trash"></use></svg><span style="flex:1">Corbeille</span></div>
+    </nav>
+    <div style="height:1px;background:rgba(255,255,255,.15);margin:4px 0"></div>
+    <p style="margin:0;padding:0 10px;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.85)">Aujourd'hui</p>
+    <div style="display:flex;align-items:center;gap:8px;height:32px;padding:0 10px;border-radius:10px;background:rgba(255,255,255,.12)"><span style="width:20px;height:20px;border-radius:999px;background:linear-gradient(135deg,oklch(.78 .12 20),oklch(.58 .17 60));display:grid;place-items:center;font-size:9px;font-weight:600;flex:none">CD</span><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Week-end à Annecy</span><svg class="ico" style="width:13px;height:13px"><use href="#i-x"></use></svg></div>
+    <div style="margin-top:auto;display:flex;align-items:center;justify-content:space-between">
+      <div style="display:flex;gap:4px">
+        <span style="width:32px;height:32px;border-radius:10px;background:rgba(255,255,255,.12);display:grid;place-items:center"><span style="width:20px;height:20px;border-radius:6px;background:linear-gradient(135deg,#7c3aed,#db2777 55%,#f97316);display:grid;place-items:center"><svg class="ico" style="width:12px;height:12px;stroke-width:2.25"><use href="#i-house"></use></svg></span></span>
+        <span style="width:32px;height:32px;border-radius:10px;opacity:.6;display:grid;place-items:center"><span style="width:20px;height:20px;border-radius:6px;background:linear-gradient(135deg,#0ea5e9,#2563eb 55%,#0f766e);display:grid;place-items:center"><svg class="ico" style="width:12px;height:12px;stroke-width:2.25"><use href="#i-brief"></use></svg></span></span>
+        <span style="width:32px;height:32px;border-radius:10px;opacity:.6;display:grid;place-items:center"><span style="width:20px;height:20px;border-radius:6px;background:linear-gradient(135deg,#f59e0b,#ea580c 55%,#b91c1c);display:grid;place-items:center"><svg class="ico" style="width:12px;height:12px;stroke-width:2.25"><use href="#i-flask"></use></svg></span></span>
+      </div>
+      <div style="display:flex;gap:2px;color:rgba(255,255,255,.7)"><span style="width:32px;height:32px;display:grid;place-items:center"><svg class="ico s16"><use href="#i-moon"></use></svg></span><span style="width:32px;height:32px;display:grid;place-items:center"><svg class="ico s16"><use href="#i-plus"></use></svg></span></div>
+    </div>
+  </aside>
+
+  <div style="flex:1;min-width:0;display:flex;align-items:stretch">
+    <section style="{{ paneLeftStyle }}">
+      <header style="flex:none;height:44px;display:flex;align-items:center;gap:8px;padding:0 14px;border-bottom:1px solid #262626">
+        <span style="font-size:13px;font-weight:600">Boîte de réception</span><span style="font-size:12px;color:#a3a3a3">21</span>
+        <div style="margin-left:auto;display:flex;align-items:center;gap:6px">
+          <div style="display:flex;background:#262626;border-radius:999px;padding:2px;font-size:12px"><span style="padding:3px 10px;border-radius:999px;background:#111;font-weight:500">Tous</span><span style="padding:3px 10px;border-radius:999px;color:#a3a3a3">Non lus</span></div>
+          <span style="width:28px;height:28px;display:grid;place-items:center;color:#a855f7;border-radius:8px;background:color-mix(in oklch,#a855f7 16%,transparent)"><svg class="ico s16"><use href="#i-cols"></use></svg></span>
+        </div>
+      </header>
+      <div style="flex:1;min-height:0;overflow:hidden;padding:8px">
+        <div style="display:flex;gap:10px;padding:10px;border-radius:10px;background:#262626">
+          <span style="width:34px;height:34px;border-radius:999px;background:linear-gradient(135deg,oklch(.78 .12 20),oklch(.58 .17 60));display:grid;place-items:center;font-size:11px;font-weight:600;flex:none">CD</span>
+          <div style="min-width:0;flex:1"><div style="display:flex;align-items:center;gap:6px"><span style="width:7px;height:7px;border-radius:999px;background:#a855f7;flex:none"></span><span style="font-weight:600;font-size:13px">Claire Dubois</span><time style="margin-left:auto;font-size:11px;color:#a3a3a3">09:41</time></div><p style="margin:1px 0 0;font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Week-end à Annecy : on confirme ?</p><p style="margin:2px 0 0;font-size:12px;color:#a3a3a3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">J'ai regardé les dispos pour le chalet</p></div>
+        </div>
+        <div style="display:flex;gap:10px;padding:10px">
+          <span style="width:34px;height:34px;border-radius:999px;background:linear-gradient(135deg,oklch(.78 .12 220),oklch(.58 .17 260));display:grid;place-items:center;font-size:11px;font-weight:600;flex:none">LP</span>
+          <div style="min-width:0;flex:1"><div style="display:flex;align-items:center;gap:6px"><span style="width:7px;height:7px;border-radius:999px;background:#a855f7;flex:none"></span><span style="font-weight:600;font-size:13px">La Poste</span><time style="margin-left:auto;font-size:11px;color:#a3a3a3">06:40</time></div><p style="margin:1px 0 0;font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Votre colis est en route</p><p style="margin:2px 0 0;font-size:12px;color:#a3a3a3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Livraison demain entre 9h et 13h</p></div>
+        </div>
+        <div style="display:flex;gap:10px;padding:10px">
+          <span style="width:34px;height:34px;border-radius:999px;background:linear-gradient(135deg,oklch(.78 .12 140),oklch(.58 .17 180));display:grid;place-items:center;font-size:11px;font-weight:600;flex:none">AG</span>
+          <div style="min-width:0;flex:1"><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:500">Amélie Garnier</span><span style="font-size:11px;color:#a3a3a3">3</span><time style="margin-left:auto;font-size:11px;color:#a3a3a3">4 sept.</time></div><p style="margin:1px 0 0;font-size:13px;color:#a3a3a3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Photos de l'anniversaire</p><p style="margin:2px 0 0;font-size:12px;color:#a3a3a3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Celle avec le gâteau qui tombe est incroyable</p></div>
+        </div>
+        <div style="display:flex;gap:10px;padding:10px">
+          <span style="width:34px;height:34px;border-radius:999px;background:linear-gradient(135deg,oklch(.78 .12 90),oklch(.58 .17 130));display:grid;place-items:center;font-size:11px;font-weight:600;flex:none">S</span>
+          <div style="min-width:0;flex:1"><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:500">Stripe</span><time style="margin-left:auto;font-size:11px;color:#a3a3a3">3 sept.</time></div><p style="margin:1px 0 0;font-size:13px;color:#a3a3a3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Reçu de votre paiement — Spotify</p><p style="margin:2px 0 0;font-size:12px;color:#a3a3a3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Merci pour votre paiement de 10,99 €</p></div>
+        </div>
+        <div style="display:flex;gap:10px;padding:10px">
+          <span style="width:34px;height:34px;border-radius:999px;background:linear-gradient(135deg,oklch(.78 .12 320),oklch(.58 .17 0));display:grid;place-items:center;font-size:11px;font-weight:600;flex:none">NB</span>
+          <div style="min-width:0;flex:1"><div style="display:flex;align-items:center;gap:6px"><span style="width:7px;height:7px;border-radius:999px;background:#a855f7;flex:none"></span><span style="font-weight:600;font-size:13px">Nina Bernard</span><time style="margin-left:auto;font-size:11px;color:#a3a3a3">2 sept.</time></div><p style="margin:1px 0 0;font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Cours d'escalade — rentrée</p><p style="margin:2px 0 0;font-size:12px;color:#a3a3a3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Les inscriptions pour la saison sont ouvertes</p></div>
+        </div>
+      </div>
+    </section>
+
+    <div onPointerDown="{{ onGrabDown }}" onDoubleClick="{{ resetSplit }}" title="Glisser pour redimensionner · double-clic pour 50/50" style="width:16px;flex:none;display:grid;place-items:center;cursor:col-resize;touch-action:none">
+      <span style="{{ grabStyle }}"></span>
+    </div>
+
+    <section style="{{ paneRightStyle }}">
+      <header style="flex:none;height:44px;display:flex;align-items:center;gap:6px;padding:0 10px 0 14px;border-bottom:1px solid #262626">
+        <span style="min-width:0;flex:1;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Week-end à Annecy : on confirme ?</span>
+        <span style="width:28px;height:28px;display:grid;place-items:center;color:#a3a3a3"><svg class="ico s16"><use href="#i-reply"></use></svg></span>
+        <span style="width:28px;height:28px;display:grid;place-items:center;color:#a3a3a3"><svg class="ico s16"><use href="#i-forward"></use></svg></span>
+        <span style="width:28px;height:28px;display:grid;place-items:center;color:#a3a3a3"><svg class="ico s16"><use href="#i-archive"></use></svg></span>
+        <span style="width:28px;height:28px;display:grid;place-items:center;color:#a3a3a3"><svg class="ico s16"><use href="#i-trash"></use></svg></span>
+        <button type="button" onClick="{{ collapseRight }}" title="Une seule fenêtre" style="width:28px;height:28px;display:grid;place-items:center;color:#a3a3a3;background:none;border:0;cursor:pointer;border-radius:8px" style-hover="background:#262626;color:#fafafa"><svg class="ico s16"><use href="#i-cols"></use></svg></button>
+      </header>
+      <div style="flex:1;min-height:0;overflow:hidden;padding:22px 24px">
+        <h1 style="margin:0;font-size:20px;font-weight:600;letter-spacing:-.01em;text-wrap:pretty">Week-end à Annecy : on confirme ?</h1>
+        <div style="margin-top:16px;border-radius:16px;background:#262626;padding:16px">
+          <div style="display:flex;gap:12px">
+            <span style="width:36px;height:36px;border-radius:999px;background:linear-gradient(135deg,oklch(.78 .12 20),oklch(.58 .17 60));display:grid;place-items:center;font-size:12px;font-weight:600;flex:none">CD</span>
+            <div style="min-width:0;flex:1"><div style="display:flex;flex-wrap:wrap;gap:0 8px;align-items:baseline"><span style="font-size:13px;font-weight:600">Claire Dubois</span><span style="font-size:12px;color:#a3a3a3">claire.dubois@gmail.com</span><time style="margin-left:auto;font-size:12px;color:#a3a3a3">vendredi 5 septembre, 09:41</time></div><p style="margin:0;font-size:12px;color:#a3a3a3">À : Thierry</p></div>
+          </div>
+          <div style="margin-top:14px;font-size:13px;line-height:1.65;white-space:pre-wrap">Salut Thierry,
+
+J'ai regardé les dispos pour le chalet, il reste le week-end du 19. Tu es partant ? Marc et Amélie sont ok.
+
+On pourrait partir vendredi soir pour éviter les bouchons.
+
+Claire</div>
+        </div>
+        <div style="margin-top:14px;border:1px solid #262626;border-radius:16px;background:#111;padding:12px">
+          <div style="min-height:70px;font-size:13px;color:#a3a3a3">Répondre à Claire…</div>
+          <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:12px;color:#737373">⌘⏎ pour envoyer</span><span style="display:flex;align-items:center;gap:6px;height:32px;padding:0 14px;border-radius:8px;background:#fafafa;color:#171717;font-size:13px;font-weight:500"><svg class="ico s16" style="stroke-width:2"><use href="#i-reply"></use></svg>Répondre</span></div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div></div>
+
+</div>
+<p class="dv-next">À essayer ensuite : « garde <a class="dv-oid" href="#1c">1c</a> mais mets Archiver en premier » · « dans <a class="dv-oid" href="#1d">1d</a>, remplace les tuiles par un menu déroulant sur le titre » · « sur <a class="dv-oid" href="#1i">1i</a>, ajoute une troisième fenêtre pour les pièces jointes »</p>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1400,&quot;height&quot;:1000}}">
+const ACCTS = [
+  {name:"Perso", email:"thierry@icloud.com", accent:"#a855f7", grad:"linear-gradient(135deg,#7c3aed,#db2777 55%,#f97316)", icon:"i-house",
+   rows:[
+     {ini:"CD",av:"linear-gradient(135deg,oklch(.78 .12 20),oklch(.58 .17 60))",who:"Claire Dubois",when:"09:41",subject:"Week-end à Annecy : on confirme ?",snippet:"J'ai regardé les dispos pour le chalet, il reste…"},
+     {ini:"LP",av:"linear-gradient(135deg,oklch(.78 .12 220),oklch(.58 .17 260))",who:"La Poste",when:"06:40",subject:"Votre colis est en route",snippet:"Livraison demain entre 9h et 13h."},
+     {ini:"AG",av:"linear-gradient(135deg,oklch(.78 .12 140),oklch(.58 .17 180))",who:"Amélie Garnier",when:"4 sept.",subject:"Photos de l'anniversaire",snippet:"Voici les trois meilleures en pièce jointe."},
+     {ini:"DO",av:"linear-gradient(135deg,oklch(.78 .12 260),oklch(.58 .17 300))",who:"Doctolib",when:"3 sept.",subject:"Rappel : rendez-vous mardi 9h30",snippet:"Dr Fabre, 12 rue des Marquisats."},
+     {ini:"NB",av:"linear-gradient(135deg,oklch(.78 .12 320),oklch(.58 .17 0))",who:"Nina Bernard",when:"2 sept.",subject:"Cours d'escalade — rentrée",snippet:"Les inscriptions pour la saison sont ouvertes."}
+   ]},
+  {name:"Pro", email:"thierry@coworkingcafe.fr", accent:"#38bdf8", grad:"linear-gradient(135deg,#0ea5e9,#2563eb 55%,#0f766e)", icon:"i-brief",
+   rows:[
+     {ini:"ML",av:"linear-gradient(135deg,oklch(.78 .12 40),oklch(.58 .17 80))",who:"Marc Lefèvre",when:"09:10",subject:"Devis aménagement salle de réunion",snippet:"Ci-joint le devis mis à jour pour la salle…"},
+     {ini:"LB",av:"linear-gradient(135deg,oklch(.78 .12 100),oklch(.58 .17 140))",who:"Laurent Bouvier",when:"07:20",subject:"Bilan intermédiaire — pièces manquantes",snippet:"Il me manque les relevés de juillet…"},
+     {ini:"SM",av:"linear-gradient(135deg,oklch(.78 .12 190),oklch(.58 .17 230))",who:"Sophie Martin",when:"06:00",subject:"Planning des événements de septembre",snippet:"Parfait, je bloque. Tu veux que je lance la com' ?"},
+     {ini:"PG",av:"linear-gradient(135deg,oklch(.78 .12 280),oklch(.58 .17 320))",who:"Pauline Girard",when:"hier",subject:"Demande de devis — séminaire 20 personnes",snippet:"Nous cherchons un lieu pour une journée d'équipe."},
+     {ini:"QO",av:"linear-gradient(135deg,oklch(.78 .12 160),oklch(.58 .17 200))",who:"Qonto",when:"hier",subject:"Virement reçu — 1 240,00 €",snippet:"De STUDIO NORD SARL sur votre compte pro."}
+   ]},
+  {name:"Side projects", email:"hello@twe-ux.dev", accent:"#fbbf24", grad:"linear-gradient(135deg,#f59e0b,#ea580c 55%,#b91c1c)", icon:"i-flask",
+   rows:[
+     {ini:"GI",av:"linear-gradient(135deg,oklch(.78 .12 10),oklch(.58 .17 50))",who:"GitHub",when:"09:35",subject:"Review requested: Arc-like sidebar",snippet:"@julienroux requested your review on #12."},
+     {ini:"SE",av:"linear-gradient(135deg,oklch(.78 .12 330),oklch(.58 .17 10))",who:"Sentry",when:"09:00",subject:"Erreur en production : TypeError sur /thread",snippet:"12 événements sur 4 utilisateurs."},
+     {ini:"LI",av:"linear-gradient(135deg,oklch(.78 .12 250),oklch(.58 .17 290))",who:"Linear",when:"05:20",subject:"ARC-42 t'a été assignée",snippet:"Priorité haute, cycle en cours."},
+     {ini:"JR",av:"linear-gradient(135deg,oklch(.78 .12 120),oklch(.58 .17 160))",who:"Julien Roux",when:"hier",subject:"Maquette v3 — écran de lecture",snippet:"J'ai poussé la v3 sur Figma."},
+     {ini:"RO",av:"linear-gradient(135deg,oklch(.78 .12 60),oklch(.58 .17 100))",who:"Raphaël Ott",when:"hier",subject:"Un retour sur la bêta",snippet:"C'est bluffant de fluidité, deux détails…"}
+   ]}
+];
+
+const FOLDER_NAMES = { inbox:"Boîte de réception", starred:"Favoris", snoozed:"En pause", sent:"Envoyés", drafts:"Brouillons", archive:"Archive", trash:"Corbeille" };
+
+const BODIES = [
+  "Salut,\n\nJ'ai regardé les dispos, il reste le week-end du 19. Tu es partant ?\n\nOn pourrait partir vendredi soir pour éviter les bouchons.",
+  "Bonjour,\n\nVotre envoi est pris en charge et sera livré demain entre 9h et 13h.\n\nSuivez-le depuis votre espace client.",
+  "Coucou !\n\nVoici les trois meilleures en pièce jointe, l'album complet suit.\n\nBises",
+  "Bonjour,\n\nRappel de votre rendez-vous. Pensez à apporter vos derniers résultats.",
+  "Bonjour,\n\nLes inscriptions pour la saison sont ouvertes. Ton créneau du mardi 19h est toujours dispo.\n\nRéponds-moi avant le 15 pour que je bloque la place."
+];
+
+/* Une boîte par espace : les lignes de la liste, plus un dossier et un corps. */
+const BOXES = ACCTS.map((a) => a.rows.map((r, i) => Object.assign({}, r, {
+  key: a.name + ":" + i,
+  folder: i === 2 ? "starred" : i === 4 ? "sent" : "inbox",
+  body: BODIES[i % BODIES.length],
+})));
+
+class Component extends DCLogic {
+  state = { sheet:null, replyOpen:false, acct:0, dx:0, rowX:0, rowDrag:false, split:0.42, grab:false,
+            pFolder:"inbox", pScreen:"list", pSheet:null, pMail:null, pToast:null, pMoved:{}, pStars:{}, pTints:{}, pAttach:false, pFiles:[], pFmtOpen:false, pFmt:{}, pAlign:"left", pSize:16 };
+
+  icon(id, size) {
+    return React.createElement("svg", {className:"ico "+(size||"s24")},
+      React.createElement("use", {href:"#"+id}));
+  }
+
+  /* Balayage horizontal de la liste : change d'espace au-delà de 60px. */
+  swipeStart = (e) => { this._x0 = e.clientX; this._sw = true; try{e.currentTarget.setPointerCapture(e.pointerId);}catch(_){} };
+  swipeMove = (e) => { if (!this._sw) return; this.setState({ dx: e.clientX - this._x0 }); };
+  swipeEnd = () => {
+    if (!this._sw) return;
+    this._sw = false;
+    const dx = this.state.dx;
+    let a = this.state.acct;
+    if (dx < -60) a = Math.min(ACCTS.length - 1, a + 1);
+    else if (dx > 60) a = Math.max(0, a - 1);
+    this.setState({ dx: 0, acct: a });
+  };
+
+  rowStart = (e) => { this._r0 = e.clientX; this._rd = true; this.setState({rowDrag:true}); try{e.currentTarget.setPointerCapture(e.pointerId);}catch(_){} };
+  rowMove = (e) => { if (!this._rd) return; this.setState({ rowX: e.clientX - this._r0 }); };
+  rowEnd = () => {
+    if (!this._rd) return;
+    this._rd = false;
+    const x = this.state.rowX;
+    this.setState({ rowDrag:false, rowX: Math.abs(x) > 150 ? (x > 0 ? 300 : -300) : 0 });
+    if (Math.abs(x) > 150) setTimeout(() => this.setState({ rowX: 0 }), 650);
+  };
+
+  grabStart = (e) => {
+    this._box = e.currentTarget.parentElement.getBoundingClientRect();
+    this._gr = true; this.setState({grab:true});
+    try{e.currentTarget.setPointerCapture(e.pointerId);}catch(_){}
+    window.addEventListener("pointermove", this.grabMove);
+    window.addEventListener("pointerup", this.grabEnd);
+  };
+  grabMove = (e) => {
+    if (!this._gr || !this._box) return;
+    const r = (e.clientX - this._box.left) / this._box.width;
+    this.setState({ split: Math.min(0.75, Math.max(0.22, r)) });
+  };
+  grabEnd = () => {
+    this._gr = false; this.setState({grab:false});
+    window.removeEventListener("pointermove", this.grabMove);
+    window.removeEventListener("pointerup", this.grabEnd);
+  };
+
+  componentDidMount() {
+    this._keys = (e) => {
+      if (!e.altKey) return;
+      if (e.key === "ArrowLeft") this.setState((s) => ({ split: Math.max(0.22, s.split - 0.04) }));
+      if (e.key === "ArrowRight") this.setState((s) => ({ split: Math.min(0.75, s.split + 0.04) }));
+    };
+    window.addEventListener("keydown", this._keys);
+  }
+  componentWillUnmount() { window.removeEventListener("keydown", this._keys); }
+
+  pList() {
+    const s = this.state;
+    return BOXES[s.acct].filter((m) => (s.pMoved[m.key] || m.folder) === s.pFolder);
+  }
+  tile(active) {
+    return "height:62px;border-radius:16px;border:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font:500 11px Geist,system-ui,sans-serif;"
+      + (active
+        ? "background:rgba(255,255,255,.16);color:#fafafa"
+        : "background:rgba(255,255,255,.05);color:#a3a3a3");
+  }
+  /* La même case que les icônes nues de la pill de lecture : 52 × 52, verre nu. */
+  navSlot(active, accent) {
+    return "width:52px;height:52px;flex:none;display:grid;place-items:center;border:0;background:"
+      + (active ? "color-mix(in oklch," + accent + " 22%,transparent)" : "none")
+      + ";border-radius:999px;cursor:pointer;transition:background .2s,color .2s;color:" + (active ? "#fff" : "#e5e5e5");
+  }
+  folderRow(active, accent, first) {
+    return "width:100%;display:flex;align-items:center;gap:12px;min-height:50px;padding:0 16px;border:0;cursor:pointer;color:#fafafa;font:"
+      + (active ? "500" : "400") + " 15px Geist,system-ui,sans-serif;"
+      + (first ? "" : "border-top:1px solid rgba(255,255,255,.09);")
+      + "background:" + (active ? "color-mix(in oklch," + accent + " 12%,transparent)" : "transparent");
+  }
+  /* Un seul style de liste ou de citation à la fois ; le reste se cumule. */
+  fmt(key) {
+    this.setState((st) => {
+      const f = Object.assign({}, st.pFmt);
+      f[key] = !f[key];
+      if (key === "under" && f.under) f.strike = false;
+      if (key === "strike" && f.strike) f.under = false;
+      if (key === "bullets" && f.bullets) { f.numbers = false; f.quote = false; }
+      if (key === "numbers" && f.numbers) { f.bullets = false; f.quote = false; }
+      if (key === "quote" && f.quote) { f.bullets = false; f.numbers = false; }
+      return { pFmt: f };
+    });
+  }
+  fmtBtn(active, accent) {
+    return "flex:1;min-width:44px;height:38px;border:0;border-radius:11px;cursor:pointer;display:grid;place-items:center;transition:background .15s,color .15s;background:"
+      + (active ? "color-mix(in oklch," + accent + " 26%,transparent)" : "transparent")
+      + ";color:" + (active ? "#fff" : "#a3a3a3");
+  }
+  addFile(name, size, tint, icon) {
+    this.setState((st) => ({ pFiles: (st.pFiles || []).concat([{ name, size, tint, icon }]), pAttach: false }));
+    this.toast(name + " joint");
+  }
+  toast(msg) {
+    clearTimeout(this._t);
+    this.setState({ pToast: msg });
+    this._t = setTimeout(() => this.setState({ pToast: null }), 1800);
+  }
+  pSet(patch) { this.setState(patch); }
+  pGo(folder) { this.setState({ pFolder: folder, pScreen: "list", pSheet: null, pMail: null }); }
+  pMove(folder) {
+    const m = this.state.pMail;
+    if (m == null) { this.setState({ pSheet:null }); return; }
+    const moved = Object.assign({}, this.state.pMoved);
+    moved[m.key] = folder;
+    this.setState({ pMoved: moved, pSheet: null, pScreen: "list", pMail: null });
+    this.toast("Déplacé vers " + FOLDER_NAMES[folder]);
+  }
+
+  /* Les huit teintes de `lib/theme.ts` : accent oklch(.7 .18 h), dégradé à trois arrêts. */
+  tint(h) {
+    return {
+      accent: `oklch(0.7 0.18 ${h})`,
+      grad: `linear-gradient(135deg, oklch(0.56 0.22 ${h}) 0%, oklch(0.62 0.23 ${(h + 30) % 360}) 55%, oklch(0.7 0.2 ${(h + 60) % 360}) 100%)`,
+    };
+  }
+
+  renderVals() {
+    const s = this.state;
+    const base = ACCTS[s.acct];
+    const hue = s.pTints ? s.pTints[s.acct] : undefined;
+    const a = hue === undefined ? base : Object.assign({}, base, this.tint(hue));
+    const f = s.pFmt || {};
+    const align = s.pAlign || "left";
+    const size = s.pSize || 16;
+    const pane = "min-width:0;display:flex;flex-direction:column;background:#111;color:#fafafa;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.08);overflow:hidden";
+    const collapsed = s.split >= 0.995;
+    return {
+      sheetMove: s.sheet === "move",
+      sheetMore: s.sheet === "more",
+      replyOpen: s.replyOpen,
+      openReply: () => this.setState({ replyOpen: true, sheet: null }),
+      closeReply: () => this.setState({ replyOpen: false }),
+      openMove: () => this.setState({ sheet: "move" }),
+      openMore: () => this.setState({ sheet: "more" }),
+      closeSheet: () => this.setState({ sheet: null }),
+
+      acctName: a.name,
+      acctEmail: a.email,
+      acctGradient: a.grad,
+      rows: a.rows,
+      navSpaceIcon: this.icon(a.icon, "s24"),
+      washStyle: `background:radial-gradient(140% 55% at 50% -15%, color-mix(in oklch,${a.accent} 26%,#171717), transparent 75%),#171717`,
+      slideStyle: `transform:translateX(${s.dx * 0.35}px);transition:${this._sw ? "none" : "transform .32s cubic-bezier(.2,.8,.2,1)"}`,
+      dots: ACCTS.map((x, i) => React.createElement("span", { key: x.name, style: {
+        width: i === s.acct ? 18 : 6, height: 6, borderRadius: 999,
+        background: i === s.acct ? a.accent : "rgba(255,255,255,.25)",
+        transition: "width .25s, background .25s" } })),
+      prevAcct: () => this.setState((st) => ({ acct: Math.max(0, st.acct - 1) })),
+      nextAcct: () => this.setState((st) => ({ acct: Math.min(ACCTS.length - 1, st.acct + 1) })),
+      onSwipeDown: this.swipeStart, onSwipeMove: this.swipeMove, onSwipeUp: this.swipeEnd,
+
+      rowStyle: `transform:translateX(${s.rowX}px);transition:${s.rowDrag ? "none" : "transform .3s cubic-bezier(.2,.8,.2,1)"};position:relative`,
+      rowTrashStyle: `position:absolute;inset:0;display:flex;align-items:center;justify-content:flex-end;background:#dc2626;opacity:${s.rowX < 0 ? 1 : 0}`,
+      swipeHint: Math.abs(s.rowX) > 150 ? (s.rowX > 0 ? "Archivé." : "Supprimé.") : "Glisse la ligne du haut pour archiver ou supprimer.",
+      onRowDown: this.rowStart, onRowMove: this.rowMove, onRowUp: this.rowEnd,
+
+      paneLeftStyle: `${pane};flex:${collapsed ? "1" : "0 0 " + (s.split * 100).toFixed(2) + "%"}`,
+      paneRightStyle: `${pane};flex:1;display:${collapsed ? "none" : "flex"}`,
+      grabStyle: `width:4px;height:${s.grab ? "72px" : "44px"};border-radius:999px;background:${s.grab ? "#fff" : "rgba(255,255,255,.45)"};transition:height .18s, background .18s`,
+      resetSplit: () => this.setState({ split: 0.5 }),
+      collapseRight: () => this.setState((st) => ({ split: st.split >= 0.995 ? 0.42 : 1 })),
+      onGrabDown: this.grabStart,
+
+      /* ── Parcours cliquable (2a) ── */
+      pIsList: s.pScreen === "list",
+      pIsMail: s.pScreen === "mail",
+      pShowNav: s.pScreen === "list",
+      pWash: `background:radial-gradient(140% 55% at 50% -15%, color-mix(in oklch,${a.accent} 26%,#171717), transparent 75%),#171717`,
+      pAcctName: a.name,
+      pAcctEmail: a.email,
+      pAcctAccent: a.accent,
+      pAcctGradient: a.grad,
+      pAcctIcon: this.icon(a.icon, "s24"),
+      pAcctIconSm: this.icon(a.icon, "s16"),
+      pFolderName: FOLDER_NAMES[s.pFolder],
+      pWhere: s.pScreen === "mail" ? "Écran : lecture" : "Écran : " + FOLDER_NAMES[s.pFolder],
+      pToast: s.pToast,
+      pOverlay: s.pSheet !== null,
+      pSheetFolders: s.pSheet === "folders",
+      pSheetMove: s.pSheet === "move",
+      pSheetMore: s.pSheet === "more",
+      pSheetSearch: s.pSheet === "search",
+      pSheetReply: s.pSheet === "reply",
+      pSheetCompose: s.pSheet === "compose",
+      pClose: () => this.setState({ pSheet: null }),
+      pOpenFolders: () => this.setState({ pSheet: "folders" }),
+      pOpenSearch: () => this.setState({ pSheet: "search" }),
+      pOpenCompose: () => this.setState({ pSheet: "compose" }),
+      pOpenMove: () => this.setState({ pSheet: "move" }),
+      pOpenMore: () => this.setState({ pSheet: "more" }),
+      pOpenReply: () => this.setState({ pSheet: "reply" }),
+      pSend: () => { this.setState({ pSheet: null, pScreen: "list", pMail: null, pAttach: false, pFiles: [], pFmtOpen: false, pFmt: {}, pAlign: "left", pSize: 16 }); this.toast("Message envoyé"); },
+      pBack: () => this.setState({ pScreen: "list", pMail: null, pSheet: null }),
+      pNextAcct: () => this.setState((st) => ({ acct: (st.acct + 1) % ACCTS.length, pScreen: "list", pMail: null, pSheet: null, pFolder: "inbox" })),
+      pGoInbox: () => this.pGo("inbox"),
+      pGoStarred: () => this.pGo("starred"),
+      pGoSnoozed: () => this.pGo("snoozed"),
+      pGoSent: () => this.pGo("sent"),
+      pGoDrafts: () => this.pGo("drafts"),
+      pGoArchive: () => this.pGo("archive"),
+      pGoTrash: () => this.pGo("trash"),
+      pMoveStarred: () => this.pMove("starred"),
+      pMoveSnoozed: () => this.pMove("snoozed"),
+      pMoveArchive: () => this.pMove("archive"),
+      pMoveTrash: () => this.pMove("trash"),
+      pArchive: () => this.pMove("archive"),
+      pTrash: () => this.pMove("trash"),
+      pMarkUnread: () => { this.setState({ pSheet: null, pScreen: "list", pMail: null }); this.toast("Marqué comme non lu"); },
+      pToggleStar: () => {
+        const m = s.pMail; if (!m) return;
+        const st = Object.assign({}, s.pStars); st[m.key] = !st[m.key];
+        this.setState({ pStars: st });
+        this.toast(st[m.key] ? "Ajouté aux favoris" : "Retiré des favoris");
+      },
+      pStarColor: s.pMail && s.pStars[s.pMail.key] ? "#fbbf24" : "#a3a3a3",
+      pStarFill: s.pMail && s.pStars[s.pMail.key] ? "fill:#fbbf24;stroke:#fbbf24" : "",
+      pMailSubject: s.pMail ? s.pMail.subject : "",
+      pMailWho: s.pMail ? s.pMail.who : "",
+      pMailWhen: s.pMail ? s.pMail.when : "",
+      pMailBody: s.pMail ? s.pMail.body : "",
+      pMailAv: s.pMail ? s.pMail.av : "",
+      pMailIni: s.pMail ? s.pMail.ini : "",
+      pPosition: s.pMail ? "1 sur " + this.pList().length : "",
+      pCount: this.pList().length,
+      pUnread: BOXES[s.acct].filter((m) => (s.pMoved[m.key] || m.folder) === "inbox").length,
+      pEmptyNote: this.pList().length ? "" : "Rien dans " + FOLDER_NAMES[s.pFolder] + " pour l'instant.",
+      pRows: this.pList().map((m) => Object.assign({}, m, {
+        open: () => this.setState({ pScreen: "mail", pMail: m, pSheet: null }),
+        openFromSearch: () => this.setState({ pScreen: "mail", pMail: m, pSheet: null }),
+      })),
+      pAcctChips: ACCTS.map((x, i) => React.createElement("button", {
+        key: x.name, type: "button",
+        onClick: () => this.setState({ acct: i, pSheet: null, pFolder: "inbox", pScreen: "list", pMail: null }),
+        style: { display:"flex", alignItems:"center", gap:8, flex:"none", padding:"6px 14px 6px 6px",
+          borderRadius:999, border: i === s.acct ? "1px solid color-mix(in oklch,"+x.accent+" 35%,transparent)" : "1px solid transparent",
+          background: i === s.acct ? "color-mix(in oklch,"+x.accent+" 22%,#000)" : "#26262a",
+          color: i === s.acct ? "#fafafa" : "#a3a3a3", font:"500 15px Geist,system-ui,sans-serif", cursor:"pointer" } },
+        React.createElement("span", { style:{ width:24, height:24, borderRadius:7, background:x.grad, display:"grid", placeItems:"center" } }, this.icon(x.icon, "s16")),
+        x.name),
+      ),
+      pTileInbox: this.tile(s.pFolder === "inbox"),
+      pTileStarred: this.tile(s.pFolder === "starred"),
+      pTileSent: this.tile(s.pFolder === "sent"),
+      pTileTrash: this.tile(s.pFolder === "trash"),
+      pNavInbox: this.navSlot(s.pFolder === "inbox" && s.pSheet === null, a.accent),
+      pNavFolders: this.navSlot(s.pSheet === "folders", a.accent),
+      pNavSearch: this.navSlot(s.pSheet === "search", a.accent),
+      pNavSpace: this.navSlot(false, a.accent),
+      pFolderRowInbox: this.folderRow(s.pFolder === "inbox", a.accent, true),
+      pFolderRowStarred: this.folderRow(s.pFolder === "starred", a.accent),
+      pFolderRowSnoozed: this.folderRow(s.pFolder === "snoozed", a.accent),
+      pFolderRowSent: this.folderRow(s.pFolder === "sent", a.accent),
+      pFolderRowDrafts: this.folderRow(s.pFolder === "drafts", a.accent),
+      pFolderRowArchive: this.folderRow(s.pFolder === "archive", a.accent),
+      pFolderRowTrash: this.folderRow(s.pFolder === "trash", a.accent),
+
+      pAttachOpen: !!s.pAttach,
+      pToggleAttach: () => this.setState((st) => ({ pAttach: !st.pAttach, pFmtOpen: false })),
+      pAttachBtn: "width:52px;height:52px;flex:none;border-radius:999px;border:0;cursor:pointer;display:grid;place-items:center;transition:background .2s,color .2s;background:"
+        + (s.pAttach ? "rgba(255,255,255,.12)" : "none")
+        + ";color:" + (s.pAttach ? "#fafafa" : "#e5e5e5"),
+      pFmtOpen: !!s.pFmtOpen,
+      pToggleFmt: () => this.setState((st) => ({ pFmtOpen: !st.pFmtOpen, pAttach: false })),
+      pCloseFmt: () => this.setState({ pFmtOpen: false }),
+      pFmtBtn: "width:52px;height:52px;flex:none;border-radius:999px;border:0;cursor:pointer;display:grid;place-items:center;transition:background .2s;background:"
+        + (s.pFmtOpen ? "rgba(255,255,255,.12)" : "none") + ";color:#e5e5e5",
+      pBold: () => this.fmt("bold"),
+      pItalic: () => this.fmt("italic"),
+      pUnder: () => this.fmt("under"),
+      pStrike: () => this.fmt("strike"),
+      pBullets: () => this.fmt("bullets"),
+      pNumbers: () => this.fmt("numbers"),
+      pQuote: () => this.fmt("quote"),
+      pAlignL: () => this.setState({ pAlign: "left" }),
+      pAlignC: () => this.setState({ pAlign: "center" }),
+      pAlignR: () => this.setState({ pAlign: "right" }),
+      pBtnBold: this.fmtBtn(f.bold, a.accent),
+      pBtnItalic: this.fmtBtn(f.italic, a.accent),
+      pBtnUnder: this.fmtBtn(f.under, a.accent),
+      pBtnStrike: this.fmtBtn(f.strike, a.accent),
+      pBtnBullets: this.fmtBtn(f.bullets, a.accent),
+      pBtnNumbers: this.fmtBtn(f.numbers, a.accent),
+      pBtnQuote: this.fmtBtn(f.quote, a.accent),
+      pBtnAlignL: this.fmtBtn(align === "left", a.accent),
+      pBtnAlignC: this.fmtBtn(align === "center", a.accent),
+      pBtnAlignR: this.fmtBtn(align === "right", a.accent),
+      pFontLabel: "Police de l'espace",
+      pFontSize: size + " px",
+      pSmaller: () => this.setState({ pSize: Math.max(11, size - 1) }),
+      pBigger: () => this.setState({ pSize: Math.min(22, size + 1) }),
+      pLink: () => this.toast("Insérer un lien"),
+      pBodyStyle: `font-size:${size}px;line-height:1.6;text-align:${align};`
+        + `font-weight:${f.bold ? 700 : 400};`
+        + `font-style:${f.italic ? "italic" : "normal"};`
+        + `text-decoration:${f.under ? "underline" : f.strike ? "line-through" : "none"};`
+        + (f.quote ? `border-left:3px solid ${a.accent};padding-left:14px;` : ""),
+
+      pHasFiles: (s.pFiles || []).length > 0,
+      pAddPhoto: () => this.addFile("gateau.jpg", "2,9 Mo", "#3b82f6", "i-image"),
+      pAddShot: () => this.addFile("photo.heic", "1,8 Mo", "#a855f7", "i-camera"),
+      pAddDoc: () => this.addFile("devis-v2.pdf", "412 ko", "#14b8a6", "i-draft"),
+      pAddScan: () => this.addFile("scan-01.pdf", "184 ko", "#f59e0b", "i-scan"),
+      pAddSign: () => { this.setState({ pAttach: false }); this.toast("Signature de l'espace ajoutée"); },
+      pFileChips: (s.pFiles || []).map((f, i) => React.createElement("span", {
+        key: f.name + i,
+        style: { display:"flex", alignItems:"center", gap:8, flex:"none", padding:"8px 10px 8px 8px",
+          borderRadius:14, background:"#26262a", border:"1px solid rgba(255,255,255,.1)",
+          font:"400 13px Geist,system-ui,sans-serif", color:"#fafafa", maxWidth:200 } },
+        React.createElement("span", { style:{ width:30, height:30, borderRadius:9, background:f.tint, display:"grid", placeItems:"center", flex:"none" } },
+          this.icon(f.icon, "s16")),
+        React.createElement("span", { style:{ minWidth:0, display:"grid" } },
+          React.createElement("span", { style:{ overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", fontWeight:500 } }, f.name),
+          React.createElement("span", { style:{ color:"#737373", fontSize:11 } }, f.size)),
+        React.createElement("button", { type:"button", "aria-label":"Retirer " + f.name,
+          onClick: () => this.setState((st) => ({ pFiles: st.pFiles.filter((_, j) => j !== i) })),
+          style:{ width:24, height:24, flex:"none", borderRadius:999, border:0, cursor:"pointer",
+            background:"rgba(255,255,255,.1)", color:"#a3a3a3", display:"grid", placeItems:"center", padding:0 } },
+          this.icon("i-x", "s16")),
+      )),
+
+      pSheetSettings: s.pSheet === "settings",
+      pOpenSettings: () => this.setState({ pSheet: "settings" }),
+      pNavSettings: this.navSlot(s.pSheet === "settings", a.accent),
+      pToggleTheme: () => this.toast("Le thème clair arrive dans la maquette suivante"),
+      pThemeSwitch: React.createElement("span", { style: {
+        position:"relative", display:"inline-block", width:51, height:31, borderRadius:999,
+        background:a.accent, flex:"none" } },
+        React.createElement("span", { style: {
+          position:"absolute", top:2, left:22, width:27, height:27, borderRadius:999,
+          background:"#fff", boxShadow:"0 3px 8px rgb(0 0 0/.15)" } })),
+      pSwatches: [30, 70, 145, 190, 250, 285, 320, 355].map((h) => {
+        const t = this.tint(h);
+        const on = hue === h;
+        return React.createElement("button", {
+          key: h, type: "button", "aria-label": "Teinte " + h,
+          onClick: () => {
+            const tints = Object.assign({}, s.pTints || {});
+            tints[s.acct] = h;
+            this.setState({ pTints: tints });
+          },
+          style: { width:34, height:34, flex:"none", borderRadius:999, cursor:"pointer",
+            background:t.grad, border: on ? "2px solid #fff" : "2px solid transparent",
+            boxShadow: on ? "0 0 0 2px rgba(255,255,255,.25)" : "none", padding:0 },
+        });
+      }),
+    };
+  }
+}
+</script>
+</body>
+</html>

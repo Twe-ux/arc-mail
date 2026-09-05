@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUp, Reply } from "lucide-react";
+import { ArrowUp, Reply, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -20,14 +20,22 @@ export function ReplyTargets({
   to,
   everyone,
   onReplyAll,
+  onRemove,
   className,
 }: {
   to: Contact[];
   everyone: Contact[];
   onReplyAll: () => void;
+  /** Retirer un destinataire. Absent : les puces ne sont que des étiquettes. */
+  onRemove?: (contact: Contact) => void;
   className?: string;
 }) {
   const narrowed = to.length < everyone.length;
+  /* **On ne retire pas le dernier.** Une réponse sans destinataire ne part
+     nulle part, et une ligne vide laisse le composeur dans un cul-de-sac dont
+     seul « Répondre à tous » sortirait. La croix disparaît donc quand il n'en
+     reste qu'un. */
+  const retirable = Boolean(onRemove) && to.length > 1;
   /* Une conversation à deux n'a pas besoin de liste : le texte d'invite nomme
      déjà la personne, et une puce serait l'étiquette d'une étiquette. */
   if (everyone.length <= 1) return null;
@@ -38,9 +46,20 @@ export function ReplyTargets({
         <span
           key={c.email}
           title={c.email}
-          className="rounded-full bg-[color-mix(in_oklch,var(--space-accent)_14%,transparent)] px-2 py-0.5 font-medium"
+          className="flex items-center gap-1 rounded-full bg-[color-mix(in_oklch,var(--space-accent)_14%,transparent)] py-0.5 pr-1 pl-2 font-medium"
         >
-          {c.name}
+          <span className="max-w-40 truncate">{c.name}</span>
+          {retirable && (
+            <button
+              type="button"
+              onClick={() => onRemove?.(c)}
+              aria-label={`Retirer ${c.name}`}
+              /* La cible déborde de la puce : 20 px dessinés, 28 atteignables. */
+              className="relative -my-0.5 grid size-5 shrink-0 place-items-center rounded-full text-current/70 after:absolute after:-inset-1 hover:bg-black/10 hover:text-current active:opacity-60 dark:hover:bg-white/15"
+            >
+              <X className="size-3" />
+            </button>
+          )}
         </span>
       ))}
       {narrowed && (
@@ -62,6 +81,7 @@ export function ReplyBox({
   to,
   everyone,
   onReplyAll,
+  onRemove,
   focusTick,
   className,
 }: {
@@ -69,6 +89,7 @@ export function ReplyBox({
   to: Contact[];
   everyone: Contact[];
   onReplyAll: () => void;
+  onRemove: (contact: Contact) => void;
   focusTick: number;
   className?: string;
 }) {
@@ -98,7 +119,7 @@ export function ReplyBox({
 
   return (
     <div className={cn(className)}>
-      <ReplyTargets to={to} everyone={everyone} onReplyAll={onReplyAll} className="px-1 pb-1.5" />
+      <ReplyTargets to={to} everyone={everyone} onReplyAll={onReplyAll} onRemove={onRemove} className="px-1 pb-1.5" />
       {/* 44 px au repos, et il pousse avec le texte (`field-sizing`) jusqu'à ce
           qu'il prenne un tiers du volet : posé en bas, un champ de cinq lignes
           vide aurait mangé la conversation qu'on lit. */}
@@ -141,12 +162,14 @@ export function MobileReply({
   to,
   everyone,
   onReplyAll,
+  onRemove,
   onClose,
 }: {
   thread: Thread;
   to: Contact[];
   everyone: Contact[];
   onReplyAll: () => void;
+  onRemove: (contact: Contact) => void;
   onClose: () => void;
 }) {
   const [body, setBody] = useState("");
@@ -173,7 +196,7 @@ export function MobileReply({
     <div className="shrink-0 border-t border-black/[0.08] bg-card px-[14px] pt-2 pb-[max(16px,calc(env(safe-area-inset-bottom)-18px))] md:hidden dark:border-white/12">
       <div className="flex items-center gap-2 pb-1.5">
         <div className="min-w-0 flex-1">
-          <ReplyTargets to={to} everyone={everyone} onReplyAll={onReplyAll} className="px-1" />
+          <ReplyTargets to={to} everyone={everyone} onReplyAll={onReplyAll} onRemove={onRemove} className="px-1" />
         </div>
         <button
           type="button"

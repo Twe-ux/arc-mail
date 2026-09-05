@@ -93,9 +93,11 @@ export function ThreadRow({
       {/* Ce qui se découvre sous la rangée. Encarté et arrondi comme le
           surlignage d'appui : la rangée glisse au-dessus d'une pastille de
           couleur, pas d'un bandeau qui va d'un bord à l'autre. */}
+      {/* **Le même calque sur bureau**, au gabarit de la rangée : encart nul et
+          rayon 10, puisque c'est la liste qui donne ses 8 px de marge. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-2 inset-y-1 overflow-hidden rounded-2xl md:hidden"
+        className="pointer-events-none absolute inset-x-2 inset-y-1 overflow-hidden rounded-2xl md:inset-0 md:rounded-[10px]"
       >
         <Calque side="right" tint="#14b8a6" label="Archiver" icon={Archive} />
         <Calque
@@ -137,10 +139,25 @@ export function ThreadRow({
              deux tiers de vide à droite. La liste devient alors ce qu'une boîte
              large doit être — un tableau qu'on balaie — et retrouve ses trois
              lignes dès qu'elle se range à 360 px à côté d'un message. */
-          "md:group-data-[large=true]/liste:items-center md:group-data-[large=true]/liste:py-1.5",
+          /* La place de l'étoile est **réservée** en pleine largeur (`pr-9`) :
+             la faire apparaître au survol en poussant la date décalait toute la
+             colonne des dates d'une rangée à l'autre — mesuré sur la capture,
+             elles ne s'alignaient plus. */
+          "md:group-data-[large=true]/liste:items-center md:group-data-[large=true]/liste:py-1.5 md:group-data-[large=true]/liste:pr-9",
           active ? "md:bg-accent" : "md:hover:bg-accent/60",
         )}
       >
+        {/* **Le fond opaque du balayage, sur bureau.** Sur téléphone la rangée
+            porte `bg-card` et cache le calque ; sur bureau elle est
+            transparente, et la couleur de l'action se lisait *à travers* le
+            texte — toute la rangée virait au rouge au lieu de découvrir une
+            pastille. Un calque à part plutôt qu'un fond sur le bouton : il n'a
+            pas à disputer sa place à `hover:` et à l'état actif, qui écrivent
+            la même propriété. */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-0 hidden rounded-[10px] bg-background md:group-data-[side=left]/swipe:block md:group-data-[side=right]/swipe:block"
+        />
         {/* L'appui : un rectangle arrondi **en retrait**, pas un aplat d'un
             bord à l'autre. Instantané à la descente du doigt (`duration-0`) et
             fondu au relâchement — la réponse doit précéder le geste, sa
@@ -212,10 +229,10 @@ export function ThreadRow({
             <time
               dateTime={last.date}
               suppressHydrationWarning
-              className={cn(
-                "hidden shrink-0 text-xs text-muted-foreground transition-[margin] tabular-nums md:group-data-[large=true]/liste:block",
-                thread.starred ? "md:me-[22px]" : "md:group-hover:me-[22px]",
-              )}
+              /* Colonne fixe et alignée à droite : c'est ce qui met les dates
+                 les unes sous les autres, « 1 sept. » et « 20 août » n'ayant
+                 pas la même largeur. */
+              className="hidden w-[62px] shrink-0 text-right text-xs text-muted-foreground tabular-nums md:group-data-[large=true]/liste:block"
             >
               {formatShortDate(last.date)}
             </time>
@@ -229,6 +246,11 @@ export function ThreadRow({
         aria-pressed={thread.starred}
         className={cn(
           "absolute top-[9px] right-[11px] hidden rounded p-1 transition-opacity hover:bg-background md:block",
+          "md:group-data-[large=true]/liste:top-1/2 md:group-data-[large=true]/liste:-translate-y-1/2",
+          /* Elle ne voyage pas avec la rangée — elle en est la sœur, pas
+             l'enfant — donc elle s'efface pendant le balayage plutôt que de
+             rester posée sur la pastille de l'action. */
+          "md:group-data-[side=left]/swipe:opacity-0 md:group-data-[side=right]/swipe:opacity-0",
           thread.starred
             ? "text-amber-400"
             : "text-muted-foreground opacity-0 group-hover:opacity-100 focus-visible:opacity-100",

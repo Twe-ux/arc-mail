@@ -10,7 +10,9 @@ verre, la tête de liste sur deux rangées, les rangées au gabarit bureau et le
 de conversation avec son menu et ses détails, les blocs de message cliquables, et le troisième
 volet détaché (message ou fichier) avec sa gouttière et sa poignée.
 
-Puis la liste du bureau a pris toute la fenêtre tant qu'aucun message n'est ouvert, en rangées d'une
+Puis le balayage d'archivage et de suppression est arrivé sur bureau, au pavé tactile — en reprenant
+au navigateur l'horizontale dont il faisait « page précédente » —, et les puces de destinataires se
+sont mises à se retirer une à une. La liste du bureau a pris toute la fenêtre tant qu'aucun message n'est ouvert, en rangées d'une
 ligne, et la lecture a gagné sa croix pour lui rendre la place. Une réponse a cessé de partir à tout
 le monde par défaut — l'expéditeur seul, et « à tous »
 seulement s'il reste quelqu'un une fois toutes nos adresses retirées. L'en-tête du mail ouvert s'est

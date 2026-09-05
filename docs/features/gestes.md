@@ -118,3 +118,40 @@ dans [La liste sur téléphone](liste-telephone.md) ; les invariants ici :
 - **Un `iframe` garde ses touchers** : le geste de retour n'existait pas sur un message HTML. Le
   cadre les relaie (`arc-mail-touch` → `feed`), il n'empêche rien, et c'est `touch-action: pan-y`
   chez lui qui lui retire l'horizontale → [Le mail ouvert](mail-ouvert.md).
+
+
+## Le même balayage au pavé tactile, sur bureau (5 sept. 2026)
+
+Sur bureau il n'y a pas de doigt sur la rangée : deux doigts sur le pavé produisent des `wheel`
+horizontaux, et c'est exactement ce que le navigateur lit comme « page précédente ». On quittait la
+boîte en croyant balayer.
+
+**L'horizontale n'appartient donc plus au navigateur** : `overscroll-behavior-x: none` sur `html`
+coupe le geste de navigation à la racine, et le chaînage fait qu'un défilant imbriqué — une liste,
+un message — s'y arrête aussi. Seule la verticale lui reste, donc « tirer pour recharger » sur
+téléphone n'y perd rien.
+
+Ce qu'on lui prend, la rangée le rend : `useSwipeRow` écoute aussi `wheel` (non passif, pour
+pouvoir `preventDefault`) et en fait le même balayage — mêmes calques, même seuil de 150, mêmes
+ressorts.
+
+```
+sens        : deux doigts vers la droite → deltaX négatif → la rangée part à droite
+fin du geste: un `wheel` n'a pas de `pointerup` — 140 ms de silence valent relâchement
+butée       : seuil + 70 px, sinon la rangée partait avant qu'on ait relâché
+validation  : la distance seule ; les deltas d'un pavé sont trop bruités pour un élan
+```
+
+Un côté sans action ne prend pas le geste **mais empêche quand même la navigation** : revenir en
+arrière coûte bien plus cher qu'un balayage qui ne fait rien.
+
+Deux détails de rendu, propres au bureau : la rangée y est transparente (sur téléphone elle porte
+`bg-card`), donc la couleur de l'action se lisait *à travers* le texte — un calque opaque à part,
+posé sous le contenu pendant le seul balayage, plutôt qu'un fond sur le bouton, qui aurait eu à
+disputer sa place à `hover:` et à l'état actif. Et l'étoile du survol s'efface pendant le geste :
+elle est la sœur de la rangée, pas son enfant, donc elle ne voyage pas avec elle et restait posée
+sur la pastille de l'action.
+
+Mesuré (1280×800, `Input.dispatchWheelEvent` par le pointeur) : trois crans de 60 px → 180 px,
+`data-armed=true`, la rangée part et la liste passe de 19 à 18 ; un cran de 40 px → `armed=false`,
+retour à zéro, rien de supprimé. Le geste tactile du téléphone est inchangé (−214 px, 19 → 18).

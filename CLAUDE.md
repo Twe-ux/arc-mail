@@ -161,6 +161,9 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - **Un seul bord pour les trois** : filet, surlignage d'appui et pastille d'action à `inset-x-2` ;
   le filet est l'`::after` de la piste, jamais de la rangée qui glisse.
 - Les retours sont des ressorts (`animateSpring`), jamais une transition CSS ; distance **ou** élan.
+- **Sur bureau le même balayage vient du pavé tactile** (`wheel` horizontaux, fin déduite de
+  140 ms de silence) ; `overscroll-behavior-x: none` sur `html` retire l'horizontale au navigateur,
+  à qui elle servait à revenir en arrière → [gestes](docs/features/gestes.md).
 
 **Mail ouvert** → [docs/features/mail-ouvert.md](docs/features/mail-ouvert.md)
 - En-tête à trois éléments (retour · dossier·espace / n sur N · favori) ; l'objet vit dans la carte.
@@ -195,6 +198,8 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   reçoit sur une adresse à nous, et répondre à tous, c'était s'écrire.
 - La visée porte toujours une liste, jamais `null` : sinon « à tous » et « rien de visé » se
   confondent. Le champ montre les destinataires réels et prend le focus.
+- Chaque puce de destinataire **se retire** par sa croix ; jamais la dernière, et retirer ne
+  redonne pas le focus.
 
 **Pièces jointes** → [docs/features/pieces-jointes.md](docs/features/pieces-jointes.md)
 - Les octets viennent de `/api/mail/piece` (GET) : liste blanche de types, `nosniff`, et

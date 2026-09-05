@@ -113,6 +113,9 @@ servait à l'étoile du survol et poussait le min-content de la colonne à 390 p
 débordait. L'étoile se **superpose** maintenant, et c'est la date qui lui fait de la place au
 survol (`me-[22px]`) — rien ne disparaît.
 
+**Balayer une rangée y archive et supprime aussi** — au pavé tactile, avec les mêmes calques et le
+même seuil que sur téléphone → [Gestes](gestes.md).
+
 **Densité** (`listDensity`, panneau d'apparence) : publiée en `data-densite` sur la colonne et lue
 par les rangées, un attribut plutôt qu'un prop passé à cinquante enfants. En `compact`, la rangée
 perd son aperçu — la ligne la plus coûteuse en hauteur et la moins nécessaire quand on balaie.

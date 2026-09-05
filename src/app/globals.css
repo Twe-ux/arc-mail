@@ -112,6 +112,13 @@
        inline script in the layout sets it again before the first paint, for the
        load where the class isn't on the element yet. */
     color-scheme: light;
+    /* **L'horizontale n'appartient pas au navigateur.** Deux doigts vers la
+       droite sur un pavé tactile, et Safari comme Chrome remontent d'une page :
+       on quittait la boîte en voulant balayer une rangée. `overscroll-behavior-x`
+       coupe le geste à la racine, et le chaînage fait qu'un défilant imbriqué —
+       une liste, un message — s'y arrête aussi. Seule la verticale reste au
+       navigateur, donc « tirer pour recharger » sur téléphone n'y perd rien. */
+    overscroll-behavior-x: none;
   }
   .dark {
     color-scheme: dark;

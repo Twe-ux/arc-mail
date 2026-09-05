@@ -31,6 +31,12 @@ Au-dessus du champ, les **puces des destinataires réels**, et « Répondre à t
 restreint — restreindre est un geste, élargir doit en être un aussi. Rien n'est affiché quand il
 n'y a qu'une seule personne : le texte d'invite la nomme déjà.
 
+**Chaque puce se retire** par sa croix : élargir à tous puis enlever les deux qu'on ne veut pas est
+le chemin le plus court quand la copie porte cinq adresses. On ne retire pas la dernière — une
+réponse sans destinataire ne part nulle part, et une ligne vide laisse le composeur dans un
+cul-de-sac dont seul « Répondre à tous » sortirait ; la croix disparaît donc quand il n'en reste
+qu'une. Retirer ne redonne pas le focus au champ : il sauterait à l'écran à chaque croix.
+
 ## Nos adresses, toutes
 
 Ce qui est « nous » n'est pas l'identité de l'espace regardé mais **celle de tous les espaces

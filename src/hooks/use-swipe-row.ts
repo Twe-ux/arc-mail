@@ -18,6 +18,13 @@ const SEUIL = 150;
 const SORTIE = 300;
 /** De quoi distinguer « je balaye » de « je fais défiler ». */
 const AXE = 10;
+/**
+ * Un geste de pavé tactile n'a **pas de fin** : il n'y a pas de `pointerup`,
+ * seulement des `wheel` qui s'arrêtent. On la déduit du silence.
+ */
+const REPOS = 140;
+/** Au-delà, la rangée résiste : sans butée elle partait avant le relâchement. */
+const BUTEE = SEUIL + 70;
 
 export type SwipeAction = {
   /** Ce qui se passe au relâchement au-delà du seuil. */
@@ -40,6 +47,9 @@ export type SwipeAction = {
  * - **le retour est un ressort**, pas une transition CSS : il peut être rattrapé
  *   en vol par un second geste, ce qu'une transition ne sait pas faire, et il
  *   respecte déjà « Réduire les animations ».
+ *
+ * **Sur bureau le même geste vient du pavé tactile** (`wheel` horizontaux). On
+ * le prend au navigateur, à qui il servait à revenir en arrière — voir plus bas.
  *
  * L'action est **optimiste**, comme `moveThread` : la rangée part, le store
  * écrit, et une écriture refusée ramène le fil seul.
@@ -206,15 +216,64 @@ export function useSwipeRow({
       });
     };
 
+    /* ── Le même geste, au pavé tactile ──────────────────────────────────
+       Sur bureau il n'y a pas de doigt sur la rangée : deux doigts sur le pavé
+       produisent des `wheel` horizontaux, et c'est ce que le navigateur lit
+       comme « page précédente ». On le lui prend — `preventDefault` sur les
+       événements qu'on retient — et on en fait le même balayage : mêmes
+       calques, même seuil, mêmes ressorts.
+
+       Le sens est inversé : deux doigts vers la droite donnent un `deltaX`
+       négatif, et c'est bien la rangée qui doit partir à droite. */
+    let repos: ReturnType<typeof setTimeout> | null = null;
+
+    const conclure = () => {
+      repos = null;
+      const action = x > 0 ? actions.current.right : actions.current.left;
+      const valide = action.enabled && Math.abs(x) >= SEUIL;
+      vol = animateSpring({
+        from: { value: x, velocity: 0 },
+        to: valide ? Math.sign(x) * SORTIE : 0,
+        spring: valide ? SPRING_DISMISS : SPRING_SETTLE,
+        onFrame: ecrire,
+        onRest: () => {
+          vol = null;
+          if (valide) action.run();
+        },
+      });
+    };
+
+    const roulette = (e: WheelEvent) => {
+      /* Une molette de souris n'a pas d'horizontale, et un défilement de liste
+         en a un peu : on ne prend la main que si l'horizontale l'emporte
+         franchement, sinon la liste ne défilerait plus. */
+      if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
+      const vers = -e.deltaX;
+      /* Un côté sans action ne prend pas le geste — mais on empêche quand même
+         la navigation du navigateur : elle est bien plus coûteuse qu'un
+         balayage qui ne fait rien. */
+      const cote = (x !== 0 ? x : vers) > 0 ? actions.current.right : actions.current.left;
+      e.preventDefault();
+      if (!cote.enabled) return;
+      if (repos) clearTimeout(repos);
+      else arreter();
+      const brut = x + vers;
+      ecrire(Math.max(-BUTEE, Math.min(BUTEE, brut)));
+      repos = setTimeout(conclure, REPOS);
+    };
+
     el.addEventListener("pointerdown", down);
     el.addEventListener("pointermove", move);
     el.addEventListener("pointerup", up);
     el.addEventListener("pointercancel", up);
+    el.addEventListener("wheel", roulette, { passive: false });
     return () => {
       el.removeEventListener("pointerdown", down);
       el.removeEventListener("pointermove", move);
       el.removeEventListener("pointerup", up);
       el.removeEventListener("pointercancel", up);
+      el.removeEventListener("wheel", roulette);
+      if (repos) clearTimeout(repos);
       vol?.stop();
     };
   }, []);

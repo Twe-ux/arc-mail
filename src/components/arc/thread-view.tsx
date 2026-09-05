@@ -49,6 +49,16 @@ export function ThreadView({ className }: { className?: string }) {
      tous » valait `null`, il ne se distinguait pas de « rien de visé » — les
      deux tombaient sur la même valeur par défaut. Maintenant que le défaut est
      l'expéditeur seul, il fallait les séparer. */
+  /* Retirer un destinataire **sans redonner le focus** : on n'appelle donc pas
+     `aimReply`, qui bumpe le compteur — le champ sauterait à l'écran à chaque
+     croix. La ligne ne se vide jamais (voir `ReplyTargets`). */
+  const retirerCible = (c: Contact) => {
+    if (!threadId) return;
+    const reste = targets.filter((x) => x.email !== c.email);
+    if (!reste.length) return;
+    setAim((actuel) => ({ threadId, to: reste, tick: actuel?.threadId === threadId ? actuel.tick : 0 }));
+  };
+
   const aimReply = (to: Contact[]) => {
     if (!threadId) return;
     setAim((current) => ({
@@ -212,6 +222,7 @@ export function ThreadView({ className }: { className?: string }) {
           to={targets}
           everyone={everyone}
           onReplyAll={() => aimReply(everyone)}
+          onRemove={retirerCible}
           focusTick={focusTick}
           className="hidden shrink-0 border-t border-black/[0.06] px-3.5 py-3 md:block dark:border-white/10"
         />
@@ -223,6 +234,7 @@ export function ThreadView({ className }: { className?: string }) {
             to={targets}
             everyone={everyone}
             onReplyAll={() => aimReply(everyone)}
+            onRemove={retirerCible}
             onClose={() => setReplyOpen(false)}
           />
         ) : (

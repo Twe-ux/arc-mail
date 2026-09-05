@@ -232,6 +232,20 @@ hauteur     : le rectangle **transformé** (la mise en page, elle, garde sa haut
 le cadre    : html, body en overflow hidden — il ne défile jamais, c'est la page qui défile
 ```
 
+### Les garde-fous sont écrits après le message
+
+`<style>` est gardé — sans lui la mise en page d'une infolettre s'effondre. Mais ce style vit *dans*
+le corps, donc **après** le nôtre : une infolettre qui pose `body { margin: 0; padding: 0 }` — et
+elles le font toutes — reprenait la marge qu'on venait de donner au cadre, et le courrier repartait
+coller aux deux bords (signalé sur une vraie infolettre). Les règles de structure sont donc écrites
+en dernier et en `!important` : à importance égale, c'est l'ordre qui tranche, et on est après.
+
+La marge de 12 px vit sur **`html`**, pas sur `body` : aucune infolettre ne cible `html`, et le fond
+du corps se propage quand même au canevas — un courrier à fond coloré le garde jusqu'aux bords. Et
+la largeur disponible se lit sur l'**enveloppe elle-même** (`fit.offsetWidth`), pas sur la fenêtre :
+un bloc remplit la boîte de contenu de son parent où que vive la marge, la nôtre ou celle que
+l'infolettre se donne.
+
 **Pas de plancher à l'échelle** : un courrier rogné est le défaut qu'on corrige, et un courrier
 petit reste un courrier entier. En pratique les infolettres font 600 à 800 px, le texte long se
 replie déjà (`overflow-wrap: anywhere`) et les images sont bornées à 100 %.

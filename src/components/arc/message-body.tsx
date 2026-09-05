@@ -59,12 +59,7 @@ const MARGE = 12;
 const STYLE = `
   :root { color-scheme: light; }
   html, body { margin: 0; background: #fff; color: #111; }
-  /* Le cadre ne defile jamais : il est dimensionne sur son contenu et c'est la
-     page qui defile. Sans cela, le contenu mis a l'echelle laisserait derriere
-     lui la hauteur de sa mise en page, non reduite, en zone vide defilante. */
-  html, body { overflow: hidden; }
   body {
-    padding: ${MARGE}px;
     font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     overflow-wrap: anywhere;
     /* L'horizontale appartient au geste de retour, pas au cadre. Le panorama
@@ -78,10 +73,42 @@ const STYLE = `
   img { max-width: 100%; height: auto; }
   img[data-src] { display: none; }
   a { color: #0b57d0; }
+`;
+
+/**
+ * Les garde-fous, **posés après le message**.
+ *
+ * `html.ts` garde le `<style>` d'une infolettre — sans lui la mise en page
+ * s'effondre en colonne unique. Mais ce style vit *dans* le corps, donc après le
+ * nôtre : une infolettre qui pose `body { margin: 0; padding: 0 }` — et elles le
+ * font toutes — reprenait la marge qu'on venait de donner, et le courrier
+ * repartait coller aux deux bords. Ces règles-là sont donc écrites en dernier et
+ * en `!important` : à importance égale, c'est l'ordre qui tranche, et on est
+ * après.
+ *
+ * La marge vit sur `html`, pas sur `body` : aucune infolettre ne cible `html`,
+ * et le fond du corps se propage quand même au canevas — un courrier à fond
+ * coloré le garde jusqu'aux bords.
+ */
+const GARDE = `
+  html {
+    box-sizing: border-box !important;
+    padding: ${MARGE}px !important;
+    /* Le cadre ne defile jamais : il est dimensionne sur son contenu et c'est
+       la page qui defile. Sans cela, le contenu mis a l'echelle laisserait
+       derriere lui la hauteur de sa mise en page, non reduite, en zone vide
+       defilante. */
+    overflow: hidden !important;
+  }
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+  }
   /* L'enveloppe que l'on met a l'echelle. En flow-root pour que les marges des
      enfants ne s'echappent pas : c'est sa boite qui donne la hauteur.
      (Pas d'accent grave ici : ce bloc vit dans un litteral gabarit.) */
-  #arc-fit { transform-origin: 0 0; display: flow-root; }
+  #arc-fit { transform-origin: 0 0 !important; display: flow-root !important; }
 `;
 
 /* Quatre tâches, et rien d'autre : **mettre le courrier à la largeur**,
@@ -109,8 +136,12 @@ const SCRIPT = `
       occupe = true;
       fit.style.width = "";
       fit.style.transform = "";
-      var dispo = document.documentElement.clientWidth - MARGE * 2;
-      var naturel = Math.max(fit.scrollWidth, fit.offsetWidth);
+      /* La largeur disponible se lit sur l'enveloppe elle-meme : un bloc remplit
+         la boite de contenu de son parent, ou que vive la marge — la notre sur
+         html, celle que l'infolettre se donne sur body. Mesurer la fenetre
+         obligeait a deviner ou etaient passes les pixels. */
+      var dispo = fit.offsetWidth;
+      var naturel = Math.max(fit.scrollWidth, dispo);
       var echelle = naturel > dispo + 1 ? dispo / naturel : 1;
       var h;
       if (echelle < 1) {
@@ -185,7 +216,9 @@ function CorpsHtml({ html, bloquees }: { html: string; bloquees: number }) {
       `<!doctype html><html><head><meta charset="utf-8">` +
       `<meta name="viewport" content="width=device-width,initial-scale=1">` +
       `<style>${STYLE}</style></head><body><div id="arc-fit">${html}</div>` +
-      `<script>${SCRIPT}<\/script></body></html>`,
+      /* Après le message, pas avant : le `<style>` d'une infolettre est dans le
+         corps, et à importance égale c'est l'ordre qui tranche. */
+      `<style>${GARDE}</style><script>${SCRIPT}<\/script></body></html>`,
     [html],
   );
 

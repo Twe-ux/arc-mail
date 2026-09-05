@@ -170,6 +170,8 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   par-dessus — et il prend ses marges (14 / 16), pas la variante `inset` : le mail ouvert n'est pas
   une carte qui flotte. L'en-tête est en `px-5`, boutons débordant de 10 px pour aligner le glyphe.
 - Le message **passe sous la pill** (réserve `--nav-height`), il ne se dissout pas.
+- L'en-tête se **replie quand on descend** et revient quand on remonte (56 px rendus à la lecture) :
+  `data-compact` écrit sur le nœud, jamais un `setState` par événement de défilement.
 - Une `iframe` de message HTML avale tous les touchers : le cadre les **relaie**
   (`arc-mail-touch` → `feed` de `useEdgeSwipeBack`, par le contexte de `BackSwipe`) pour que le
   geste de retour se fasse du milieu, et il pose `touch-action: pan-y` sans rien empêcher.
@@ -233,6 +235,9 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - Un courrier plus large que l'écran est **mis à la largeur** (`#arc-fit`, `scale`, pas de
   plancher) : l'horizontale appartient au geste de retour, donc rogner c'est perdre la moitié du
   message. On mesure le rectangle **transformé**, et le cadre ne défile jamais.
+- Les garde-fous du cadre (marge, débordement) s'écrivent **après** le message et en `!important` :
+  le `<style>` d'une infolettre arrive après le nôtre et reprenait la marge. La marge vit sur
+  `html`, jamais sur `body` — c'est ce que les infolettres remettent à zéro.
 - Les images distantes sont **retenues** (suivi à l'ouverture) et proposées par un bandeau ; les
   images `cid:` deviennent des `data:` et ne comptent pas comme pièces jointes.
 - Un fournisseur ne connaît pas les espaces : il rend `spaceId: ""`, le store tamponne (`stamp`).

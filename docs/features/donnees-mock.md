@@ -45,3 +45,6 @@ Il porte une **largeur fixe de 600 px**, comme les vraies. Le gabarit à `max-wi
 d'abord se repliait tout seul et ne testait donc rien : c'est le tableau de 600 px, celui qui
 déborde d'un téléphone de 393, qu'il fallait avoir sous la main pour vérifier la mise à la largeur
 (voir [IMAP](imap.md)).
+
+Elle porte aussi un `<style>` qui remet `body` à zéro, comme les vraies : `html.ts` le garde, il
+arrive après le nôtre, et c'est lui qui reprenait la marge du cadre.

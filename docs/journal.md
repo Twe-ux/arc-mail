@@ -10,7 +10,9 @@ verre, la tête de liste sur deux rangées, les rangées au gabarit bureau et le
 de conversation avec son menu et ses détails, les blocs de message cliquables, et le troisième
 volet détaché (message ou fichier) avec sa gouttière et sa poignée.
 
-Puis un courrier plus large que l'écran a cessé d'être rogné : il est mis à la largeur du cadre, et
+Puis l'en-tête du mail ouvert s'est mis à se replier quand on descend — 56 px rendus à la lecture
+sur un écran qui en fait 852 — et le `<style>` d'une infolettre a cessé de reprendre la marge du
+cadre. Un courrier plus large que l'écran a cessé d'être rogné : il est mis à la largeur du cadre, et
 l'infolettre de la maquette a pris la largeur fixe des vraies pour que le cas se vérifie. La lecture
 a perdu sa colonne étroite (le volet est la page, c'est le texte qui borne sa ligne)
 et un courrier HTML a cessé d'être un timbre blanc dans trois cadres emboîtés. Le composeur est

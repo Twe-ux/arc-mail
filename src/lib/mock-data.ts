@@ -250,8 +250,12 @@ Suivez votre envoi depuis votre espace client.`,
         /* **Une largeur fixe, comme les vraies.** Le gabarit à `max-width` se
            repliait tout seul et ne testait donc rien : les infolettres du monde
            réel posent un tableau de 600 px qui déborde d'un téléphone, et c'est
-           ce cas-là qu'il faut avoir sous la main (voir `donnees-mock.md`). */
-        html: `<table role="presentation" width="600" style="width:600px;margin:0 auto;font-family:Helvetica,Arial,sans-serif"><tr><td>
+           ce cas-là qu'il faut avoir sous la main (voir `donnees-mock.md`).
+           Le `<style>` qui remet `body` à zéro est du même tonneau : `html.ts`
+           le garde, il arrive après le nôtre, et c'est lui qui reprenait la
+           marge du cadre. */
+        html: `<style>body{margin:0;padding:0;background:#f4f4f4}img{border:0}</style>
+<table role="presentation" width="600" style="width:600px;margin:0 auto;font-family:Helvetica,Arial,sans-serif;background:#fff"><tr><td>
   <p style="color:#888;font-size:12px">Voir la version en ligne</p>
   <img data-src="https://exemple.invalid/banniere.png" alt="Bannière" width="600" height="180">
   <h1 style="font-size:26px;color:#c0392b">Les bons plans du mois</h1>

@@ -107,3 +107,19 @@ maintenant au-dessus des touches, et ce coussin ne ferait plus que du vide sous 
 
 La recherche fait exception, voir [Recherche](recherche.md). Le calcul de `--keyboard-inset` est
 dans [PWA iOS](pwa-ios.md).
+
+## Le composeur sur bureau : une colonne, pas une fenêtre
+
+C'était une fenêtre façon Gmail, posée en bas à droite. Écrire, c'est regarder ce à quoi on
+répond — et cette fenêtre couvrait précisément ce qu'on venait de lire. Le composeur est maintenant
+**une colonne à droite du message**, dans le flux : il pousse, il ne couvre pas. Donc ni ombre
+portée ni coins arrondis — c'est une colonne de la fenêtre, pas une carte posée dessus.
+
+**Une seule colonne à droite**, et le composeur la prend quand il est ouvert : écrire est ce qu'on
+est venu faire, et un aperçu se rouvre d'un clic. Sur un écran étroit (moins de 1400 px) c'est la
+liste qui cède la place — mais seulement s'il reste un message à côté, sinon on n'aurait plus que
+le composeur.
+
+Le mode « plein écran » reste, pour un texte long. Le mode « réduit » a disparu : une colonne ne se
+réduit pas, elle se ferme — et la fermer garde le brouillon, ce que « réduire » ne faisait que
+reporter.

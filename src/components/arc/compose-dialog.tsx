@@ -8,7 +8,6 @@ import {
   Link2,
   Maximize2,
   Minimize2,
-  Minus,
   Paperclip,
   Send,
   Smile,
@@ -39,11 +38,15 @@ import { RecipientField } from "./recipient-field";
 import { SpaceIcon } from "./space-icon";
 
 /**
- * Two chromes around one form. On phones a card that floats clear of the edges: Fermer,
- * a round send button, rows that fold Cc/Cci/De away. On desktop a Gmail-style
- * floating window pinned bottom-right, non-modal so the mailbox stays usable,
- * with minimise and expand. The form state lives in the store so closing by
- * any route keeps a draft.
+ * Deux habillages autour d'un même formulaire.
+ *
+ * Sur téléphone, une carte qui flotte à distance des bords. Sur bureau, **une
+ * colonne à droite du message** — écrire, c'est regarder ce à quoi on répond ;
+ * une fenêtre posée par-dessus la boîte cachait précisément ce qu'on venait
+ * lire. Elle s'agrandit en plein écran quand le texte devient long.
+ *
+ * L'état du formulaire vit dans le store : fermer par n'importe quel chemin
+ * garde un brouillon.
  */
 export function ComposeDialog() {
   const compose = useMail((s) => s.compose);
@@ -178,9 +181,9 @@ function ComposePanel({ draft }: { draft: ComposeDraft }) {
   const sendMail = useMail((s) => s.sendMail);
   const sendError = useMail((s) => s.sendError);
   const deleteDraft = useMail((s) => s.deleteDraft);
-  const [mode, setMode] = useState<"docked" | "minimized" | "expanded">(
-    "docked",
-  );
+  /* Plus de « réduit » : une colonne ne se réduit pas, elle se ferme — et la
+     fermer garde le brouillon, ce que « réduire » ne faisait que reporter. */
+  const [mode, setMode] = useState<"colonne" | "expanded">("colonne");
   const canSend = draft.to.length > 0;
   const title =
     draft.subject.trim() || (draft.draftId ? "Brouillon" : "Nouveau message");
@@ -196,37 +199,27 @@ function ComposePanel({ draft }: { draft: ComposeDraft }) {
         }
       }}
       className={cn(
-        "pointer-events-auto flex flex-col overflow-hidden rounded-2xl bg-card text-card-foreground shadow-[0_24px_80px_rgb(0_0_0/0.35)] ring-1 ring-black/10 dark:ring-white/10",
-        "animate-in fade-in-0 slide-in-from-bottom-4 duration-200",
-        mode === "docked" && "h-[600px] max-h-[calc(100vh-2rem)] w-[560px]",
-        mode === "minimized" && "w-[320px]",
+        "pointer-events-auto flex flex-col overflow-hidden bg-card text-card-foreground",
+        mode === "colonne" &&
+          /* Dans le flux, pas au-dessus : elle pousse le message au lieu de le
+             couvrir, et n'a donc ni ombre portée ni coins — c'est une colonne
+             de la fenêtre, pas une carte posée dessus. */
+          "h-full w-[var(--compose-width)] shrink-0 border-l animate-in fade-in-0 slide-in-from-right-4 duration-200",
         mode === "expanded" &&
-          "h-[min(860px,calc(100vh-4rem))] w-[min(900px,calc(100vw-4rem))]",
+          "h-[min(860px,calc(100vh-4rem))] w-[min(900px,calc(100vw-4rem))] rounded-2xl shadow-[0_24px_80px_rgb(0_0_0/0.35)] ring-1 ring-black/10 animate-in fade-in-0 zoom-in-95 duration-200 dark:ring-white/10",
       )}
     >
       {/* Header: the space gradient, the Arc signature, where Gmail paints grey */}
       <header
         className="flex h-11 shrink-0 cursor-default items-center gap-1 px-4 text-white [background:var(--space-gradient)]"
-        onDoubleClick={() =>
-          setMode((m) => (m === "minimized" ? "docked" : "minimized"))
-        }
+        onDoubleClick={() => setMode((m) => (m === "expanded" ? "colonne" : "expanded"))}
       >
         <span className="min-w-0 flex-1 truncate text-sm font-semibold">
           {title}
         </span>
         <HeaderButton
-          label={mode === "minimized" ? "Agrandir" : "Réduire"}
-          onClick={() =>
-            setMode((m) => (m === "minimized" ? "docked" : "minimized"))
-          }
-        >
-          <Minus />
-        </HeaderButton>
-        <HeaderButton
-          label={mode === "expanded" ? "Taille normale" : "Plein écran"}
-          onClick={() =>
-            setMode((m) => (m === "expanded" ? "docked" : "expanded"))
-          }
+          label={mode === "expanded" ? "Revenir à la colonne" : "Plein écran"}
+          onClick={() => setMode((m) => (m === "expanded" ? "colonne" : "expanded"))}
         >
           {mode === "expanded" ? <Minimize2 /> : <Maximize2 />}
         </HeaderButton>
@@ -238,7 +231,7 @@ function ComposePanel({ draft }: { draft: ComposeDraft }) {
         </HeaderButton>
       </header>
 
-      {mode !== "minimized" && (
+      {(
         <>
           <ComposeFields draft={draft} />
           {sendError && <SendFailed detail={sendError} />}
@@ -287,17 +280,13 @@ function ComposePanel({ draft }: { draft: ComposeDraft }) {
     return (
       <div
         className="fixed inset-0 z-50 grid place-items-center bg-black/40 backdrop-blur-[2px] animate-in fade-in-0"
-        onClick={(e) => e.target === e.currentTarget && setMode("docked")}
+        onClick={(e) => e.target === e.currentTarget && setMode("colonne")}
       >
         {panel}
       </div>
     );
   }
-  return (
-    <div className="pointer-events-none fixed right-4 bottom-4 z-50">
-      {panel}
-    </div>
-  );
+  return panel;
 }
 
 function HeaderButton({

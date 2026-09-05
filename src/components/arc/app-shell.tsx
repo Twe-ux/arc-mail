@@ -38,6 +38,7 @@ export function AppShell() {
   const previewId = useMail((s) => s.previewId);
   const sidebarSide = useMail((s) => s.sidebarSide);
   const listWidth = useMail((s) => s.listWidth);
+  const compose = useMail((s) => s.compose);
   const coque = useRef<HTMLDivElement>(null);
 
   useKeyboardShortcuts();
@@ -82,12 +83,19 @@ export function AppShell() {
   /* An open attachment takes the list's place rather than squeezing a fourth
      column into 1280px: sidebar · message · file, and the message stays
      readable while one looks at what came with it. */
-  const previewOnDesktop = previewId !== null && hasSelection;
+  /* **Une seule colonne à droite.** Le composeur la prend quand il est ouvert :
+     écrire est ce qu'on est venu faire, et l'aperçu se rouvre d'un clic. */
+  const composeOnDesktop = compose !== null;
+  const previewOnDesktop = previewId !== null && hasSelection && !composeOnDesktop;
   /* Assez large pour tenir barre, liste, message **et** pièce : au-dessous, la
      liste s'efface le temps qu'on regarde. */
   const troisColonnes = useMediaQuery("(min-width: 1400px)");
   // Desktop: split view shows both; full view shows one or the other.
-  const listOnDesktop = (splitView || !hasSelection) && (!previewOnDesktop || troisColonnes);
+  /* Sur un écran étroit, la colonne de droite prend la place de la liste — mais
+     seulement s'il reste un message à côté : sinon on n'aurait plus qu'elle. */
+  const colonneDroite = previewOnDesktop || composeOnDesktop;
+  const listeCede = colonneDroite && hasSelection && !troisColonnes;
+  const listOnDesktop = (splitView || !hasSelection) && !listeCede;
   const viewOnDesktop = splitView || hasSelection;
 
   return (
@@ -107,6 +115,9 @@ export function AppShell() {
             /* La poignée réécrit cette variable à la frame ; React n'apprend la
                largeur qu'au relâchement. */
             "--list-width": `${listWidth}px`,
+            /* Un peu plus large que l'aperçu : on y écrit, avec des champs et
+               une barre d'outils, là où l'aperçu ne fait que montrer. */
+            "--compose-width": "460px",
           } as CSSProperties
         }
       >
@@ -135,13 +146,17 @@ export function AppShell() {
             <ThreadView className="flex" />
           </BackSwipe>
           <AttachmentPreview />
+          {/* Dans `main`, avec l'aperçu : c'est la même colonne, et elle doit
+              pousser le message plutôt que le couvrir. Sur téléphone le
+              composeur se rend en `Sheet`, portalisée — sa place dans l'arbre
+              n'y change rien. */}
+          <ComposeDialog />
         </main>
         {/* Laid over the list, not beside it: the rows pass under the frosted
             pill, which is what gives the material something to blur. */}
         <MobileNav className={cn("absolute inset-x-0 bottom-0 z-30", hasSelection && "hidden")} />
         <MobileMenu />
         <CommandPalette />
-        <ComposeDialog />
       </div>
       {/* Failures of optimistic writes land here (see `commit` in the store). */}
       <Toaster />

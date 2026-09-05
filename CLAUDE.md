@@ -82,6 +82,8 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - Une seule surface par carte (`Command` en `bg-transparent`).
 - Le composeur occupe le **rectangle visible** (`--vv-top`, `--vv-height`), il ne compense pas le
   clavier : c'est le défilement du navigateur qu'on annule, pas un décalage qu'on ajoute.
+- Sur bureau le composeur est **une colonne à droite du message**, dans le flux (`--compose-width`),
+  pas une fenêtre posée dessus ; une seule colonne à droite, et il la prend sur l'aperçu.
 - Pas de clic-en-dehors Radix ; la recherche a son bouton « Annuler » sur téléphone.
 
 **Gestes** → [docs/features/gestes.md](docs/features/gestes.md)
@@ -125,6 +127,8 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - Les octets viennent de `/api/mail/piece` (GET) : liste blanche de types, `nosniff`, et
   `Content-Security-Policy: sandbox` — servir le fichier d'un inconnu depuis notre origine est un XSS.
 - Sur bureau l'aperçu est une **troisième colonne** au-delà de 1400 px ; en dessous la liste s'efface.
+- Un PDF est dessiné par **pdf.js** (`PdfView`, chargé à la demande, ligne 4 en `legacy`) : une
+  `iframe` ne montre que la première page sur iOS et le lecteur de Chrome refuse le bac à sable.
 - `url` absente = rien à montrer, l'aperçu le dit ; un sélecteur qui construit un objet doit être
   memoïsé (`usePreview`).
 

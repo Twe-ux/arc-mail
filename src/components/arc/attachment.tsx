@@ -10,6 +10,7 @@ import { formatSize } from "@/lib/format";
 import { useMail, usePreview } from "@/lib/store";
 import type { Attachment } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { PdfView } from "./pdf-view";
 
 const isImage = (a: Attachment) => a.mime.startsWith("image/");
 
@@ -145,25 +146,19 @@ function Header({
   );
 }
 
-/** Ce que le navigateur sait afficher lui-même, dans un cadre à part. */
-const isDocument = (a: Attachment) =>
-  a.mime === "application/pdf" || a.mime.startsWith("text/plain");
-
 function Body({ attachment }: { attachment: Attachment }) {
-  if (isDocument(attachment) && attachment.url) {
+  if (attachment.mime === "application/pdf" && attachment.url) {
+    return <PdfView url={attachment.url} name={attachment.name} />;
+  }
+  if (attachment.mime.startsWith("text/plain") && attachment.url) {
     return (
-      /* Le lecteur du navigateur, dans une `iframe` : un PDF de plusieurs pages
-         se feuillette, se cherche, s'imprime — rien de tout cela ne vaut la
-         peine d'être réécrit. La route qui sert le fichier lui pose déjà
-         `Content-Security-Policy: sandbox`, donc l'origine est opaque même sans
-         l'attribut ; on le met quand même, parce qu'une protection qui dépend
-         d'un en-tête distant est une protection qu'on peut perdre en
-         déplaçant un fichier. */
+      /* Du texte, et rien d'autre : le bac à sable vide suffit, et il n'y a
+         pas de lecteur à faire démarrer. */
       <iframe
         title={attachment.name}
         src={attachment.url}
         sandbox=""
-        className="min-h-0 w-full flex-1 border-0 bg-black/[0.03] dark:bg-white/[0.04]"
+        className="min-h-0 w-full flex-1 border-0 bg-white"
       />
     );
   }

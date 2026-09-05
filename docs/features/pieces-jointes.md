@@ -83,5 +83,23 @@ message : on lit la pièce *à côté* de ce qu'on lit. Au-delà de 1400 px les 
 dessous c'est la liste qui s'efface, parce qu'un message serré à 300 px ne se lit plus et que la
 liste est à une touche de retour.
 
-Un PDF s'ouvre dans le lecteur du navigateur (`iframe`) : plusieurs pages se feuillettent, se
-cherchent, s'impriment — rien de tout cela ne vaut la peine d'être réécrit.
+### Un PDF se dessine, il ne se délègue pas
+
+Une `<iframe src="….pdf">` semble suffire. Elle ne suffit pas :
+
+- **sur iOS** — donc dans l'app installée — elle ne montre que la *première page*, sans défilement ;
+- **le lecteur intégré de Chrome** est un module à part qui refuse de démarrer dans un cadre en bac
+  à sable, or c'est précisément le bac à sable qui rend acceptable d'afficher le fichier d'un
+  inconnu.
+
+pdf.js (`PdfView`) lit le fichier en JavaScript ordinaire et n'en tire que des pixels : aucun script
+du document n'est exécuté, aucun formulaire, aucun lien automatique. Chargé **à la demande** — il
+pèse plus que le reste de l'app et la plupart des messages n'ont pas de PDF.
+
+**Version 4, construction `legacy`.** La 6 s'appuie sur `Map.getOrInsertComputed`, que ni Chromium
+d'aujourd'hui ni Safari iOS ne connaissent : le document s'ouvrait, la première page se dessinait,
+la seconde levait `getOrInsertComputed is not a function`. Trouvé en le mesurant, pas en lisant les
+notes de version — et c'est le genre de panne qu'on ne voit qu'à la deuxième page.
+
+L'échelle vient de la largeur de la colonne, pas de la taille d'impression, plafonnée à deux fois
+la densité de l'écran : au-delà c'est de la mémoire pour rien.

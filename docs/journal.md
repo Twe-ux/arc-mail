@@ -11,7 +11,7 @@ composeur avec les pièces jointes câblées jusqu'à SMTP, et la recherche.
 
 | Commit | Quoi |
 |---|---|
-| _à venir_ | Lot mobile : pill partagée, liste, lecture, feuilles, composeur, recherche |
+| `19f77c7` | Lot mobile : pill partagée, liste, lecture, feuilles, composeur, recherche |
 
 
 ## 3 septembre 2026 — redémarrage et interface

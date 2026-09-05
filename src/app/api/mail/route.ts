@@ -58,9 +58,15 @@ export async function POST(request: NextRequest) {
     const { account, password } = await accountCredentials(body.accountId);
 
     const result = await withImap(account, password, async (client) => {
-      const paths = await folderPaths(client);
+      /* **Paresseux, et pour une raison mesurable** : `folderPaths` est un
+         `LIST` complet, un aller-retour de plus sur une connexion qui n'en
+         fait que quelques-uns. Or la lecture la plus fréquente — la réception
+         d'un espace — n'en a aucun besoin : son chemin est connu d'avance. On
+         ne le demande donc que quand il sert. */
+      let cache: Partial<Record<FolderId, string>> | null = null;
+      const paths = async () => (cache ??= await folderPaths(client));
 
-      if (body.op === "folders") return { paths };
+      if (body.op === "folders") return { paths: await paths() };
 
       if (body.op === "listThreads") {
         /* La « Réception » d'un espace n'est pas forcément `INBOX` : pour un
@@ -83,7 +89,7 @@ export async function POST(request: NextRequest) {
             }),
           };
         }
-        const path = body.folder === "inbox" ? reception : paths[body.folder];
+        const path = body.folder === "inbox" ? reception : (await paths())[body.folder];
         /* Une boîte iCloud n'a pas d'« En pause » : un dossier absent est une
            liste vide, pas une erreur. */
         if (!path) return { threads: [] };
@@ -93,22 +99,24 @@ export async function POST(request: NextRequest) {
       if (body.op === "send") {
         /* Un envoi, c'est SMTP **et** IMAP : remettre le message, puis en
            ranger la copie. La connexion déjà ouverte sert aux deux. */
-        return { thread: await sendMessage(client, account, password, paths.sent, body.message) };
+        const sent = (await paths()).sent;
+        return { thread: await sendMessage(client, account, password, sent, body.message) };
       }
 
       if (body.op === "saveDraft") {
-        return {
-          thread: await saveDraftMessage(client, paths.drafts, paths.trash, body.draft),
-        };
+        const p = await paths();
+        return { thread: await saveDraftMessage(client, p.drafts, p.trash, body.draft) };
       }
 
       if (body.op === "deleteDraft") {
-        await deleteDraftMessage(client, paths.trash, body.id);
+        await deleteDraftMessage(client, (await paths()).trash, body.id);
         return { ok: true };
       }
 
       if (body.op === "modify") {
-        const cible = body.patch.folder ? paths[body.patch.folder] : undefined;
+        /* Un simple « lu » ne déplace rien : inutile d'aller chercher les
+           chemins pour lui, et c'est l'écriture la plus fréquente de toutes. */
+        const cible = body.patch.folder ? (await paths())[body.patch.folder] : undefined;
         if (body.patch.folder && !cible) {
           throw new Error(`Cette boîte n'a pas de dossier « ${body.patch.folder} ».`);
         }
@@ -124,7 +132,8 @@ export async function POST(request: NextRequest) {
          renversant la table, pour que le fil hydraté garde le sien. */
       const path = parseThreadId(body.id)?.path;
       const folder =
-        (Object.entries(paths).find(([, p]) => p === path)?.[0] as FolderId | undefined) ?? "inbox";
+        (Object.entries(await paths()).find(([, p]) => p === path)?.[0] as FolderId | undefined) ??
+        "inbox";
       return { thread: await readThread(client, body.id, folder) };
     });
 

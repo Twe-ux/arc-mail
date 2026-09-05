@@ -152,6 +152,9 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - Les images distantes sont **retenues** (suivi à l'ouverture) et proposées par un bandeau ; les
   images `cid:` deviennent des `data:` et ne comptent pas comme pièces jointes.
 - Un fournisseur ne connaît pas les espaces : il rend `spaceId: ""`, le store tamponne (`stamp`).
+- On compte les allers-retours : `folderPaths` est paresseux, ouvrir un message tient en un `FETCH`.
+- Les **enveloppes** des 150 derniers fils sont persistées (`enMemoire`) pour que la boîte s'ouvre
+  sans attendre ; corps et pièces jointes non, et la déconnexion efface le tout.
 
 **Espaces** → [docs/features/espaces.md](docs/features/espaces.md)
 - Les espaces viennent des comptes branchés (`spacesFromAccounts`) ; sans compte, la maquette reste.

@@ -144,10 +144,13 @@ export function ThreadList({ className }: { className?: string }) {
         >
         <ScrollArea className="h-full">
           {threads.length === 0 ? (
-            /* Nothing at all while the space is still being read: "Rien ici"
-               would be a lie for the length of the read, and a flash of it
-               with the mock (one tick) reads as a glitch. */
-            loading ? null : (
+            /* Une carte vide pendant une à deux secondes ne dit pas qu'on
+               travaille : elle dit qu'il n'y a rien. « Rien ici » serait un
+               mensonge pour la durée de la lecture, d'où ces rangées grises,
+               qui ont la forme de ce qui arrive. */
+            loading ? (
+              <Attente />
+            ) : (
               <div className="flex flex-col items-center gap-2 px-6 py-16 text-center text-muted-foreground">
                 <Inbox className="size-8 opacity-40" />
                 <p className="text-sm">{unreadOnly ? "Tout est lu." : "Rien ici pour l'instant."}</p>
@@ -323,5 +326,29 @@ function ThreadRow({
         <Star className={cn("size-4", thread.starred && "fill-current")} />
       </button>
     </li>
+  );
+}
+
+/**
+ * La forme de la liste, en attendant la liste.
+ *
+ * Huit rangées grises aux mesures des vraies (pastille de 40, deux lignes) :
+ * l'œil sait déjà où regarder quand elles se remplissent, et rien ne saute.
+ * Sans animation — un scintillement pendant deux secondes fatigue plus qu'il
+ * ne rassure, et `prefers-reduced-motion` n'aurait rien à en faire.
+ */
+function Attente() {
+  return (
+    <ul aria-hidden className="flex flex-col gap-px pt-2 md:gap-0.5 md:p-2">
+      {Array.from({ length: 8 }).map((_, i) => (
+        <li key={i} className="flex items-center gap-3 px-4 py-3 md:rounded-xl">
+          <span className="size-10 shrink-0 rounded-full bg-foreground/[0.07]" />
+          <span className="flex min-w-0 flex-1 flex-col gap-2">
+            <span className="h-3 w-2/5 rounded-full bg-foreground/[0.07]" />
+            <span className="h-3 rounded-full bg-foreground/[0.05]" style={{ width: `${88 - i * 6}%` }} />
+          </span>
+        </li>
+      ))}
+    </ul>
   );
 }

@@ -7,6 +7,7 @@ import { useState } from "react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { useMail } from "@/lib/store";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import { useSession } from "./session";
@@ -42,6 +43,11 @@ export function SignOut({ className, tone = "sombre" }: { className?: string; to
 
   const go = async () => {
     setPending(true);
+    /* La liste est gardée d'une session à l'autre pour que la boîte s'ouvre
+       tout de suite ; ce sont des objets et des expéditeurs en clair sur
+       l'appareil. Partir doit les emporter — le store enregistre à chaque
+       écriture, donc les vider ici suffit à les retirer du stockage. */
+    useMail.setState({ threads: [], recent: {}, selectedThreadId: null });
     await supabaseBrowser().auth.signOut();
     router.push("/connexion");
     router.refresh();

@@ -54,6 +54,7 @@ Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérificatio
 | — | `MailProvider` : le mock derrière l'interface, store asynchrone à écritures optimistes |
 | `04273d0` | Tri des skills : 13 gardés sur 33, `/ecran` porté de Kairos, `npm run capture` |
 | `6e896f6` | État des lieux : quatre audits en parallèle (code, UX, mouvement, DESIGN.md) |
+| — | La boîte s'ouvre sans attendre : enveloppes gardées d'une session à l'autre, squelette pendant la première lecture, `folderPaths` paresseux et un seul `FETCH` pour ouvrir un message |
 | — | Les messages s'affichent en HTML : lavage serveur (`sanitize-html`), `iframe` d'origine opaque, images distantes retenues avec un bandeau, images jointes en `data:` |
 | — | Entrer par un lien envoyé à son adresse plutôt que par Apple (qui demande le programme payant sans rien ouvrir de plus) ; le retour accepte `token_hash`, et `?erreur=` s'affiche enfin |
 | — | Gmail branché comme iCloud (IMAP + mot de passe d'application), entrée par Apple, première boîte proposée depuis l'adresse de connexion ; pastilles d'espace sans nom écrit, ligne du compte connecté refaite |

@@ -208,6 +208,41 @@ function contactBook(threads: Thread[]): Map<string, Contact> {
   return book;
 }
 
+/**
+ * Combien de fils survivent à un rechargement. De quoi remplir une liste et
+ * son défilement, pas de quoi remplir le stockage du navigateur.
+ */
+const MEMOIRE = 150;
+
+/**
+ * Ce qu'on garde d'un fil entre deux sessions : **de quoi dessiner la liste**,
+ * et rien de plus.
+ *
+ * Une lecture IMAP coûte une connexion, une session et quelques allers-retours
+ * — une à deux secondes, et c'est le prix du serverless. La première ouverture
+ * les passait devant une carte vide. En gardant les enveloppes, elle montre la
+ * boîte telle qu'on l'a laissée, puis la remplace quand la lecture arrive.
+ *
+ * Les corps, le HTML et les pièces jointes sont **retirés** : c'est ce qui pèse,
+ * ça se relit à l'ouverture d'un message (`selectThread` redemande dès qu'un
+ * corps manque), et ça n'apparaît pas dans la liste. L'aperçu, lui, est déjà
+ * sur le fil.
+ *
+ * Ce sont des objets et des expéditeurs rangés en clair sur l'appareil : la
+ * déconnexion les efface (`SignOut`), comme la session.
+ */
+const enMemoire = (threads: Thread[]): Thread[] =>
+  threads.slice(0, MEMOIRE).map((t) => ({
+    ...t,
+    messages: t.messages.map((m) => ({
+      ...m,
+      body: "",
+      html: undefined,
+      blockedImages: undefined,
+      attachments: undefined,
+    })),
+  }));
+
 /** Une table indexée par espace, dont une clé change de nom. */
 function renomme<T>(table: Partial<Record<SpaceId, T>>, de: SpaceId, vers: SpaceId) {
   if (!(de in table)) return table;
@@ -423,7 +458,13 @@ export const useMail = create<MailState>()(
          de la maquette n'est pas l'identifiant d'un compte. On retombe alors
          sur le premier, sinon toute lecture lèverait « espace inconnu ». */
       const spaceId = spaces.some((sp) => sp.id === s.spaceId) ? s.spaceId : spaces[0].id;
-      return { spaces, spaceId, threads: [], selectedThreadId: null };
+      /* On garde ce qui appartient encore à un espace connu : c'est la liste
+         de la dernière session, et la jeter rendrait la mémoire inutile — elle
+         est relue juste après, à l'effet suivant. Ce qui pend à un espace
+         disparu, en revanche, ne s'afficherait jamais. */
+      const connus = new Set(spaces.map((sp) => sp.id));
+      const threads = s.threads.filter((t) => connus.has(t.spaceId));
+      return { spaces, spaceId, threads, selectedThreadId: null };
     }),
   toggleSidebarCollapsed: () => set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
   setPreview: (previewId) => set({ previewId }),
@@ -659,17 +700,22 @@ export const useMail = create<MailState>()(
          migrated rather than read as is. Version 1 changed nothing in the
          shape: the migration only keeps what an earlier install saved, which
          zustand would otherwise drop with a console error. */
-      version: 1,
+      /* 2 : les enveloppes des fils y sont entrées. */
+      version: 2,
       migrate: (persisted) =>
-        persisted as Pick<MailState, "themes" | "dark" | "splitView" | "sidebarCollapsed" | "recent">,
-      /* Only what should survive a reload: the mail itself is mock and reloads
-         fresh; the composer is transient. */
+        persisted as Pick<
+          MailState,
+          "themes" | "dark" | "splitView" | "sidebarCollapsed" | "recent" | "threads"
+        >,
+      /* Ce qui doit survivre à un rechargement : les préférences, et de quoi
+         montrer une liste tout de suite. Le composeur est passager. */
       partialize: (s) => ({
         themes: s.themes,
         dark: s.dark,
         splitView: s.splitView,
         sidebarCollapsed: s.sidebarCollapsed,
         recent: s.recent,
+        threads: enMemoire(s.threads),
       }),
       /* Rehydrated from `AppShell` after mount so the server and first client
          render agree; see `useMail.persist.rehydrate()`. */

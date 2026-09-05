@@ -300,13 +300,17 @@ export async function readThread(
   if (!parsed) return null;
   const lock = await client.getMailboxLock(parsed.path);
   try {
-    const envelope = await client.fetchOne(String(parsed.uid), ENVELOPE_QUERY, { uid: true });
-    if (!envelope) return null;
-
-    const { content } = await client.download(String(parsed.uid), undefined, { uid: true });
-    const chunks: Buffer[] = [];
-    for await (const chunk of content) chunks.push(chunk as Buffer);
-    const mime = await simpleParser(Buffer.concat(chunks));
+    /* **Un seul aller-retour** : l'enveloppe et la source dans le même `FETCH`.
+       C'était `fetchOne` puis `download`, deux commandes là où le serveur sait
+       tout donner d'un coup — et sur une connexion qui vit le temps d'une
+       requête, chaque aller-retour se voit. */
+    const envelope = await client.fetchOne(
+      String(parsed.uid),
+      { ...ENVELOPE_QUERY, source: true },
+      { uid: true },
+    );
+    if (!envelope || !envelope.source) return null;
+    const mime = await simpleParser(envelope.source);
 
     /* On hydrate le message ouvert, pas tout le fil : c'est celui qu'on
        regarde, et chaque corps de plus est un aller-retour de plus. */

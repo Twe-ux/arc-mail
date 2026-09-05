@@ -26,6 +26,16 @@ Sur Vercel il n'y a pas de processus qui vive entre deux requêtes : chaque lect
 connexion, lit, et se déconnecte. C'est **1 à 2 s** par lecture, et c'est le prix du serverless.
 Le tirage pour rafraîchir existe déjà ; le push (IMAP `IDLE`) demandera un vrai serveur.
 
+Ce prix ne se négocie pas, alors on compte les allers-retours :
+
+- **`folderPaths` est paresseux.** C'est un `LIST` complet, et la lecture la plus fréquente — la
+  réception d'un espace — n'en a aucun besoin : son chemin est connu d'avance. Idem pour un simple
+  « marquer comme lu », l'écriture la plus fréquente de toutes.
+- **Ouvrir un message tient en un `FETCH`** : l'enveloppe et la source ensemble. C'était `fetchOne`
+  puis `download`, deux commandes là où le serveur sait tout donner d'un coup.
+
+Et surtout, on cesse d'attendre pour rien : voir [la liste gardée](#la-liste-est-gardée).
+
 `disableAutoIdle` : sans lui, imapflow ouvre un `IDLE` après chaque commande, qu'il faut rompre à
 la suivante — deux allers-retours de plus pour rien quand la connexion ne vit qu'un instant.
 
@@ -185,3 +195,21 @@ retirer l'ancien — **dans cet ordre**, pour qu'un rangement raté laisse l'anc
 Retirer un brouillon l'envoie à la **corbeille**, pas au néant : un brouillon abandonné par erreur
 se récupère, un `\Deleted` + `EXPUNGE` ne se récupère pas. On ne supprime vraiment que si la boîte
 n'a pas de corbeille.
+
+## La liste est gardée
+
+Les **enveloppes** des 150 derniers fils survivent au rechargement (`enMemoire`, dans le
+`partialize` du store). À la deuxième ouverture, la boîte s'affiche telle qu'on l'a laissée et la
+lecture la remplace quand elle arrive — au lieu d'une carte vide pendant une à deux secondes.
+
+Corps, HTML et pièces jointes en sont **retirés** : c'est ce qui pèse, ça n'apparaît pas dans la
+liste, et `selectThread` les redemande dès qu'un corps manque. Mesuré sur la maquette : 18 fils,
+9 Ko. Avec un fournisseur à 2,5 s, la seconde ouverture montre ses 18 rangées à 700 ms — donc
+avant la lecture, pas grâce à elle.
+
+Ce sont des objets et des expéditeurs en clair sur l'appareil : **la déconnexion les efface**
+(`SignOut` vide `threads` et `recent`, et le store enregistre à chaque écriture).
+
+Et quand il n'y a vraiment rien à montrer — la toute première fois —, la liste affiche huit rangées
+grises à la forme des vraies plutôt qu'une carte vide, qui dirait « il n'y a rien » au lieu de « je
+travaille ». Sans animation : un scintillement de deux secondes fatigue plus qu'il ne rassure.

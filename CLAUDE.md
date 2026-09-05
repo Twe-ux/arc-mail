@@ -111,8 +111,9 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - Le voile `space-wash` ne se peint qu'une fois, sur `--wash-base`.
 - **Deux fonds de bureau au choix** (`fondBureau`, panneau d'apparence) : le dégradé sous un aplat
   sombre (défaut) ou le voile du téléphone. L'encre de la barre **suit le fond** et ne se règle pas
-  à part — un jeu de variables `--side-*` commuté par `[data-fond]`, jamais un blanc en dur. En
-  sombre le voile prend une base **teintée** (`--wash-base` est à chroma zéro). Ce qui est une
+  à part — un jeu de variables `--side-*` commuté par `[data-fond]`, jamais un blanc en dur. Le
+  voile teinte **sa base** dans les deux thèmes, pas seulement son halo : sur 800 px de barre, un
+  halo seul ne colore que le premier tiers. Ce qui est une
   action garde `--space-gradient` vif.
 - La fenêtre du bureau et le troisième volet portent `.fenetre-carte`, le filet de `.list-card`.
 - La sidebar bureau n'a pas de fond : une seule encre secondaire (85 %), mesurée à l'endroit où

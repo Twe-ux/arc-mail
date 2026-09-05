@@ -45,11 +45,18 @@ change rien à l'écran qu'on regarde serait un bouton mort).
 
 ```
 degrade (defaut) : le dégradé sous l'aplat sombre — la section ci-dessous
-voile            : clair  base --wash-base, halo 26 %  (le réglage du téléphone)
-                   sombre base = accent 14 % sur oklch(0.25), halo 40 %
+voile            : clair  base = accent 16 % sur --wash-base, halo 70 %
+                   sombre base = accent 14 % sur oklch(0.25),  halo 40 %
 ```
 
-**En sombre, le voile ne peut pas prendre `--wash-base` tel quel.** Le token vaut `--card`,
+**Dans les deux thèmes, c'est la base qu'il faut teinter, pas seulement le halo.** Le voile est
+d'abord parti du réglage du téléphone — base neutre nue, 26 % d'accent en haut. Sur 393 px cela
+suffit ; sur 800 px de barre, la couleur choisie n'existait que dans le premier tiers et le reste
+était blanc (ou noir). Mesuré en clair : fond du bas `(255,255,255)` → **`(241,231,255)`**, chroma
+0,037 en oklch. Et la lisibilité ne paie rien : l'encre secondaire y garde **7,65:1**.
+
+En sombre le problème est le même en pire, parce que le token n'a pas de teinte du tout.
+**Le voile ne peut pas y prendre `--wash-base` tel quel** : il vaut `--card`,
 `oklch(0.205 0 0)` — **chroma zéro** : mesuré, la barre latérale devenait une colonne noire et la
 couleur de l'espace disparaissait. Éclaircir sans teinter ne règle rien (`(23,23,23)` → `(35,35,35)`,
 toujours neutre) ; c'est la **base** qu'il faut teinter → `(58,39,47)`, et le halo passe de 26 à

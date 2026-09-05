@@ -263,8 +263,14 @@
  * 6,7:1 sur ce fond, largement au-dessus d'AA.
  */
 :root {
-  --desk-base: var(--wash-base);
-  --desk-halo: 26%;
+  /* **La base est teintée en clair aussi.** Elle était le fond neutre nu, et
+     seuls les 26 % du haut recevaient de l'accent : sur 800 px de barre, la
+     couleur choisie n'existait que dans le premier tiers et le reste était
+     blanc. La teinter fait exister la teinte sur toute la colonne. Mesuré :
+     fond du bas (255,255,255) → (241,231,255), et l'encre secondaire y garde
+     7,65:1 — la lisibilité ne paie rien. */
+  --desk-base: color-mix(in oklch, var(--space-accent) 16%, var(--wash-base));
+  --desk-halo: 70%;
   --side-ink: var(--foreground);
   --side-ink-soft: color-mix(in oklch, var(--foreground) 72%, transparent);
   --side-fill: color-mix(in oklch, var(--foreground) 6%, transparent);

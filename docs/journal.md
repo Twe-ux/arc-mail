@@ -11,7 +11,8 @@ de conversation avec son menu et ses détails, les blocs de message cliquables, 
 volet détaché (message ou fichier) avec sa gouttière et sa poignée.
 
 Puis le bureau a gagné un **second fond** : le voile du téléphone à côté du dégradé, au choix dans
-le panneau d'apparence, avec l'encre de la barre qui suit. Le balayage d'archivage et de suppression est arrivé sur bureau, au pavé tactile — en reprenant
+le panneau d'apparence, avec l'encre de la barre qui suit — puis sa base a été teintée dans les deux
+thèmes, un halo seul ne colorant que le premier tiers de la colonne. Le balayage d'archivage et de suppression est arrivé sur bureau, au pavé tactile — en reprenant
 au navigateur l'horizontale dont il faisait « page précédente » —, et les puces de destinataires se
 sont mises à se retirer une à une. La liste du bureau a pris toute la fenêtre tant qu'aucun message n'est ouvert, en rangées d'une
 ligne, et la lecture a gagné sa croix pour lui rendre la place. Une réponse a cessé de partir à tout

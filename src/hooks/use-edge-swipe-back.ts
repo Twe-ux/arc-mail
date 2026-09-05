@@ -40,6 +40,21 @@ const RATIO_INSIDE = 2.5;
 const clamp = (p: number) => Math.min(1, Math.max(0, p));
 
 /**
+ * Un toucher rapporté par un `iframe`, en coordonnées de la page.
+ *
+ * Un cadre garde pour lui tous les touchers qui naissent sur lui : le geste de
+ * retour n'existait donc pas sur un message HTML, c'est-à-dire sur la moitié du
+ * courrier réel. Le cadre les **relaie** (voir `message-body.tsx`), et le geste
+ * ne fait pas la différence — ce sont les mêmes trois moments.
+ */
+export type TouchRelaye = {
+  phase: "start" | "move" | "end" | "cancel";
+  x: number;
+  y: number;
+  time: number;
+};
+
+/**
  * Drag rightwards to go back — the gesture iOS gives every app and an installed
  * PWA gets from nobody. Generous from the left edge, still available from
  * anywhere else if the drag is plainly horizontal. Touch only. Progress is 0..1.
@@ -63,6 +78,11 @@ export function useEdgeSwipeBack({
     node.current = next;
     setAttached((n) => n + 1);
   }, []);
+
+  /* Le geste vit dans la fermeture de l'effet ; le relais y entre par ce
+     renvoi, qui, lui, ne change jamais d'identité. */
+  const relais = useRef<((p: TouchRelaye) => void) | null>(null);
+  const feed = useCallback((p: TouchRelaye) => relais.current?.(p), []);
 
   const latest = useRef({ enabled, onClaim, onProgress, onCommit, onCancel });
   useEffect(() => {
@@ -125,26 +145,25 @@ export function useEdgeSwipeBack({
       });
     };
 
-    const onStart = (event: TouchEvent) => {
-      if (!latest.current.enabled || event.touches.length !== 1) return;
-      const touch = event.touches[0];
-      if (startsOnControl(event.target)) return;
-      fromEdge =
-        touch.clientX - element.getBoundingClientRect().left <= EDGE_ZONE;
+    const debut = (x: number, y: number, time: number) => {
+      if (!latest.current.enabled) return;
+      fromEdge = x - element.getBoundingClientRect().left <= EDGE_ZONE;
       const caught = settling?.stop().value ?? 0;
       settling = null;
       committed = false;
-      origin = { x: touch.clientX - caught, y: touch.clientY };
+      origin = { x: x - caught, y };
       claimed = false;
       travelled = caught;
-      samples = [{ value: travelled, time: event.timeStamp }];
+      samples = [{ value: travelled, time }];
     };
 
-    const onMove = (event: TouchEvent) => {
-      if (!origin || event.touches.length !== 1) return;
-      const touch = event.touches[0];
-      const dx = touch.clientX - origin.x;
-      const dy = touch.clientY - origin.y;
+    /* `empeche` n'existe que pour un vrai `TouchEvent` : un toucher relayé par
+       un cadre a déjà été traité chez lui (le cadre pose `touch-action: pan-y`,
+       ce qui lui retire l'horizontale). */
+    const bouge = (x: number, y: number, time: number, empeche?: () => void) => {
+      if (!origin) return;
+      const dx = x - origin.x;
+      const dy = y - origin.y;
       if (!claimed) {
         if (Math.abs(dx) < INTENT_DISTANCE && Math.abs(dy) < INTENT_DISTANCE)
           return;
@@ -160,20 +179,20 @@ export function useEdgeSwipeBack({
         if (document.activeElement instanceof HTMLElement)
           document.activeElement.blur();
       }
-      if (event.cancelable) event.preventDefault();
+      empeche?.();
       travelled = dx;
-      samples.push({ value: travelled, time: event.timeStamp });
+      samples.push({ value: travelled, time });
       if (samples.length > 12) samples.shift();
       draw(offsetFor(travelled));
     };
 
-    const finish = (event: TouchEvent, cancelled: boolean) => {
+    const fin = (time: number, cancelled: boolean) => {
       if (!origin) return;
       if (!claimed) {
         origin = null;
         return;
       }
-      samples.push({ value: travelled, time: event.timeStamp });
+      samples.push({ value: travelled, time });
       const velocity = cancelled ? 0 : velocityFrom(samples);
       const projected = travelled + projectMomentum(velocity);
       const from = { value: offsetFor(travelled), velocity };
@@ -194,14 +213,32 @@ export function useEdgeSwipeBack({
       }
     };
 
-    const onEnd = (e: TouchEvent) => finish(e, false);
-    const onCancelTouch = (e: TouchEvent) => finish(e, true);
+    const onStart = (e: TouchEvent) => {
+      if (e.touches.length !== 1 || startsOnControl(e.target)) return;
+      debut(e.touches[0].clientX, e.touches[0].clientY, e.timeStamp);
+    };
+    const onMove = (e: TouchEvent) => {
+      if (e.touches.length !== 1) return;
+      bouge(e.touches[0].clientX, e.touches[0].clientY, e.timeStamp, () => {
+        if (e.cancelable) e.preventDefault();
+      });
+    };
+    const onEnd = (e: TouchEvent) => fin(e.timeStamp, false);
+    const onCancelTouch = (e: TouchEvent) => fin(e.timeStamp, true);
+
+    /* Ce que le cadre nous envoie entre par ici, et par nulle part ailleurs. */
+    relais.current = (p) => {
+      if (p.phase === "start") debut(p.x, p.y, p.time);
+      else if (p.phase === "move") bouge(p.x, p.y, p.time);
+      else fin(p.time, p.phase === "cancel");
+    };
 
     element.addEventListener("touchstart", onStart, { passive: true });
     element.addEventListener("touchmove", onMove, { passive: false });
     element.addEventListener("touchend", onEnd);
     element.addEventListener("touchcancel", onCancelTouch);
     return () => {
+      relais.current = null;
       settling?.stop();
       element.removeEventListener("touchstart", onStart);
       element.removeEventListener("touchmove", onMove);
@@ -210,5 +247,5 @@ export function useEdgeSwipeBack({
     };
   }, [attached]);
 
-  return ref;
+  return { ref, feed };
 }

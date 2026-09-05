@@ -223,20 +223,10 @@ export function ThreadView({ className }: { className?: string }) {
                  comme un texte qu'on perd. La réserve suit `--nav-height`, et
                  disparaît quand la barre de réponse prend la place de la pill
                  (elle, elle est dans le flux). */
-              "relative mx-auto flex w-full max-w-3xl flex-col md:gap-4 md:p-6 md:pb-6",
+              "mx-auto flex w-full max-w-3xl flex-col md:gap-4 md:p-6 md:pb-6",
               replyOpen ? "max-md:pb-4" : "max-md:pb-[calc(var(--nav-height)+0.5rem)]",
             )}
           >
-            {/* **Le bord gauche, rendu au geste de retour.** Un message HTML est
-                une `iframe` : elle avale tous les touchers qui naissent sur elle,
-                et le balayage de retour n'avait plus où commencer — sur une
-                infolettre, c'est-à-dire la moitié du courrier, l'app n'avait plus
-                de retour au doigt. Cette bande de 20 px (l'encart que le système
-                se réserve lui-même) se pose au-dessus du cadre et laisse le
-                toucher remonter jusqu'à `BackSwipe`. Elle vit **dans le
-                défilant**, pas par-dessus : un glissement vertical qui y naît
-                fait donc défiler le message, comme partout ailleurs. */}
-            <span aria-hidden className="absolute inset-y-0 left-0 z-10 w-5 md:hidden" />
             {/* L'objet, à bord perdu comme le reste : sur téléphone il est le
                 titre de la carte, pas celui d'une sous-carte. */}
             <h1 className="px-5 pt-[22px] text-[22px] leading-[1.25] font-bold tracking-[-0.015em] text-pretty md:px-0 md:pt-0 md:text-xl md:font-semibold md:tracking-tight">

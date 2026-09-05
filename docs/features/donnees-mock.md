@@ -29,3 +29,14 @@ Les autres dossiers ont chacun un ou deux fils pour ne pas être vides.
 Le mock devient la première implémentation de `MailProvider` (voir
 [Fournisseurs de mail](../roadmap/fournisseurs-mail.md)) et reste utile : démo, tests
 d'interface, mode hors-ligne.
+
+---
+
+## Une infolettre HTML (5 sept. 2026)
+
+« Les bons plans du mois », dans Perso. C'est le **seul message HTML du jeu**, et il est là pour ça :
+sans lui, tout un chemin restait invérifiable — le bac à sable, la hauteur que le cadre rapporte, le
+bandeau des images retenues, et le relais des touchers qui rend son geste de retour au mail ouvert.
+
+Le HTML est écrit comme `html.ts` le rend : pas de script, images distantes en `data-src`, et
+`blockedImages: 2` pour que le bandeau ait quelque chose à annoncer.

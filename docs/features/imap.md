@@ -331,3 +331,16 @@ Ce sont des objets et des expéditeurs en clair sur l'appareil : **la déconnexi
 Et quand il n'y a vraiment rien à montrer — la toute première fois —, la liste affiche huit rangées
 grises à la forme des vraies plutôt qu'une carte vide, qui dirait « il n'y a rien » au lieu de « je
 travaille ». Sans animation : un scintillement de deux secondes fatigue plus qu'il ne rassure.
+
+---
+
+## Le cadre relaie ses touchers (5 sept. 2026)
+
+Le bac à sable coûte une chose qu'on n'avait pas vue : un `iframe` garde pour lui tous les touchers
+qui naissent sur lui, et le geste de retour n'existait donc pas sur un message HTML. Le script du
+cadre — celui qui rapporte déjà sa hauteur — poste maintenant `arc-mail-touch` avec les coordonnées,
+et `useEdgeSwipeBack` les reçoit comme les siennes. Détail et mesures dans
+[Le mail ouvert](mail-ouvert.md).
+
+Le cadre **observe**, il n'empêche rien : c'est `touch-action: pan-y` sur son `body` qui lui retire
+l'horizontale, et un appui sur un lien reste un appui.

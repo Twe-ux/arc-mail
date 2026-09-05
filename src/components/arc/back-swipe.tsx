@@ -1,10 +1,20 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { createContext, useCallback, useContext, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 
-import { useEdgeSwipeBack } from "@/hooks/use-edge-swipe-back";
+import { useEdgeSwipeBack, type TouchRelaye } from "@/hooks/use-edge-swipe-back";
 import { cn } from "@/lib/utils";
+
+/**
+ * Par où un `iframe` rend ses touchers au geste de retour.
+ *
+ * `null` partout ailleurs — sur bureau, hors d'une pile navigable — et le
+ * consommateur (`MessageBody`) n'a alors rien à faire.
+ */
+const RelaisRetour = createContext<((p: TouchRelaye) => void) | null>(null);
+
+export const useRelaisRetour = () => useContext(RelaisRetour);
 
 const PARALLAX = 0.25;
 const SCRIM = 0.22;
@@ -58,7 +68,7 @@ export function BackSwipe({
     if (top.current) top.current.style.transform = "";
   }, [onBack]);
 
-  const ref = useEdgeSwipeBack({
+  const { ref, feed } = useEdgeSwipeBack({
     enabled,
     onClaim: useCallback(() => setRevealing(true), []),
     onProgress,
@@ -102,7 +112,7 @@ export function BackSwipe({
           className="space-wash pointer-events-none absolute inset-x-0 -z-10 h-dvh md:hidden"
           style={{ top: "calc(-1 * var(--safe-top))" }}
         />
-        {children}
+        <RelaisRetour.Provider value={feed}>{children}</RelaisRetour.Provider>
       </div>
     </div>
   );

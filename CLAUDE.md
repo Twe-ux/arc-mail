@@ -148,8 +148,9 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   par-dessus — et il prend ses marges (14 / 16), pas la variante `inset` : le mail ouvert n'est pas
   une carte qui flotte. L'en-tête est en `px-5`, boutons débordant de 10 px pour aligner le glyphe.
 - Le message **passe sous la pill** (réserve `--nav-height`), il ne se dissout pas.
-- Une bande de **20 px** au bord gauche, **dans le défilant**, rend son départ au geste de retour :
-  une `iframe` de message HTML avale tous les touchers qui naissent sur elle.
+- Une `iframe` de message HTML avale tous les touchers : le cadre les **relaie**
+  (`arc-mail-touch` → `feed` de `useEdgeSwipeBack`, par le contexte de `BackSwipe`) pour que le
+  geste de retour se fasse du milieu, et il pose `touch-action: pan-y` sans rien empêcher.
 
 **Composeur** → [docs/features/composeur-panneaux.md](docs/features/composeur-panneaux.md)
 - « De » est une pastille en haut sur téléphone ; l'envoi est le bouton rond de la barre.

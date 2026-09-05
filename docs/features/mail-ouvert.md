@@ -1,3 +1,29 @@
+## Le geste de retour, rendu au message HTML
+
+**Un `iframe` garde pour lui tous les touchers qui naissent sur lui.** Le balayage de retour
+n'existait donc pas sur une infolettre — c'est-à-dire sur la moitié du courrier réel : l'app n'avait
+plus de retour au doigt. Mesuré sur une page nue, hors React : un toucher au milieu d'un `iframe`
+n'est **jamais** vu par le conteneur.
+
+Une bande de 20 px au bord gauche avait d'abord servi de porte. Elle marchait, mais elle ne rendait
+que le bord, et le geste se fait du milieu. Le cadre **relaie** donc ses touchers : son script (celui
+qui rapporte déjà sa hauteur) poste `arc-mail-touch` avec les coordonnées, `MessageBody` y ajoute la
+position du cadre à l'écran, et `useEdgeSwipeBack` les reçoit par un `feed` — les mêmes trois
+moments, il ne fait pas la différence. Le relais voyage par un contexte que `BackSwipe` fournit ;
+ailleurs il vaut `null` et personne n'a rien à faire.
+
+Le cadre pose `touch-action: pan-y` : l'horizontale appartient au geste, le panorama vertical
+continue de remonter au défilant de la page. **Ce qu'on y perd** : tirer latéralement un courrier
+plus large que l'écran. C'est rare — `overflow-wrap`, `img` et `table` sont déjà bornés — et le
+geste de retour vaut plus.
+
+Le cadre **observe seulement**, sans `preventDefault` : un simple appui sur un lien du message reste
+un appui (vérifié), et le geste ne se réclame qu'après 8 px franchement horizontaux.
+
+Vérifié sur la vraie infolettre du jeu de données, aux quatre cas : HTML depuis le milieu et depuis
+le bord, texte depuis le milieu et depuis le bord — les quatre reviennent à la liste, et un appui
+laisse le mail ouvert.
+
 # Le mail ouvert
 
 Refonte du 5 septembre 2026, d'après le handoff mobile.

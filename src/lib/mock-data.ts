@@ -159,6 +159,10 @@ function thread(
     to: Contact[];
     hoursAgo: number;
     body: string;
+    /** Le corps HTML, comme un vrai fournisseur le rend : déjà lavé. */
+    html?: string;
+    /** Combien d'images distantes ont été retenues au lavage. */
+    blockedImages?: number;
     attachments?: Attachment[];
   }>,
   opts: Partial<Pick<Thread, "labels" | "unread" | "starred">> = {},
@@ -169,6 +173,8 @@ function thread(
     to: m.to,
     date: ago(m.hoursAgo),
     body: m.body.trim(),
+    html: m.html,
+    blockedImages: m.blockedImages,
     attachments: m.attachments,
   }));
   const last = msgs[msgs.length - 1];
@@ -221,6 +227,39 @@ Claire`,
 Votre colis n° 6A12345678901 est pris en charge et sera livré demain entre 9h et 13h.
 
 Suivez votre envoi depuis votre espace client.`,
+      },
+    ],
+    { unread: true, labels: ["Achats"] },
+  ),
+  /* **La seule infolettre du jeu**, et elle est là pour ça : sans un message
+     HTML, tout un chemin restait invérifiable — le bac à sable, la hauteur que
+     le cadre rapporte, le bandeau des images retenues, et le relais des
+     touchers qui rend son geste de retour au mail ouvert. Le HTML est écrit
+     comme `html.ts` le rend : pas de script, images distantes en `data-src`. */
+  thread(
+    "perso",
+    "inbox",
+    "Les bons plans du mois",
+    [
+      {
+        from: laposte,
+        to: [ME.perso],
+        hoursAgo: 5,
+        body: "Voir la version en ligne — Les bons plans du mois",
+        blockedImages: 2,
+        html: `<div style="max-width:600px;margin:0 auto;font-family:Helvetica,Arial,sans-serif">
+  <p style="color:#888;font-size:12px">Voir la version en ligne</p>
+  <img data-src="https://exemple.invalid/banniere.png" alt="Bannière" width="600" height="180">
+  <h1 style="font-size:26px;color:#c0392b">Les bons plans du mois</h1>
+  <p>Bonjour, voici notre sélection. Les prix s'entendent hors éco-participation.</p>
+  <table role="presentation" width="100%"><tr>
+    <td style="padding:8px"><b>Séchoir tour 3 étages</b><br><span style="color:#c0392b;font-size:22px">15,90 €</span></td>
+    <td style="padding:8px"><b>Perceuse 20V</b><br><span style="color:#c0392b;font-size:22px">49,90 €</span></td>
+  </tr></table>
+  <img data-src="https://exemple.invalid/produit.png" alt="Produit" width="280" height="180">
+  <p style="text-align:center"><a href="https://exemple.invalid/offres" style="display:inline-block;padding:12px 24px;border:2px solid #2c2c6c;border-radius:24px;color:#2c2c6c;text-decoration:none">Découvrez nos offres</a></p>
+  <p style="color:#888;font-size:12px">Vous recevez ce message car vous êtes client. Se désabonner.</p>
+</div>`,
       },
     ],
     { unread: true, labels: ["Achats"] },

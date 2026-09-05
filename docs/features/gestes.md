@@ -114,3 +114,7 @@ dans [La liste sur téléphone](liste-telephone.md) ; les invariants ici :
 - L'état d'un geste se publie en **variables CSS et `data-*` sur le nœud** (`--swipe-progress`,
   `data-side`, `data-armed`), jamais en état React : c'est ce qui permet à la couleur, à l'échelle
   et au libellé de suivre le doigt au pixel.
+
+- **Un `iframe` garde ses touchers** : le geste de retour n'existait pas sur un message HTML. Le
+  cadre les relaie (`arc-mail-touch` → `feed`), il n'empêche rien, et c'est `touch-action: pan-y`
+  chez lui qui lui retire l'horizontale → [Le mail ouvert](mail-ouvert.md).

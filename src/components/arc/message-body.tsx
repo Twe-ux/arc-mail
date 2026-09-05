@@ -3,7 +3,9 @@
 import { ImageOff } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
+import type { TouchRelaye } from "@/hooks/use-edge-swipe-back";
 import type { Message } from "@/lib/types";
+import { useRelaisRetour } from "./back-swipe";
 
 /**
  * Le corps d'un message : son HTML quand il en a un, son texte sinon.
@@ -60,6 +62,13 @@ const STYLE = `
     font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     overflow-x: auto;
     overflow-wrap: anywhere;
+    /* L'horizontale appartient au geste de retour, pas au cadre. Le panorama
+       vertical continue de remonter au défilant de la page ; ce qu'on perd est
+       de pouvoir tirer latéralement un courrier plus large que l'écran, et
+       c'est rare — overflow-wrap, img et table sont déjà bornés.
+       (Pas d'accent grave dans ce commentaire : il vit dans un littéral
+       gabarit, et le premier le terminerait.) */
+    touch-action: pan-y;
   }
   img { max-width: 100%; height: auto; }
   img[data-src] { display: none; }
@@ -67,8 +76,10 @@ const STYLE = `
   a { color: #0b57d0; }
 `;
 
-/* Deux tâches, et rien d'autre : rapporter la hauteur (le cadre ne sait pas se
-   dimensionner) et rendre les images quand on les demande. */
+/* Trois tâches, et rien d'autre : rapporter la hauteur (le cadre ne sait pas se
+   dimensionner), rendre les images quand on les demande, et **relayer les
+   touchers** — un cadre les garde pour lui, et le geste de retour n'existait
+   donc pas sur un message HTML. */
 const SCRIPT = `
   (function () {
     var dire = function () {
@@ -89,6 +100,23 @@ const SCRIPT = `
       }
       dire();
     });
+    /* Les coordonnées sont celles du cadre ; la page y ajoute sa position.
+       On observe seulement : pas de preventDefault ici, touch-action a déjà
+       retiré l'horizontale au cadre. */
+    var relais = function (phase) {
+      return function (e) {
+        var t = e.changedTouches[0];
+        if (!t || e.touches.length > 1) return;
+        parent.postMessage(
+          { type: "arc-mail-touch", phase: phase, x: t.clientX, y: t.clientY },
+          "*"
+        );
+      };
+    };
+    addEventListener("touchstart", relais("start"), { passive: true });
+    addEventListener("touchmove", relais("move"), { passive: true });
+    addEventListener("touchend", relais("end"), { passive: true });
+    addEventListener("touchcancel", relais("cancel"), { passive: true });
     if (window.ResizeObserver) new ResizeObserver(dire).observe(document.documentElement);
     /* Le cadre est prêt avant que la page ne l'écoute : un effet React
        n'attache son écouteur qu'après la peinture, et le premier envoi tombait
@@ -105,6 +133,12 @@ function CorpsHtml({ html, bloquees }: { html: string; bloquees: number }) {
   const cadre = useRef<HTMLIFrameElement>(null);
   const [hauteur, setHauteur] = useState(220);
   const [montrees, setMontrees] = useState(false);
+  const relais = useRelaisRetour();
+  /* L'écouteur est posé une fois ; il lit le relais courant sans se refaire. */
+  const versLeRetour = useRef(relais);
+  useEffect(() => {
+    versLeRetour.current = relais;
+  });
 
   const srcDoc = useMemo(
     () =>
@@ -119,9 +153,27 @@ function CorpsHtml({ html, bloquees }: { html: string; bloquees: number }) {
       /* Le cadre est d'origine opaque : `origin` vaut « null » et ne prouve
          rien. C'est la fenêtre qui identifie l'émetteur. */
       if (e.source !== cadre.current?.contentWindow) return;
-      const data = e.data as { type?: string; height?: number };
+      const data = e.data as {
+        type?: string;
+        height?: number;
+        phase?: TouchRelaye["phase"];
+        x?: number;
+        y?: number;
+      };
       if (data?.type === "arc-mail-height" && typeof data.height === "number") {
         setHauteur(Math.min(Math.max(Math.ceil(data.height), 80), 20000));
+        return;
+      }
+      /* Le cadre fait toute la hauteur de son contenu : il ne défile jamais
+         chez lui, et sa position à l'écran suffit à replacer le toucher. */
+      if (data?.type === "arc-mail-touch" && data.phase && cadre.current) {
+        const boite = cadre.current.getBoundingClientRect();
+        versLeRetour.current?.({
+          phase: data.phase,
+          x: boite.left + (data.x ?? 0),
+          y: boite.top + (data.y ?? 0),
+          time: performance.now(),
+        });
       }
     };
     window.addEventListener("message", ecoute);

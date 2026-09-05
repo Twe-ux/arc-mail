@@ -87,8 +87,24 @@ export function ThreadRow({
          aucun ne tombait sur la pastille de couleur. Posé ici en `::after` au
          même `inset-x-2` que la pastille et le surlignage d'appui, il ne bouge
          plus et tout s'aligne sur un seul bord. Pas de filet sous la dernière
-         rangée, ni sur bureau où les rangées sont des cartes espacées. */
-      className="group/swipe group relative overflow-hidden after:pointer-events-none after:absolute after:inset-x-2 after:bottom-0 after:h-px after:bg-black/[0.07] last:after:hidden md:overflow-visible md:border-0 md:after:hidden dark:after:bg-white/[0.10]"
+         rangée, ni sur bureau **en colonne étroite**, où les rangées sont des
+         cartes espacées et n'ont rien à séparer.
+
+         Il se cache par la variante inverse (`data-large=false`) et non par un
+         `md:after:hidden` : à variantes concurrentes sur la même propriété,
+         c'est l'ordre de la feuille qui tranche, et le `md:` nu gagnait — le
+         filet restait éteint en pleine largeur (mesuré : `display: none`). */
+      className={cn(
+        "group/swipe group relative overflow-hidden after:pointer-events-none after:absolute after:inset-x-2 after:bottom-0 after:h-px after:bg-black/[0.07] last:after:hidden md:border-0 dark:after:bg-white/[0.10]",
+        "md:group-data-[large=false]/liste:after:hidden md:group-data-[large=true]/liste:after:inset-x-0",
+        /* **Lu / non lu se lit d'abord au fond.** Ce sont les rangées **lues**
+           qui se teintent, et les non lues qui restent sur le fond plein :
+           surligner le neuf allume vingt rangées sur une boîte en retard, alors
+           que là, ce qui ressort est ce qui reste à faire. La teinte va sur la
+           piste et non sur la rangée — le survol et l'état actif écrivent déjà
+           ce fond-là, et deux règles sur une même propriété se disputent. */
+        !thread.unread && "md:group-data-[large=true]/liste:bg-foreground/[0.028]",
+      )}
     >
       {/* Ce qui se découvre sous la rangée. Encarté et arrondi comme le
           surlignage d'appui : la rangée glisse au-dessus d'une pastille de
@@ -172,13 +188,20 @@ export function ThreadRow({
             {/* L'expéditeur prend une colonne fixe en pleine largeur : c'est ce
                 qui aligne les objets les uns sous les autres, et sans cet
                 alignement la liste ne se balaie plus. */}
-            <span className="flex items-center gap-2 md:group-data-[large=true]/liste:w-44 md:group-data-[large=true]/liste:shrink-0">
+            <span className="flex items-center gap-2 md:group-data-[large=true]/liste:w-56 md:group-data-[large=true]/liste:shrink-0">
               {thread.unread && (
                 <span className="size-2 shrink-0 rounded-full" style={{ backgroundColor: accent }}>
                   <span className="sr-only">Non lu</span>
                 </span>
               )}
-              <span className={cn("truncate text-[15px] md:text-sm", thread.unread ? "font-semibold" : "font-medium")}>
+              <span
+                className={cn(
+                  "truncate text-[15px] md:text-sm",
+                  thread.unread
+                    ? "font-semibold"
+                    : "font-medium md:group-data-[large=true]/liste:font-normal md:group-data-[large=true]/liste:text-foreground/70",
+                )}
+              >
                 {who}
               </span>
               {isDraft && <span className="shrink-0 text-xs font-medium text-destructive">Brouillon</span>}

@@ -108,7 +108,9 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 **Thème et couleurs** → [docs/features/theme.md](docs/features/theme.md)
 - Espaces lus via `useSpace()` / `useSpaces()`, jamais `SPACES` en direct ; icône Lucide sur tuile
   (`SpaceIcon`), sauf la barre du bas en trait nu.
-- Le voile `space-wash` ne se peint qu'une fois, sur `--wash-base`.
+- Le voile `space-wash` ne se peint qu'une fois ; sa **base est teintée** en clair (10 %) et son halo
+  monte à 55 % — un halo seul ne colore que le haut de l'écran. Dose plus faible que sur bureau : la
+  profondeur du téléphone vient du contraste voile / carte blanche.
 - **Deux fonds de bureau au choix** (`fondBureau`, panneau d'apparence) : le dégradé sous un aplat
   sombre (défaut) ou le voile du téléphone. L'encre de la barre **suit le fond** et ne se règle pas
   à part — un jeu de variables `--side-*` commuté par `[data-fond]`, jamais un blanc en dur. Le
@@ -149,6 +151,9 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   survol ; densité et pleine largeur se publient en `data-densite` / `data-large` sur la colonne.
 - **Rien d'ouvert : la liste prend toute la fenêtre**, en rangées d'une ligne ; un message ouvert la
   ramène à 360 px à côté de la lecture, et la croix de la lecture (ou `Échap`) lui rend la place.
+- En pleine largeur : filet entre les rangées, expéditeur sur **224 px**, et ce sont les rangées
+  **lues** qui se teintent — pas les non lues. Le filet se cache par `data-large=false`, jamais par
+  un `md:` nu qui gagnerait la cascade.
 - En-tête de conversation : Archiver et Supprimer **dehors**, pas de « Répondre » (le champ est en
   bas, hors du défilant) ; un bloc de message se clique pour le détacher, et c'est le bouton du
   survol qui vise la réponse.

@@ -49,6 +49,11 @@ voile            : clair  base = accent 16 % sur --wash-base, halo 70 %
                    sombre base = accent 14 % sur oklch(0.25),  halo 40 %
 ```
 
+**Le téléphone a suivi**, à dose plus faible : base **10 %**, halo **55 %** en clair (le sombre ne
+bouge pas, sa base reste `--card`). Plus faible parce que c'est le contraste entre ce voile et la
+**carte blanche** de la liste qui donne sa profondeur à cet écran-là — trop teinter le voile
+l'efface. Quatre doses rendues avant de trancher, comme sur le bureau.
+
 **Dans les deux thèmes, c'est la base qu'il faut teinter, pas seulement le halo.** Le voile est
 d'abord parti du réglage du téléphone — base neutre nue, 26 % d'accent en haut. Sur 393 px cela
 suffit ; sur 800 px de barre, la couleur choisie n'existait que dans le premier tiers et le reste

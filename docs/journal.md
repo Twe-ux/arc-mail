@@ -10,7 +10,9 @@ verre, la tête de liste sur deux rangées, les rangées au gabarit bureau et le
 de conversation avec son menu et ses détails, les blocs de message cliquables, et le troisième
 volet détaché (message ou fichier) avec sa gouttière et sa poignée.
 
-Puis le bureau a gagné un **second fond** : le voile du téléphone à côté du dégradé, au choix dans
+Puis la liste large a pris son relief — filet entre les rangées, expéditeur sur 224 px, et les
+rangées lues teintées plutôt que les non lues —, et le voile du téléphone a teinté sa base en clair.
+Le bureau a gagné un **second fond** : le voile du téléphone à côté du dégradé, au choix dans
 le panneau d'apparence, avec l'encre de la barre qui suit — puis sa base a été teintée dans les deux
 thèmes, un halo seul ne colorant que le premier tiers de la colonne. Le balayage d'archivage et de suppression est arrivé sur bureau, au pavé tactile — en reprenant
 au navigateur l'horizontale dont il faisait « page précédente » —, et les puces de destinataires se

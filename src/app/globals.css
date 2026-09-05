@@ -349,13 +349,33 @@
   }
 }
 
-/* Mobile backdrop: the space colour as a soft wash at the top, not a full gradient. */
+/*
+ * Le voile du téléphone : la couleur de l'espace en halo doux, pas en dégradé.
+ *
+ * **La base est teintée, pas seulement le halo** (5 sept. 2026). Elle était le
+ * fond neutre nu et seuls les 26 % du haut recevaient de l'accent : la couleur
+ * choisie n'existait qu'au-dessus du grand titre, et tout le bas de l'écran
+ * était blanc. La dose y est **plus faible que sur le bureau** (10/55 contre
+ * 16/70) : c'est le contraste entre ce voile et la carte blanche de la liste
+ * qui donne sa profondeur à cet écran-là, et trop teinter le voile l'efface.
+ *
+ * Le sombre ne bouge pas — sa base reste `--card`.
+ */
+:root {
+  --wash-mix: 10%;
+  --wash-halo: 55%;
+}
+.dark {
+  --wash-mix: 0%;
+  --wash-halo: 26%;
+}
 @utility space-wash {
+  --wash-teinte: color-mix(in oklch, var(--space-accent) var(--wash-mix), var(--wash-base));
   background:
     radial-gradient(
       140% 55% at 50% -15%,
-      color-mix(in oklch, var(--space-accent) 26%, var(--wash-base)),
+      color-mix(in oklch, var(--space-accent) var(--wash-halo), var(--wash-teinte)),
       transparent 75%
     ),
-    var(--wash-base);
+    var(--wash-teinte);
 }

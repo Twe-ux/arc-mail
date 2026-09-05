@@ -171,7 +171,7 @@ export function ThreadList({ className, large }: { className?: string; large?: b
                   <Vide unreadOnly={unreadOnly} />
                 )
               ) : (
-                <ul className="flex flex-col pt-2 max-md:pb-[calc(var(--nav-height)+0.5rem)] md:gap-1 md:p-2">
+                <ul className="flex flex-col pt-2 max-md:pb-[calc(var(--nav-height)+0.5rem)] md:gap-1 md:p-2 md:group-data-[large=true]/liste:gap-0">
                   {correspondants.map((c) => (
                     <RangeeCorrespondant
                       key={c.email}
@@ -195,7 +195,7 @@ export function ThreadList({ className, large }: { className?: string; large?: b
             ) : (
               /* The bar floats over the list rather than beside it, so the last
                  rows need room to pass under it — see `--nav-height`. */
-              <ul className="flex flex-col pt-2 max-md:pb-[calc(var(--nav-height)+0.5rem)] md:gap-1 md:p-2">
+              <ul className="flex flex-col pt-2 max-md:pb-[calc(var(--nav-height)+0.5rem)] md:gap-1 md:p-2 md:group-data-[large=true]/liste:gap-0">
                 {visibles.map((t, i) => (
                   <Fragment key={t.id}>
                     <ThreadRow

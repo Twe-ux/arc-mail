@@ -99,6 +99,20 @@ ouvert, et c'est elle qui doit prendre la place.
 largeur. La croix n'était là qu'en vue pleine, où elle ramenait à la liste ; en vue partagée elle
 n'avait rien à ramener — maintenant si.
 
+**Un filet entre les rangées, et lu/non lu au fond.** Vingt rangées d'une ligne sans séparation
+forment un mur de texte : le filet leur donne du relief, et la liste large est justement celle qu'on
+balaie. Ce sont les rangées **lues** qui se teintent (2,8 % d'encre) et les non lues qui restent sur
+le fond plein — surligner le neuf allume vingt rangées sur une boîte en retard, alors que là ce qui
+ressort est ce qui reste à faire. La teinte va sur la **piste**, pas sur la rangée : le survol et
+l'état actif écrivent déjà ce fond-là.
+
+L'expéditeur prend **224 px** (et non 176) : `support@services.ovhcloud.com` y était coupé, et
+c'est la colonne qui aligne les objets les uns sous les autres.
+
+Le filet se cache par la variante **inverse** (`data-large=false`), jamais par un `md:after:hidden` :
+à variantes concurrentes sur la même propriété, c'est l'ordre de la feuille qui tranche, et le `md:`
+nu gagnait — mesuré, le filet restait à `display: none`.
+
 La bascule se lit sur la colonne (`data-large`), comme la densité : un attribut, pas un prop passé
 à chacune des cinquante rangées. En pleine largeur la densité n'a plus d'objet — la rangée tient
 déjà sur une ligne — et la laisser passer y aurait supprimé l'extrait, qui est justement ce que

@@ -248,27 +248,27 @@ export function ThreadView({ className }: { className?: string }) {
           <ActionBar inset className="md:hidden">
             <Pill className="w-full justify-between">
               <PillPrimary label="Répondre" onClick={() => aimReply(canReplyAll ? null : [sender])}>
-                <Reply strokeWidth={2} />
+                <Reply strokeWidth={2.25} />
                 Répondre
               </PillPrimary>
               <PillCase
                 label="Archiver"
                 onClick={() => ranger("archive", "Archive")}
               >
-                <Archive className="size-6" strokeWidth={1.75} />
+                <Archive strokeWidth={1.75} />
               </PillCase>
               <PillCase
                 label={inTrash ? "Restaurer" : "Supprimer"}
                 danger={!inTrash}
                 onClick={() => (inTrash ? ranger("inbox", "Réception") : ranger("trash", "Corbeille"))}
               >
-                <Trash2 className="size-6" strokeWidth={1.75} />
+                <Trash2 strokeWidth={1.75} />
               </PillCase>
               <PillCase label="Déplacer vers" active={sheet === "move"} onClick={() => setSheet("move")}>
-                <Folder className="size-6" strokeWidth={1.75} />
+                <Folder strokeWidth={1.75} />
               </PillCase>
               <PillCase label="Plus" active={sheet === "more"} onClick={() => setSheet("more")}>
-                <MoreHorizontal className="size-6" strokeWidth={1.75} />
+                <MoreHorizontal strokeWidth={1.75} />
               </PillCase>
             </Pill>
           </ActionBar>

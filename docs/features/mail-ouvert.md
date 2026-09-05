@@ -25,6 +25,15 @@ retrait, puis le corps **pleine largeur** (`px-5 py-[18px]`, 15/1.6). Les messag
 séparent par un filet, pas par des cartes. Sur bureau la carte grise reste : la colonne y est large,
 et c'est elle qui distingue cinq messages les uns des autres.
 
+**Ouvrir un mail ne lève pas le clavier.** Sur téléphone, l'en-tête d'un message **déplie les
+destinataires** — ce que son chevron annonce — au lieu de viser la réponse. Viser d'ici l'ouvrait :
+le clic fantôme qu'iOS synthétise après un toucher retombait sur la vue qui venait de s'ouvrir, au
+même endroit, et on arrivait sur un message déjà à moitié caché par les touches. Sur bureau
+l'en-tête vise toujours (fiche [Répondre](reponse.md)), où il n'y a ni chevron ni clavier.
+
+La rangée de la liste avale aussi ce clic fantôme (`swallowNextClick`) : au même endroit, en bas de
+l'écran, il tombait sur « Répondre ».
+
 **« à moi », pas « à Thierry Milone ».** La ligne d'en-tête doit faire tenir un nom, des
 destinataires et une date longue sur 390 px : nommer le lecteur au milieu mangeait la date, qui est
 la seule chose qu'on vienne y chercher. Notre adresse devient « moi », les autres se comptent

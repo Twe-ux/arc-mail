@@ -227,10 +227,10 @@ function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
         <ActionBar inset>
           <Pill>
             <PillCase label="Pièce jointe" active={panneau === "pieces"} onClick={() => basculer("pieces")}>
-              <Paperclip className="size-6" strokeWidth={1.75} />
+              <Paperclip strokeWidth={1.75} />
             </PillCase>
             <PillCase label="Mise en forme" active={panneau === "forme"} onClick={() => basculer("forme")}>
-              <Type className="size-6" strokeWidth={1.75} />
+              <Type strokeWidth={1.75} />
             </PillCase>
             <PillCase
               label="Options du brouillon"
@@ -241,7 +241,7 @@ function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
                 setMenu((m) => !m);
               }}
             >
-              <MoreHorizontal className="size-6" strokeWidth={1.75} />
+              <MoreHorizontal strokeWidth={1.75} />
             </PillCase>
           </Pill>
           <RoundButton
@@ -249,7 +249,7 @@ function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
             disabled={!canSend}
             onClick={sendMail}
           >
-            <ArrowUp className="size-7" strokeWidth={2.5} />
+            <ArrowUp strokeWidth={2.5} />
           </RoundButton>
         </ActionBar>
 

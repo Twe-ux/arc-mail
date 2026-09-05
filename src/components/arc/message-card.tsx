@@ -3,6 +3,7 @@
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 
+import { useMediaQuery } from "@/hooks/use-media-query";
 import { formatFullDate } from "@/lib/format";
 import { useSpace } from "@/lib/store";
 import type { Contact, Message } from "@/lib/types";
@@ -35,18 +36,33 @@ export function MessageCard({
      une fois sur vingt. */
   const [deplie, setDeplie] = useState(false);
   const space = useSpace();
+  const bureau = useMediaQuery("(min-width: 768px)");
   const aQui = destinataires(message.to, space.identity.email);
 
   return (
     <div className="border-t border-black/[0.06] first-of-type:border-0 md:rounded-2xl md:border-0 md:bg-muted/50 md:p-4 dark:border-white/[0.08] md:dark:bg-white/[0.07]">
       <div className="flex items-center gap-3 px-5 pt-3.5 md:px-0 md:pt-0">
-        {/* L'en-tête est aussi la façon de répondre à cette personne seule :
-            viser le champ sur l'expéditeur est le geste qu'on attend d'un
-            message dans un fil de cinq. */}
+        {/* **Sur bureau** l'en-tête vise la réponse sur cette personne seule,
+            le geste qu'on attend d'un message dans un fil de cinq (fiche
+            « Répondre »).
+
+            **Sur téléphone il déplie les destinataires**, comme le chevron qui
+            le termine. Viser la réponse d'ici y ouvrait le clavier : le clic
+            fantôme d'iOS retombait sur cette rangée juste après l'ouverture du
+            fil, et on arrivait sur un message déjà à moitié caché par les
+            touches. Lire d'abord ; « Répondre » est en bas, et c'est lui qui
+            lève le clavier. */}
         <button
           type="button"
-          onClick={() => onReplyTo([message.from])}
-          aria-label={`Répondre à ${message.from.name} seulement`}
+          onClick={() => (bureau ? onReplyTo([message.from]) : setDeplie((v) => !v))}
+          aria-expanded={bureau ? undefined : deplie}
+          aria-label={
+            bureau
+              ? `Répondre à ${message.from.name} seulement`
+              : deplie
+                ? "Masquer les destinataires"
+                : "Voir les destinataires"
+          }
           className="flex min-w-0 flex-1 items-center gap-3 rounded-xl text-left outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
         >
           <ContactAvatar contact={message.from} className="size-10 md:size-9" />

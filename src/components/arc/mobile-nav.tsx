@@ -44,21 +44,21 @@ export function MobileNav({ className }: { className?: string }) {
             label={seul ? `Espace ${space.name}` : `Espace suivant · ${space.name}`}
             onClick={() => (seul ? setSidebarOpen(true) : cycleSpace(1))}
           >
-            <Glyphe className="size-6" strokeWidth={1.75} />
+            <Glyphe strokeWidth={1.75} />
           </PillCase>
           <PillCase label="Dossiers" active={sidebarOpen} onClick={() => setSidebarOpen(true)}>
-            <Folder className="size-6" strokeWidth={sidebarOpen ? 2.25 : 1.75} />
+            <Folder strokeWidth={sidebarOpen ? 2.25 : 1.75} />
           </PillCase>
           <PillCase label="Rechercher" active={commandOpen} onClick={() => setCommandOpen(true)}>
-            <Search className="size-6" strokeWidth={commandOpen ? 2.25 : 1.75} />
+            <Search strokeWidth={commandOpen ? 2.25 : 1.75} />
           </PillCase>
           <PillCase label="Personnaliser" active={settingsOpen} onClick={() => setSettingsOpen(true)}>
-            <MoreHorizontal className="size-6" strokeWidth={settingsOpen ? 2.25 : 1.75} />
+            <MoreHorizontal strokeWidth={settingsOpen ? 2.25 : 1.75} />
           </PillCase>
         </Pill>
 
         <RoundButton label="Écrire" onClick={() => openCompose()}>
-          <SquarePen className="size-6" strokeWidth={2} />
+          <SquarePen strokeWidth={2} />
         </RoundButton>
       </ActionBar>
     </nav>

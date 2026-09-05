@@ -33,9 +33,30 @@ ouvert, et **valable en dessous de `md` seulement** : sur bureau il n'y a pas de
 
 C'est le point qu'il a fallu mesurer.
 
+**L'appui.** Un rectangle **arrondi et en retrait** (`inset-x-2 inset-y-1`, rayon 16), pas un aplat
+d'un bord à l'autre, et le contenu recule de 1,5 % sous le doigt. Instantané à la descente
+(`duration-0`), fondu au relâchement : la réponse doit précéder le geste, sa disparition peut
+prendre son temps.
+
+**Il ne passe pas par `:active`.** Le pseudo-classe arrive en retard sous le doigt — le navigateur
+attend de savoir si c'est un défilement —, ne se déclenche pas du tout sous un toucher synthétique,
+donc invérifiable ici, et surtout elle reste allumée pendant un balayage, alors qu'un geste qui part
+n'est plus un appui. C'est `pointerdown` qui l'allume, et le premier vrai déplacement qui l'éteint.
+
 **Balayage d'une rangée** ([`use-swipe-row.ts`](../../src/hooks/use-swipe-row.ts)) — à droite
 archiver (`#14b8a6`), à gauche supprimer (`#dc2626`). Les deux calques sont **sous** la rangée, pas
-révélés par un masque : c'est elle qui se déplace, et ce qu'elle laisse voir était déjà là.
+révélés par un masque : c'est elle qui se déplace, et ce qu'elle laisse voir était déjà là. Ils sont
+encartés et arrondis comme le surlignage d'appui — la rangée glisse au-dessus d'une pastille de
+couleur, pas d'un bandeau qui va d'un bord à l'autre.
+
+**Rien n'y bascule d'un coup.** Le hook publie sur la rangée `--swipe-progress` (0 → 1 vers le
+seuil), `data-side`, `data-armed` et `data-press` ; tout le calque se dessine à partir de là, sans
+un seul rendu React par frame. La couleur se sature (`color-mix`, 35 % → 100 %), l'icône grandit
+(0,8 → 1,05), et **au seuil** elle reçoit sa pastille claire pendant que le libellé apparaît. C'est
+le seul changement d'état, et il dit ce qu'il faut : à ce point, relâcher valide. Le libellé
+n'apparaît pas plus tôt — à mi-course la rangée le coupait, et un « …er » qui flotte se lit comme un
+défaut.
+
 Seuil **150 px de voyage ou 900 px/s** ; un balayage vif et court est la même intention qu'un
 balayage lent et long. Validation optimiste, comme `moveThread`.
 
@@ -60,6 +81,9 @@ jamais un état React.
 `touchEnd`), 393 × 852 avec insets 59/34 :
 
 - rangée : `translate3d(-270px, 0, 0)` en cours de geste, 18 rangées → 17 au relâchement ;
+- calque : à mi-course `data-side="left"`, `data-armed="false"`, `--swipe-progress: 0.587` ; passé le
+  seuil `data-armed="true"`, `--swipe-progress: 1` — mesuré, puis lu sur les captures rognées ;
+- appui : `data-press="true"` sous le doigt, `false` dès le premier déplacement ;
 - espace : depuis le titre, `thierry@icloud.com` → `thierry@coworkingcafe.fr`, l'indicateur de pages
   passant de `18px 6px 6px` à `6px 18px 6px` ;
 - zéro erreur de console sur les deux.

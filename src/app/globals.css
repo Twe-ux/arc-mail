@@ -15,7 +15,7 @@
      padded by exactly this so its content passes *under* the frosted pill
      instead of stopping above it — without something moving behind it, the
      blur had nothing to blur and the material was decoration. */
-  --nav-height: calc(68px + 0.625rem + max(18px, env(safe-area-inset-bottom) - 16px));
+  --nav-height: calc(56px + 0.5rem + max(16px, env(safe-area-inset-bottom) - 18px));
   /* L'espace courant repose ces deux-là depuis `AppShell`. Un défaut ici pour
      tout ce qui vit hors de la boîte — connexion, comptes — où aucun espace
      n'est choisi : sans lui, `color-mix` sur une variable absente rend une

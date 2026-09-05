@@ -107,3 +107,10 @@ dans [La liste sur téléphone](liste-telephone.md) ; les invariants ici :
   rattrape en vol, et il respecte déjà « Réduire les animations ».
 - Distance **ou** élan pour valider : un balayage vif et court est la même intention qu'un balayage
   lent et long.
+- **L'appui d'une rangée ne passe pas par `:active`** mais par `pointerdown` (`data-press`), et il
+  s'éteint au premier déplacement : `:active` arrive en retard, ne se déclenche pas sous un toucher
+  synthétique — donc invérifiable — et reste allumée pendant un balayage. Ailleurs (boutons,
+  pastilles), `active:` reste la règle : il n'y a pas de geste à distinguer d'un appui.
+- L'état d'un geste se publie en **variables CSS et `data-*` sur le nœud** (`--swipe-progress`,
+  `data-side`, `data-armed`), jamais en état React : c'est ce qui permet à la couleur, à l'échelle
+  et au libellé de suivre le doigt au pixel.

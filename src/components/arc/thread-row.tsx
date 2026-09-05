@@ -1,9 +1,10 @@
 "use client";
 
-import { Archive, Inbox, Star, Trash2 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { Archive, Inbox, Star, Trash2, type LucideIcon } from "lucide-react";
+import { useEffect, useRef } from "react";
 
 import { useSwipeRow } from "@/hooks/use-swipe-row";
+import { swallowNextClick } from "@/lib/gesture";
 import { formatShortDate } from "@/lib/format";
 import type { Correspondant } from "@/lib/store";
 import type { Thread } from "@/lib/types";
@@ -53,15 +54,13 @@ export function ThreadRow({
      minuteur derrière elle. */
   useEffect(() => quitte, []);
 
-  /* De quel côté on tire : le seul état React du geste, et il ne change qu'aux
-     passages de zéro — la translation, elle, s'écrit sur le nœud. */
-  const [cote, setCote] = useState<"left" | "right" | null>(null);
   const enArchive = thread.folder === "archive";
   const inTrash = thread.folder === "trash";
-  const glisse = useSwipeRow({
+  /* Aucun état React dans ce geste : la rangée porte la translation, la piste
+     porte les variables, et le calque se dessine à partir d'elles. */
+  const { noeud, piste } = useSwipeRow({
     right: { enabled: !enArchive, run: onArchive },
     left: { enabled: true, run: onDelete },
-    onOpenChange: setCote,
   });
 
   const last = thread.messages[thread.messages.length - 1];
@@ -76,38 +75,40 @@ export function ThreadRow({
   return (
     /* Un vrai bouton pour la rangée et l'étoile en *voisine* : un contrôle dans
        un contrôle est ce sur quoi tout lecteur d'écran trébuche. */
-    <li className="group relative overflow-hidden md:overflow-visible md:border-0">
-      {/* Les deux calques, sous la rangée. Seul celui qu'on découvre se peint :
-          les laisser tous les deux visibles ferait deux couleurs sous une
-          rangée opaque, et la moindre translucidité les montrerait ensemble. */}
-      <div aria-hidden className="absolute inset-0 flex items-center md:hidden">
-        <span
-          className={cn(
-            "flex h-full flex-1 items-center gap-2 px-5 text-[14px] font-semibold text-white transition-opacity duration-150",
-            cote === "right" ? "opacity-100" : "opacity-0",
-          )}
-          style={{ backgroundColor: "#14b8a6" }}
-        >
-          <Archive className="size-5" strokeWidth={2} />
-          Archiver
-        </span>
-        <span
-          className={cn(
-            "flex h-full flex-1 items-center justify-end gap-2 px-5 text-[14px] font-semibold text-white transition-opacity duration-150",
-            cote === "left" ? "opacity-100" : "opacity-0",
-          )}
-          style={{ backgroundColor: "#dc2626" }}
-        >
-          {inTrash ? "Supprimer définitivement" : "Supprimer"}
-          <Trash2 className="size-5" strokeWidth={2} />
-        </span>
+    <li
+      ref={piste as React.RefObject<HTMLLIElement>}
+      data-side="none"
+      data-armed="false"
+      data-press="false"
+      className="group/swipe group relative overflow-hidden md:overflow-visible md:border-0"
+    >
+      {/* Ce qui se découvre sous la rangée. Encarté et arrondi comme le
+          surlignage d'appui : la rangée glisse au-dessus d'une pastille de
+          couleur, pas d'un bandeau qui va d'un bord à l'autre. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-2 inset-y-1 overflow-hidden rounded-2xl md:hidden"
+      >
+        <Calque side="right" tint="#14b8a6" label="Archiver" icon={Archive} />
+        <Calque
+          side="left"
+          tint="#dc2626"
+          label={inTrash ? "Supprimer définitivement" : "Supprimer"}
+          icon={Trash2}
+        />
       </div>
 
       <button
-        ref={glisse as React.RefObject<HTMLButtonElement>}
+        ref={noeud as React.RefObject<HTMLButtonElement>}
         type="button"
         aria-current={active ? "true" : undefined}
-        onClick={onSelect}
+        onClick={() => {
+          /* Le clic fantôme qu'iOS synthétise après un toucher retombe sur la
+             vue qui vient de s'ouvrir, au même endroit — c'est-à-dire souvent
+             sur « Répondre », et le clavier montait tout seul. */
+          swallowNextClick();
+          onSelect();
+        }}
         /* Avant le clic, et avant l'ouverture de la vue : les millisecondes du
            geste, prises sur l'attente. */
         onPointerDown={onIntent}
@@ -117,49 +118,61 @@ export function ThreadRow({
         onPointerEnter={survole}
         onPointerLeave={quitte}
         className={cn(
-          "relative flex w-full cursor-pointer touch-pan-y items-start gap-3 bg-card px-4 py-3 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring/50 md:rounded-lg md:bg-transparent md:px-3 md:py-2.5 md:pr-10",
-          active ? "md:bg-accent" : "active:bg-accent/60 md:hover:bg-accent/60",
+          "relative flex w-full cursor-pointer touch-pan-y items-start gap-3 bg-card px-4 py-3 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring/50 md:rounded-lg md:bg-transparent md:px-3 md:py-2.5 md:pr-10 md:transition-colors",
+          active ? "md:bg-accent" : "md:hover:bg-accent/60",
         )}
       >
-        <ContactAvatar contact={last.from} className="mt-0.5 size-10 md:size-9" />
-        <div className="min-w-0 flex-1 border-b border-black/[0.06] pb-3 md:border-0 md:pb-0 dark:border-white/[0.10]">
-          <div className="flex items-center gap-2">
-            {thread.unread && (
-              <span className="size-2 shrink-0 rounded-full" style={{ backgroundColor: accent }}>
-                <span className="sr-only">Non lu</span>
+        {/* L'appui : un rectangle arrondi **en retrait**, pas un aplat d'un
+            bord à l'autre. Instantané à la descente du doigt (`duration-0`) et
+            fondu au relâchement — la réponse doit précéder le geste, sa
+            disparition peut prendre son temps. */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-x-2 inset-y-1 rounded-2xl bg-foreground/[0.07] opacity-0 transition-opacity duration-200 ease-out group-data-[press=true]/swipe:opacity-100 group-data-[press=true]/swipe:duration-0 md:hidden"
+        />
+        <span className="relative flex w-full items-start gap-3 transition-transform duration-200 ease-out group-data-[press=true]/swipe:scale-[0.985] group-data-[press=true]/swipe:duration-100 md:transition-none">
+          <ContactAvatar contact={last.from} className="mt-0.5 size-10 md:size-9" />
+          <span className="min-w-0 flex-1 border-b border-black/[0.06] pb-3 md:border-0 md:pb-0 dark:border-white/[0.10]">
+            <span className="flex items-center gap-2">
+              {thread.unread && (
+                <span className="size-2 shrink-0 rounded-full" style={{ backgroundColor: accent }}>
+                  <span className="sr-only">Non lu</span>
+                </span>
+              )}
+              <span className={cn("truncate text-[15px] md:text-sm", thread.unread ? "font-semibold" : "font-medium")}>
+                {who}
               </span>
-            )}
-            <span className={cn("truncate text-[15px] md:text-sm", thread.unread ? "font-semibold" : "font-medium")}>
-              {who}
+              {isDraft && <span className="shrink-0 text-xs font-medium text-destructive">Brouillon</span>}
+              {thread.messages.length > 1 && (
+                <span className="shrink-0 text-xs text-muted-foreground tabular-nums">{thread.messages.length}</span>
+              )}
+              <time
+                dateTime={last.date}
+                suppressHydrationWarning
+                className="ml-auto shrink-0 text-xs text-muted-foreground tabular-nums"
+              >
+                {formatShortDate(last.date)}
+              </time>
+              {thread.starred && <Star className="size-3.5 shrink-0 fill-amber-400 text-amber-400 md:hidden" />}
             </span>
-            {isDraft && <span className="shrink-0 text-xs font-medium text-destructive">Brouillon</span>}
-            {thread.messages.length > 1 && (
-              <span className="shrink-0 text-xs text-muted-foreground tabular-nums">{thread.messages.length}</span>
-            )}
-            <time
-              dateTime={last.date}
-              suppressHydrationWarning
-              className="ml-auto shrink-0 text-xs text-muted-foreground tabular-nums"
+            <span
+              className={cn(
+                "block truncate text-[15px] md:text-sm",
+                thread.unread ? "font-medium text-foreground" : "text-muted-foreground",
+              )}
             >
-              {formatShortDate(last.date)}
-            </time>
-            {thread.starred && <Star className="size-3.5 shrink-0 fill-amber-400 text-amber-400 md:hidden" />}
-          </div>
-          <p
-            className={cn(
-              "truncate text-[15px] md:text-sm",
-              thread.unread ? "font-medium text-foreground" : "text-muted-foreground",
-            )}
-          >
-            {thread.subject}
-          </p>
-          <div className="mt-1 flex items-center gap-2">
-            <p className="min-w-0 flex-1 truncate text-[13px] text-muted-foreground md:text-xs">{thread.snippet}</p>
-            {thread.labels.map((label) => (
-              <LabelChip key={label} label={label} />
-            ))}
-          </div>
-        </div>
+              {thread.subject}
+            </span>
+            <span className="mt-1 flex items-center gap-2">
+              <span className="min-w-0 flex-1 truncate text-[13px] text-muted-foreground md:text-xs">
+                {thread.snippet}
+              </span>
+              {thread.labels.map((label) => (
+                <LabelChip key={label} label={label} />
+              ))}
+            </span>
+          </span>
+        </span>
       </button>
       <button
         type="button"
@@ -176,6 +189,58 @@ export function ThreadRow({
         <Star className={cn("size-4", thread.starred && "fill-current")} />
       </button>
     </li>
+  );
+}
+
+/**
+ * Un des deux calques révélés par le balayage.
+ *
+ * Rien n'y bascule d'un coup : la couleur se sature, l'icône grandit et le
+ * libellé apparaît **au rythme du doigt** (`--swipe-progress`, publié par le
+ * hook). Passé le seuil, l'icône reçoit sa pastille claire — c'est le seul
+ * changement d'état, et il dit « au relâchement, ça part ».
+ */
+function Calque({
+  side,
+  tint,
+  label,
+  icon: Icon,
+}: {
+  side: "left" | "right";
+  tint: string;
+  label: string;
+  icon: LucideIcon;
+}) {
+  return (
+    <span
+      className={cn(
+        "absolute inset-0 flex items-center gap-2.5 px-5 opacity-0 group-data-[side=none]/swipe:opacity-0",
+        side === "right"
+          ? "justify-start group-data-[side=right]/swipe:opacity-100"
+          : "flex-row-reverse justify-start group-data-[side=left]/swipe:opacity-100",
+      )}
+      style={
+        {
+          /* Pâle au départ, pleine au seuil : la couleur elle-même dit où en
+             est le geste, avant même que le libellé soit lisible. */
+          backgroundColor: `color-mix(in oklch, ${tint} calc(35% + var(--swipe-progress, 0) * 65%), transparent)`,
+        } as React.CSSProperties
+      }
+    >
+      <span
+        className="grid size-9 shrink-0 place-items-center rounded-full transition-[background-color] duration-200 group-data-[armed=true]/swipe:bg-white/25"
+        style={{ scale: "calc(0.8 + var(--swipe-progress, 0) * 0.25)" }}
+      >
+        <Icon className="size-5 text-white" strokeWidth={2.25} />
+      </span>
+      {/* Le mot n'apparaît **qu'au seuil**, en même temps que la pastille sous
+          l'icône. À mi-course il était coupé par la rangée — un « …er » qui
+          flotte se lit comme un défaut — et son arrivée dit maintenant quelque
+          chose : à ce point, relâcher valide. */}
+      <span className="truncate text-[14px] font-semibold text-white opacity-0 transition-opacity duration-150 group-data-[armed=true]/swipe:opacity-100">
+        {label}
+      </span>
+    </span>
   );
 }
 

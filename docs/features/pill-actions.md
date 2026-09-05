@@ -9,11 +9,19 @@ n'existe qu'à un endroit : [`src/components/arc/action-pill.tsx`](../../src/com
 
 | Pièce | Mesure |
 |---|---|
-| Barre | `padding: 10px 15px 18px` — 15 px des bords de l'écran, 18 px du bas |
-| Verre | `padding: 8px 10px`, `gap: 0`, rayon 999, `backdrop-blur(28px)` |
-| Case | **52 × 52**, ronde, `shrink-0` |
-| Primaire | 52 de haut, `0 16px 0 14px`, dégradé de l'espace, 15/600 |
-| Bouton rond | **68 × 68**, dégradé, ombre `0 10px 30px` |
+| Barre | `padding: 8px 14px 16px` — 14 px des bords de l'écran, 16 px du bas |
+| Verre | `padding: 6px 8px`, `gap: 0`, rayon 999, `backdrop-blur(28px)` |
+| Case | **44 × 44**, ronde, `shrink-0`, icône 22 |
+| Primaire | 44 de haut, `0 16px 0 14px`, dégradé de l'espace, 15/600 |
+| Bouton rond | **56 × 56**, dégradé, ombre `0 8px 24px` |
+
+**Elles ont maigri le 5 septembre au soir.** Le handoff donnait 52 / 68, et sur une vraie boîte la
+barre pesait plus que ce qu'elle surmontait : 96 px, soit une rangée et demie de liste mangée en
+permanence. 44 est la cible minimale d'Apple — on descend jusqu'à elle, pas en dessous — et la
+barre passe à **80 px**.
+
+**La taille des icônes appartient à la pill**, pas au point d'appel (`[&_svg]:size-[22px]`) : deux
+règles pour la même chose, et c'est la barre qui finit dépareillée.
 
 - **Les cases sont `shrink-0`.** Sans ça elles se compriment sur l'écran qui en porte le plus, et
   la pill de lecture cesse d'être identique aux autres.
@@ -28,23 +36,21 @@ n'existe qu'à un endroit : [`src/components/arc/action-pill.tsx`](../../src/com
 
 ## `--nav-height` suit la barre
 
-`68px + 0.625rem + max(18px, env(safe-area-inset-bottom) - 16px)` : la hauteur du bouton rond, le
-`padding-top`, et un bas qui vaut 18 px aussi bien sur un viewport nu que sur un iPhone à
-indicateur d'accueil (34 − 16 = 18). Le défilant de la liste laisse exactement cette réserve, sinon
+`56px + 0.5rem + max(16px, env(safe-area-inset-bottom) - 18px)` : la hauteur du bouton rond, le
+`padding-top`, et un bas qui vaut 16 px aussi bien sur un viewport nu que sur un iPhone à
+indicateur d'accueil (34 − 18 = 16). Le défilant de la liste laisse exactement cette réserve, sinon
 le verre n'a rien à flouter.
 
 ## Qui porte quoi
 
 | Écran | Groupe | À droite |
 |---|---|---|
-| Liste | espace · Dossiers · Recherche · ⋯ | **Écrire** (68) |
+| Liste | espace · Dossiers · Recherche · ⋯ | **Écrire** (56) |
 | Lecture | **Répondre** (primaire) · Archiver · Supprimer · Déplacer · ⋯ | — (la pill occupe la largeur) |
-| Composeur | trombone · mise en forme · (corbeille) | **Envoyer** (68) |
+| Composeur | trombone · mise en forme · ⋯ | **Envoyer** (56) |
 
 La case d'espace de la liste **agit** au lieu d'ouvrir : un appui passe à l'espace suivant
 (`cycleSpace`). Avec un seul espace elle ouvre la feuille Dossiers, où l'on peut en ajouter un.
 « Réception » n'est plus un onglet : le grand titre la nomme et les tuiles épinglées y ramènent.
 
-Sur le composeur, la troisième case est une **corbeille nommée** et non le `⋯` du handoff : elle
-n'aurait offert qu'une seule entrée, et un `⋯` qui cache une action nommée se lit moins bien que
-l'action elle-même.
+Sur le composeur, le `⋯` ouvre le menu du brouillon → [fiche](composeur-panneaux.md).

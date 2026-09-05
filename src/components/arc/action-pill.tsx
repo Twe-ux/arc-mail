@@ -16,23 +16,27 @@ import { cn } from "@/lib/utils";
  *
  * - **Les cases sont `shrink-0`.** Sinon elles se compriment sur l'écran qui
  *   en porte le plus, et la pill de lecture cesse d'être identique aux autres.
- * - **`p-[8px_10px]`, `gap-0`.** Cinq éléments (un primaire et quatre icônes)
- *   ne tiennent dans 390 px qu'à ce prix ; 14 px de padding latéral faisaient
- *   sortir le `⋯` du conteneur.
- * - **Toutes les barres sont à 15 px des bords et 18 px du bas.** Une carte
+ * - **`p-[6px_8px]`, `gap-0`.** Cinq éléments (un primaire et quatre icônes)
+ *   ne tiennent dans 390 px qu'à ce prix.
+ * - **Toutes les barres sont à 14 px des bords et 16 px du bas.** Une carte
  *   déjà encartée de 8 px compense son propre encart pour retomber dessus.
+ *
+ * **Les mesures ont maigri le 5 septembre au soir** : case 52 → 44, bouton rond
+ * 68 → 56, barre 96 px → 80. Les premières venaient du handoff ; sur une vraie
+ * boîte, elles mangeaient une rangée et demie de liste et la barre pesait plus
+ * que ce qu'elle surmontait. 44 reste la cible minimale d'Apple — on descend
+ * jusqu'à elle, pas en dessous.
  */
 
 /** La hauteur du contenu de la barre : le bouton rond, qui est le plus grand. */
-export const PILL_HEIGHT = 68;
+export const PILL_HEIGHT = 56;
 
 /**
  * La barre elle-même, posée par-dessus le contenu.
  *
- * Sur l'écran principal elle vit dans le flux (`flow`) et le défilant lui
- * laisse `--nav-height` ; dans une carte déjà encartée de 8 px elle est
- * absolue et rend ces 8 px (`padding: 10px 7px 10px`) pour retomber sur les
- * mêmes 15 px de l'écran.
+ * Sur l'écran principal le défilant lui laisse `--nav-height` ; dans une carte
+ * déjà encartée de 8 px elle rend ces 8 px pour retomber sur les mêmes 14 px
+ * de l'écran.
  */
 export function ActionBar({
   inset = false,
@@ -48,10 +52,10 @@ export function ActionBar({
   return (
     <div
       className={cn(
-        "flex shrink-0 items-center justify-between gap-2.5 pt-2.5",
+        "flex shrink-0 items-center justify-between gap-2 pt-2",
         inset
-          ? "px-[7px] pb-2.5"
-          : "px-[15px] pb-[max(18px,calc(env(safe-area-inset-bottom)-16px))]",
+          ? "px-[6px] pb-2"
+          : "px-[14px] pb-[max(16px,calc(env(safe-area-inset-bottom)-18px))]",
         className,
       )}
       {...rest}
@@ -73,7 +77,7 @@ export function Pill({ className, children }: { className?: string; children: Re
   return (
     <div
       className={cn(
-        "flex items-center gap-0 rounded-full p-[8px_10px] shadow-[0_10px_34px_rgb(0_0_0/0.28)] ring-1 ring-black/5 backdrop-blur-[28px]",
+        "flex items-center gap-0 rounded-full p-[6px_8px] shadow-[0_8px_28px_rgb(0_0_0/0.24)] ring-1 ring-black/5 backdrop-blur-[28px]",
         "bg-background/80 dark:bg-[rgb(28_28_30/0.86)] dark:ring-white/12",
         className,
       )}
@@ -111,7 +115,7 @@ export function PillCase({
       aria-label={label}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "flex size-[52px] shrink-0 items-center justify-center rounded-full transition-[background-color,color,transform] duration-200 active:scale-95 active:duration-0",
+        "flex size-11 shrink-0 items-center justify-center rounded-full transition-[background-color,color,transform] duration-200 active:scale-90 active:duration-0 [&_svg]:size-[22px]",
         active
           ? "bg-[color-mix(in_oklch,var(--space-accent)_22%,transparent)] text-[var(--space-ink)]"
           : danger
@@ -138,7 +142,7 @@ export function PillPrimary({
     <button
       type="button"
       onClick={onClick}
-      className="flex h-[52px] shrink-0 items-center gap-2 rounded-full pr-4 pl-3.5 text-[15px] font-semibold text-white transition-transform active:scale-95 active:duration-0 [background:var(--space-gradient)] [&_svg]:size-5"
+      className="flex h-11 shrink-0 items-center gap-1.5 rounded-full pr-4 pl-3.5 text-[15px] font-semibold text-white transition-transform active:scale-95 active:duration-0 [background:var(--space-gradient)] [&_svg]:size-[18px]"
       aria-label={label}
     >
       {children}
@@ -149,7 +153,7 @@ export function PillPrimary({
 /**
  * Le bouton rond, à l'autre bout de la barre.
  *
- * 68 px : c'est lui qui donne sa hauteur à la barre, et c'est la seule cible
+ * 56 px : c'est lui qui donne sa hauteur à la barre, et c'est la seule cible
  * de l'écran qu'un pouce vise sans regarder.
  */
 export function RoundButton({
@@ -169,7 +173,7 @@ export function RoundButton({
       onClick={onClick}
       disabled={disabled}
       aria-label={label}
-      className="flex size-[68px] shrink-0 items-center justify-center rounded-full text-white shadow-[0_10px_30px_rgb(0_0_0/0.4)] transition-[transform,opacity] active:scale-95 active:duration-0 disabled:opacity-35 disabled:shadow-none [background:var(--space-gradient)]"
+      className="flex size-14 shrink-0 items-center justify-center rounded-full text-white shadow-[0_8px_24px_rgb(0_0_0/0.32)] transition-[transform,opacity] active:scale-90 active:duration-0 disabled:opacity-35 disabled:shadow-none [background:var(--space-gradient)] [&_svg]:size-[22px]"
     >
       {children}
     </button>

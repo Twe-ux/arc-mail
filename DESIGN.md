@@ -423,8 +423,8 @@ Où l'espace se peint, et à quelle dose (toutes en `color-mix(in oklch, var(--s
 - **26 %** sur `--wash-base` : le voile radial du sol téléphone (`space-wash`).
 - **22 %** avec noir : chip d'espace actif en sombre · **16 %** avec blanc : le même en clair ·
   **35 %** transparent : son ring.
-- **22 %** transparent : la case active d'une pill d'actions (`action-pill.tsx`) — elle se
-  **remplit**, elle ne s'écrit pas en accent.
+- **22 %** transparent : la case active d'une pill d'actions (`action-pill.tsx`, case 44, bouton
+  rond 56) — elle se **remplit**, elle ne s'écrit pas en accent.
 - **30 %** transparent : le surlignage d'un terme trouvé dans la recherche (`command-palette.tsx`).
 - **14 %** transparent : chip de destinataire (`recipient-field.tsx`).
 - **12 %** transparent : rangée active d'une feuille (`bottom-sheet.tsx`).

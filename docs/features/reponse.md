@@ -44,3 +44,11 @@ Les deux lignes vides du début ne sont pas une marge : elles **séparent** ce q
 qui suit, la signature ou le message transféré. Sans rien après, elles laissaient un champ qui
 n'était pas vide — « Écris ton message… » ne s'affichait donc jamais, et le curseur tombait deux
 lignes plus bas que là où on écrit. Elles ne se posent plus qu'avec ce qu'elles séparent.
+
+---
+
+## L'en-tête d'un message ne vise que sur bureau (5 sept. 2026)
+
+Sur téléphone il déplie les destinataires : viser la réponse d'ici levait le clavier à l'ouverture
+du fil, le clic fantôme d'iOS retombant sur cette rangée. C'est « Répondre », dans la pill du bas,
+qui appelle le clavier — et lui seul. Le détail est dans [Le mail ouvert](mail-ouvert.md).

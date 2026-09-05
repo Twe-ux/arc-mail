@@ -47,19 +47,33 @@ export type SwipeAction = {
 export function useSwipeRow({
   left,
   right,
-  onOpenChange,
 }: {
   /** Vers la gauche : supprimer. */
   left: SwipeAction;
   /** Vers la droite : archiver. */
   right: SwipeAction;
-  /** Publié à chaque frame : de quel côté on tire, pour révéler le bon calque. */
-  onOpenChange?: (side: "left" | "right" | null) => void;
 }) {
+  /** Ce qui bouge sous le doigt. */
   const noeud = useRef<HTMLElement | null>(null);
-  const actions = useRef({ left, right, onOpenChange });
+  /**
+   * Ce qui porte l'état du geste, en **variables CSS** : `--swipe-progress`
+   * (0 → 1 vers le seuil), `data-side`, `data-armed` — et `data-press`, l'appui.
+   *
+   * Le calque révélé se dessine entièrement à partir de là : pas un rendu React
+   * par frame, et le dégradé de couleur, l'échelle de l'icône et l'apparition
+   * du libellé suivent le doigt au pixel plutôt que de basculer d'un coup.
+   *
+   * **L'appui ne passe pas par `:active`.** Le pseudo-classe arrive en retard
+   * sous le doigt (le navigateur attend de savoir si c'est un défilement), ne
+   * se déclenche pas du tout sous un toucher synthétique — donc invérifiable —
+   * et surtout elle reste allumée pendant un balayage, alors qu'un geste qui
+   * part n'est plus un appui. Ici c'est `pointerdown` qui l'allume et le
+   * premier vrai déplacement qui l'éteint.
+   */
+  const piste = useRef<HTMLElement | null>(null);
+  const actions = useRef({ left, right });
   useEffect(() => {
-    actions.current = { left, right, onOpenChange };
+    actions.current = { left, right };
   });
 
   useEffect(() => {
@@ -72,16 +86,24 @@ export function useSwipeRow({
     let x = 0;
     let echantillons: Sample[] = [];
     let vol: SpringAnimation | null = null;
-    let cote: "left" | "right" | null = null;
 
     const ecrire = (valeur: number) => {
       x = valeur;
       el.style.transform = valeur === 0 ? "" : `translate3d(${valeur}px,0,0)`;
-      const nouveau = valeur > 1 ? "right" : valeur < -1 ? "left" : null;
-      if (nouveau !== cote) {
-        cote = nouveau;
-        actions.current.onOpenChange?.(nouveau);
-      }
+      const p = piste.current;
+      if (!p) return;
+      const distance = Math.abs(valeur);
+      p.style.setProperty("--swipe-progress", String(Math.min(1, distance / SEUIL)));
+      const cote = valeur > 1 ? "right" : valeur < -1 ? "left" : "none";
+      if (p.dataset.side !== cote) p.dataset.side = cote;
+      const arme = distance >= SEUIL ? "true" : "false";
+      if (p.dataset.armed !== arme) p.dataset.armed = arme;
+    };
+
+    const presser = (valeur: boolean) => {
+      const p = piste.current;
+      const etat = valeur ? "true" : "false";
+      if (p && p.dataset.press !== etat) p.dataset.press = etat;
     };
 
     const arreter = () => {
@@ -98,6 +120,7 @@ export function useSwipeRow({
       depart = { x: e.clientX, y: e.clientY };
       axe = "inconnu";
       echantillons = [{ value: 0, time: e.timeStamp }];
+      presser(true);
     };
 
     const move = (e: PointerEvent) => {
@@ -107,6 +130,9 @@ export function useSwipeRow({
 
       if (axe === "inconnu") {
         if (Math.abs(dx) < AXE && Math.abs(dy) < AXE) return;
+        /* Le doigt a bougé pour de bon : ce n'est plus un appui, quel que soit
+           l'axe qui gagne ensuite. */
+        presser(false);
         /* Le défilement vertical est prioritaire : dans le doute, ce n'est pas
            notre geste. On ne capture le pointeur qu'une fois l'axe tranché,
            sinon la liste ne défilerait plus du tout. */
@@ -137,6 +163,7 @@ export function useSwipeRow({
     const up = (e: PointerEvent) => {
       if (pointer !== e.pointerId) return;
       pointer = null;
+      presser(false);
       if (axe !== "horizontal") {
         axe = "inconnu";
         return;
@@ -192,5 +219,5 @@ export function useSwipeRow({
     };
   }, []);
 
-  return noeud;
+  return { noeud, piste };
 }

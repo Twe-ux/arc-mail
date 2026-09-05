@@ -97,7 +97,8 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   (`RETURN_VELOCITY`) ; `swallowNextClick()` seulement au vrai commit ; `animation` reste à
   `none` tant que la feuille est ouverte.
 - Une seule recette d'entrée pour les cartes (400/260 ms, `cubic-bezier(0.32,0.72,0,1)`) ; le
-  retour est sur l'appui (`active:`), jamais seulement `hover:` ; reduced-motion respecté.
+  retour est sur l'appui, jamais seulement `hover:` — `active:` partout sauf là où un geste doit
+  l'annuler (la rangée de liste : `pointerdown` et `data-press`) ; reduced-motion respecté.
 - Tirer pour recharger **relit le courrier**, ne recharge plus le document (il emportait les corps
   préchargés) ; distance seule, jamais la vitesse ; 550 ms de spin minimum ; la version se vérifie
   à cette occasion et ne recharge que s'il y a du neuf.
@@ -119,8 +120,9 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   d'où du `padding` dedans pour tout ring.
 
 **Pill d'actions** → [docs/features/pill-actions.md](docs/features/pill-actions.md)
-- Une seule définition (`action-pill.tsx`) pour les quatre barres du bas : case **52**, bouton rond
-  **68**, verre en `p-[8px_10px] gap-0`, barre à **15 px** des bords et **18 px** du bas.
+- Une seule définition (`action-pill.tsx`) pour les quatre barres du bas : case **44**, bouton rond
+  **56**, verre en `p-[6px_8px] gap-0`, barre à **14 px** des bords et **16 px** du bas — 80 px en
+  tout, et la taille des icônes appartient à la pill, pas au point d'appel.
 - Les cases sont `shrink-0` et l'état actif se **remplit** (accent à 22 %, encre `--space-ink`).
 
 **Liste sur téléphone** → [docs/features/liste-telephone.md](docs/features/liste-telephone.md)
@@ -128,11 +130,16 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   filet `.list-card` — sans lui son arrondi se perd dans le voile.
 - Deux balayages sur le même axe : la **rangée** le prend partout et arrête la propagation ; celui
   qui change d'espace part de l'**en-tête**, là où l'indicateur de pages l'annonce.
+- L'appui et le calque révélé se dessinent depuis `--swipe-progress` / `data-side` / `data-armed` /
+  `data-press` publiés sur la rangée — pas de rendu React par frame, et pas de `:active`.
 - Les retours sont des ressorts (`animateSpring`), jamais une transition CSS ; distance **ou** élan.
 
 **Mail ouvert** → [docs/features/mail-ouvert.md](docs/features/mail-ouvert.md)
 - En-tête à trois éléments (retour · dossier·espace / n sur N · favori) ; l'objet vit dans la carte.
 - Corps **à bord perdu** : un seul cadre sur téléphone, pas trois ; « à moi », pas notre nom.
+- **Ouvrir un mail ne lève pas le clavier** : sur téléphone l'en-tête d'un message déplie les
+  destinataires (il vise la réponse sur bureau seulement), et la rangée de la liste avale le clic
+  fantôme d'iOS qui retombait sur « Répondre ».
 - Archiver et Supprimer **renvoient à la liste** avec un toast ; répondre remplace la pill, jamais
   par-dessus.
 

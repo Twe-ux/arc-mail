@@ -2,16 +2,16 @@
 
 **Le verre a quelque chose à flouter.** La barre est posée **par-dessus** la liste
 (`absolute inset-x-0 bottom-0`), pas à côté d'elle : le défilant lui laisse exactement sa hauteur
-en `padding-bottom` (`--nav-height` dans `globals.css` = 68 + 10 + `max(18px, safe-bottom − 16px)`,
-soit 96 px avec un iPhone à encoche). Avant, la liste s'arrêtait au-dessus de la barre : le flou ne
+en `padding-bottom` (`--nav-height` dans `globals.css` = 56 + 8 + `max(16px, safe-bottom − 18px)`,
+soit 80 px avec un iPhone à encoche). Avant, la liste s'arrêtait au-dessus de la barre : le flou ne
 floutait que le voile fixe, le matériau était décoratif, et une bande de fond restait visible sous
 la barre. Elle a disparu d'elle-même.
 
 ---
 
 Sous `md` seulement. Depuis le lot mobile du 5 septembre 2026, elle est un cas de la
-[pill d'actions](pill-actions.md) partagée : le verre, les cases de 52 px et le bouton rond de
-68 px n'existent qu'à un endroit, `action-pill.tsx`, et les quatre écrans qui posent une barre en
+[pill d'actions](pill-actions.md) partagée : le verre, les cases de 44 px et le bouton rond de
+56 px n'existent qu'à un endroit, `action-pill.tsx`, et les quatre écrans qui posent une barre en
 bas s'en servent.
 
 ## Ses quatre cases
@@ -31,10 +31,10 @@ bas s'en servent.
 
 ## Placement
 
-- `justify-between` (+ 15 px de marge), pas centré : la pilule et le bouton composer centrés
+- `justify-between` (+ 14 px de marge), pas centré : la pilule et le bouton composer centrés
   ensemble laissaient de grandes marges vides aux deux bords.
-- `pb-[max(18px, calc(env(safe-area-inset-bottom) − 16px))]` : **18 px aussi bien sur un viewport nu
-  que sur un iPhone** (34 − 16 = 18), ce que le handoff fixe pour toutes les barres. La safe area
+- `pb-[max(16px, calc(env(safe-area-inset-bottom) − 18px))]` : **16 px aussi bien sur un viewport nu
+  que sur un iPhone** (34 − 18 = 16). La safe area
   complète la faisait remonter trop haut au-dessus de l'indicateur d'accueil. Les cartes flottantes,
   elles, sont à 8 px du bord (voir [Cartes flottantes](cartes-flottantes.md)) — deux repères
   différents, voulus : la barre est un contrôle permanent, la carte une fenêtre posée.

@@ -51,7 +51,10 @@ Enfin la tête de bureau s'est rangée : `Tous / Non lus` est passé **à gauche
 de barre — c'est le premier choix qu'on fait sur une liste —, le sélecteur **ne montre plus l'état
 où l'on est** (deux cases, les deux chemins possibles), le regroupement enclenché **se remplit**, et
 le champ de recherche commence désormais **où commence l'objet des mails** : mesuré au pixel dans
-les trois états, de 768 à 1600 px, la ligne se repliant plutôt que de serrer.
+les trois états, de 768 à 1600 px, la ligne se repliant plutôt que de serrer. Puis « Nouveau
+message » est venu se ranger contre le filtre — dans les trois états, et non plus seulement barre
+masquée — et les tuiles de dossiers ont gagné, au bout, **la case de la boîte courante** : un clic
+passe à la suivante, comme la case d'espace de la barre du bas sur téléphone.
 
 ## 5 septembre 2026 — le lot mobile
 

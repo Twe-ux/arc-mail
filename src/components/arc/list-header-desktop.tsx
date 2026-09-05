@@ -4,10 +4,11 @@ import { PanelLeft, PanelLeftDashed, Search, Square, SquarePen, type LucideIcon 
 
 import { Kbd } from "@/components/ui/kbd";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { selectFolder, selectUnreadCount, useMail, useVisibleThreads, type SidebarMode } from "@/lib/store";
+import { selectFolder, selectUnreadCount, useMail, useSpace, useSpaces, useVisibleThreads, type SidebarMode } from "@/lib/store";
 import type { FolderId } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { EPINGLES, GroupByToggle, plural, Segmented } from "./list-header";
+import { SPACE_ICONS } from "./space-icon";
 
 /* **Les trois états, moins celui où l'on est.** Un sélecteur qui montre la
    position courante demande de la lire avant d'agir ; ces trois cases ne sont
@@ -44,6 +45,9 @@ const MODES: { id: SidebarMode; icon: LucideIcon; label: string }[] = [
  * 820 et 900 px, aucun débordement et aucun nom coupé. Le champ garde un
  * plancher de 152 px, ce qui le fait passer à la ligne avant de devenir illisible.
  *
+ * **Écrire vit à côté du filtre, dans les trois états** : la boîte de 188 px
+ * porte les deux, donc le champ de recherche garde son alignement.
+ *
  * **Le champ de recherche commence où commence le corps des mails.** Le
  * sélecteur et la boîte du filtre couvrent exactement ce qui précède l'objet
  * dans une rangée — 20 px de marge, la pastille, la colonne des expéditeurs —
@@ -71,7 +75,7 @@ export function ListHeaderDesktop() {
       )}
     >
       {/* Rangée du haut en colonne étroite ; en pleine largeur elle s'efface
-          (`contents`) et ses trois enfants se rangent eux-mêmes sur la ligne. */}
+          (`contents`) et ses deux enfants se rangent eux-mêmes sur la ligne. */}
       <div className="flex items-center gap-2 md:group-data-[large=true]/liste:contents">
         <div
           role="group"
@@ -104,32 +108,12 @@ export function ListHeaderDesktop() {
           <span className="min-w-0 flex-1 truncate text-left">Rechercher</span>
           <Kbd>⌘K</Kbd>
         </button>
-
-        {/* **Écrire n'a pas de place quand la barre est masquée** : la rangée du
-            bas de la barre la porte, le rail aussi, et masquée il ne restait
-            que ⌘N — un raccourci ne s'annonce pas. Même règle que les tuiles de
-            dossiers : ça n'apparaît ici que là où plus rien d'autre ne le
-            porte. */}
-        {mode === "hidden" && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                type="button"
-                onClick={() => openCompose()}
-                aria-label="Nouveau message"
-                className="grid size-[30px] shrink-0 place-items-center rounded-lg bg-muted text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground md:group-data-[large=true]/liste:order-4"
-              >
-                <SquarePen className="size-4" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">Nouveau message · ⌘N</TooltipContent>
-          </Tooltip>
-        )}
       </div>
 
       {/* Deuxième rangée en colonne étroite ; en pleine largeur elle s'efface
-          aussi, et ses trois enfants se répartissent sur la ligne — le filtre à
-          gauche contre le sélecteur, le compte et le regroupement au bout. */}
+          aussi, et ses enfants se répartissent sur la ligne — le filtre et
+          « écrire » à gauche contre le sélecteur, le compte et le regroupement
+          au bout. */}
       <div className="flex items-center gap-2 md:group-data-[large=true]/liste:contents">
         {/* **Le filtre passe à gauche, contre le sélecteur** : c'est le premier
             choix qu'on fait sur une liste, et le chercher au bout de la fenêtre
@@ -140,8 +124,28 @@ export function ListHeaderDesktop() {
             garantit que l'alignement tient à toutes les largeurs — sous 1000 px
             ce sont les tuiles de dossiers qui passent à la ligne (voir la tête
             plus haut), et rien ne se serre. */}
-        <span className="shrink-0 md:group-data-[large=true]/liste:order-2 md:group-data-[large=true]/liste:w-[188px]">
+        <span className="flex shrink-0 items-center gap-2 md:group-data-[large=true]/liste:order-2 md:group-data-[large=true]/liste:w-[188px]">
           <Segmented tone="muted" />
+          {/* **Écrire est ici, dans les trois états.** Il n'apparaissait que
+              barre masquée, au nom de la règle anti-doublon — mais un bouton
+              qui change de place selon l'état de la barre est un bouton qu'on
+              cherche, et écrire est la seule chose qu'on vienne faire dans une
+              boîte sans y avoir été appelé. Contre le filtre plutôt qu'au bout
+              de la ligne : la boîte de 188 px les tient tous les deux, donc le
+              champ de recherche ne bouge pas d'un pixel. */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                onClick={() => openCompose()}
+                aria-label="Nouveau message"
+                className="grid size-[30px] shrink-0 place-items-center rounded-lg bg-muted text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground"
+              >
+                <SquarePen className="size-4" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">Nouveau message · ⌘N</TooltipContent>
+          </Tooltip>
         </span>
         <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground md:group-data-[large=true]/liste:order-5 md:group-data-[large=true]/liste:flex-none">
           {plural(threads.length, "conversation")}
@@ -151,19 +155,73 @@ export function ListHeaderDesktop() {
         </span>
       </div>
 
-      {/* Masquée : la tête reprend les quatre dossiers, puisque plus rien
-          d'autre ne les porte. */}
+      {/* Masquée : la tête reprend les quatre dossiers **et la boîte courante**,
+          puisque plus rien d'autre ne les porte. */}
       {mode === "hidden" && (
-        <nav
-          aria-label="Dossiers épinglés"
-          className="grid grid-cols-4 gap-2 md:group-data-[large=true]/liste:order-7 md:group-data-[large=true]/liste:shrink-0"
-        >
-          {EPINGLES.map(({ id, label }) => (
-            <TuileBureau key={id} id={id} label={label} active={id === folder.id} />
-          ))}
-        </nav>
+        <div className="flex items-center gap-2 md:group-data-[large=true]/liste:order-7 md:group-data-[large=true]/liste:shrink-0">
+          <nav aria-label="Dossiers épinglés" className="grid flex-1 grid-cols-4 gap-2">
+            {EPINGLES.map(({ id, label }) => (
+              <TuileBureau key={id} id={id} label={label} active={id === folder.id} />
+            ))}
+          </nav>
+          <CaseEspace />
+        </div>
       )}
     </div>
+  );
+}
+
+/**
+ * La boîte courante, au bout des tuiles de dossiers — barre masquée seulement.
+ *
+ * **Elle agit au lieu d'ouvrir**, comme la case d'espace de la barre du bas sur
+ * téléphone : un clic passe à la boîte suivante, l'infobulle dit laquelle on
+ * regarde et où l'on va. C'est la même règle anti-doublon que les dossiers — la
+ * barre attachée et le rail portent déjà la rangée des boîtes, il n'y a qu'une
+ * fois qu'elle disparaît qu'on la reprend ici.
+ *
+ * **Pas une `SpaceTile`** : celle-là lit les variables `--side-*`, taillées pour
+ * l'encre de la barre latérale (blanche sur le dégradé). Posée sur la carte
+ * blanche de la liste, elle y aurait été invisible. Ce qu'on garde d'elle est ce
+ * qui dit la boîte : le glyphe et le point d'accent.
+ *
+ * **Pleine largeur seulement.** En colonne étroite les quatre tuiles tiennent
+ * déjà tout juste : mesuré à 360 px, les 42 px que la case leur prenait
+ * suffisaient à faire de « Réception » un « Récep… », et un nom coupé ne dit
+ * plus rien. La boîte se change alors par ⌘1-⌘9 ou en rendant la barre.
+ *
+ * Avec une seule boîte, rien à faire : le bouton ne se rend pas.
+ */
+function CaseEspace() {
+  const space = useSpace();
+  const spaces = useSpaces();
+  const cycleSpace = useMail((s) => s.cycleSpace);
+  if (spaces.length < 2) return null;
+  const Glyphe = SPACE_ICONS[space.icon];
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button
+          type="button"
+          onClick={() => cycleSpace(1)}
+          aria-label={`Espace suivant · ${space.name}`}
+          className="relative hidden size-[34px] shrink-0 place-items-center rounded-[9px] bg-foreground/[0.05] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground md:group-data-[large=true]/liste:grid"
+        >
+          <Glyphe className="size-[17px]" strokeWidth={1.75} />
+          {/* Le point d'accent, comme sur la tuile de la barre : sans le fond
+              coloré, c'est lui qui dit quelle boîte on regarde. */}
+          <span
+            aria-hidden
+            className="absolute right-1 bottom-1 size-1.5 rounded-full"
+            style={{ backgroundColor: space.theme.accent }}
+          />
+        </button>
+      </TooltipTrigger>
+      <TooltipContent side="bottom">
+        {space.name} · {space.email}
+        <span className="block text-center opacity-70">Passer à la boîte suivante</span>
+      </TooltipContent>
+    </Tooltip>
   );
 }
 

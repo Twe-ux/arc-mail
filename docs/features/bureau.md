@@ -83,17 +83,27 @@ et **les réunit en une seule dès qu'elle est pleine largeur** (`data-large` pu
 là tout tient largement, et deux rangées n'auraient été que du vide empilé. Masquée, les tuiles de
 dossiers rejoignent la même ligne.
 
-1. sélecteur de barre (deux cases de 26, rayon 9) + champ de recherche `⌘K` + **« Nouveau
-   message » quand la barre est masquée** : la rangée du bas de la barre le porte, le rail aussi,
-   et masquée il ne restait que ⌘N — un raccourci ne s'annonce pas. Même règle anti-doublon que
-   les tuiles de dossiers.
-2. `Tous / Non lus` + le compte + le regroupement par correspondant.
-3. masquée seulement : les quatre tuiles de dossiers.
+1. sélecteur de barre (deux cases de 26, rayon 9) + champ de recherche `⌘K`.
+2. `Tous / Non lus` + **« Nouveau message »** + le compte + le regroupement par correspondant.
+3. masquée seulement : les quatre tuiles de dossiers, puis **la boîte courante**.
+
+**« Nouveau message » est là dans les trois états**, contre le filtre. Il n'apparaissait que barre
+masquée, au nom de la règle anti-doublon — mais un bouton qui change de place selon l'état de la
+barre est un bouton qu'on cherche, et écrire est la seule chose qu'on vienne faire dans une boîte
+sans y avoir été appelé. La boîte de 188 px le tient avec le filtre : le champ de recherche ne
+bouge pas d'un pixel.
+
+**La case de boîte** (barre masquée, pleine largeur) **agit au lieu d'ouvrir**, comme la case
+d'espace de la barre du bas sur téléphone : un clic passe à la suivante, l'infobulle donne le nom,
+l'adresse et ce que le clic fait. Ce n'est pas une `SpaceTile` — celle-là lit les variables
+`--side-*`, taillées pour l'encre de la barre latérale, et elle aurait été blanche sur blanc ; on en
+garde le glyphe et le point d'accent. En colonne étroite elle ne se rend pas : mesuré à 360 px, les
+42 px qu'elle prenait aux tuiles faisaient de « Réception » un « Récep… ».
 
 En pleine largeur les deux rangées s'effacent (`display: contents`) et leurs enfants se rangent
-eux-mêmes sur la ligne par leur `order` : sélecteur, filtre, recherche, écrire, compte,
-regroupement, tuiles. Un `order` plutôt qu'un DOM réordonné — la colonne étroite garde l'ordre de
-lecture, et rien n'est rendu deux fois.
+eux-mêmes sur la ligne par leur `order` : sélecteur, filtre et écrire, recherche, compte,
+regroupement, tuiles et boîte. Un `order` plutôt qu'un DOM réordonné — la colonne étroite garde
+l'ordre de lecture, et rien n'est rendu deux fois.
 
 **Le champ de recherche commence où commence le corps des mails.** Le sélecteur et la boîte du
 filtre couvrent exactement ce qui précède l'objet dans une rangée — 20 px de marge, la pastille de

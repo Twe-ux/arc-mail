@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState, type ReactNode } from "react";
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import { useMail, useSpace } from "@/lib/store";
 import { PRESET_HUES, themeFromHue } from "@/lib/theme";
 import type { Space } from "@/lib/types";
@@ -39,6 +40,9 @@ export function AppearancePanel({ children }: { children: ReactNode }) {
   const toggleDark = useMail((s) => s.toggleDark);
   const density = useMail((s) => s.listDensity);
   const setDensity = useMail((s) => s.setListDensity);
+  const fond = useMail((s) => s.fondBureau);
+  const setFond = useMail((s) => s.setFondBureau);
+  const bureau = useMediaQuery("(min-width: 768px)");
   const custom = hue !== undefined;
 
   const [nom, setNom] = useState(space.name);
@@ -166,6 +170,37 @@ export function AppearancePanel({ children }: { children: ReactNode }) {
             />
           </span>
         </button>
+
+        {/* **Bureau seulement.** Sur téléphone il n'y a qu'un fond, le voile ;
+            offrir un réglage qui ne change rien à l'écran qu'on regarde serait
+            un bouton mort. */}
+        {bureau && (
+          <>
+            <Titre>Fond du bureau</Titre>
+            <div role="radiogroup" aria-label="Fond du bureau" className="flex rounded-lg bg-muted p-0.5 text-xs">
+              {(
+                [
+                  ["degrade", "Dégradé"],
+                  ["voile", "Voile"],
+                ] as const
+              ).map(([cle, mot]) => (
+                <button
+                  key={cle}
+                  type="button"
+                  role="radio"
+                  aria-checked={fond === cle}
+                  onClick={() => setFond(cle)}
+                  className={cn(
+                    "flex-1 rounded-md py-1 font-medium transition-colors",
+                    fond === cle ? "bg-background text-foreground shadow-xs" : "text-muted-foreground",
+                  )}
+                >
+                  {mot}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
 
         <Titre>Densité de la liste</Titre>
         <div role="radiogroup" aria-label="Densité de la liste" className="flex rounded-lg bg-muted p-0.5 text-xs">

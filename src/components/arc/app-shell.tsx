@@ -46,6 +46,7 @@ export function AppShell() {
   const third = useMail((s) => s.third);
   const listWidth = useMail((s) => s.listWidth);
   const thirdWidth = useMail((s) => s.thirdWidth);
+  const fondBureau = useMail((s) => s.fondBureau);
   const coque = useRef<HTMLDivElement>(null);
 
   useKeyboardShortcuts();
@@ -111,7 +112,12 @@ export function AppShell() {
   return (
     <TooltipProvider>
       <div
-        className="space-wash fixed inset-0 flex flex-col pt-[calc(var(--safe-top)+var(--titlebar))] transition-[background] duration-500 md:flex-row md:gap-2 md:p-2 md:pt-[calc(0.5rem+var(--titlebar))] md:space-backdrop"
+        /* `data-fond` commute les deux fonds du bureau **et** l'encre de la
+           barre latérale, en un seul endroit (`globals.css`). Sur téléphone il
+           ne sert à rien : `space-wash` y règne, et `.fond-bureau` ne peint
+           qu'au-dessus de `md`. */
+        data-fond={fondBureau}
+        className="space-wash fond-bureau fixed inset-0 flex flex-col pt-[calc(var(--safe-top)+var(--titlebar))] transition-[background] duration-500 md:flex-row md:gap-2 md:p-2 md:pt-[calc(0.5rem+var(--titlebar))]"
         ref={coque}
         style={
           {
@@ -130,7 +136,7 @@ export function AppShell() {
         <div aria-hidden className="titlebar-drag" />
         <Sidebar />
         <main
-          className="flex min-h-0 min-w-0 flex-1 overflow-hidden text-foreground md:grid md:grid-rows-1 md:rounded-xl md:bg-background md:shadow-2xl md:ring-1 md:ring-black/10"
+          className="fenetre-carte flex min-h-0 min-w-0 flex-1 overflow-hidden text-foreground md:grid md:grid-rows-1 md:rounded-xl md:bg-background"
           style={{ gridTemplateColumns: `${gauche} ${partage ? "11px" : "0px"} ${droite}` }}
         >
           {/* **Pleine largeur tant qu'aucun message n'est ouvert** : la liste

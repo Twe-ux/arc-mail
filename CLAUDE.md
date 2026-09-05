@@ -109,8 +109,12 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - Espaces lus via `useSpace()` / `useSpaces()`, jamais `SPACES` en direct ; icône Lucide sur tuile
   (`SpaceIcon`), sauf la barre du bas en trait nu.
 - Le voile `space-wash` ne se peint qu'une fois, sur `--wash-base`.
-- Le fond du bureau est le dégradé sous un aplat sombre (`space-backdrop`) ; ce qui est une action
-  garde `--space-gradient` vif.
+- **Deux fonds de bureau au choix** (`fondBureau`, panneau d'apparence) : le dégradé sous un aplat
+  sombre (défaut) ou le voile du téléphone. L'encre de la barre **suit le fond** et ne se règle pas
+  à part — un jeu de variables `--side-*` commuté par `[data-fond]`, jamais un blanc en dur. En
+  sombre le voile prend une base **teintée** (`--wash-base` est à chroma zéro). Ce qui est une
+  action garde `--space-gradient` vif.
+- La fenêtre du bureau et le troisième volet portent `.fenetre-carte`, le filet de `.list-card`.
 - La sidebar bureau n'a pas de fond : une seule encre secondaire (85 %), mesurée à l'endroit où
   elle est dessinée ; les surfaces `glass` sont pour les cibles, pas pour le texte.
 - L'accent se remplit, il ne s'écrit pas : texte et icônes en accent lisent `--space-ink`.

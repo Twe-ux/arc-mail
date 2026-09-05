@@ -56,7 +56,9 @@ export function SignOut({ className, tone = "sombre" }: { className?: string; to
   const clair = tone === "clair";
   const bouton = cn(
     "relative flex size-8 shrink-0 items-center justify-center rounded-lg transition-colors after:absolute after:-inset-1 disabled:opacity-50",
-    clair ? "text-white/85 hover:bg-white/15 hover:text-white" : "text-muted-foreground hover:bg-muted active:bg-muted",
+    clair
+      ? "text-[var(--side-ink-soft)] hover:bg-[var(--side-fill-hover)] hover:text-[var(--side-ink)]"
+      : "text-muted-foreground hover:bg-muted active:bg-muted",
   );
 
   /* Le nom quand on l'a, l'adresse sinon : sur la ligne du haut, celle qu'on
@@ -71,7 +73,7 @@ export function SignOut({ className, tone = "sombre" }: { className?: string; to
             href="/comptes"
             className={cn(
               "flex min-w-0 flex-1 items-center gap-2 rounded-lg py-1 pr-2 pl-1 transition-colors",
-              clair ? "hover:bg-white/15" : "hover:bg-muted",
+              clair ? "hover:bg-[var(--side-fill-hover)]" : "hover:bg-muted",
             )}
           >
             <Avatar className="size-7">
@@ -79,16 +81,16 @@ export function SignOut({ className, tone = "sombre" }: { className?: string; to
               <AvatarFallback
                 className={cn(
                   "text-[11px] font-semibold",
-                  clair ? "bg-white/20 text-white" : "bg-muted text-muted-foreground",
+                  clair ? "bg-[var(--side-fill-active)] text-[var(--side-ink)]" : "bg-muted text-muted-foreground",
                 )}
               >
                 {initiales(titre)}
               </AvatarFallback>
             </Avatar>
-            <span className={cn("min-w-0 flex-1 truncate text-[13px] font-medium", clair ? "text-white" : "text-foreground")}>
+            <span className={cn("min-w-0 flex-1 truncate text-[13px] font-medium", clair ? "text-[var(--side-ink)]" : "text-foreground")}>
               {titre}
             </span>
-            <Settings2 className={cn("size-3.5 shrink-0", clair ? "text-white/60" : "text-muted-foreground")} />
+            <Settings2 className={cn("size-3.5 shrink-0", clair ? "text-[var(--side-ink-soft)]" : "text-muted-foreground")} />
           </Link>
         </TooltipTrigger>
         <TooltipContent side="top">{session.email} · Boîtes et espaces</TooltipContent>

@@ -27,7 +27,7 @@ function Toaster(props: ToasterProps) {
       style={
         {
           /* Le même habillage que les actions primaires : le dégradé de
-             l'espace sous l'aplat sombre de `space-backdrop`. À L≈0.7 les
+             l'espace sous l'aplat sombre du fond « dégradé ». À L≈0.7 les
              teintes claires (ambre, or) ne portaient pas du blanc ; 12 % de
              noir le rattrapent sans changer la couleur. */
           "--normal-bg":

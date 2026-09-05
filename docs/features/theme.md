@@ -36,7 +36,47 @@ qu'il devait s'en méfier.
 Mesuré en navigateur, avec `SpacesInit` monté : sans le garde, `{"themes":{"perso":210},
 "dark":true}` revenait à `{"themes":{},"dark":false}` après un `reload` ; avec lui, il survit.
 
-## Le fond du bureau (`space-backdrop`)
+## Deux fonds de bureau, au choix (5 sept. 2026)
+
+Le dégradé saturé **reste le défaut** — c'est le langage d'Arc. Mais sur 1280 px il est très
+présent, et le voile du téléphone y a sa place : les deux cohabitent, réglés depuis le panneau
+d'apparence (`fondBureau`, persisté, bureau seulement — offrir sur téléphone un réglage qui ne
+change rien à l'écran qu'on regarde serait un bouton mort).
+
+```
+degrade (defaut) : le dégradé sous l'aplat sombre — la section ci-dessous
+voile            : clair  base --wash-base, halo 26 %  (le réglage du téléphone)
+                   sombre base = accent 14 % sur oklch(0.25), halo 40 %
+```
+
+**En sombre, le voile ne peut pas prendre `--wash-base` tel quel.** Le token vaut `--card`,
+`oklch(0.205 0 0)` — **chroma zéro** : mesuré, la barre latérale devenait une colonne noire et la
+couleur de l'espace disparaissait. Éclaircir sans teinter ne règle rien (`(23,23,23)` → `(35,35,35)`,
+toujours neutre) ; c'est la **base** qu'il faut teinter → `(58,39,47)`, et le halo passe de 26 à
+40 %. Encre secondaire à **6,7:1** sur ce fond, largement au-dessus d'AA.
+
+**L'encre de la barre suit le fond, elle ne se règle pas à part** : blanche sur le dégradé, encre du
+thème sur le voile — l'un sans l'autre est illisible. Tout tient dans un jeu de variables commuté
+par `[data-fond]` (`--side-ink`, `--side-ink-soft`, `--side-fill`, `-hover`, `-active`,
+`--side-line`), lu par `TN`, `SpaceTile`, le rail, la poignée du volet et `SignOut`. Un seul
+endroit, plutôt qu'une variante sur chacune des quinze surfaces.
+
+Deux pièges, tous deux mesurés :
+
+- `data-fond` vit sur **la coque**, qui porte aussi `.fond-bureau` : un sélecteur descendant seul ne
+  matche pas l'élément lui-même, et le fond ne changeait pas. Il en faut deux formes
+  (`[data-fond=x].fond-bureau` **et** `[data-fond=x] .fond-bureau`, pour la barre révélée au survol).
+- Les variables d'encre blanche sont **dans la media query** : la coque enveloppe aussi le
+  téléphone, et posée dehors la règle aurait rendu blanche la première de ces surfaces qui
+  descendrait un jour sur mobile. Vérifié aux quatre croisements — sur téléphone l'encre reste celle
+  du thème quel que soit le réglage.
+
+**La fenêtre prend le filet de la carte du téléphone** (`.fenetre-carte`, bureau seulement) : sans
+tranche, un rectangle presque noir sur un fond presque noir fondait dans le décor. Bord haut deux
+fois plus clair que les côtés — c'est là que la lumière frappe — et liseré intérieur en reflet, la
+recette de `.list-card`. Le troisième volet la partage.
+
+## Le fond du bureau, dégradé (`[data-fond="degrade"]`, le défaut)
 
 **Le dégradé plein cadre se regarde à travers un verre fumé** : un aplat neutre très sombre
 (`rgb(16 14 24 / 0.45)`) posé **par-dessus** `--space-gradient`. Le téléphone ne teinte que le haut
@@ -131,7 +171,7 @@ d'autant la marge qu'il remplace pour que rien ne bouge (mesuré : le chip garde
 
 Sur une carte neutre il se confondait avec les feuilles et les cartes, et on ratait le seul mot qui
 disait ce qui venait de se passer. Il prend donc le même habillage que les actions primaires — le
-dégradé de l'espace, l'encre blanche — sous l'aplat sombre de `space-backdrop` : à L≈0.7 les teintes
+dégradé de l'espace, l'encre blanche — sous l'aplat sombre du fond « dégradé » : à L≈0.7 les teintes
 claires (ambre, or) ne portaient pas du blanc, et 12 % de noir le rattrapent sans changer la
 couleur. Le texte est **centré** : un toast n'a qu'une phrase, et un mot calé à gauche sur une bande
 de 361 px se lit comme une étiquette oubliée.

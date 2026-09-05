@@ -214,18 +214,6 @@
   }
 }
 
-/* Desktop backdrop: the space gradient seen through smoked glass. Full
-   saturation across a 1280px window shouted where the phone's wash whispers
-   — the phone only tints the top 26%. A near-neutral dark laid over the
-   gradient lowers its lightness and pulls its chroma toward grey at once:
-   the same colours, quieter. The dose is measured, not guessed — see
-   docs/features/theme.md. Actions keep `--space-gradient` untouched. */
-@utility space-backdrop {
-  background-image:
-    linear-gradient(rgb(16 14 24 / 0.45), rgb(16 14 24 / 0.45)),
-    var(--space-gradient);
-}
-
 /*
  * Le bord de la carte du téléphone — la liste et le mail ouvert la partagent.
  *
@@ -251,6 +239,106 @@
     border-right-color: rgb(255 255 255 / 0.14);
     box-shadow:
       0 -10px 34px rgb(0 0 0 / 0.35),
+      inset 0 1px 0 rgb(255 255 255 / 0.08);
+  }
+}
+
+/*
+ * ── Les deux fonds du bureau ─────────────────────────────────────────────
+ *
+ * **Deux, et c'est un réglage** (panneau d'apparence, `fondBureau`) : le
+ * dégradé saturé est le langage d'Arc et reste le défaut ; le voile est celui
+ * du téléphone, pour qui trouve le premier trop présent sur 1280 px. Ils ne se
+ * remplacent pas, ils cohabitent.
+ *
+ * Tout tient dans deux jeux de variables commutés par `[data-fond]` : le fond
+ * lui-même, et **l'encre de la barre latérale**, qui doit suivre — sur le
+ * dégradé elle écrit en blanc, sur le voile en encre du thème. Un seul endroit
+ * plutôt qu'une variante Tailwind sur chacune des quinze surfaces de `TN`.
+ *
+ * En sombre le voile ne peut pas prendre `--wash-base` tel quel : le token vaut
+ * `--card`, `oklch(0.205 0 0)`, **chroma zéro** — mesuré, la barre y devenait
+ * une colonne noire et la couleur de l'espace disparaissait. Sa base est donc
+ * teintée à l'accent, et son halo poussé de 26 à 40 % : encre secondaire à
+ * 6,7:1 sur ce fond, largement au-dessus d'AA.
+ */
+:root {
+  --desk-base: var(--wash-base);
+  --desk-halo: 26%;
+  --side-ink: var(--foreground);
+  --side-ink-soft: color-mix(in oklch, var(--foreground) 72%, transparent);
+  --side-fill: color-mix(in oklch, var(--foreground) 6%, transparent);
+  --side-fill-hover: color-mix(in oklch, var(--foreground) 11%, transparent);
+  --side-fill-active: color-mix(in oklch, var(--foreground) 13%, transparent);
+  --side-line: color-mix(in oklch, var(--foreground) 12%, transparent);
+  /* Le verre fumé du fond « dégradé », en un seul endroit. */
+  --desk-smoke: rgb(16 14 24 / 0.45);
+}
+.dark {
+  --desk-base: color-mix(in oklch, var(--space-accent) 14%, oklch(0.25 0 0));
+  --desk-halo: 40%;
+}
+@media (width >= 48rem) {
+  /* **L'encre blanche ne vaut qu'au-dessus de `md`.** Les surfaces qui la
+     lisent n'existent que sur bureau (barre, rail, tuiles d'espace), mais
+     `data-fond` vit sur la coque, qui enveloppe aussi le téléphone : posée
+     dehors, la règle aurait rendu blanche la première de ces surfaces qui
+     descendrait un jour sur mobile. */
+  [data-fond="degrade"] {
+    --side-ink: #fff;
+    --side-ink-soft: rgb(255 255 255 / 0.85);
+    --side-fill: rgb(255 255 255 / 0.08);
+    --side-fill-hover: rgb(255 255 255 / 0.18);
+    --side-fill-active: rgb(255 255 255 / 0.16);
+    --side-line: rgb(255 255 255 / 0.15);
+  }
+
+  /* Les deux formes du sélecteur : `data-fond` vit sur la coque, qui porte
+     **aussi** `.fond-bureau` — un sélecteur descendant seul ne matche pas
+     l'élément lui-même, et le fond ne changeait pas (mesuré). La barre révélée
+     au survol, elle, est bien une descendante. */
+  [data-fond="degrade"].fond-bureau,
+  [data-fond="degrade"] .fond-bureau {
+    /* Le dégradé d'espace vu au travers d'un verre fumé. La pleine saturation
+       sur 1280 px criait là où le voile du téléphone chuchote — il ne teinte
+       que les 26 % du haut. Un sombre presque neutre posé par-dessus baisse sa
+       clarté et tire sa chroma vers le gris d'un même geste : les mêmes
+       couleurs, en plus calme. La dose est mesurée, pas devinée — voir
+       docs/features/theme.md. Les actions gardent `--space-gradient` intact. */
+    background-image:
+      linear-gradient(var(--desk-smoke), var(--desk-smoke)),
+      var(--space-gradient);
+  }
+  [data-fond="voile"].fond-bureau,
+  [data-fond="voile"] .fond-bureau {
+    background:
+      radial-gradient(
+        140% 55% at 50% -15%,
+        color-mix(in oklch, var(--space-accent) var(--desk-halo), var(--desk-base)),
+        transparent 75%
+      ),
+      var(--desk-base);
+  }
+  /* Le filet de la carte du téléphone, transposé sur la fenêtre du bureau :
+     sans tranche, un rectangle presque noir sur un fond presque noir fondait
+     dans le décor. Bord haut deux fois plus clair que les côtés, liseré
+     intérieur en reflet — la recette de `.list-card`. */
+  .fenetre-carte {
+    border-top: 1px solid rgb(0 0 0 / 0.09);
+    border-left: 1px solid rgb(0 0 0 / 0.05);
+    border-right: 1px solid rgb(0 0 0 / 0.05);
+    border-bottom: 1px solid rgb(0 0 0 / 0.05);
+    box-shadow:
+      0 18px 44px -18px rgb(0 0 0 / 0.28),
+      inset 0 1px 0 rgb(255 255 255 / 0.7);
+  }
+  .dark .fenetre-carte {
+    border-top-color: rgb(255 255 255 / 0.28);
+    border-left-color: rgb(255 255 255 / 0.14);
+    border-right-color: rgb(255 255 255 / 0.14);
+    border-bottom-color: rgb(255 255 255 / 0.14);
+    box-shadow:
+      0 18px 44px -18px rgb(0 0 0 / 0.55),
       inset 0 1px 0 rgb(255 255 255 / 0.08);
   }
 }

@@ -23,11 +23,10 @@ import { SidebarRail } from "./sidebar-rail";
  * masquer coûtait plus qu'il ne rendait.
  *
  * Flottante, elle a besoin d'un fond : posée dans le flux elle se lit sur le
- * dégradé, par-dessus la carte de la boîte elle ne se lirait plus. Elle emporte
- * donc **le fond du bureau avec elle** (`space-backdrop`, le dégradé sous son
- * aplat sombre) plutôt qu'un verre translucide — mesuré : à 72 % d'opacité et
- * avec un flou, la liste se lisait encore au travers et le texte blanc passait
- * dessus.
+ * fond du bureau, par-dessus la carte de la boîte elle ne se lirait plus. Elle
+ * emporte donc **ce fond avec elle** (`fond-bureau`, quel que soit le des deux
+ * choisi) plutôt qu'un verre translucide — mesuré : à 72 % d'opacité et avec un
+ * flou, la liste se lisait encore au travers et le texte passait dessus.
  *
  * Le voile derrière elle est en **`pointer-events: none`** : sans cela, quitter
  * la barre ne la ferait jamais se retirer, le voile happant le pointeur.
@@ -38,7 +37,7 @@ export function Sidebar() {
 
   if (mode === "full") {
     return (
-      <aside className="hidden w-[260px] shrink-0 flex-col gap-3 px-2 py-2 text-white md:flex">
+      <aside className="hidden w-[260px] shrink-0 flex-col gap-3 px-2 py-2 text-[var(--side-ink)] md:flex">
         <SidebarContent />
       </aside>
     );
@@ -58,12 +57,14 @@ export function Sidebar() {
 
       {survol && (
         <>
-          <div aria-hidden className="pointer-events-none fixed inset-0 z-30 hidden bg-black/[0.42] md:block" />
+          {/* Le voile suit le fond : sur le dégradé il doit être franc, sur le
+              voile clair il ne doit pas noircir la boîte. */}
+          <div aria-hidden className="pointer-events-none fixed inset-0 z-30 hidden bg-black/25 md:block dark:bg-black/[0.42]" />
           <aside
             onPointerLeave={() => setSurvol(false)}
             className={cn(
-              "space-backdrop fixed inset-y-2 left-2 z-40 hidden w-[264px] flex-col gap-3 rounded-2xl px-2 py-2 text-white",
-              "shadow-[0_40px_90px_-10px_rgb(0_0_0/0.85)] ring-1 ring-white/20 md:flex",
+              "fond-bureau fixed inset-y-2 left-2 z-40 hidden w-[264px] flex-col gap-3 rounded-2xl px-2 py-2 text-[var(--side-ink)]",
+              "shadow-[0_40px_90px_-10px_rgb(0_0_0/0.55)] ring-1 ring-[var(--side-line)] md:flex",
               "animate-in fade-in-0 slide-in-from-left-3 duration-200 ease-out",
             )}
           >

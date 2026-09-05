@@ -9,6 +9,9 @@ L'écran d'Arc Mail au-dessus de `md`, refondu d'après le handoff bureau du 5 s
 [`third-pane.tsx`](../../src/components/arc/third-pane.tsx),
 [`thread-header-desktop.tsx`](../../src/components/arc/thread-header-desktop.tsx).
 
+Le **fond** se règle : dégradé (défaut) ou voile du téléphone, et l'encre de la barre suit
+→ [Thème et couleurs](theme.md).
+
 ## Une grille à pistes explicites, pas une rangée de boîtes
 
 La fenêtre principale porte `grid-template-columns: <liste> 11px <lecture>`, et **chaque enfant
@@ -43,7 +46,7 @@ bande de révélation, et un troisième bouton dans une rangée qui en portait d
 
 **Révélation au survol** (rail et masquée) : une bande de 14 px au bord gauche de la fenêtre, jamais le
 rail lui-même — sinon ses propres icônes deviennent inatteignables au moment où l'on vise. La
-barre révélée emporte **le fond du bureau avec elle** (`space-backdrop`) plutôt qu'un verre : à
+barre révélée emporte **le fond du bureau avec elle** (`.fond-bureau`, quel qu’il soit) plutôt qu’un verre : à
 72 % d'opacité et avec un flou, la liste se lisait encore au travers. Le voile derrière elle est en
 `pointer-events: none`, sans quoi la quitter ne la ferait jamais se retirer. Révélée, elle **masque
 sa rangée du haut** : la tête de liste porte déjà la recherche.

@@ -35,7 +35,7 @@ export function SidebarRail() {
   const openCompose = useMail((s) => s.openCompose);
 
   return (
-    <aside className="hidden w-[52px] shrink-0 flex-col items-center gap-2 py-2 text-white md:flex">
+    <aside className="hidden w-[52px] shrink-0 flex-col items-center gap-2 py-2 text-[var(--side-ink)] md:flex">
       <div className="flex flex-col items-center gap-1.5">
         {spaces.map((space, i) => (
           <Tooltip key={space.id}>

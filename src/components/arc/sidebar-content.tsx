@@ -54,21 +54,21 @@ export const PINNED: FolderId[] = ["inbox", "starred", "sent", "drafts"];
  * barre n'existe plus que sur bureau, sur le dégradé.
  */
 export const TN = {
-  text: "text-white",
-  sub: "text-white/85",
-  faint: "text-white/85",
-  heading: "text-white/85",
-  bar: "glass text-white/80 hover:bg-white/20 hover:text-white",
-  kbd: "bg-white/15 text-white/70",
-  tile: "bg-white/5 text-white/70 hover:bg-white/15 hover:text-white",
-  tileActive: "glass text-white",
-  item: "text-white/80 hover:bg-white/15 hover:text-white",
-  itemActive: "glass font-medium text-white",
-  count: "bg-white/20",
-  sep: "bg-white/15",
-  close: "hover:bg-white/20",
-  icon: "text-white/70 hover:bg-white/15 hover:text-white",
-  hover: "hover:text-white",
+  text: "text-[var(--side-ink)]",
+  sub: "text-[var(--side-ink-soft)]",
+  faint: "text-[var(--side-ink-soft)]",
+  heading: "text-[var(--side-ink-soft)]",
+  bar: "bg-[var(--side-fill)] text-[var(--side-ink-soft)] hover:bg-[var(--side-fill-hover)] hover:text-[var(--side-ink)]",
+  kbd: "bg-[var(--side-fill-hover)] text-[var(--side-ink-soft)]",
+  tile: "bg-[var(--side-fill)] text-[var(--side-ink-soft)] hover:bg-[var(--side-fill-hover)] hover:text-[var(--side-ink)]",
+  tileActive: "bg-[var(--side-fill-active)] text-[var(--side-ink)]",
+  item: "text-[var(--side-ink-soft)] hover:bg-[var(--side-fill-hover)] hover:text-[var(--side-ink)]",
+  itemActive: "bg-[var(--side-fill-active)] font-medium text-[var(--side-ink)]",
+  count: "bg-[var(--side-fill-hover)]",
+  sep: "bg-[var(--side-line)]",
+  close: "hover:bg-[var(--side-fill-hover)]",
+  icon: "text-[var(--side-ink-soft)] hover:bg-[var(--side-fill-hover)] hover:text-[var(--side-ink)]",
+  hover: "hover:text-[var(--side-ink)]",
 } as const;
 
 /**

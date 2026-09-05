@@ -166,7 +166,7 @@ export function ThirdHandle({ coque }: { coque: React.RefObject<HTMLDivElement |
     >
       <span
         aria-hidden
-        className="h-11 w-[5px] rounded-full bg-white/[0.32] transition-[height,background-color] group-hover:h-[72px] group-hover:bg-[var(--space-accent)] group-focus-visible:h-[72px] group-focus-visible:bg-[var(--space-accent)]"
+        className="h-11 w-[5px] rounded-full bg-[var(--side-ink-soft)] opacity-45 transition-[height,background-color,opacity] group-hover:h-[72px] group-hover:bg-[var(--space-accent)] group-hover:opacity-100 group-focus-visible:h-[72px] group-focus-visible:bg-[var(--space-accent)] group-focus-visible:opacity-100"
       />
     </div>
   );

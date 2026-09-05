@@ -46,7 +46,7 @@ export function ThirdPane() {
   return (
     <aside
       aria-label={third.kind === "file" ? "Pièce jointe" : "Message"}
-      className="hidden w-[var(--third-width)] shrink-0 flex-col overflow-hidden rounded-xl bg-background text-foreground shadow-2xl ring-1 ring-black/10 md:flex"
+      className="fenetre-carte hidden w-[var(--third-width)] shrink-0 flex-col overflow-hidden rounded-xl bg-background text-foreground md:flex"
     >
       {third.kind === "file" ? <ModeFichier /> : <ModeMessage />}
     </aside>

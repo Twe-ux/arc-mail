@@ -53,6 +53,16 @@ export type MailState = {
   sidebarMode: SidebarMode;
   /** Bureau : la hauteur d'une rangée de liste. */
   listDensity: "confort" | "compact";
+  /**
+   * Le fond du bureau — **deux, au choix**.
+   *
+   * `degrade` : le dégradé d'espace sous un aplat sombre, le langage d'Arc, et
+   * le défaut. `voile` : le halo doux du téléphone, pour qui trouve le premier
+   * trop présent sur 1280 px. L'encre de la barre latérale suit le choix, elle
+   * n'est pas réglable à part — blanche sur le dégradé, encre du thème sur le
+   * voile ; l'un sans l'autre serait illisible.
+   */
+  fondBureau: "degrade" | "voile";
   /** Largeur de la liste en vue partagée, sur bureau, en pixels. */
   listWidth: number;
   /** The attachment being looked at, `null` when none; it lives in the open thread. */
@@ -126,6 +136,7 @@ export type MailState = {
   setThirdWidth: (px: number) => void;
   setSidebarMode: (mode: SidebarMode) => void;
   setListDensity: (d: MailState["listDensity"]) => void;
+  setFondBureau: (f: MailState["fondBureau"]) => void;
   /** ⌘B : attachée → rail → masquée → attachée. */
   cycleSidebarMode: () => void;
   toggleDark: () => void;
@@ -524,6 +535,7 @@ export const useMail = create<MailState>()(
   settingsOpen: false,
   sidebarMode: "full",
   listDensity: "confort",
+  fondBureau: "degrade",
   listWidth: LISTE_DEFAUT,
   groupBy: "fil",
   correspondent: null,
@@ -709,6 +721,7 @@ export const useMail = create<MailState>()(
     }),
   setSidebarMode: (sidebarMode) => set({ sidebarMode }),
   setListDensity: (listDensity) => set({ listDensity }),
+  setFondBureau: (fondBureau) => set({ fondBureau }),
   cycleSidebarMode: () =>
     set((s) => ({
       sidebarMode: s.sidebarMode === "full" ? "rail" : s.sidebarMode === "rail" ? "hidden" : "full",
@@ -999,6 +1012,7 @@ export const useMail = create<MailState>()(
           | "splitView"
           | "sidebarMode"
           | "listDensity"
+          | "fondBureau"
           | "listWidth"
           | "thirdWidth"
           | "groupBy"
@@ -1014,6 +1028,7 @@ export const useMail = create<MailState>()(
         splitView: s.splitView,
         sidebarMode: s.sidebarMode,
         listDensity: s.listDensity,
+        fondBureau: s.fondBureau,
         listWidth: s.listWidth,
         thirdWidth: s.thirdWidth,
         groupBy: s.groupBy,

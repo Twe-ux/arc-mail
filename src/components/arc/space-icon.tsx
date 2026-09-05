@@ -90,7 +90,9 @@ export function SpaceTile({
       style={{ width: size, height: size }}
       className={cn(
         "relative inline-grid shrink-0 place-items-center rounded-[10px] transition-colors",
-        active ? "bg-white/20 text-white" : "bg-white/[0.07] text-white/75 group-hover:bg-white/[0.22] group-hover:text-white",
+        active
+          ? "bg-[var(--side-fill-active)] text-[var(--side-ink)]"
+          : "bg-[var(--side-fill)] text-[var(--side-ink-soft)] group-hover:bg-[var(--side-fill-hover)] group-hover:text-[var(--side-ink)]",
         className,
       )}
     >

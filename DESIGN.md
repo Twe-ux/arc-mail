@@ -385,7 +385,7 @@ reprend comme règles, il ne les réinvente pas.
 ## Colors
 
 > **Mise à jour du 4 sept. (après DESIGN.md)** — le dégradé plein cadre du bureau est peint sous un
-> aplat neutre sombre (`space-backdrop`, `rgb(16 14 24 / 0.45)`) : L 0,34–0,52 et chroma −36 %
+> aplat neutre sombre (fond « dégradé », `--desk-smoke: rgb(16 14 24 / 0.45)`) : L 0,34–0,52 et chroma −36 %
 > contre les arrêts bruts ci-dessous, qui restent la source. Les actions (bouton composer, envoi)
 > gardent le dégradé vif. Voir `docs/features/theme.md`, qui fait autorité.
 
@@ -576,7 +576,9 @@ déclencher le zoom d'iOS.
 (`sm`, `useMediaQuery("(min-width: 640px)")`), comme la modale de recherche.
 
 **Bureau (≥ 768 px).** *Refait le 5 sept. par le lot bureau ; `docs/features/bureau.md` fait
-autorité.* La fenêtre d'Arc : `fixed inset-0`, fond `space-backdrop`, `p-2 gap-2` (8 px). La barre
+autorité.* La fenêtre d'Arc : `fixed inset-0`, fond au choix — **dégradé** (défaut, l'aplat
+`--desk-smoke` sur `--space-gradient`, encre de barre blanche) ou **voile** (le halo du téléphone,
+base teintée en sombre, encre du thème), commutés par `[data-fond]` —, `p-2 gap-2` (8 px). La barre
 latérale a **trois états** — attachée 260 px (`px-2 py-2`, `gap-3`), rail 52 px, masquée — et se
 révèle au survol d'une bande de 14 px au bord dans les deux derniers. Le `main` est la carte
 (`rounded-xl`, `bg-background`, `shadow-2xl`, `ring-1 ring-black/10`) et c'est une **grille à

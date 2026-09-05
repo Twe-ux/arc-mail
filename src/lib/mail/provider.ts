@@ -33,6 +33,22 @@ export type ThreadPatch = {
   folder?: FolderId;
 };
 
+/**
+ * Un fichier qu'on joint, tel qu'il traverse la frontière navigateur → serveur.
+ *
+ * En **base64**, pas en `File` : le message part en JSON vers `/api/mail`, et
+ * un `File` ne survit pas à `JSON.stringify`. C'est aussi la forme que
+ * `MailComposer` attend, donc rien ne se reconvertit en route.
+ */
+export type OutgoingAttachment = {
+  name: string;
+  mime: string;
+  /** Octets du fichier d'origine, avant encodage — ce qu'on montre à l'écran. */
+  size: number;
+  /** Le contenu, encodé en base64 et sans préfixe `data:`. */
+  data: string;
+};
+
 export type OutgoingMessage = {
   /** Qui envoie. C'est l'identité de l'espace, et elle suffit : le fournisseur n'a pas à savoir lequel. */
   from: Contact;
@@ -41,6 +57,7 @@ export type OutgoingMessage = {
   bcc?: Contact[];
   subject: string;
   body: string;
+  attachments?: OutgoingAttachment[];
   /** Thread this answers; the message joins it instead of opening a new one. */
   replyTo?: string;
 };

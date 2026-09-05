@@ -90,3 +90,20 @@ tirage coûterait la mémoire pour, le plus souvent, retomber sur la même versi
 Playwright ne sait que taper ; un glissement se fabrique en CDP (`Input.dispatchTouchEvent`,
 `touchStart` → une douzaine de `touchMove` à 16 ms → `touchEnd`). Un `location.reload()` compte
 pour **deux** `framenavigated` — calibré avant de conclure à un double rechargement.
+
+---
+
+## Les deux balayages horizontaux de la liste (5 sept. 2026)
+
+Ils se partagent le même axe, et c'est le point qu'il a fallu mesurer : la rangée le prend la
+première partout, donc le balayage d'espace ne se déclenchait jamais. Le détail et les mesures sont
+dans [La liste sur téléphone](liste-telephone.md) ; les invariants ici :
+
+- **La rangée arrête la propagation** dès qu'elle prend l'axe horizontal, et rend la main
+  (`abandon`) quand le côté visé n'a pas d'action.
+- **Le balayage d'espace ignore tout geste né dans une rangée** et part de l'en-tête, là où
+  l'indicateur de pages l'annonce.
+- Les deux retours sont des **ressorts** (`animateSpring`), pas des transitions CSS : un ressort se
+  rattrape en vol, et il respecte déjà « Réduire les animations ».
+- Distance **ou** élan pour valider : un balayage vif et court est la même intention qu'un balayage
+  lent et long.

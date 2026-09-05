@@ -31,3 +31,17 @@ rien.
 
 `Command` est en `bg-transparent` dans `CommandDialog` : son `bg-popover` quasi noir contre la
 carte `#26262a` faisait une bande claire dès qu'un bout de carte dépassait (la bande du bas).
+
+---
+
+## Le lot mobile (5 sept. 2026)
+
+- Le champ dit **où** l'on cherche : « Rechercher dans Perso… ». Il est en **17 px** sur téléphone,
+  et pas par goût — sous 16 px iOS zoome sur le champ à la mise au point.
+- **Les conversations d'abord**, sous « Conversations récentes » tant qu'on n'a rien tapé, puis
+  « Conversations ». Actions et « Aller à » (dossiers, espaces) suivent : on ouvre cette carte pour
+  retrouver un message neuf fois sur dix.
+- Une rangée montre l'objet **et** l'expéditeur sur deux lignes, avec le terme trouvé **surligné**
+  (`color-mix(in oklch, var(--space-accent) 30%, transparent)`, rayon 3). C'est un **fond**, jamais
+  une encre colorée : la règle du thème, et le seul choix lisible dans les deux thèmes. Un résultat
+  qui ne montre pas pourquoi il est là oblige à relire la ligne entière.

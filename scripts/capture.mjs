@@ -2,7 +2,7 @@
 /**
  * Captures d'un écran d'Arc Mail, aux deux tailles et aux deux thèmes, dans la même passe.
  *
- *   npm run capture -- --name composeur [--open menu|compose|search|fil|piece-jointe] [--space pro]
+ *   npm run capture -- --name composeur [--open menu|reglages|compose|search|fil|piece-jointe] [--space pro]
  *                      [--url http://localhost:3000] [--out captures] [--dark-only|--light-only]
  *
  * Téléphone : 393×852 à ×3 avec les insets d'un iPhone à encoche (59 haut / 34 bas) posés en
@@ -28,7 +28,7 @@ const args = Object.fromEntries(
 const url = args.url ?? "http://localhost:3000";
 const out = args.out ?? "captures";
 const name = args.name ?? "ecran";
-const open = args.open; // menu | compose | search | fil | piece-jointe
+const open = args.open; // menu | reglages | compose | search | fil | piece-jointe
 const space = args.space; // perso | pro | side
 const themes = args["dark-only"] ? ["dark"] : args["light-only"] ? ["light"] : ["light", "dark"];
 
@@ -56,7 +56,10 @@ const CLICK_TEXT = (text) =>
   `[...document.querySelectorAll('button')].find((b) => b.textContent?.includes(${JSON.stringify(text)}))?.click()`;
 
 const OPENERS = {
-  menu: `document.querySelector('nav[aria-label="Navigation"] button[aria-label^="Espace"]')?.click()`,
+  /* La case d'espace de la barre **change** d'espace depuis le lot mobile ;
+     c'est « Dossiers » qui ouvre la feuille. */
+  menu: `document.querySelector('nav[aria-label="Navigation"] button[aria-label="Dossiers"]')?.click()`,
+  reglages: `document.querySelector('nav[aria-label="Navigation"] button[aria-label="Personnaliser"]')?.click()`,
   compose: `document.querySelector('nav[aria-label="Navigation"] button[aria-label="Écrire"]')?.click()`,
   search: `document.querySelector('nav[aria-label="Navigation"] button[aria-label="Rechercher"]')?.click()`,
   fil: [CLICK_TEXT("Photos de l'anniversaire")],

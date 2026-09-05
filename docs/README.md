@@ -16,7 +16,11 @@ l'état du projet et ce qui reste à faire.
 - [Gestes](features/gestes.md) — retour par le bord, fermeture par glissement, tirer pour recharger
 - [PWA iOS](features/pwa-ios.md) — safe areas, clavier, service worker, thème avant la première peinture
 - [Thème et couleurs](features/theme.md) — sombre, voile d'espace, contrastes, couleur par espace
+- [Pill d'actions](features/pill-actions.md) — le composant partagé des quatre barres du bas
 - [Barre du bas](features/barre-du-bas.md) — la pilule et le bouton composer
+- [La liste sur téléphone](features/liste-telephone.md) — grand titre, tuiles épinglées, les deux balayages
+- [Le mail ouvert](features/mail-ouvert.md) — l'en-tête, le corps à bord perdu, la pill et ses feuilles
+- [Composeur : panneaux](features/composeur-panneaux.md) — pièces jointes qui voyagent, mise en forme
 - [Vue par correspondant](features/vue-correspondant.md) — la vue d'`arc-messenger`, à côté du rangement par fil
 - [Recherche ⌘K](features/recherche.md) — la barre de commande
 - [Répondre](features/reponse.md) — à qui part la réponse, et comment la viser

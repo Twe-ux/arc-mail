@@ -75,7 +75,7 @@ Voir la [synthèse](audits/2026-09-04/README.md) pour le détail et les arbitrag
 - [ ] Un seul `createTouchDrag` pour les trois hooks de geste ; `compose-dialog` en quatre fichiers
 - [ ] Icônes de dossiers dans `src/lib/folders.ts` ; `replyDraft` dans le store
 - [ ] Focus visible (l'anneau `outline-ring/50` fait 1,44:1) ; `--muted-foreground` sur `bg-muted`
-- [ ] Squelette de chargement, états vides par dossier, toasts « Annuler » sur archivage
+- [ ] États vides par dossier (le squelette de chargement existe)
 - [ ] Regroupement par dates dans la liste (Aujourd'hui / Hier / Cette semaine) — à décider
 - [ ] `@property --space-accent` pour que le changement d'espace s'interpole vraiment
 
@@ -83,7 +83,13 @@ Voir la [synthèse](audits/2026-09-04/README.md) pour le détail et les arbitrag
 
 - [ ] Créer, renommer un espace ; choisir son icône (la couleur se choisit déjà)
 - [ ] Effacement en haut des listes défilantes, symétrique de celui du bas (non demandé, à voir)
-- [ ] Joindre un fichier depuis le composeur (la lecture et l'aperçu existent, l'envoi non)
+- [x] Joindre un fichier depuis le composeur (5 sept. : cinq sources, vignettes, base64 jusqu'à
+      SMTP et l'`APPEND`, 10 Mo par message)
+- [ ] **Corps HTML du message** : c'est ce qui manque au panneau de mise en forme, dont tous les
+      boutons de style sont désactivés faute de destination (`composeur-panneaux.md`). Il faut un
+      champ riche, `html` dans `OutgoingMessage`, et `MailComposer` qui envoie les deux parties.
+- [ ] Toast « Annuler » après un balayage de rangée : l'action est optimiste, le retour en arrière
+      n'est pas encore offert
 - [ ] Recherche côté serveur une fois un fournisseur branché
 - [ ] Notifications push (nécessite un serveur qui garde une connexion, pas du serverless pur)
 

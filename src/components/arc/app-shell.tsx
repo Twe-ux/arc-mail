@@ -13,7 +13,7 @@ import { BackSwipe } from "./back-swipe";
 import { CommandPalette } from "./command-palette";
 import { ComposeDialog } from "./compose-dialog";
 import { MobileNav } from "./mobile-nav";
-import { MobileMenu } from "./mobile-menu";
+import { MobileMenu, MobileSettings } from "./mobile-menu";
 import { Sidebar } from "./sidebar";
 import { SplitHandle } from "./split-handle";
 import { ThreadList } from "./thread-list";
@@ -160,6 +160,7 @@ export function AppShell() {
             pill, which is what gives the material something to blur. */}
         <MobileNav className={cn("absolute inset-x-0 bottom-0 z-30", hasSelection && "hidden")} />
         <MobileMenu />
+        <MobileSettings />
         <CommandPalette />
       </div>
       {/* Failures of optimistic writes land here (see `commit` in the store). */}

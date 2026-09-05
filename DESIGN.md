@@ -423,9 +423,16 @@ Où l'espace se peint, et à quelle dose (toutes en `color-mix(in oklch, var(--s
 - **26 %** sur `--wash-base` : le voile radial du sol téléphone (`space-wash`).
 - **22 %** avec noir : chip d'espace actif en sombre · **16 %** avec blanc : le même en clair ·
   **35 %** transparent : son ring.
-- **18 %** transparent : la capsule qui glisse dans la pilule (`mobile-nav.tsx`).
+- **22 %** transparent : la case active d'une pill d'actions (`action-pill.tsx`) — elle se
+  **remplit**, elle ne s'écrit pas en accent.
+- **30 %** transparent : le surlignage d'un terme trouvé dans la recherche (`command-palette.tsx`).
 - **14 %** transparent : chip de destinataire (`recipient-field.tsx`).
-- **9 %** transparent : rangée active du menu (`mobile-menu.tsx`).
+- **12 %** transparent : rangée active d'une feuille (`bottom-sheet.tsx`).
+
+**Les deux seules couleurs qui ne viennent pas de l'espace** vivent sous les rangées de la liste,
+révélées par le balayage (`thread-row.tsx`) : **`#14b8a6`** pour « Archiver », **`#dc2626`** pour
+« Supprimer ». Elles sont fixes exprès — le sens d'un geste destructeur ne doit pas changer avec la
+teinte qu'on a choisie pour sa boîte.
 
 ### Neutral
 
@@ -520,8 +527,11 @@ Deux échelles cohabitent : **téléphone** (15 / 13 / 17 / 19 / 30 px, les tail
 **bureau** (14 / 12 / 20 px, l'échelle shadcn), presque toujours sous la forme `text-[15px]
 md:text-sm`.
 
-- **Display** (700, 30px, `leading-tight` 1.25, `-0.025em`) : le grand titre de dossier sur
-  téléphone, sur le voile (`thread-list.tsx`).
+- **Display** (700, 30px, 1.15, `-0.02em`) : le grand titre de dossier sur téléphone, sur le voile
+  (`list-header.tsx`).
+- **Objet en lecture** (700, 22px, 1.25, `-0.015em`, `text-pretty`) : le titre de la carte du mail
+  ouvert (`thread-view.tsx`). Il a remplacé le 19px de l'ancien en-tête : l'objet est descendu dans
+  la carte, où il est le titre de ce qu'on lit plutôt qu'une étiquette au-dessus.
 - **Headline** (700, 19px, 1.25, `-0.025em`) : l'objet du fil sur téléphone, deux lignes max, calé
   à `pt-[7px]` sur le centre optique de la flèche retour (`thread-view.tsx`). Sur bureau :
   **Headline-desktop** (600, 20px `text-xl`, `-0.025em`).

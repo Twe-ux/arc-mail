@@ -2,6 +2,7 @@
 
 import {
   Archive,
+  ChevronRight,
   Clock,
   FileText,
   Inbox,
@@ -9,26 +10,29 @@ import {
   Send,
   Star,
   Trash2,
+  UserRound,
   X,
   type LucideIcon,
 } from "lucide-react";
+import Link from "next/link";
 
 import { SignOut } from "@/components/auth/sign-out";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetTitle,
-} from "@/components/ui/sheet";
-import { useSheetDismiss } from "@/hooks/use-sheet-dismiss";
 import { FOLDERS } from "@/lib/mock-data";
 import { selectUnreadCount, useMail, useRecentThreads, useSpace, useSpaces } from "@/lib/store";
+import { PRESET_HUES, themeFromHue } from "@/lib/theme";
 import type { FolderId } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import {
+  BottomSheet,
+  SheetCloseButton,
+  SheetGroup,
+  SheetRow,
+  SheetScroller,
+  SheetTile,
+} from "./bottom-sheet";
 import { ContactAvatar } from "./contact-avatar";
 import { InstallHint } from "./install-hint";
 import { SpaceIcon } from "./space-icon";
-import { ThemePicker } from "./theme-picker";
 
 /** iOS Mail gives every mailbox a coloured tile; so do we. */
 const FOLDER_TILES: Record<FolderId, { icon: LucideIcon; tint: string }> = {
@@ -42,60 +46,16 @@ const FOLDER_TILES: Record<FolderId, { icon: LucideIcon; tint: string }> = {
 };
 
 /**
- * The phone's menu: a card that rises clear of the edges, the way iOS presents
- * anything you dip into and leave. Spaces as chips up top, then grouped lists in the
- * idiom of Mail and Settings — a tile per mailbox, counts on the right.
+ * La feuille Dossiers : les espaces en pastilles, puis les boîtes.
+ *
+ * Elle ne porte plus que la navigation. Le réglage de l'espace — teinte,
+ * thème, compte — est parti dans sa propre feuille : les deux tenaient dans
+ * la même carte tant qu'il y avait trois dossiers et une case à cocher, plus
+ * depuis. **Une feuille par intention.**
  */
 export function MobileMenu() {
   const open = useMail((s) => s.sidebarOpen);
   const setOpen = useMail((s) => s.setSidebarOpen);
-  const sheetRef = useSheetDismiss(() => setOpen(false));
-
-  return (
-    <Sheet open={open} onOpenChange={setOpen}>
-      <SheetContent
-        ref={sheetRef}
-        side="bottom"
-        showCloseButton={false}
-        /* Same reasoning as the composer's DialogContent: this card already
-           closes via its own X button and the swipe-down gesture, so Radix's
-           default pointerdown-outside dismiss is a fourth, silent way in —
-           and the one most likely to fire right after a small drag, on
-           whatever tap follows it. */
-        onPointerDownOutside={(e) => e.preventDefault()}
-        onInteractOutside={(e) => e.preventDefault()}
-        /* A card that floats clear of every edge, not a sheet welded to the
-           bottom one — hence rounded all round and inset by the same 8px on
-           all three free sides (`inset-x-2` / `bottom-2`), so the gap reads as
-           one margin rather than three different ones. Deriving the bottom
-           from the safe area instead put it at 34px against 8px on the sides,
-           which looks like the card floating rather than resting.
-           `transition-none`: see `useSheetDismiss`, the primitive's own
-           duration would interpolate the transform the drag writes. */
-        className="inset-x-2 top-auto bottom-2 flex h-auto max-h-[86dvh] w-auto flex-col gap-0 rounded-[36px] border-0 bg-[#f2f2f7] p-0 pb-3 text-foreground shadow-2xl transition-none md:hidden dark:bg-black dark:ring-1 dark:ring-white/12"
-      >
-        <SheetTitle className="sr-only">Menu</SheetTitle>
-        <SheetDescription className="sr-only">
-          Espaces, boîtes et conversations récentes
-        </SheetDescription>
-
-        <MenuBody
-          onNavigate={() => setOpen(false)}
-          onClose={() => setOpen(false)}
-        />
-      </SheetContent>
-    </Sheet>
-  );
-}
-
-function MenuBody({
-  onNavigate,
-  onClose,
-}: {
-  onNavigate: () => void;
-  onClose: () => void;
-}) {
-  const space = useSpace();
   const spaces = useSpaces();
   const spaceId = useMail((s) => s.spaceId);
   const setSpace = useMail((s) => s.setSpace);
@@ -103,111 +63,74 @@ function MenuBody({
   const setFolder = useMail((s) => s.setFolder);
   const selectedThreadId = useMail((s) => s.selectedThreadId);
   const selectThread = useMail((s) => s.selectThread);
+  const setCorrespondent = useMail((s) => s.setCorrespondent);
   const removeRecent = useMail((s) => s.removeRecent);
   const clearRecent = useMail((s) => s.clearRecent);
-  const dark = useMail((s) => s.dark);
-  const toggleDark = useMail((s) => s.toggleDark);
-
   const recentThreads = useRecentThreads();
 
   const go = (fn: () => void) => () => {
     fn();
-    onNavigate();
+    setOpen(false);
   };
 
   return (
-    <>
-      {/* Fixed head: an account row that scrolled would slide under the card's
-          own rounded corner and read as content escaping it. */}
-      <div className="shrink-0 px-4 pt-4 pb-2">
-        <div className="flex items-center gap-3 pb-2">
-          <SpaceIcon
-            space={space}
-            size="lg"
-            className="size-11 rounded-xl [&_svg]:size-6"
-          />
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-[17px] leading-tight font-semibold">
-              {space.name}
-            </p>
-            <p className="truncate text-[13px] text-muted-foreground">
-              {space.email}
-            </p>
+    <BottomSheet
+      open={open}
+      onOpenChange={setOpen}
+      title="Dossiers"
+      description="Espaces, boîtes et conversations récentes"
+      head={
+        <>
+          <div className="flex items-center gap-3">
+            <p className="min-w-0 flex-1 truncate text-[17px] font-semibold">Dossiers</p>
+            <SheetCloseButton onClose={() => setOpen(false)} />
           </div>
-          <ThemePicker
-            space={space}
-            tone="surface"
-            className="size-9 rounded-full bg-white dark:bg-[#26262a]"
-          />
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Fermer"
-            className="relative flex size-9 shrink-0 items-center justify-center rounded-full bg-black/[0.06] text-foreground/60 after:absolute after:-inset-1 active:bg-black/10 dark:bg-white/10 dark:active:bg-white/20"
-          >
-            <X className="size-5" strokeWidth={2.25} />
-          </button>
-        </div>
+          {/* `py-1` plutôt que `mt-1 pb-1` : un rail horizontal rogne aussi
+              verticalement (le CSS transforme le `visible` de l'autre axe en
+              `auto`), et l'anneau de la pastille active est une ombre peinte
+              *hors* de sa boîte — au ras du haut du rail, ce bord se faisait
+              raboter. */}
+          <div className="-mx-4 mt-2 flex gap-2 overflow-x-auto px-4 py-1 [scrollbar-width:none]">
+            {spaces.map((sp) => {
+              const active = sp.id === spaceId;
+              return (
+                <button
+                  key={sp.id}
+                  type="button"
+                  onClick={() => setSpace(sp.id)}
+                  aria-pressed={active}
+                  className={cn(
+                    "flex shrink-0 items-center gap-2 rounded-full py-1.5 pr-3.5 pl-1.5 text-[15px] transition-colors",
+                    active
+                      ? "bg-[color-mix(in_oklch,var(--space-accent)_16%,white)] font-medium text-foreground ring-1 ring-[color-mix(in_oklch,var(--space-accent)_35%,transparent)] dark:bg-[color-mix(in_oklch,var(--space-accent)_22%,black)]"
+                      : "bg-white text-muted-foreground dark:bg-[#26262a]",
+                  )}
+                >
+                  <SpaceIcon space={sp} size="md" />
+                  {sp.name}
+                </button>
+              );
+            })}
+          </div>
+        </>
+      }
+    >
+      <SheetScroller>
+        <SheetGroup className="mt-1">
+          {FOLDERS.map((f) => (
+            <FolderRow
+              key={f.id}
+              id={f.id}
+              name={f.name}
+              active={f.id === folderId}
+              onClick={go(() => {
+                setFolder(f.id);
+                setCorrespondent(null);
+              })}
+            />
+          ))}
+        </SheetGroup>
 
-        {/* Spaces as chips. `py-1` rather than `mt-1 pb-1`: a horizontal
-            scroller clips vertically too (CSS turns the other axis' `visible`
-            into `auto`), and the active chip's ring is a box-shadow painted
-            *outside* its border box — flush against the top of the rail, that
-            edge of the ring was being shaved off. Padding inside the scroller
-            is the room it needs; the margin it replaces kept the chips at the
-            same height. */}
-        <div className="-mx-4 flex gap-2 overflow-x-auto px-4 py-1 [scrollbar-width:none]">
-          {spaces.map((sp) => {
-            const active = sp.id === spaceId;
-            return (
-              <button
-                key={sp.id}
-                type="button"
-                onClick={() => setSpace(sp.id)}
-                aria-pressed={active}
-                className={cn(
-                  "flex shrink-0 items-center gap-2 rounded-full py-1.5 pr-3.5 pl-1.5 text-[15px] transition-colors",
-                  active
-                    ? "bg-[color-mix(in_oklch,var(--space-accent)_16%,white)] font-medium text-foreground ring-1 ring-[color-mix(in_oklch,var(--space-accent)_35%,transparent)] dark:bg-[color-mix(in_oklch,var(--space-accent)_22%,black)]"
-                    : "bg-white text-muted-foreground dark:bg-[#26262a]",
-                )}
-              >
-                <SpaceIcon space={sp} size="md" />
-                {sp.name}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* The card keeps its own `pb-3` under this box, so mid-scroll the list
-          is cut against a strip of card rather than against the border itself:
-          a row guillotined flat on the 36px corner reads as content escaping
-          the window (same reasoning as the fixed head above).
-
-          The mask then softens that cut: a sliver of the next group left at
-          the edge read as a little bar sitting under the list. The gradient is
-          anchored to this box, not to the content, so it always fades the last
-          24px of the *viewport*. `pb-6` matches it — at the end of the list
-          the fade falls on that padding, so the final row stays fully opaque
-          instead of dimming once there is nothing left to scroll. */}
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-6 [mask-image:linear-gradient(to_bottom,#000_calc(100%-1.5rem),transparent)]">
-        {/* Mailboxes */}
-        <Section title="Boîtes">
-          <Group>
-            {FOLDERS.map((f) => (
-              <FolderRow
-                key={f.id}
-                id={f.id}
-                name={f.name}
-                active={f.id === folderId}
-                onClick={go(() => setFolder(f.id))}
-              />
-            ))}
-          </Group>
-        </Section>
-
-        {/* Today */}
         <Section
           title="Aujourd'hui"
           action={
@@ -222,25 +145,18 @@ function MenuBody({
             )
           }
         >
-          <Group>
+          <SheetGroup>
             {recentThreads.length === 0 ? (
               <p className="px-4 py-3.5 text-[15px] text-muted-foreground">
-                Les conversations que tu ouvres restent ici, comme les onglets
-                d&apos;Arc.
+                Les conversations que tu ouvres restent ici, comme les onglets d&apos;Arc.
               </p>
             ) : (
               recentThreads.map((t) => {
                 const last = t.messages[t.messages.length - 1];
                 return (
-                  <Row
-                    key={t.id}
-                    onClick={go(() => selectThread(t.id))}
-                    active={t.id === selectedThreadId}
-                  >
+                  <SheetRow key={t.id} onClick={go(() => selectThread(t.id))} active={t.id === selectedThreadId}>
                     <ContactAvatar contact={last.from} className="size-8" />
-                    <span className="min-w-0 flex-1 truncate text-[15px]">
-                      {t.subject}
-                    </span>
+                    <span className="min-w-0 flex-1 truncate text-[15px]">{t.subject}</span>
                     <button
                       type="button"
                       onClick={(e) => {
@@ -252,25 +168,103 @@ function MenuBody({
                     >
                       <X className="size-4" />
                     </button>
-                  </Row>
+                  </SheetRow>
                 );
               })
             )}
-          </Group>
+          </SheetGroup>
         </Section>
+      </SheetScroller>
+    </BottomSheet>
+  );
+}
 
-        {/* Appearance */}
-        <Section title="Apparence">
-          <Group>
-            <Row onClick={toggleDark} checked={dark}>
-              <Tile tint="bg-indigo-500">
-                <Moon />
-              </Tile>
-              <span className="min-w-0 flex-1 text-[15px]">Thème sombre</span>
-              <Switch on={dark} />
-            </Row>
-          </Group>
-        </Section>
+/**
+ * La feuille de personnalisation, sous le `⋯` de la barre du bas.
+ *
+ * Ce que l'utilisateur vient y chercher tient en trois lignes : la couleur de
+ * l'espace, le thème, et le chemin vers ses comptes. Les huit teintes sont
+ * celles du dépôt (`PRESET_HUES`), pas huit valeurs écrites à la main : c'est
+ * la même liste que le sélecteur du bureau, et un espace change de couleur au
+ * même endroit qu'on le regarde.
+ */
+export function MobileSettings() {
+  const open = useMail((s) => s.settingsOpen);
+  const setOpen = useMail((s) => s.setSettingsOpen);
+  const space = useSpace();
+  const hue = useMail((s) => s.themes[space.id]);
+  const setSpaceHue = useMail((s) => s.setSpaceHue);
+  const dark = useMail((s) => s.dark);
+  const toggleDark = useMail((s) => s.toggleDark);
+
+  return (
+    <BottomSheet
+      open={open}
+      onOpenChange={setOpen}
+      title="Personnaliser"
+      description="Couleur de l'espace, thème et comptes"
+      head={
+        <div className="flex items-center gap-3">
+          <SpaceIcon space={space} size="lg" className="size-11 rounded-xl [&_svg]:size-6" />
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-[16px] leading-tight font-semibold">{space.name}</p>
+            <p className="truncate text-[13px] text-muted-foreground">{space.email}</p>
+          </div>
+          <SheetCloseButton onClose={() => setOpen(false)} />
+        </div>
+      }
+    >
+      <SheetScroller>
+        <h3 className="mt-1 mb-2 text-[13px] font-medium tracking-wide text-muted-foreground uppercase dark:text-white/55">
+          Couleur de l&apos;espace
+        </h3>
+        <div className="mb-4 flex items-center justify-between gap-2" role="radiogroup" aria-label="Couleur de l'espace">
+          {PRESET_HUES.map((h) => {
+            const choisi = hue === h;
+            return (
+              <button
+                key={h}
+                type="button"
+                role="radio"
+                aria-checked={choisi}
+                aria-label={`Teinte ${h}`}
+                onClick={() => setSpaceHue(space.id, h)}
+                /* La sélection est un bord blanc plus un anneau : sur huit
+                   pastilles rondes, un simple grossissement ne se voyait pas. */
+                className={cn(
+                  "size-[34px] shrink-0 rounded-full transition-transform active:scale-90 active:duration-0",
+                  choisi && "border-2 border-white ring-2 ring-white/25",
+                )}
+                style={{ background: themeFromHue(h).gradient }}
+              />
+            );
+          })}
+        </div>
+
+        <SheetGroup>
+          <SheetRow onClick={toggleDark} checked={dark}>
+            <SheetTile tint="bg-indigo-500">
+              <Moon />
+            </SheetTile>
+            <span className="min-w-0 flex-1 text-[15px]">Thème sombre</span>
+            <Switch on={dark} />
+          </SheetRow>
+          <li className="group/row">
+            <Link
+              href="/comptes"
+              onClick={() => setOpen(false)}
+              className="flex w-full items-center gap-3 pl-4 text-left transition-colors active:bg-muted"
+            >
+              <span className="flex min-h-[50px] min-w-0 flex-1 items-center gap-3 py-1.5 pr-4">
+                <SheetTile tint="bg-neutral-500">
+                  <UserRound />
+                </SheetTile>
+                <span className="min-w-0 flex-1 text-[15px]">Comptes et signatures</span>
+                <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+              </span>
+            </Link>
+          </li>
+        </SheetGroup>
 
         {/* Le compte, tout en bas comme dans Réglages : ce qu'on vient y
             chercher est rare, et une sortie ne se met pas sous le pouce. */}
@@ -279,8 +273,8 @@ function MenuBody({
         <div className="mt-4">
           <InstallHint />
         </div>
-      </div>
-    </>
+      </SheetScroller>
+    </BottomSheet>
   );
 }
 
@@ -294,7 +288,7 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="mt-4 first:mt-1">
+    <section className="mt-4">
       <div className="mb-1.5 flex items-center justify-between px-4">
         <h3 className="text-[13px] font-medium tracking-wide text-muted-foreground uppercase dark:text-white/55">
           {title}
@@ -303,58 +297,6 @@ function Section({
       </div>
       {children}
     </section>
-  );
-}
-
-/** The inset grouped card of iOS lists. */
-function Group({ children }: { children: React.ReactNode }) {
-  return (
-    <ul
-      /* White on #f2f2f7 is a 13-in-255 difference — in the dark the card's
-         own black against #26262a reads fine (a much bigger relative step),
-         but in the light this edge all but disappears, and the least distinct
-         spot is the top: the first row's own accent tint (a pale mix toward
-         white) lands within a few units of both neighbouring colours. A
-         hairline ring, not a bigger colour gap, gives the group a crisp edge
-         regardless of which folder happens to sit at the top. */
-      className="overflow-hidden rounded-2xl bg-white shadow-[0_0_0_1px_rgba(0,0,0,0.06)] dark:bg-[#26262a] dark:shadow-none"
-    >
-      {children}
-    </ul>
-  );
-}
-
-function Row({
-  active,
-  checked,
-  onClick,
-  children,
-}: {
-  active?: boolean;
-  /** Makes the row a switch: the drawing inside is then decoration only. */
-  checked?: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <li className="group/row">
-      <button
-        type="button"
-        onClick={onClick}
-        role={checked === undefined ? undefined : "switch"}
-        aria-checked={checked}
-        aria-current={active ? "page" : undefined}
-        className={cn(
-          "flex w-full items-center gap-3 pl-4 text-left transition-colors active:bg-muted",
-          active &&
-            "bg-[color-mix(in_oklch,var(--space-accent)_9%,transparent)]",
-        )}
-      >
-        <span className="flex min-h-12 min-w-0 flex-1 items-center gap-3 border-b border-black/[0.07] py-1.5 pr-4 group-last/row:border-0 dark:border-white/[0.09]">
-          {children}
-        </span>
-      </button>
-    </li>
   );
 }
 
@@ -372,39 +314,13 @@ function FolderRow({
   const count = useMail((s) => selectUnreadCount(s, s.spaceId, id));
   const { icon: Icon, tint } = FOLDER_TILES[id];
   return (
-    <Row active={active} onClick={onClick}>
-      <Tile tint={tint}>
+    <SheetRow active={active} onClick={onClick}>
+      <SheetTile tint={tint}>
         <Icon />
-      </Tile>
-      <span
-        className={cn(
-          "min-w-0 flex-1 truncate text-[15px]",
-          active && "font-medium",
-        )}
-      >
-        {name}
-      </span>
-      {count > 0 && (
-        <span className="text-[15px] text-muted-foreground tabular-nums">
-          {count}
-        </span>
-      )}
-    </Row>
-  );
-}
-
-/** The coloured square that iOS puts before a row. */
-function Tile({ tint, children }: { tint: string; children: React.ReactNode }) {
-  return (
-    <span
-      className={cn(
-        "flex size-7 shrink-0 items-center justify-center rounded-[7px] text-white [&_svg]:size-4",
-        tint,
-      )}
-      aria-hidden
-    >
-      {children}
-    </span>
+      </SheetTile>
+      <span className={cn("min-w-0 flex-1 truncate text-[15px]", active && "font-medium")}>{name}</span>
+      {count > 0 && <span className="text-[15px] text-muted-foreground tabular-nums">{count}</span>}
+    </SheetRow>
   );
 }
 

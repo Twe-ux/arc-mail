@@ -1,39 +1,71 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { Archive, ArrowLeft, ArrowUp, Forward, Mail, MailOpen, Reply, ReplyAll, Star, Trash2 } from "lucide-react";
+import {
+  Archive,
+  ArrowLeft,
+  Clock,
+  Folder,
+  Forward,
+  Mail,
+  MailOpen,
+  MoreHorizontal,
+  Paperclip,
+  Reply,
+  ReplyAll,
+  Star,
+  Trash2,
+  type LucideIcon,
+} from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { formatFullDate } from "@/lib/format";
-import { replyRecipients, selectSelectedThread, useMail } from "@/lib/store";
-import type { Contact, Message, Thread } from "@/lib/types";
+import { replyRecipients, selectFolder, useMail, useSpace, useVisibleThreads } from "@/lib/store";
+import type { Contact, FolderId } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { AttachmentRow } from "./attachment";
-import { ContactAvatar } from "./contact-avatar";
-import { LabelChip } from "./label-chip";
-import { MessageBody } from "./message-body";
+import { ActionBar, Pill, PillCase, PillPrimary } from "./action-pill";
+import { BottomSheet, SheetGroup, SheetRow, SheetScroller, SheetTile } from "./bottom-sheet";
+import { MessageCard } from "./message-card";
+import { MobileReply, ReplyBox } from "./thread-reply";
+
+/** Où l'on range depuis « Déplacer vers » : quatre destinations, pas sept. */
+const DESTINATIONS: { id: FolderId; name: string; icon: LucideIcon; tint: string }[] = [
+  { id: "starred", name: "Favoris", icon: Star, tint: "bg-amber-400" },
+  { id: "snoozed", name: "En pause", icon: Clock, tint: "bg-purple-500" },
+  { id: "archive", name: "Archive", icon: Archive, tint: "bg-teal-500" },
+  { id: "trash", name: "Corbeille", icon: Trash2, tint: "bg-red-500" },
+];
 
 export function ThreadView({ className }: { className?: string }) {
-  const thread = useMail(selectSelectedThread);
+  const thread = useMail((s) => s.threads.find((t) => t.id === s.selectedThreadId) ?? null);
+  const folder = useMail(selectFolder);
+  const space = useSpace();
+  const visibles = useVisibleThreads();
   const splitView = useMail((s) => s.splitView);
   const selectThread = useMail((s) => s.selectThread);
   const toggleStar = useMail((s) => s.toggleStar);
   const toggleUnread = useMail((s) => s.toggleUnread);
   const moveThread = useMail((s) => s.moveThread);
   const openCompose = useMail((s) => s.openCompose);
+  const setPreview = useMail((s) => s.setPreview);
 
-  /* Who the answer goes to. `null` means everyone on the last message — what
-     the store does on its own; a list means one has narrowed it, by the
-     « Répondre » action or by tapping a message's sender. The counter is how
-     the field learns it should take focus: the same target twice in a row is
-     still a request to type.
-     The aim carries the thread it was taken on, so opening another
-     conversation drops it during the render rather than in an effect that
-     would paint the wrong recipients for a frame. */
+  /* À qui va la réponse. `null` = tout le monde sur le dernier message, ce que
+     le store fait de lui-même ; une liste veut dire qu'on a restreint, par
+     « Répondre » ou en visant l'en-tête d'un message. Le compteur est ce qui
+     dit au champ de prendre le focus : la même cible deux fois de suite reste
+     une demande d'écrire.
+     La visée porte le fil sur lequel elle a été prise, pour qu'ouvrir une
+     autre conversation la laisse tomber pendant le rendu plutôt que dans un
+     effet qui peindrait les mauvais destinataires pendant une frame. */
   const [aim, setAim] = useState<{ threadId: string; to: Contact[] | null; tick: number } | null>(null);
+  /* Une feuille à la fois, et une seule barre en bas : répondre remplace la
+     pill, il ne se pose pas dessus. */
+  const [sheet, setSheet] = useState<null | "move" | "more">(null);
+  const [replyOpen, setReplyOpen] = useState(false);
+
   const threadId = thread?.id;
   const aimed = aim?.threadId === threadId ? aim : null;
   const replyTo = aimed?.to ?? null;
@@ -46,6 +78,8 @@ export function ThreadView({ className }: { className?: string }) {
       to,
       tick: (current?.threadId === threadId ? current.tick : 0) + 1,
     }));
+    setSheet(null);
+    setReplyOpen(true);
   };
 
   if (!thread) {
@@ -74,9 +108,23 @@ export function ThreadView({ className }: { className?: string }) {
   const everyone = replyRecipients(thread);
   const sender = thread.messages[thread.messages.length - 1].from;
   const targets = replyTo ?? everyone;
-  /* « Répondre » is the sender alone; « Répondre à tous » only earns a place
-     when there is actually someone else on the message. */
+  /* « Répondre à tous » ne gagne sa place que s'il y a vraiment quelqu'un
+     d'autre sur le message. */
   const canReplyAll = everyone.length > 1;
+  /* La première pièce jointe du fil : ce que « Pièces jointes » ouvre. */
+  const premierePiece = thread.messages.flatMap((m) => m.attachments ?? [])[0];
+
+  /* Ranger, c'est **revenir à la liste** : le fil qu'on vient de déplacer n'est
+     plus dans le dossier qu'on regardait, et le laisser ouvert donnerait un
+     message sans place. Le toast est la seule trace de ce qui s'est passé. */
+  const ranger = (to: FolderId, nom: string) => {
+    moveThread(thread.id, to);
+    selectThread(null);
+    setSheet(null);
+    toast(`Déplacé vers ${nom}`);
+  };
+
+  const position = visibles.findIndex((t) => t.id === thread.id);
 
   const actions = (
     <>
@@ -108,29 +156,41 @@ export function ThreadView({ className }: { className?: string }) {
 
   return (
     <article className={cn("min-h-0 min-w-0 flex-1 flex-col", className)}>
-      {/* Mobile: back, actions and subject on the tinted backdrop */}
-      {/* 36px buttons drawn, 44px to the finger: the hit area grows, the row does not. */}
-      <div className="shrink-0 px-2 pt-0.5 pb-2 md:hidden [&_button]:relative [&_button]:size-9 [&_button]:after:absolute [&_button]:after:-inset-1 [&_svg]:size-5">
-        {/* The subject rides beside the arrow it came from; the actions get their
-            own line under it, still right-aligned, so neither crowds the other. */}
-        {/* Top-aligned, with the title nudged onto the arrow's optical centre:
-            centring a two-line subject would leave the arrow floating mid-title. */}
-        <div className="flex items-start gap-0.5">
-          <Button variant="ghost" size="icon-xs" onClick={() => selectThread(null)} aria-label="Retour" className="shrink-0">
-            <ArrowLeft />
-          </Button>
-          <h1 className="line-clamp-2 min-w-0 flex-1 pt-[7px] text-[19px] leading-tight font-bold tracking-tight">
-            {thread.subject}
-          </h1>
+      {/* Téléphone : trois éléments et rien de plus. Les six petites cibles qui
+          vivaient ici sont descendues dans la pill, où le pouce les atteint ;
+          ce qui reste en haut dit **où l'on est**, ce qu'un titre répété sous
+          l'objet ne disait pas. */}
+      <div className="flex shrink-0 items-center gap-1 px-3 pt-0.5 pb-2.5 md:hidden">
+        <button
+          type="button"
+          onClick={() => selectThread(null)}
+          aria-label="Retour"
+          className="-ml-2 grid size-11 shrink-0 place-items-center rounded-full text-foreground transition-transform active:scale-95 active:duration-0"
+        >
+          <ArrowLeft className="size-6" strokeWidth={1.75} />
+        </button>
+        <div className="min-w-0 flex-1 leading-tight">
+          <p className="truncate text-[12px] text-muted-foreground">
+            {folder.name} · {space.name}
+          </p>
+          {position >= 0 && (
+            <p className="text-[13px] text-muted-foreground tabular-nums">
+              {position + 1} sur {visibles.length}
+            </p>
+          )}
         </div>
-        <div className="mt-0.5 flex items-center gap-1.5 pl-3">
-          <div className="flex min-w-0 flex-1 gap-1.5 overflow-hidden">
-            {thread.labels.map((label) => (
-              <LabelChip key={label} label={label} />
-            ))}
-          </div>
-          <div className="flex shrink-0 items-center">{actions}</div>
-        </div>
+        <button
+          type="button"
+          onClick={() => toggleStar(thread.id)}
+          aria-label={thread.starred ? "Retirer des favoris" : "Ajouter aux favoris"}
+          aria-pressed={thread.starred}
+          className="grid size-11 shrink-0 place-items-center rounded-full transition-transform active:scale-95 active:duration-0"
+        >
+          <Star
+            className={cn("size-5", thread.starred ? "fill-amber-400 text-amber-400" : "text-muted-foreground")}
+            strokeWidth={1.75}
+          />
+        </button>
       </div>
 
       {/* Desktop header */}
@@ -148,16 +208,15 @@ export function ThreadView({ className }: { className?: string }) {
         {actions}
       </header>
 
-      {/* Messages: a floating card on mobile, plain column on desktop */}
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-t-[28px] bg-card shadow-[0_-8px_30px_rgb(0_0_0/0.06)] ring-1 ring-black/[0.05] md:rounded-none md:bg-transparent md:shadow-none md:ring-0 dark:ring-white/12">
+      {/* Le message : une carte flottante sur téléphone, une colonne sur bureau. */}
+      <div className="list-card flex min-h-0 flex-1 flex-col overflow-hidden rounded-t-[28px] bg-card md:rounded-none md:bg-transparent">
         <ScrollArea className="min-h-0 flex-1">
-          <div className="mx-auto flex w-full max-w-3xl flex-col gap-3 p-4 md:gap-4 md:p-6">
-            <div className="hidden flex-wrap items-center gap-2 md:flex">
-              <h1 className="text-xl font-semibold tracking-tight">{thread.subject}</h1>
-              {thread.labels.map((label) => (
-                <LabelChip key={label} label={label} />
-              ))}
-            </div>
+          <div className="mx-auto flex w-full max-w-3xl flex-col md:gap-4 md:p-6">
+            {/* L'objet, à bord perdu comme le reste : sur téléphone il est le
+                titre de la carte, pas celui d'une sous-carte. */}
+            <h1 className="px-5 pt-[22px] text-[22px] leading-[1.25] font-bold tracking-[-0.015em] text-pretty md:px-0 md:pt-0 md:text-xl md:font-semibold md:tracking-tight">
+              {thread.subject}
+            </h1>
             {thread.messages.map((m) => (
               <MessageCard key={m.id} message={m} onReplyTo={aimReply} />
             ))}
@@ -170,17 +229,133 @@ export function ThreadView({ className }: { className?: string }) {
               focusTick={focusTick}
               className="hidden md:block"
             />
+            {/* De quoi passer sous la barre du bas sans que le dernier
+                paragraphe s'y cache. */}
+            <div aria-hidden className="h-4 md:hidden" />
           </div>
         </ScrollArea>
-        <MobileReply
-          key={`m-${thread.id}`}
-          thread={thread}
-          to={targets}
-          everyone={everyone}
-          onReplyAll={() => aimReply(null)}
-          focusTick={focusTick}
-        />
+
+        {replyOpen ? (
+          <MobileReply
+            key={`m-${thread.id}`}
+            thread={thread}
+            to={targets}
+            everyone={everyone}
+            onReplyAll={() => aimReply(null)}
+            onClose={() => setReplyOpen(false)}
+          />
+        ) : (
+          <ActionBar inset className="md:hidden">
+            <Pill className="w-full justify-between">
+              <PillPrimary label="Répondre" onClick={() => aimReply(canReplyAll ? null : [sender])}>
+                <Reply strokeWidth={2} />
+                Répondre
+              </PillPrimary>
+              <PillCase
+                label="Archiver"
+                onClick={() => ranger("archive", "Archive")}
+              >
+                <Archive className="size-6" strokeWidth={1.75} />
+              </PillCase>
+              <PillCase
+                label={inTrash ? "Restaurer" : "Supprimer"}
+                danger={!inTrash}
+                onClick={() => (inTrash ? ranger("inbox", "Réception") : ranger("trash", "Corbeille"))}
+              >
+                <Trash2 className="size-6" strokeWidth={1.75} />
+              </PillCase>
+              <PillCase label="Déplacer vers" active={sheet === "move"} onClick={() => setSheet("move")}>
+                <Folder className="size-6" strokeWidth={1.75} />
+              </PillCase>
+              <PillCase label="Plus" active={sheet === "more"} onClick={() => setSheet("more")}>
+                <MoreHorizontal className="size-6" strokeWidth={1.75} />
+              </PillCase>
+            </Pill>
+          </ActionBar>
+        )}
       </div>
+
+      <BottomSheet
+        open={sheet === "move"}
+        onOpenChange={(o) => setSheet(o ? "move" : null)}
+        title="Déplacer vers"
+        description="Choisir le dossier où ranger cette conversation"
+      >
+        <SheetScroller>
+          <SheetGroup>
+            {DESTINATIONS.map(({ id, name, icon: Icon, tint }) => (
+              <SheetRow key={id} active={thread.folder === id} onClick={() => ranger(id, name)}>
+                <SheetTile tint={tint}>
+                  <Icon />
+                </SheetTile>
+                <span className="min-w-0 flex-1 truncate text-[15px]">{name}</span>
+              </SheetRow>
+            ))}
+          </SheetGroup>
+        </SheetScroller>
+      </BottomSheet>
+
+      <BottomSheet
+        open={sheet === "more"}
+        onOpenChange={(o) => setSheet(o ? "more" : null)}
+        title="Plus"
+        description="Les autres actions sur cette conversation"
+      >
+        <SheetScroller>
+          <SheetGroup>
+            {canReplyAll && (
+              <SheetRow onClick={() => aimReply(null)}>
+                <SheetTile tint="bg-blue-500">
+                  <ReplyAll />
+                </SheetTile>
+                <span className="min-w-0 flex-1 text-[15px]">Répondre à tous</span>
+              </SheetRow>
+            )}
+            <SheetRow
+              onClick={() => {
+                setSheet(null);
+                forward();
+              }}
+            >
+              <SheetTile tint="bg-indigo-500">
+                <Forward />
+              </SheetTile>
+              <span className="min-w-0 flex-1 text-[15px]">Transférer</span>
+            </SheetRow>
+            <SheetRow
+              onClick={() => {
+                toggleUnread(thread.id);
+                setSheet(null);
+                toast(thread.unread ? "Marqué comme lu" : "Marqué comme non lu");
+              }}
+            >
+              <SheetTile tint="bg-sky-500">{thread.unread ? <MailOpen /> : <Mail />}</SheetTile>
+              <span className="min-w-0 flex-1 text-[15px]">
+                {thread.unread ? "Marquer comme lu" : "Marquer comme non lu"}
+              </span>
+            </SheetRow>
+            <SheetRow onClick={() => ranger("snoozed", "En pause")}>
+              <SheetTile tint="bg-purple-500">
+                <Clock />
+              </SheetTile>
+              <span className="min-w-0 flex-1 text-[15px]">Mettre en pause</span>
+            </SheetRow>
+            {premierePiece && (
+              <SheetRow
+                onClick={() => {
+                  setSheet(null);
+                  setPreview(premierePiece.id);
+                }}
+              >
+                <SheetTile tint="bg-teal-500">
+                  <Paperclip />
+                </SheetTile>
+                <span className="min-w-0 flex-1 truncate text-[15px]">Pièces jointes</span>
+              </SheetRow>
+            )}
+          </SheetGroup>
+        </SheetScroller>
+      </BottomSheet>
     </article>
   );
 }
@@ -206,222 +381,4 @@ function Action({
       <TooltipContent>{label}</TooltipContent>
     </Tooltip>
   );
-}
-
-function MessageCard({
-  message,
-  onReplyTo,
-}: {
-  message: Message;
-  onReplyTo: (to: Contact[]) => void;
-}) {
-  return (
-    <div className="rounded-2xl bg-muted/50 p-4 dark:bg-white/[0.07]">
-      {/* The header is the way to answer this person alone: tapping it aims
-          the field at the sender, which is the gesture one expects from a
-          message in a thread of five people. */}
-      <button
-        type="button"
-        onClick={() => onReplyTo([message.from])}
-        aria-label={`Répondre à ${message.from.name} seulement`}
-        className="flex w-full items-start gap-3 rounded-xl text-left outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
-      >
-        <ContactAvatar contact={message.from} />
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-baseline gap-x-2">
-            <span className="text-[15px] font-semibold md:text-sm">{message.from.name}</span>
-            <span className="truncate text-xs text-muted-foreground">{message.from.email}</span>
-            <time dateTime={message.date} suppressHydrationWarning className="ml-auto text-xs text-muted-foreground">
-              {formatFullDate(message.date)}
-            </time>
-          </div>
-          <p className="truncate text-xs text-muted-foreground">
-            À : {message.to.map((c) => c.name).join(", ")}
-          </p>
-        </div>
-      </button>
-      <MessageBody
-        message={message}
-        className="mt-4 block text-[15px] leading-relaxed whitespace-pre-wrap md:text-sm"
-      />
-      {message.attachments && message.attachments.length > 0 && (
-        <AttachmentRow attachments={message.attachments} />
-      )}
-    </div>
-  );
-}
-
-/**
- * Who is about to receive the answer, above the field. It is the only place
- * that says it before sending, so it shows the names and the way back to
- * everyone — narrowing is one tap, un-narrowing must be one too.
- */
-function ReplyTargets({
-  to,
-  everyone,
-  onReplyAll,
-  className,
-}: {
-  to: Contact[];
-  everyone: Contact[];
-  onReplyAll: () => void;
-  className?: string;
-}) {
-  const narrowed = to.length < everyone.length;
-  /* A conversation with one other person needs no list: the placeholder
-     already names them, and a chip would be a label for a label. */
-  if (everyone.length <= 1) return null;
-  return (
-    <div className={cn("flex flex-wrap items-center gap-1.5 text-xs", className)}>
-      <span className="text-muted-foreground">À :</span>
-      {to.map((c) => (
-        <span
-          key={c.email}
-          title={c.email}
-          className="rounded-full bg-[color-mix(in_oklch,var(--space-accent)_14%,transparent)] px-2 py-0.5 font-medium"
-        >
-          {c.name}
-        </span>
-      ))}
-      {narrowed && (
-        <button
-          type="button"
-          onClick={onReplyAll}
-          className="relative rounded px-1 py-0.5 font-medium text-[var(--space-ink)] after:absolute after:-inset-1.5 active:opacity-60"
-        >
-          Répondre à tous
-        </button>
-      )}
-    </div>
-  );
-}
-
-/** Desktop reply, inline at the end of the thread. */
-function ReplyBox({
-  thread,
-  to,
-  everyone,
-  onReplyAll,
-  focusTick,
-  className,
-}: {
-  thread: Thread;
-  to: Contact[];
-  everyone: Contact[];
-  onReplyAll: () => void;
-  focusTick: number;
-  className?: string;
-}) {
-  const [body, setBody] = useState("");
-  const reply = useMail((s) => s.reply);
-  const field = useRef<HTMLTextAreaElement>(null);
-
-  /* Aiming the answer is also asking to write it: the field takes focus and
-     comes into view. Not on the first render, where nothing was aimed. */
-  useEffect(() => {
-    if (focusTick === 0) return;
-    field.current?.focus();
-    field.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
-  }, [focusTick]);
-
-  const send = () => {
-    const text = body.trim();
-    if (!text) return;
-    setBody("");
-    /* The box empties at once; a refusal from the provider puts the text back. */
-    void reply(thread.id, text, to).then((ok) => {
-      if (!ok) setBody((current) => current || text);
-    });
-  };
-
-  return (
-    <div className={cn("rounded-2xl border border-border/60 bg-card p-3", className)}>
-      <ReplyTargets to={to} everyone={everyone} onReplyAll={onReplyAll} className="px-1 pb-2" />
-      <Textarea
-        ref={field}
-        value={body}
-        onChange={(e) => setBody(e.target.value)}
-        onKeyDown={(e) => {
-          if ((e.metaKey || e.ctrlKey) && e.key === "Enter") send();
-        }}
-        placeholder={replyPlaceholder(to)}
-        className="min-h-20 resize-none border-0 bg-transparent p-1 shadow-none focus-visible:ring-0 dark:bg-transparent"
-      />
-      <div className="mt-2 flex items-center justify-between">
-        <span className="text-xs text-muted-foreground">⌘⏎ pour envoyer</span>
-        <Button size="sm" onClick={send} disabled={!body.trim()}>
-          <Reply /> Répondre
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-/** Mobile reply, a messaging-style composer pinned above the home indicator. */
-function MobileReply({
-  thread,
-  to,
-  everyone,
-  onReplyAll,
-  focusTick,
-}: {
-  thread: Thread;
-  to: Contact[];
-  everyone: Contact[];
-  onReplyAll: () => void;
-  focusTick: number;
-}) {
-  const [body, setBody] = useState("");
-  const reply = useMail((s) => s.reply);
-  const field = useRef<HTMLTextAreaElement>(null);
-
-  useEffect(() => {
-    if (focusTick === 0) return;
-    field.current?.focus();
-  }, [focusTick]);
-
-  const send = () => {
-    const text = body.trim();
-    if (!text) return;
-    setBody("");
-    void reply(thread.id, text, to).then((ok) => {
-      if (!ok) setBody((current) => current || text);
-    });
-  };
-
-  return (
-    <div className="shrink-0 border-t border-black/[0.06] bg-card px-3 pt-2 pb-[max(0.75rem,calc(env(safe-area-inset-bottom)-10px))] md:hidden dark:border-white/[0.10]">
-      <ReplyTargets to={to} everyone={everyone} onReplyAll={onReplyAll} className="px-1 pb-1.5" />
-      <div className="flex items-end gap-2 rounded-[22px] bg-muted/60 py-1.5 pr-1.5 pl-4 dark:bg-white/[0.07]">
-        <textarea
-          ref={field}
-          rows={1}
-          value={body}
-          onChange={(e) => setBody(e.target.value)}
-          placeholder={replyPlaceholder(to)}
-          className="max-h-32 min-h-8 flex-1 resize-none bg-transparent py-1.5 text-base leading-5 outline-none placeholder:text-muted-foreground"
-        />
-        <button
-          type="button"
-          onClick={send}
-          disabled={!body.trim()}
-          aria-label="Envoyer"
-          /* 32px drawn inside the bubble, 44px to the finger. */
-          className="relative flex size-8 shrink-0 items-center justify-center rounded-full bg-foreground text-background transition-[opacity,transform] ease-out after:absolute after:-inset-1.5 active:scale-95 active:duration-0 disabled:opacity-30"
-        >
-          <ArrowUp className="size-4" strokeWidth={2.5} />
-        </button>
-      </div>
-    </div>
-  );
-}
-
-/**
- * The field says who will actually get the reply — the chips above it are the
- * full truth, this is the short form.
- */
-function replyPlaceholder(to: Contact[]): string {
-  const names = to.map((c) => c.name.split(" ")[0]);
-  const shown = names.length > 3 ? `${names.slice(0, 3).join(", ")}…` : names.join(", ");
-  return `Répondre à ${shown}…`;
 }

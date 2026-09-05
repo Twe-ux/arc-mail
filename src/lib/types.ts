@@ -131,4 +131,6 @@ export type ComposeDraft = {
   bcc: string[];
   subject: string;
   body: string;
+  /** Les fichiers joints, déjà lus et encodés — voir `OutgoingAttachment`. */
+  attachments?: import("./mail/provider").OutgoingAttachment[];
 };

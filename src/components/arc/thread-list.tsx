@@ -1,13 +1,13 @@
 "use client";
 
-import { ArrowLeft, CloudOff, Columns2, Inbox, PanelLeftOpen, RefreshCw, Star, Users } from "lucide-react";
-import { Fragment, useEffect, useRef } from "react";
+import { ArrowLeft, CloudOff, Columns2, PanelLeftOpen, RefreshCw } from "lucide-react";
+import { Fragment } from "react";
 
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { usePullToRefresh } from "@/hooks/use-pull-to-refresh";
-import { formatShortDate } from "@/lib/format";
+import { useSwipeSpace } from "@/hooks/use-swipe-space";
 import {
   LOT,
   selectFolder,
@@ -16,13 +16,11 @@ import {
   useMail,
   useSpace,
   useVisibleThreads,
-  type Correspondant,
 } from "@/lib/store";
-import type { Thread } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { ContactAvatar } from "./contact-avatar";
-import { LabelChip } from "./label-chip";
-import { SpaceIcon } from "./space-icon";
+import { GroupByToggle, ListHeader, Segmented } from "./list-header";
+import { Attente, RangeeCorrespondant, Sentinelle, ThreadRow, Vide } from "./thread-row";
 
 export function ThreadList({ className }: { className?: string }) {
   const folder = useMail(selectFolder);
@@ -33,7 +31,6 @@ export function ThreadList({ className }: { className?: string }) {
   const prefetchThread = useMail((s) => s.prefetchThread);
   const prefetchThreads = useMail((s) => s.prefetchThreads);
   const groupBy = useMail((s) => s.groupBy);
-  const setGroupBy = useMail((s) => s.setGroupBy);
   const correspondent = useMail((s) => s.correspondent);
   const setCorrespondent = useMail((s) => s.setCorrespondent);
   const correspondants = useCorrespondants();
@@ -45,6 +42,8 @@ export function ThreadList({ className }: { className?: string }) {
   const visibles = ouvert ? ouvert.threads : threads;
   const openDraft = useMail((s) => s.openDraft);
   const toggleStar = useMail((s) => s.toggleStar);
+  const moveThread = useMail((s) => s.moveThread);
+  const cycleSpace = useMail((s) => s.cycleSpace);
   const unreadOnly = useMail((s) => s.unreadOnly);
   const splitView = useMail((s) => s.splitView);
   const toggleSplit = useMail((s) => s.toggleSplit);
@@ -53,9 +52,6 @@ export function ThreadList({ className }: { className?: string }) {
   const toggleSidebarCollapsed = useMail((s) => s.toggleSidebarCollapsed);
   const error = useMail((s) => s.error);
   const loadSpace = useMail((s) => s.loadSpace);
-
-  const unread = threads.filter((t) => t.unread).length;
-  const plural = (n: number, word: string) => `${n} ${word}${n > 1 ? "s" : ""}`;
 
   /* **Tirer relit le courrier, ça ne recharge plus l'app.** C'était un vrai
      `reload` du document, faute de fournisseur : le geste rendait la seule
@@ -76,34 +72,20 @@ export function ThreadList({ className }: { className?: string }) {
     void versionFraiche();
   });
 
+  /* Le balayage d'espace déplace la colonne entière — titre, tuiles et carte
+     ensemble, sans quoi la liste glisserait sous un titre resté en place — mais
+     il ne **part** que de l'en-tête : les rangées possèdent l'horizontale sur
+     toute la hauteur de la carte, et sans cette réserve le geste ne se
+     déclenchait jamais (mesuré). */
+  const colonneRef = useSwipeSpace(cycleSpace, "li.group");
+
   return (
-    <section className={cn("min-h-0 min-w-0 flex-col", className)} aria-label={folder.name}>
-      {/* Mobile: large title on the tinted backdrop, iOS style */}
-      <div className="shrink-0 px-5 pt-1 pb-3 md:hidden">
-        <h1 className="truncate text-[30px] leading-tight font-bold tracking-tight">{folder.name}</h1>
-        <div className="mt-1.5 flex items-center justify-between gap-3">
-          <p className="flex min-w-0 items-center gap-1.5 text-[13px] text-muted-foreground">
-            <SpaceIcon space={space} size="xs" />
-            <span className="truncate">
-              {space.name} · {plural(threads.length, "conversation")}
-              {unread > 0 && ` · ${unread} non lue${unread > 1 ? "s" : ""}`}
-            </span>
-          </p>
-          <div className="flex shrink-0 items-center gap-1">
-            <Segmented tone="glass" />
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              onClick={() => setGroupBy(groupBy === "fil" ? "correspondant" : "fil")}
-              aria-pressed={groupBy === "correspondant"}
-              aria-label="Ranger par correspondant"
-              className={cn("rounded-full", groupBy === "correspondant" && "bg-foreground/10")}
-            >
-              <Users />
-            </Button>
-          </div>
-        </div>
-      </div>
+    <section
+      ref={colonneRef as React.RefObject<HTMLElement>}
+      className={cn("min-h-0 min-w-0 flex-col", className)}
+      aria-label={folder.name}
+    >
+      <ListHeader />
 
       {/* Desktop header */}
       <header className="hidden h-12 shrink-0 items-center gap-2 border-b px-4 md:flex">
@@ -123,22 +105,7 @@ export function ThreadList({ className }: { className?: string }) {
         <span className="text-xs text-muted-foreground tabular-nums">{threads.length}</span>
         <div className="ml-auto flex items-center gap-1">
           <Segmented tone="muted" />
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon-xs"
-                onClick={() => setGroupBy(groupBy === "fil" ? "correspondant" : "fil")}
-                aria-pressed={groupBy === "correspondant"}
-                aria-label="Ranger par correspondant"
-              >
-                <Users />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              {groupBy === "correspondant" ? "Ranger par conversation" : "Ranger par correspondant"}
-            </TooltipContent>
-          </Tooltip>
+          <GroupByToggle />
           <Tooltip>
             <TooltipTrigger asChild>
               <Button variant="ghost" size="icon-xs" onClick={toggleSplit} aria-pressed={splitView} aria-label="Vue partagée">
@@ -172,12 +139,7 @@ export function ThreadList({ className }: { className?: string }) {
           pas entrer dans le défilant ni dans le tirage. */}
       {ouvert && (
         <div className="mx-2 mb-2 flex shrink-0 items-center gap-2 rounded-xl bg-card/70 py-1.5 pr-3 pl-1.5 md:mx-3 md:mt-2 md:bg-muted/60">
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={() => setCorrespondent(null)}
-            aria-label="Revenir aux correspondants"
-          >
+          <Button variant="ghost" size="icon-sm" onClick={() => setCorrespondent(null)} aria-label="Revenir aux correspondants">
             <ArrowLeft />
           </Button>
           <ContactAvatar contact={{ name: ouvert.name, email: ouvert.email }} className="size-6" />
@@ -185,9 +147,7 @@ export function ThreadList({ className }: { className?: string }) {
             <span className="block truncate text-[13px] font-semibold">{ouvert.name}</span>
             <span className="block truncate text-[11px] text-muted-foreground">{ouvert.email}</span>
           </span>
-          <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
-            {ouvert.threads.length}
-          </span>
+          <span className="shrink-0 text-xs text-muted-foreground tabular-nums">{ouvert.threads.length}</span>
         </div>
       )}
 
@@ -212,323 +172,83 @@ export function ThreadList({ className }: { className?: string }) {
               className="size-4 text-muted-foreground transition-colors group-data-[armed=true]/pull:text-[var(--space-ink)] group-data-[refreshing]/pull:animate-spin group-data-[refreshing]/pull:text-[var(--space-ink)] group-data-[refreshing]/pull:[--pull-progress:0]"
               /* Turned by the pull itself rather than by a render per frame:
                  the hook only publishes how far along the gesture is. */
-              style={{
-                rotate:
-                  "calc(var(--pull-progress, 0) * 180deg)",
-              }}
+              style={{ rotate: "calc(var(--pull-progress, 0) * 180deg)" }}
             />
           </span>
         </div>
         <div
           ref={cardRef}
-          className="h-full overflow-hidden rounded-t-[28px] bg-card shadow-[0_-8px_30px_rgb(0_0_0/0.06)] ring-1 ring-black/[0.05] md:rounded-none md:bg-transparent md:shadow-none md:ring-0 dark:ring-white/12"
+          /* Le filet clair du haut est ce qui détache l'arrondi de la carte du
+             voile teinté : sans lui, le coin se perdait dans le dégradé et la
+             carte n'avait plus de bord. Plus vif en haut (là où la lumière
+             frappe le matériau) que sur les côtés, comme une vraie tranche. */
+          className="list-card h-full overflow-hidden rounded-t-[28px] bg-card md:rounded-none md:bg-transparent"
         >
-        <ScrollArea className="h-full">
-          {/* Vue par correspondant, premier niveau : les gens. Le second — leurs
-              fils — reprend la liste ordinaire, avec la personne en tête. */}
-          {groupBy === "correspondant" && !ouvert ? (
-            correspondants.length === 0 ? (
+          <ScrollArea className="h-full">
+            {/* Vue par correspondant, premier niveau : les gens. Le second — leurs
+                fils — reprend la liste ordinaire, avec la personne en tête. */}
+            {groupBy === "correspondant" && !ouvert ? (
+              correspondants.length === 0 ? (
+                loading ? (
+                  <Attente />
+                ) : (
+                  <Vide unreadOnly={unreadOnly} />
+                )
+              ) : (
+                <ul className="flex flex-col pt-2 max-md:pb-[calc(var(--nav-height)+0.5rem)] md:gap-0.5 md:p-2">
+                  {correspondants.map((c) => (
+                    <RangeeCorrespondant
+                      key={c.email}
+                      correspondant={c}
+                      accent={space.theme.accent}
+                      onSelect={() => setCorrespondent(c.email)}
+                    />
+                  ))}
+                </ul>
+              )
+            ) : visibles.length === 0 ? (
+              /* Une carte vide pendant une à deux secondes ne dit pas qu'on
+                 travaille : elle dit qu'il n'y a rien. « Rien ici » serait un
+                 mensonge pour la durée de la lecture, d'où ces rangées grises,
+                 qui ont la forme de ce qui arrive. */
               loading ? (
                 <Attente />
               ) : (
                 <Vide unreadOnly={unreadOnly} />
               )
             ) : (
+              /* The bar floats over the list rather than beside it, so the last
+                 rows need room to pass under it — see `--nav-height`. */
               <ul className="flex flex-col pt-2 max-md:pb-[calc(var(--nav-height)+0.5rem)] md:gap-0.5 md:p-2">
-                {correspondants.map((c) => (
-                  <RangeeCorrespondant
-                    key={c.email}
-                    correspondant={c}
-                    accent={space.theme.accent}
-                    onSelect={() => setCorrespondent(c.email)}
-                  />
+                {visibles.map((t, i) => (
+                  <Fragment key={t.id}>
+                    <ThreadRow
+                      thread={t}
+                      accent={space.theme.accent}
+                      active={t.id === selectedThreadId}
+                      onSelect={() => (t.folder === "drafts" ? openDraft(t.id) : selectThread(t.id))}
+                      onIntent={() => prefetchThread(t.id)}
+                      onStar={() => toggleStar(t.id)}
+                      onArchive={() => moveThread(t.id, "archive")}
+                      onDelete={() => moveThread(t.id, "trash")}
+                    />
+                    {/* Au bout de chaque lot, une balise invisible : quand elle
+                        entre dans l'écran, le lot suivant part se chercher. Le
+                        défilement continue de dérouler des messages déjà là. */}
+                    {i % LOT === LOT - 1 && i + 1 < visibles.length && (
+                      <Sentinelle
+                        onVisible={() => prefetchThreads(visibles.slice(i + 1, i + 1 + LOT).map((x) => x.id))}
+                      />
+                    )}
+                  </Fragment>
                 ))}
               </ul>
-            )
-          ) : visibles.length === 0 ? (
-            /* Une carte vide pendant une à deux secondes ne dit pas qu'on
-               travaille : elle dit qu'il n'y a rien. « Rien ici » serait un
-               mensonge pour la durée de la lecture, d'où ces rangées grises,
-               qui ont la forme de ce qui arrive. */
-            loading ? (
-              <Attente />
-            ) : (
-              <Vide unreadOnly={unreadOnly} />
-            )
-          ) : (
-            /* The bar floats over the list rather than beside it, so the last
-               rows need room to pass under it — see `--nav-height`. */
-            <ul className="flex flex-col pt-2 max-md:pb-[calc(var(--nav-height)+0.5rem)] md:gap-0.5 md:p-2">
-              {visibles.map((t, i) => (
-                <Fragment key={t.id}>
-                  <ThreadRow
-                    thread={t}
-                    accent={space.theme.accent}
-                    active={t.id === selectedThreadId}
-                    onSelect={() => (t.folder === "drafts" ? openDraft(t.id) : selectThread(t.id))}
-                    onIntent={() => prefetchThread(t.id)}
-                    onStar={() => toggleStar(t.id)}
-                  />
-                  {/* Au bout de chaque lot, une balise invisible : quand elle
-                      entre dans l'écran, le lot suivant part se chercher. Le
-                      défilement continue de dérouler des messages déjà là. */}
-                  {i % LOT === LOT - 1 && i + 1 < visibles.length && (
-                    <Sentinelle
-                      onVisible={() =>
-                        prefetchThreads(visibles.slice(i + 1, i + 1 + LOT).map((x) => x.id))
-                      }
-                    />
-                  )}
-                </Fragment>
-              ))}
-            </ul>
-          )}
-        </ScrollArea>
+            )}
+          </ScrollArea>
         </div>
       </div>
     </section>
   );
-}
-
-function Segmented({ tone }: { tone: "glass" | "muted" }) {
-  const unreadOnly = useMail((s) => s.unreadOnly);
-  const setUnreadOnly = useMail((s) => s.setUnreadOnly);
-  return (
-    /* A choice between two views of the same list, not two tabs with panels
-       of their own: a radio group is what a screen reader should announce. */
-    <div
-      role="radiogroup"
-      aria-label="Filtre"
-      className={cn("flex shrink-0 rounded-full p-0.5 text-xs", tone === "glass" ? "bg-foreground/[0.06]" : "bg-muted")}
-    >
-      <Tab tone={tone} active={!unreadOnly} onClick={() => setUnreadOnly(false)}>
-        Tous
-      </Tab>
-      <Tab tone={tone} active={unreadOnly} onClick={() => setUnreadOnly(true)}>
-        Non lus
-      </Tab>
-    </div>
-  );
-}
-
-function Tab({
-  tone,
-  active,
-  onClick,
-  children,
-}: {
-  tone: "glass" | "muted";
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      role="radio"
-      aria-checked={active}
-      onClick={onClick}
-      className={cn(
-        /* 32px tall on the phone (the rail makes 36, the title line gives the rest to the finger); compact on desktop. */
-        "rounded-full px-3 font-medium transition-colors",
-        tone === "glass" ? "min-h-8 py-1" : "py-1",
-        tone === "glass"
-          ? active
-            ? "bg-card text-foreground shadow-sm ring-1 ring-black/[0.04] dark:ring-white/[0.08]"
-            : "text-muted-foreground"
-          : active
-            ? "bg-background text-foreground shadow-xs"
-            : "text-muted-foreground hover:text-foreground",
-      )}
-    >
-      {children}
-    </button>
-  );
-}
-
-function ThreadRow({
-  thread,
-  accent,
-  active,
-  onSelect,
-  onIntent,
-  onStar,
-}: {
-  thread: Thread;
-  accent: string;
-  active: boolean;
-  onSelect: () => void;
-  /** Le doigt s'est posé : on peut déjà aller chercher le message. */
-  onIntent: () => void;
-  onStar: () => void;
-}) {
-  const minuteur = useRef<number | null>(null);
-  const quitte = () => {
-    if (minuteur.current !== null) window.clearTimeout(minuteur.current);
-    minuteur.current = null;
-  };
-  const survole = () => {
-    quitte();
-    minuteur.current = window.setTimeout(onIntent, 150);
-  };
-  /* Une rangée qui disparaît pendant qu'on la survole ne doit pas laisser son
-     minuteur derrière elle. */
-  useEffect(() => quitte, []);
-
-  const last = thread.messages[thread.messages.length - 1];
-  const isDraft = thread.folder === "drafts";
-  const outgoing = isDraft || thread.folder === "sent";
-  const who = outgoing
-    ? last.to.length
-      ? `À : ${last.to.map((c) => c.name).join(", ")}`
-      : "Aucun destinataire"
-    : last.from.name;
-
-  return (
-    /* A real button for the row and the star as its *sibling*: a control
-       inside a control is what every screen reader trips on. The star sits
-       over the row's right edge, in the room the row leaves it. */
-    <li className="group relative md:border-0">
-      <button
-        type="button"
-        aria-current={active ? "true" : undefined}
-        onClick={onSelect}
-        /* Avant le clic, et avant l'ouverture de la vue : les millisecondes du
-           geste, prises sur l'attente. */
-        onPointerDown={onIntent}
-        /* Au survol aussi, mais **après un temps d'arrêt** : un pointeur qui
-           traverse la liste passe sur vingt rangées en une seconde, et sans ce
-           délai il ferait descendre vingt messages. Cent cinquante
-           millisecondes suffisent à distinguer « je vise » de « je passe ». */
-        onPointerEnter={survole}
-        onPointerLeave={quitte}
-        className={cn(
-          "flex w-full cursor-pointer items-start gap-3 px-4 py-3 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring/50 md:rounded-lg md:px-3 md:py-2.5 md:pr-10",
-          active ? "bg-accent" : "active:bg-accent/60 md:hover:bg-accent/60",
-        )}
-      >
-        <ContactAvatar contact={last.from} className="mt-0.5 size-10 md:size-9" />
-        <div className="min-w-0 flex-1 border-b border-black/[0.06] pb-3 md:border-0 md:pb-0 dark:border-white/[0.10]">
-          <div className="flex items-center gap-2">
-            {thread.unread && (
-              <span className="size-2 shrink-0 rounded-full" style={{ backgroundColor: accent }}>
-                <span className="sr-only">Non lu</span>
-              </span>
-            )}
-            <span className={cn("truncate text-[15px] md:text-sm", thread.unread ? "font-semibold" : "font-medium")}>
-              {who}
-            </span>
-            {isDraft && <span className="shrink-0 text-xs font-medium text-destructive">Brouillon</span>}
-            {thread.messages.length > 1 && (
-              <span className="shrink-0 text-xs text-muted-foreground tabular-nums">{thread.messages.length}</span>
-            )}
-            <time
-              dateTime={last.date}
-              suppressHydrationWarning
-              className="ml-auto shrink-0 text-xs text-muted-foreground tabular-nums"
-            >
-              {formatShortDate(last.date)}
-            </time>
-            {thread.starred && <Star className="size-3.5 shrink-0 fill-amber-400 text-amber-400 md:hidden" />}
-          </div>
-          <p
-            className={cn(
-              "truncate text-[15px] md:text-sm",
-              thread.unread ? "font-medium text-foreground" : "text-muted-foreground",
-            )}
-          >
-            {thread.subject}
-          </p>
-          <div className="mt-1 flex items-center gap-2">
-            <p className="min-w-0 flex-1 truncate text-[13px] text-muted-foreground md:text-xs">{thread.snippet}</p>
-            {thread.labels.map((label) => (
-              <LabelChip key={label} label={label} />
-            ))}
-          </div>
-        </div>
-      </button>
-      <button
-        type="button"
-        onClick={onStar}
-        aria-label={thread.starred ? "Retirer des favoris" : "Ajouter aux favoris"}
-        aria-pressed={thread.starred}
-        className={cn(
-          "absolute top-3 right-3 hidden rounded p-1 transition-opacity hover:bg-background md:block",
-          thread.starred
-            ? "text-amber-400"
-            : "text-muted-foreground opacity-0 group-hover:opacity-100 focus-visible:opacity-100",
-        )}
-      >
-        <Star className={cn("size-4", thread.starred && "fill-current")} />
-      </button>
-    </li>
-  );
-}
-
-/**
- * La forme de la liste, en attendant la liste.
- *
- * Huit rangées grises aux mesures des vraies (pastille de 40, deux lignes) :
- * l'œil sait déjà où regarder quand elles se remplissent, et rien ne saute.
- * Sans animation — un scintillement pendant deux secondes fatigue plus qu'il
- * ne rassure, et `prefers-reduced-motion` n'aurait rien à en faire.
- */
-function Attente() {
-  return (
-    <ul aria-hidden className="flex flex-col gap-px pt-2 md:gap-0.5 md:p-2">
-      {Array.from({ length: 8 }).map((_, i) => (
-        <li key={i} className="flex items-center gap-3 px-4 py-3 md:rounded-xl">
-          <span className="size-10 shrink-0 rounded-full bg-foreground/[0.07]" />
-          <span className="flex min-w-0 flex-1 flex-col gap-2">
-            <span className="h-3 w-2/5 rounded-full bg-foreground/[0.07]" />
-            <span className="h-3 rounded-full bg-foreground/[0.05]" style={{ width: `${88 - i * 6}%` }} />
-          </span>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-/**
- * Une balise sans hauteur, posée au bout d'un lot.
- *
- * Elle ne se voit pas et ne se lit pas : elle sert au navigateur à dire « on
- * approche », et c'est le seul signal fiable — un calcul sur l'événement de
- * défilement coûterait un travail à chaque pixel pour la même réponse.
- *
- * `rootMargin` la déclenche **avant** qu'elle n'arrive : le lot part pendant
- * qu'on lit les messages du précédent, ce qui est tout l'intérêt. 400 px et
- * pas 800 : plus large, la balise du deuxième lot est déjà « visible » au
- * chargement, et on descendrait vingt messages là où on en voulait dix.
- * Elle ne parle qu'une fois — le lot suivant a sa propre balise.
- */
-function Sentinelle({ onVisible }: { onVisible: () => void }) {
-  const ancre = useRef<HTMLLIElement>(null);
-  const fait = useRef(false);
-  const rappel = useRef(onVisible);
-  /* Le rappel change à chaque rendu (il capture la liste du moment) ; on le
-     range dans un effet, jamais pendant le rendu, et l'observateur lit
-     toujours le dernier sans être reconstruit pour autant. */
-  useEffect(() => {
-    rappel.current = onVisible;
-  });
-
-  useEffect(() => {
-    const noeud = ancre.current;
-    if (!noeud) return;
-    const observateur = new IntersectionObserver(
-      (entrees) => {
-        if (!entrees.some((e) => e.isIntersecting) || fait.current) return;
-        fait.current = true;
-        rappel.current();
-      },
-      { rootMargin: "400px 0px" },
-    );
-    observateur.observe(noeud);
-    return () => observateur.disconnect();
-  }, []);
-
-  return <li ref={ancre} aria-hidden className="h-px" />;
 }
 
 /**
@@ -551,72 +271,4 @@ async function versionFraiche() {
   navigator.serviceWorker.addEventListener("controllerchange", () => window.location.reload(), {
     once: true,
   });
-}
-
-/** « Rien ici », dit une fois pour les deux vues. */
-function Vide({ unreadOnly }: { unreadOnly: boolean }) {
-  return (
-    <div className="flex flex-col items-center gap-2 px-6 py-16 text-center text-muted-foreground">
-      <Inbox className="size-8 opacity-40" />
-      <p className="text-sm">{unreadOnly ? "Tout est lu." : "Rien ici pour l\u2019instant."}</p>
-    </div>
-  );
-}
-
-/**
- * Une personne, et ce qu'on a d'elle.
- *
- * La même forme qu'une rangée de fil — avatar, deux lignes, date à droite —
- * pour que passer d'une vue à l'autre ne demande pas de réapprendre à lire.
- * Ce qui change est ce qu'elle compte : des conversations, pas des messages.
- */
-function RangeeCorrespondant({
-  correspondant: c,
-  accent,
-  onSelect,
-}: {
-  correspondant: Correspondant;
-  accent: string;
-  onSelect: () => void;
-}) {
-  const contact = { name: c.name, email: c.email };
-  return (
-    <li>
-      <button
-        type="button"
-        onClick={onSelect}
-        className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-accent/50 active:bg-accent md:rounded-xl"
-      >
-        <ContactAvatar contact={contact} />
-        <span className="min-w-0 flex-1">
-          <span className="flex items-baseline gap-2">
-            <span className={cn("min-w-0 flex-1 truncate text-[15px] md:text-sm", c.unread > 0 && "font-semibold")}>
-              {c.name}
-            </span>
-            <time
-              dateTime={c.date}
-              suppressHydrationWarning
-              className="shrink-0 text-xs text-muted-foreground tabular-nums"
-            >
-              {formatShortDate(c.date)}
-            </time>
-          </span>
-          <span className="mt-0.5 flex items-center gap-2">
-            <span className="min-w-0 flex-1 truncate text-[13px] text-muted-foreground">{c.email}</span>
-            {c.unread > 0 && (
-              <span
-                className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full px-1.5 text-[11px] font-semibold text-white tabular-nums"
-                style={{ background: accent }}
-              >
-                {c.unread}
-              </span>
-            )}
-          </span>
-          <span className="mt-0.5 block text-[11px] text-muted-foreground tabular-nums">
-            {c.threads.length} conversation{c.threads.length > 1 ? "s" : ""}
-          </span>
-        </span>
-      </button>
-    </li>
-  );
 }

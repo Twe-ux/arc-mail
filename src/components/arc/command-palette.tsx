@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Archive, Clock, Columns2, FileText, Inbox, Moon, PenSquare, Send, Star, Trash2, type LucideIcon } from "lucide-react";
 
 import {
@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/command";
 import { FOLDERS } from "@/lib/mock-data";
 import { useMediaQuery } from "@/hooks/use-media-query";
-import { sortByDate, useMail, useSpaces } from "@/lib/store";
+import { sortByDate, useMail, useSpace, useSpaces } from "@/lib/store";
 import type { FolderId } from "@/lib/types";
 import { ContactAvatar } from "./contact-avatar";
 import { SpaceIcon } from "./space-icon";
@@ -35,7 +35,12 @@ export function CommandPalette() {
   const open = useMail((s) => s.commandOpen);
   const setCommandOpen = useMail((s) => s.setCommandOpen);
   const spaces = useSpaces();
+  const space = useSpace();
   const desktop = useMediaQuery("(min-width: 768px)");
+  /* La requête est tenue ici pour pouvoir **surligner** ce qui a été trouvé :
+     cmdk filtre tout seul, mais il ne dit pas où. Un résultat qui ne montre
+     pas pourquoi il est là oblige à relire la ligne entière. */
+  const [requete, setRequete] = useState("");
   const threads = useMail((s) => s.threads);
   const spaceId = useMail((s) => s.spaceId);
   const setSpace = useMail((s) => s.setSpace);
@@ -80,7 +85,10 @@ export function CommandPalette() {
         className="top-[7dvh] max-h-[calc(100dvh-7dvh-var(--keyboard-inset,0px)-0.5rem)] flex max-w-[calc(100%-1rem)] translate-y-0 flex-col overflow-hidden rounded-[36px] pb-3 dark:bg-[#26262a] dark:ring-1 dark:ring-white/12 sm:top-[18%] sm:max-h-none sm:max-w-xl sm:rounded-2xl sm:pb-0"
     >
       <CommandInput
-        placeholder="Rechercher ou taper une commande…"
+        value={requete}
+        onValueChange={setRequete}
+        placeholder={`Rechercher dans ${space.name}…`}
+        className="text-[17px] sm:text-sm"
         /* No Escape key on a phone, and once the keyboard is up the box
            itself covers almost the whole screen — the sliver of overlay left
            to tap outside on shrinks to a few pixels at the very top and
@@ -106,6 +114,36 @@ export function CommandPalette() {
       <CommandList className="max-h-none min-h-0 flex-1 pb-6 [mask-image:linear-gradient(to_bottom,#000_calc(100%-1.5rem),transparent)] sm:max-h-[300px] sm:flex-none">
         <CommandEmpty>Aucun résultat.</CommandEmpty>
 
+        <CommandGroup heading={requete ? "Conversations" : "Conversations récentes"}>
+          {spaceThreads.map((t) => {
+            const last = t.messages[t.messages.length - 1];
+            return (
+              <CommandItem
+                key={t.id}
+                value={`${t.subject} ${last.from.name} ${last.from.email} ${t.snippet}`}
+                onSelect={() =>
+                  run(() => {
+                    setFolder(t.folder);
+                    selectThread(t.id);
+                  })
+                }
+              >
+                <ContactAvatar contact={last.from} className="size-6 [&_[data-slot=avatar-fallback]]:text-[10px]" />
+                <span className="min-w-0 flex-1 leading-tight">
+                  <span className="block truncate">
+                    <Surligne texte={t.subject} requete={requete} />
+                  </span>
+                  <span className="text-muted-foreground block truncate text-xs">
+                    <Surligne texte={last.from.name} requete={requete} />
+                  </span>
+                </span>
+              </CommandItem>
+            );
+          })}
+        </CommandGroup>
+
+        <CommandSeparator />
+
         <CommandGroup heading="Actions">
           <CommandItem onSelect={() => run(() => openCompose())}>
             <PenSquare /> Nouveau message
@@ -126,7 +164,7 @@ export function CommandPalette() {
 
         <CommandSeparator />
 
-        <CommandGroup heading="Dossiers">
+        <CommandGroup heading="Aller à">
           {FOLDERS.map((f) => {
             const Icon = FOLDER_ICONS[f.id];
             return (
@@ -153,28 +191,31 @@ export function CommandPalette() {
 
         <CommandSeparator />
 
-        <CommandGroup heading="Conversations">
-          {spaceThreads.map((t) => {
-            const last = t.messages[t.messages.length - 1];
-            return (
-              <CommandItem
-                key={t.id}
-                value={`${t.subject} ${last.from.name} ${last.from.email} ${t.snippet}`}
-                onSelect={() =>
-                  run(() => {
-                    setFolder(t.folder);
-                    selectThread(t.id);
-                  })
-                }
-              >
-                <ContactAvatar contact={last.from} className="size-6 [&_[data-slot=avatar-fallback]]:text-[10px]" />
-                <span className="min-w-0 flex-1 truncate">{t.subject}</span>
-                <span className="text-muted-foreground shrink-0 text-xs">{last.from.name}</span>
-              </CommandItem>
-            );
-          })}
-        </CommandGroup>
       </CommandList>
     </CommandDialog>
+  );
+}
+
+/**
+ * Le morceau trouvé, en couleur.
+ *
+ * Sans lui, une recherche sur « annecy » rend trois lignes qui se ressemblent
+ * et il faut les relire pour savoir laquelle contenait le mot. Le surlignage
+ * est un **fond** en teinte d'espace, jamais une encre colorée : la règle du
+ * thème, et le seul choix lisible sur un fond clair comme sur un fond sombre.
+ */
+function Surligne({ texte, requete }: { texte: string; requete: string }) {
+  const terme = requete.trim();
+  if (terme.length < 2) return <>{texte}</>;
+  const i = texte.toLowerCase().indexOf(terme.toLowerCase());
+  if (i < 0) return <>{texte}</>;
+  return (
+    <>
+      {texte.slice(0, i)}
+      <mark className="rounded-[3px] bg-[color-mix(in_oklch,var(--space-accent)_30%,transparent)] text-inherit">
+        {texte.slice(i, i + terme.length)}
+      </mark>
+      {texte.slice(i + terme.length)}
+    </>
   );
 }

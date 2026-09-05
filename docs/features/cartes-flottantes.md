@@ -123,3 +123,24 @@ le composeur.
 Le mode « plein écran » reste, pour un texte long. Le mode « réduit » a disparu : une colonne ne se
 réduit pas, elle se ferme — et la fermer garde le brouillon, ce que « réduire » ne faisait que
 reporter.
+
+---
+
+## Une seule feuille basse, quatre écrans (5 sept. 2026)
+
+Dossiers, Personnalisation, « Déplacer vers » et « ⋯ » posent la même carte, et elle n'est écrite
+qu'une fois : [`bottom-sheet.tsx`](../../src/components/arc/bottom-sheet.tsx). Elle porte les
+règles de cette fiche — 8 px des trois côtés libres, 36 px de coin, `w-auto`, en-tête hors du
+défilant, `pb-3` sous le défilant, masque en bas avec `pb-6` dedans, pas de clic-en-dehors Radix,
+`transition-none` pour le glisser-fermer.
+
+Ce qui va avec : `SheetScroller`, `SheetGroup` (le groupe encarté d'iOS, avec son bord — blanc sur
+`#f2f2f7` ne se voit pas), `SheetRow` (50 px au moins, séparateur sauf la dernière) et `SheetTile`
+(le carré coloré de 28 px). Mesuré aux quatre : marges 8 / 8 / 8, rayon 36 px.
+
+**Une feuille à la fois.** Sur la liste, `sidebarOpen` et `settingsOpen` se ferment l'une l'autre
+dans le store ; sur le mail ouvert, un seul état `sheet`. Deux cartes de 36 px empilées sur 390 px
+ne se lisent plus.
+
+Le **composeur** garde sa carte plein écran (`--vv-top` / `--vv-height`) et ses deux panneaux
+internes, qui s'excluent aussi → [fiche](composeur-panneaux.md).

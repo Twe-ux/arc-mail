@@ -118,6 +118,31 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - Un groupe blanc a un bord (`shadow 0 0 0 1px`) ; un rail horizontal rogne aussi verticalement,
   d'où du `padding` dedans pour tout ring.
 
+**Pill d'actions** → [docs/features/pill-actions.md](docs/features/pill-actions.md)
+- Une seule définition (`action-pill.tsx`) pour les quatre barres du bas : case **52**, bouton rond
+  **68**, verre en `p-[8px_10px] gap-0`, barre à **15 px** des bords et **18 px** du bas.
+- Les cases sont `shrink-0` et l'état actif se **remplit** (accent à 22 %, encre `--space-ink`).
+
+**Liste sur téléphone** → [docs/features/liste-telephone.md](docs/features/liste-telephone.md)
+- Grand titre 30/1.15/-0.02em, ligne méta tronquée, **quatre** tuiles épinglées ; la carte porte le
+  filet `.list-card` — sans lui son arrondi se perd dans le voile.
+- Deux balayages sur le même axe : la **rangée** le prend partout et arrête la propagation ; celui
+  qui change d'espace part de l'**en-tête**, là où l'indicateur de pages l'annonce.
+- Les retours sont des ressorts (`animateSpring`), jamais une transition CSS ; distance **ou** élan.
+
+**Mail ouvert** → [docs/features/mail-ouvert.md](docs/features/mail-ouvert.md)
+- En-tête à trois éléments (retour · dossier·espace / n sur N · favori) ; l'objet vit dans la carte.
+- Corps **à bord perdu** : un seul cadre sur téléphone, pas trois ; « à moi », pas notre nom.
+- Archiver et Supprimer **renvoient à la liste** avec un toast ; répondre remplace la pill, jamais
+  par-dessus.
+
+**Composeur** → [docs/features/composeur-panneaux.md](docs/features/composeur-panneaux.md)
+- « De » est une pastille en haut sur téléphone ; l'envoi est le bouton rond de la barre.
+- Les trois panneaux s'excluent et referment le clavier ; le menu du brouillon (`⋯`) a sa **clé
+  d'état à part** — il se superpose au composeur, le partager le démontait.
+- Les pièces jointes voyagent en **base64** (`OutgoingAttachment`), 10 Mo par message, refusés à la
+  sélection ; la mise en forme est **désactivée et le dit** tant que le corps est du texte simple.
+
 **Barre du bas** → [docs/features/barre-du-bas.md](docs/features/barre-du-bas.md)
 - La barre est posée par-dessus la liste ; le défilant lui laisse `--nav-height` en bas, sinon le
   verre n'a rien à flouter.

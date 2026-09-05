@@ -2,6 +2,18 @@
 
 Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérification.
 
+## 5 septembre 2026 — le lot mobile
+
+Le handoff `design_handoff_arc_mail_mobile` monté de bout en bout : la pill d'actions partagée, la
+liste (grand titre, tuiles épinglées, balayage de rangée et d'espace), le mail ouvert (corps à bord
+perdu, pill, réponse à la demande), les feuilles Dossiers et Personnalisation, les deux panneaux du
+composeur avec les pièces jointes câblées jusqu'à SMTP, et la recherche.
+
+| Commit | Quoi |
+|---|---|
+| _à venir_ | Lot mobile : pill partagée, liste, lecture, feuilles, composeur, recherche |
+
+
 ## 3 septembre 2026 — redémarrage et interface
 
 | Commit | Quoi |

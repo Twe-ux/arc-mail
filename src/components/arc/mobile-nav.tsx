@@ -1,145 +1,66 @@
 "use client";
 
-import { Inbox, PenSquare, Search } from "lucide-react";
+import { Folder, MoreHorizontal, Search, SquarePen } from "lucide-react";
 
-import { selectUnreadCount, useMail, useSpace } from "@/lib/store";
-import type { Space } from "@/lib/types";
+import { useMail, useSpace, useSpaces } from "@/lib/store";
 import { cn } from "@/lib/utils";
+import { ActionBar, Pill, PillCase, RoundButton } from "./action-pill";
 import { SPACE_ICONS } from "./space-icon";
 
-const ITEM = 56; // px, the width of one slot; the capsule slides by whole slots
-
 /**
- * The floating bar: three icon slots on frosted glass with a capsule that
- * slides to whichever is current, and compose set apart as a round button in
- * the space's colour — the one thing here that asks for a thumb.
+ * La barre du bas de la liste : quatre cases et le bouton d'écriture.
+ *
+ * « Réception » n'y est plus. Le grand titre la nomme et les tuiles épinglées
+ * y ramènent en un appui — un onglet de plus pour le même dossier était un
+ * doublon qui occupait la place de ce qui manquait vraiment : l'accès aux
+ * autres dossiers et le réglage de l'espace.
+ *
+ * La case d'espace **agit** au lieu d'ouvrir : un appui passe à l'espace
+ * suivant. La liste complète reste dans la feuille Dossiers, où les pastilles
+ * disent les noms.
  */
 export function MobileNav({ className }: { className?: string }) {
   const space = useSpace();
-  const folderId = useMail((s) => s.folderId);
-  const selectedThreadId = useMail((s) => s.selectedThreadId);
+  const spaces = useSpaces();
   const sidebarOpen = useMail((s) => s.sidebarOpen);
+  const settingsOpen = useMail((s) => s.settingsOpen);
   const commandOpen = useMail((s) => s.commandOpen);
-  const setFolder = useMail((s) => s.setFolder);
-  const selectThread = useMail((s) => s.selectThread);
   const setSidebarOpen = useMail((s) => s.setSidebarOpen);
+  const setSettingsOpen = useMail((s) => s.setSettingsOpen);
   const setCommandOpen = useMail((s) => s.setCommandOpen);
+  const cycleSpace = useMail((s) => s.cycleSpace);
   const openCompose = useMail((s) => s.openCompose);
-  const inboxUnread = useMail((s) => selectUnreadCount(s, s.spaceId, "inbox"));
 
-  const active = sidebarOpen
-    ? 0
-    : commandOpen
-      ? 2
-      : folderId === "inbox" && selectedThreadId === null
-        ? 1
-        : -1;
+  const Glyphe = SPACE_ICONS[space.icon];
+  /* Avec un seul espace, l'appui n'a nulle part où aller : la case ouvre alors
+     la feuille, où l'on peut en ajouter un. */
+  const seul = spaces.length < 2;
 
   return (
-    <nav
-      aria-label="Navigation"
-      className={cn(
-        // Clear of the home indicator, not a thumb's travel above it.
-        // Space-between, not centred: the pill and the compose button sit
-        // toward their own edge rather than huddling together in the middle.
-        "flex shrink-0 items-center justify-between gap-3 px-5 pt-2.5 pb-[max(14px,calc(env(safe-area-inset-bottom)-18px))] md:hidden",
-        className,
-      )}
-    >
-      <div className="relative flex h-14 items-center rounded-full bg-background/80 p-1.5 shadow-[0_8px_30px_rgb(0_0_0/0.12)] ring-1 ring-black/5 backdrop-blur-2xl dark:bg-white/[0.07] dark:ring-white/10">
-        <span
-          aria-hidden
-          className="absolute top-1.5 bottom-1.5 left-1.5 rounded-full bg-[color-mix(in_oklch,var(--space-accent)_18%,transparent)] transition-[transform,opacity] duration-300 ease-[cubic-bezier(.2,.8,.2,1)]"
-          style={{
-            width: ITEM,
-            transform: `translateX(${Math.max(active, 0) * ITEM}px)`,
-            opacity: active < 0 ? 0 : 1,
-          }}
-        />
-        <Slot
-          label={`Espace ${space.name}`}
-          active={active === 0}
-          onClick={() => setSidebarOpen(true)}
-        >
-          <SpaceGlyph space={space} active={active === 0} />
-        </Slot>
-        <Slot
-          label="Réception"
-          active={active === 1}
-          onClick={() => {
-            setFolder("inbox");
-            selectThread(null);
-          }}
-        >
-          <Inbox className="size-6" strokeWidth={active === 1 ? 2.25 : 1.75} />
-          {inboxUnread > 0 && (
-            <span className="absolute top-2 right-2.5 min-w-4 rounded-full bg-[var(--space-ink)] px-1 text-center text-[10px] leading-4 font-bold text-white tabular-nums ring-2 ring-background dark:ring-transparent dark:text-black">
-              {inboxUnread}
-            </span>
-          )}
-        </Slot>
-        <Slot
-          label="Rechercher"
-          active={active === 2}
-          onClick={() => setCommandOpen(true)}
-        >
-          <Search className="size-6" strokeWidth={active === 2 ? 2.25 : 1.75} />
-        </Slot>
-      </div>
+    <nav aria-label="Navigation" className={cn("md:hidden", className)}>
+      <ActionBar>
+        <Pill>
+          <PillCase
+            label={seul ? `Espace ${space.name}` : `Espace suivant · ${space.name}`}
+            onClick={() => (seul ? setSidebarOpen(true) : cycleSpace(1))}
+          >
+            <Glyphe className="size-6" strokeWidth={1.75} />
+          </PillCase>
+          <PillCase label="Dossiers" active={sidebarOpen} onClick={() => setSidebarOpen(true)}>
+            <Folder className="size-6" strokeWidth={sidebarOpen ? 2.25 : 1.75} />
+          </PillCase>
+          <PillCase label="Rechercher" active={commandOpen} onClick={() => setCommandOpen(true)}>
+            <Search className="size-6" strokeWidth={commandOpen ? 2.25 : 1.75} />
+          </PillCase>
+          <PillCase label="Personnaliser" active={settingsOpen} onClick={() => setSettingsOpen(true)}>
+            <MoreHorizontal className="size-6" strokeWidth={settingsOpen ? 2.25 : 1.75} />
+          </PillCase>
+        </Pill>
 
-      <button
-        type="button"
-        onClick={() => openCompose()}
-        aria-label="Écrire"
-        className="flex size-14 shrink-0 items-center justify-center rounded-full text-white shadow-[0_8px_24px_rgb(0_0_0/0.22)] transition-transform active:scale-95 [background:var(--space-gradient)]"
-      >
-        <PenSquare className="size-6" strokeWidth={2} />
-      </button>
+        <RoundButton label="Écrire" onClick={() => openCompose()}>
+          <SquarePen className="size-6" strokeWidth={2} />
+        </RoundButton>
+      </ActionBar>
     </nav>
-  );
-}
-
-/* A bare stroke, coloured and weighted exactly like Inbox and Search: the
-   space's own filled-tile glyph (`SpaceIcon`, used everywhere else) reads as
-   an app icon dropped in beside two plain outlines — one saturated colour
-   among otherwise neutral line art. */
-function SpaceGlyph({
-  space,
-  active,
-}: {
-  space: Space;
-  active: boolean;
-}) {
-  const Icon = SPACE_ICONS[space.icon];
-  return <Icon className="size-6" strokeWidth={active ? 2.25 : 1.75} />;
-}
-
-function Slot({
-  label,
-  active,
-  onClick,
-  children,
-}: {
-  label: string;
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label={label}
-      aria-current={active ? "page" : undefined}
-      style={{ width: ITEM }}
-      className={cn(
-        "relative z-10 flex h-11 items-center justify-center rounded-full transition-colors",
-        active
-          ? "text-[var(--space-ink)]"
-          : "text-muted-foreground active:text-foreground",
-      )}
-    >
-      {children}
-    </button>
   );
 }

@@ -1,9 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 import {
   ArrowUp,
   ChevronDown,
+  MoreHorizontal,
+  Type,
   ImageIcon,
   Link2,
   Maximize2,
@@ -34,6 +37,8 @@ import { useSheetDismiss } from "@/hooks/use-sheet-dismiss";
 import { selectContacts, useMail, useSpaces } from "@/lib/store";
 import type { ComposeDraft } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { ActionBar, Pill, PillCase, RoundButton } from "./action-pill";
+import { AttachmentChips, AttachPanel, DraftMenu, FormatPanel, lireFichiers } from "./compose-panels";
 import { RecipientField } from "./recipient-field";
 import { SpaceIcon } from "./space-icon";
 
@@ -64,8 +69,54 @@ function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
   const closeCompose = useMail((s) => s.closeCompose);
   const sendMail = useMail((s) => s.sendMail);
   const sendError = useMail((s) => s.sendError);
+  const update = useMail((s) => s.updateCompose);
+  const deleteDraft = useMail((s) => s.deleteDraft);
+  const spaces = useSpaces();
   const canSend = (draft?.to.length ?? 0) > 0;
   const sheetRef = useSheetDismiss(closeCompose);
+
+  /* **Les deux panneaux s'excluent.** Ouvrir l'un ferme l'autre : empilés, ils
+     débordaient de la carte, et le message qu'on écrit disparaissait sous ses
+     propres outils. */
+  const [panneau, setPanneau] = useState<null | "pieces" | "forme">(null);
+  /* **Une clé à part pour le menu du brouillon.** Il se superpose au composeur,
+     il ne le remplace pas : tant qu'il partageait `panneau`, l'ouvrir démontait
+     la carte sous lui. */
+  const [menu, setMenu] = useState(false);
+  /* Ouvrir un panneau referme le clavier : la carte ne fait que la hauteur du
+     rectangle visible, et les deux ensemble ne laissaient plus voir le
+     message. */
+  const basculer = (cible: "pieces" | "forme") => {
+    if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+    setMenu(false);
+    setPanneau((p) => (p === cible ? null : cible));
+  };
+  /* Confort d'écriture, local à la carte : ni le message ni le brouillon n'en
+     portent la trace. */
+  const [taille, setTaille] = useState(17);
+  const [serif, setSerif] = useState(false);
+
+  const pieces = draft?.attachments ?? [];
+  const espace = spaces.find((sp) => sp.id === draft?.spaceId) ?? spaces[0];
+
+  const signer = () => {
+    if (!draft) return;
+    if (!espace?.signature) {
+      toast("Cet espace n’a pas encore de signature.");
+      return;
+    }
+    update({ body: `${draft.body}\n\n— ${espace.signature}` });
+    setPanneau(null);
+    setMenu(false);
+  };
+
+  const joindre = async (files: FileList) => {
+    const lues = await lireFichiers(files, pieces);
+    if (lues.length === 0) return;
+    update({ attachments: [...pieces, ...lues] });
+    setPanneau(null);
+    toast(lues.length === 1 ? `${lues[0].name} joint` : `${lues.length} fichiers joints`);
+  };
 
   return (
     <Sheet
@@ -132,27 +183,104 @@ function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
               Rédiger un e-mail
             </SheetDescription>
           </div>
-          <button
-            type="button"
-            onClick={sendMail}
-            disabled={!canSend}
-            aria-label={sendError ? "Réessayer l'envoi" : "Envoyer"}
-            /* 36px drawn, 44px to the finger. */
-            className="relative mr-1 flex size-9 items-center justify-center rounded-full text-white shadow-md transition-[opacity,transform] ease-out after:absolute after:-inset-1 active:scale-95 active:duration-0 disabled:opacity-35 disabled:shadow-none [background:var(--space-gradient)]"
-          >
-            <ArrowUp className="size-5" strokeWidth={2.5} />
-          </button>
+          {/* La place de l'envoi est en bas, dans le bouton rond de la barre :
+              c'est là que le pouce est, et c'est la même géométrie que sur
+              l'écran principal. Ce vide garde le titre centré. */}
+          <span aria-hidden className="w-[68px] shrink-0" />
         </header>
         {sendError && <SendFailed detail={sendError} />}
         {draft && (
-          <ComposeFields key={draft.draftId ?? "new"} draft={draft} compact />
+          <ComposeFields
+            key={draft.draftId ?? "new"}
+            draft={draft}
+            compact
+            bodyStyle={{ fontSize: taille, fontFamily: serif ? "ui-serif, Georgia, serif" : undefined }}
+          />
         )}
-        <Toolbar
-          draft={draft}
-          /* Four buttons that do nothing while a message is being typed, in a
-             card the keyboard has already made short. */
-          className="border-t border-black/[0.07] dark:border-white/[0.12] [.keyboard-open_&]:hidden"
+
+        <AttachmentChips
+          attachments={pieces}
+          onRemove={(i) => update({ attachments: pieces.filter((_, j) => j !== i) })}
         />
+
+        {panneau === "pieces" && (
+          <AttachPanel
+            onClose={() => setPanneau(null)}
+            onFiles={(files) => void joindre(files)}
+            hasSignature={Boolean(espace?.signature)}
+            onSignature={signer}
+          />
+        )}
+        {panneau === "forme" && (
+          <FormatPanel
+            onClose={() => setPanneau(null)}
+            size={taille}
+            onSize={setTaille}
+            serif={serif}
+            onSerif={setSerif}
+          />
+        )}
+
+        {/* La même barre que la liste et la lecture : un groupe d'icônes à
+            gauche, l'action ronde à droite. Elle compense l'encart de 8 px de
+            la carte pour retomber sur les 15 px de l'écran. */}
+        <ActionBar inset>
+          <Pill>
+            <PillCase label="Pièce jointe" active={panneau === "pieces"} onClick={() => basculer("pieces")}>
+              <Paperclip className="size-6" strokeWidth={1.75} />
+            </PillCase>
+            <PillCase label="Mise en forme" active={panneau === "forme"} onClick={() => basculer("forme")}>
+              <Type className="size-6" strokeWidth={1.75} />
+            </PillCase>
+            <PillCase
+              label="Options du brouillon"
+              active={menu}
+              onClick={() => {
+                if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+                setPanneau(null);
+                setMenu((m) => !m);
+              }}
+            >
+              <MoreHorizontal className="size-6" strokeWidth={1.75} />
+            </PillCase>
+          </Pill>
+          <RoundButton
+            label={sendError ? "Réessayer l’envoi" : "Envoyer"}
+            disabled={!canSend}
+            onClick={sendMail}
+          >
+            <ArrowUp className="size-7" strokeWidth={2.5} />
+          </RoundButton>
+        </ActionBar>
+
+        {menu && draft && (
+          <DraftMenu
+            onClose={() => setMenu(false)}
+            hasSignature={Boolean(espace?.signature)}
+            onSignature={signer}
+            /* « Enregistrer » **est** la fermeture : `closeCompose` range déjà le
+               brouillon par le fournisseur. Deux chemins pour la même écriture
+               auraient fini par diverger. */
+            onSave={() => {
+              setMenu(false);
+              closeCompose();
+              toast("Brouillon enregistré");
+            }}
+            /* Supprimer un brouillon déjà rangé passe par le fournisseur ; un
+               message jamais enregistré se jette en le vidant — `closeCompose`
+               ne range alors rien (`isBlank`). */
+            onDelete={() => {
+              setMenu(false);
+              if (draft.draftId) {
+                deleteDraft(draft.draftId);
+              } else {
+                update({ to: [], cc: [], bcc: [], subject: "", body: "", attachments: [] });
+                closeCompose();
+              }
+              toast("Brouillon supprimé");
+            }}
+          />
+        )}
       </SheetContent>
     </Sheet>
   );
@@ -320,9 +448,12 @@ function HeaderButton({
 function ComposeFields({
   draft,
   compact,
+  bodyStyle,
 }: {
   draft: ComposeDraft;
   compact?: boolean;
+  /** Le confort d'écriture réglé dans le panneau : police et taille du champ. */
+  bodyStyle?: React.CSSProperties;
 }) {
   const threads = useMail((s) => s.threads);
   const update = useMail((s) => s.updateCompose);
@@ -341,6 +472,16 @@ function ComposeFields({
          vide sous le message. Ce qui dépasse défile ici, comme avant. */
       className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain"
     >
+      {/* Sur téléphone l'expéditeur est **une pastille en haut**, pas une ligne
+          repliée sous les destinataires : c'est la première chose qu'on
+          vérifie quand on tient trois boîtes dans la même app, et un appui
+          suffit à en changer. Sur bureau il reste sous Cc/Cci, où la colonne
+          a la place. */}
+      {compact && (
+        <Row label="De">
+          <FromChip value={draft.spaceId} onChange={(spaceId) => update({ spaceId })} />
+        </Row>
+      )}
       <RecipientField
         label="À"
         value={draft.to}
@@ -355,15 +496,15 @@ function ComposeFields({
                 e.stopPropagation();
                 setDetails(true);
               }}
-              aria-label="Afficher Cc, Cci et l'expéditeur"
-              className="ml-auto shrink-0 rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+              aria-label="Afficher Cc et Cci"
+              className="ml-auto shrink-0 rounded-full px-1 py-1 text-muted-foreground hover:bg-muted hover:text-foreground"
             >
-              <ChevronDown className="size-4" />
+              {compact ? <span className="text-[15px]">Cc/Cci</span> : <ChevronDown className="size-4" />}
             </button>
           )
         }
       />
-      {details ? (
+      {details && (
         <>
           <RecipientField
             label="Cc"
@@ -377,14 +518,17 @@ function ComposeFields({
             onChange={(bcc) => update({ bcc })}
             suggestions={contacts}
           />
-          <Row label="De">
-            <FromSelect
-              value={draft.spaceId}
-              onChange={(spaceId) => update({ spaceId })}
-            />
-          </Row>
+          {!compact && (
+            <Row label="De">
+              <FromSelect
+                value={draft.spaceId}
+                onChange={(spaceId) => update({ spaceId })}
+              />
+            </Row>
+          )}
         </>
-      ) : (
+      )}
+      {!compact && !details && (
         /* Apple Mail's folded line: one tap opens the three rows. */
         <button
           type="button"
@@ -419,6 +563,7 @@ function ComposeFields({
             sendMail();
         }}
         placeholder="Écris ton message…"
+        style={bodyStyle}
         className={cn(
           "min-h-48 flex-1 resize-none bg-transparent px-4 py-4 outline-none placeholder:text-muted-foreground",
           compact
@@ -442,6 +587,43 @@ function Row({
       <span className="w-14 shrink-0 text-muted-foreground">{label}</span>
       {children}
     </label>
+  );
+}
+
+/**
+ * L'expéditeur en pastille : la tuile de l'espace, l'adresse, un chevron.
+ *
+ * Le `select` natif est posé transparent par-dessus — c'est ce qui donne à
+ * l'appui la roue d'iOS plutôt qu'une liste à nous, et un composant de moins
+ * à tenir juste.
+ */
+function FromChip({
+  value,
+  onChange,
+}: {
+  value: ComposeDraft["spaceId"];
+  onChange: (v: ComposeDraft["spaceId"]) => void;
+}) {
+  const spaces = useSpaces();
+  const space = spaces.find((sp) => sp.id === value) ?? spaces[0];
+  return (
+    <span className="relative flex min-w-0 items-center gap-2 rounded-full bg-black/[0.06] py-1 pr-3 pl-1 dark:bg-white/[0.10]">
+      <SpaceIcon space={space} size="md" />
+      <span className="truncate text-[15px]">{space.email}</span>
+      <ChevronDown className="size-4 shrink-0 text-muted-foreground" />
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value as ComposeDraft["spaceId"])}
+        aria-label="Expéditeur"
+        className="absolute inset-0 cursor-pointer opacity-0"
+      >
+        {spaces.map((sp) => (
+          <option key={sp.id} value={sp.id}>
+            {sp.name} · {sp.email}
+          </option>
+        ))}
+      </select>
+    </span>
   );
 }
 

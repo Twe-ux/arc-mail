@@ -22,6 +22,13 @@ export type MailState = {
   commandOpen: boolean;
   /** Mobile only: the sidebar drawer. */
   sidebarOpen: boolean;
+  /**
+   * Téléphone : la feuille de personnalisation (teinte, thème, comptes).
+   *
+   * Une feuille par intention, et **jamais deux à la fois** : l'ouvrir ferme
+   * l'autre. Deux cartes de 36 px empilées sur 390 px ne se lisent plus.
+   */
+  settingsOpen: boolean;
   /** Desktop only: the sidebar folded away, the window kept. */
   sidebarCollapsed: boolean;
   /** Essai : de quel côté la barre latérale se range, sur bureau. */
@@ -81,6 +88,9 @@ export type MailState = {
   setUnreadOnly: (value: boolean) => void;
   setCommandOpen: (open: boolean) => void;
   setSidebarOpen: (open: boolean) => void;
+  setSettingsOpen: (open: boolean) => void;
+  /** L'espace suivant dans la rangée, en boucle : la case d'espace de la barre. */
+  cycleSpace: (direction?: 1 | -1) => void;
   /** Posé une fois par `SpacesInit`, avec ce que le serveur a lu. */
   setSpaces: (spaces: Space[]) => void;
   toggleSidebarCollapsed: () => void;
@@ -445,6 +455,7 @@ export const useMail = create<MailState>()(
   unreadOnly: false,
   commandOpen: false,
   sidebarOpen: false,
+  settingsOpen: false,
   sidebarCollapsed: false,
   sidebarSide: "left",
   listWidth: LISTE_DEFAUT,
@@ -599,7 +610,20 @@ export const useMail = create<MailState>()(
   toggleSplit: () => set((s) => ({ splitView: !s.splitView })),
   setUnreadOnly: (unreadOnly) => set({ unreadOnly }),
   setCommandOpen: (commandOpen) => set({ commandOpen }),
-  setSidebarOpen: (sidebarOpen) => set({ sidebarOpen }),
+  setSidebarOpen: (sidebarOpen) => set((s) => ({ sidebarOpen, settingsOpen: sidebarOpen ? false : s.settingsOpen })),
+  setSettingsOpen: (settingsOpen) => set((s) => ({ settingsOpen, sidebarOpen: settingsOpen ? false : s.sidebarOpen })),
+
+  /* Changer d'espace sans ouvrir de feuille : la case de la barre et le
+     balayage horizontal de la liste partagent ce seul chemin, sinon l'un des
+     deux finirait par oublier de remettre le dossier et le fil ouvert. */
+  cycleSpace: (direction = 1) => {
+    const { spaces, spaceId } = get();
+    if (spaces.length < 2) return;
+    const i = spaces.findIndex((sp) => sp.id === spaceId);
+    const suivant = spaces[(((i < 0 ? 0 : i) + direction) % spaces.length + spaces.length) % spaces.length];
+    if (suivant.id === spaceId) return;
+    get().setSpace(suivant.id);
+  },
 
   setSpaces: (spaces) =>
     set((s) => {
@@ -685,6 +709,7 @@ export const useMail = create<MailState>()(
       return {
         compose: { spaceId, to: [], cc: [], bcc: [], subject: "", ...initial, body },
         sidebarOpen: false,
+        settingsOpen: false,
         commandOpen: false,
       };
     }),
@@ -734,6 +759,7 @@ export const useMail = create<MailState>()(
         bcc: d.bcc.length ? toContacts(d.bcc, book) : undefined,
         subject: d.subject,
         body: d.body,
+        attachments: d.attachments?.length ? d.attachments : undefined,
       })
       .then((saved) => {
         const draft = stampOne(d.spaceId, saved);
@@ -767,6 +793,7 @@ export const useMail = create<MailState>()(
         bcc: d.bcc.length ? toContacts(d.bcc, book) : undefined,
         subject: d.subject,
         body: d.body,
+        attachments: d.attachments?.length ? d.attachments : undefined,
       })
       .then(
         (sent) => {

@@ -93,6 +93,15 @@ async function composer(message: OutgoingMessage, fil: Fil, brouillon = false): 
     bcc: message.bcc?.length ? adresses(message.bcc) : undefined,
     subject: message.subject || "(sans objet)",
     text: message.body,
+    /* `MailComposer` sait lire du base64 : les octets ne repassent pas par un
+       Buffer intermédiaire, et le même message compilé sert à SMTP et à
+       l'`APPEND` dans « Envoyés ». */
+    attachments: message.attachments?.map((piece) => ({
+      filename: piece.name,
+      contentType: piece.mime,
+      content: piece.data,
+      encoding: "base64" as const,
+    })),
     inReplyTo: fil.messageId,
     references: fil.references,
     /* Un brouillon garde sa date au moment où on le range ; l'envoi la posera

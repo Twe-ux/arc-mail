@@ -68,6 +68,9 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - `--keyboard-inset` se mesure contre la **plus grande hauteur visuelle vue**, jamais contre
   `innerHeight` (qui rétrécit aussi en app installée) ; seuil 200 px, remis à zéro à la rotation.
 - Les icônes de l'app sont des fichiers choisis ; seul `scripts/favicon.py` en dérive le `.ico`.
+- Sur bureau la fenêtre n'a **pas de bandeau** (`window-controls-overlay`) : c'est nous qui
+  réservons la place des pastilles (`--titlebar`) et rendons la bande déplaçable ; changer
+  `display_override` demande de réinstaller la PWA.
 - Un écran figé sur iPhone : d'abord tirer la liste vers le bas, ensuite fermer complètement
   l'app ; bumper `VERSION` de `sw.js` ne suffit jamais seul.
 - On **mesure** en émulation (393×852, insets 59/34 en CDP) avant et après chaque correctif visuel.

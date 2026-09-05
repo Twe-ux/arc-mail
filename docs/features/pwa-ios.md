@@ -38,6 +38,39 @@ compris — système clair + thème stocké sombre donne `#0f0f0f`, et l'inverse
 Le manifeste garde des couleurs neutres (`#ffffff`) pour l'écran de lancement ; le document prend
 le relais dès le premier rendu.
 
+## Plus de bandeau du tout sur bureau (`window-controls-overlay`)
+
+Même neutre, ce bandeau reste **une bande grise au-dessus de l'app** : macOS le peint lui-même, on
+n'y met rien, et il coupe le dégradé de l'espace en deux. Le manifeste demande donc d'abord
+`window-controls-overlay`, `standalone` derrière pour les navigateurs qui l'ignorent (iOS, entre
+autres) :
+
+```ts
+display: "standalone",
+display_override: ["window-controls-overlay", "standalone"],
+```
+
+Dans ce mode la fenêtre n'a plus de bandeau : l'app monte jusqu'en haut et les **trois pastilles**
+de macOS se posent sur son dégradé. Deux choses deviennent alors notre affaire, et le navigateur
+n'en fait aucune :
+
+- **leur laisser la place** — sans quoi elles couvrent la recherche et le bouton de repli. Le shell
+  ajoute `--titlebar` à son rembourrage du haut, aux deux tailles ; la variable vaut `0px` partout
+  ailleurs, donc la même règle sert les deux mondes ;
+- **rendre la bande déplaçable** (`app-region: drag`) — sans quoi la fenêtre ne se bouge plus. C'est
+  le seul rôle du `<div class="titlebar-drag">` : il ne se rend qu'en `window-controls-overlay`.
+
+`env(titlebar-area-height)` n'est défini que dans ce mode ; le repli à `33px` couvre le cas où il
+manque.
+
+**Mesuré**, l'émulation CDP de `display-mode` ne prenant pas : la règle `@media` est bien parsée
+(ses deux sélecteurs sont là), et ses déclarations appliquées font passer le rembourrage du shell
+de 8 à 41 px (`0.5rem + 33px`), la bande à `display: block`, 33 px, `app-region: drag`, zéro erreur
+de console.
+
+**Changer `display_override` demande de réinstaller la PWA** : Chrome fige le manifeste à
+l'installation, un simple rechargement ne le relit pas.
+
 ---
 
 

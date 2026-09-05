@@ -162,6 +162,40 @@
   }
 }
 
+/*
+ * La barre de titre du bureau, quand il n'y en a plus.
+ *
+ * En `window-controls-overlay`, la fenêtre n'a plus de bandeau : l'app monte
+ * jusqu'en haut et les trois pastilles de macOS se posent dessus. À nous de
+ * leur laisser la place — sinon elles couvrent la recherche — et de rendre
+ * cette bande **déplaçable**, faute de quoi la fenêtre ne se bouge plus.
+ *
+ * `--titlebar` vaut zéro partout ailleurs : la même règle sert les deux mondes.
+ */
+:root {
+  --titlebar: 0px;
+}
+
+.titlebar-drag {
+  display: none;
+}
+
+@media (display-mode: window-controls-overlay) {
+  :root {
+    /* Le repli couvre le cas où la variable d'environnement manque. */
+    --titlebar: env(titlebar-area-height, 33px);
+  }
+  .titlebar-drag {
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: 40;
+    display: block;
+    height: var(--titlebar);
+    -webkit-app-region: drag;
+    app-region: drag;
+  }
+}
+
 /* Arc-like translucent sidebar surfaces, painted over the space gradient. */
 @utility glass {
   background-color: rgb(255 255 255 / 0.12);

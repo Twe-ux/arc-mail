@@ -102,7 +102,7 @@ export function AppShell() {
     <TooltipProvider>
       <div
         className={cn(
-          "space-wash fixed inset-0 flex flex-col pt-[var(--safe-top)] transition-[background] duration-500 md:gap-2 md:p-2 md:space-backdrop",
+          "space-wash fixed inset-0 flex flex-col pt-[calc(var(--safe-top)+var(--titlebar))] transition-[background] duration-500 md:gap-2 md:p-2 md:pt-[calc(0.5rem+var(--titlebar))] md:space-backdrop",
           /* Essai : la barre peut se ranger à droite. Inverser la rangée
              suffit — rien d'autre ne connaît son côté. */
           sidebarSide === "right" ? "md:flex-row-reverse" : "md:flex-row",
@@ -121,6 +121,10 @@ export function AppShell() {
           } as CSSProperties
         }
       >
+        {/* La bande où vivent les pastilles de macOS : rien à y voir, mais
+            c'est par elle qu'on déplace la fenêtre. Ne se rend qu'en
+            `window-controls-overlay` (voir `globals.css`). */}
+        <div aria-hidden className="titlebar-drag" />
         <Sidebar />
         <main className="flex min-h-0 min-w-0 flex-1 overflow-hidden text-foreground md:rounded-xl md:bg-background md:shadow-2xl md:ring-1 md:ring-black/10">
           <ThreadList

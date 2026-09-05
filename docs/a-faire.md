@@ -59,6 +59,8 @@ Non repris : le style plat violet, les bulles de conversation, la barre de caté
 et le panneau de réglages déplaçable — le premier change le langage visuel d'Arc Mail, les autres
 appartiennent à une app de messagerie instantanée.
 
+- [ ] Vue par correspondant (5 sept.) — à garder ou à retirer comme le reste de ces essais.
+
 ## Reste de l'état des lieux du 4 septembre
 
 Voir la [synthèse](audits/2026-09-04/README.md) pour le détail et les arbitrages.

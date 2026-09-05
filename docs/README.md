@@ -17,6 +17,7 @@ l'état du projet et ce qui reste à faire.
 - [PWA iOS](features/pwa-ios.md) — safe areas, clavier, service worker, thème avant la première peinture
 - [Thème et couleurs](features/theme.md) — sombre, voile d'espace, contrastes, couleur par espace
 - [Barre du bas](features/barre-du-bas.md) — la pilule et le bouton composer
+- [Vue par correspondant](features/vue-correspondant.md) — la vue d'`arc-messenger`, à côté du rangement par fil
 - [Recherche ⌘K](features/recherche.md) — la barre de commande
 - [Répondre](features/reponse.md) — à qui part la réponse, et comment la viser
 - [Pièces jointes](features/pieces-jointes.md) — le modèle, les puces, le volet d'aperçu

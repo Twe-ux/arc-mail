@@ -189,6 +189,12 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   récents suivent.
 - `loadSpace` ne lit **qu'un dossier**, celui qu'on regarde ; Favoris se fond au lieu de remplacer.
 
+**Vue par correspondant** → [docs/features/vue-correspondant.md](docs/features/vue-correspondant.md)
+- Une **vue**, jamais le rangement : un e-mail est un objet et ses réponses, et regrouper par adresse
+  fusionne deux échanges sans rapport (la dérive d'`arc-messenger`).
+- Deux niveaux (les gens, puis leurs fils) ; « en face » = l'expéditeur, ou le destinataire si c'est
+  nous ; aucune lecture de plus, elle regroupe ce que la liste a déjà.
+
 **Recherche** → [docs/features/recherche.md](docs/features/recherche.md)
 
 ## Où on en est, où on va

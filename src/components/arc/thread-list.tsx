@@ -1,6 +1,6 @@
 "use client";
 
-import { CloudOff, Columns2, Inbox, PanelLeftOpen, RefreshCw, Star } from "lucide-react";
+import { ArrowLeft, CloudOff, Columns2, Inbox, PanelLeftOpen, RefreshCw, Star, Users } from "lucide-react";
 import { Fragment, useEffect, useRef } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,16 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { usePullToRefresh } from "@/hooks/use-pull-to-refresh";
 import { formatShortDate } from "@/lib/format";
-import { LOT, selectFolder, selectLoading, useMail, useSpace, useVisibleThreads } from "@/lib/store";
+import {
+  LOT,
+  selectFolder,
+  selectLoading,
+  useCorrespondants,
+  useMail,
+  useSpace,
+  useVisibleThreads,
+  type Correspondant,
+} from "@/lib/store";
 import type { Thread } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { ContactAvatar } from "./contact-avatar";
@@ -23,6 +32,17 @@ export function ThreadList({ className }: { className?: string }) {
   const selectThread = useMail((s) => s.selectThread);
   const prefetchThread = useMail((s) => s.prefetchThread);
   const prefetchThreads = useMail((s) => s.prefetchThreads);
+  const groupBy = useMail((s) => s.groupBy);
+  const setGroupBy = useMail((s) => s.setGroupBy);
+  const correspondent = useMail((s) => s.correspondent);
+  const setCorrespondent = useMail((s) => s.setCorrespondent);
+  const correspondants = useCorrespondants();
+  /* La personne ouverte, retrouvée dans la vue courante : si le dossier change
+     sous nos pieds, elle disparaît d'elle-même. */
+  const ouvert = correspondent
+    ? (correspondants.find((c) => c.email.toLowerCase() === correspondent.toLowerCase()) ?? null)
+    : null;
+  const visibles = ouvert ? ouvert.threads : threads;
   const openDraft = useMail((s) => s.openDraft);
   const toggleStar = useMail((s) => s.toggleStar);
   const unreadOnly = useMail((s) => s.unreadOnly);
@@ -69,7 +89,19 @@ export function ThreadList({ className }: { className?: string }) {
               {unread > 0 && ` · ${unread} non lue${unread > 1 ? "s" : ""}`}
             </span>
           </p>
-          <Segmented tone="glass" />
+          <div className="flex shrink-0 items-center gap-1">
+            <Segmented tone="glass" />
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={() => setGroupBy(groupBy === "fil" ? "correspondant" : "fil")}
+              aria-pressed={groupBy === "correspondant"}
+              aria-label="Ranger par correspondant"
+              className={cn("rounded-full", groupBy === "correspondant" && "bg-foreground/10")}
+            >
+              <Users />
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -91,6 +123,22 @@ export function ThreadList({ className }: { className?: string }) {
         <span className="text-xs text-muted-foreground tabular-nums">{threads.length}</span>
         <div className="ml-auto flex items-center gap-1">
           <Segmented tone="muted" />
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon-xs"
+                onClick={() => setGroupBy(groupBy === "fil" ? "correspondant" : "fil")}
+                aria-pressed={groupBy === "correspondant"}
+                aria-label="Ranger par correspondant"
+              >
+                <Users />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              {groupBy === "correspondant" ? "Ranger par conversation" : "Ranger par correspondant"}
+            </TooltipContent>
+          </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button variant="ghost" size="icon-xs" onClick={toggleSplit} aria-pressed={splitView} aria-label="Vue partagée">
@@ -116,6 +164,30 @@ export function ThreadList({ className }: { className?: string }) {
           <Button variant="ghost" size="sm" onClick={() => void loadSpace()} className="h-8 text-destructive hover:text-destructive">
             Réessayer
           </Button>
+        </div>
+      )}
+
+      {/* Second niveau de la vue par correspondant : de qui il s'agit, et le
+          chemin du retour. Au-dessus de la carte plutôt que dedans, pour ne
+          pas entrer dans le défilant ni dans le tirage. */}
+      {ouvert && (
+        <div className="mx-2 mb-2 flex shrink-0 items-center gap-2 rounded-xl bg-card/70 py-1.5 pr-3 pl-1.5 md:mx-3 md:mt-2 md:bg-muted/60">
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => setCorrespondent(null)}
+            aria-label="Revenir aux correspondants"
+          >
+            <ArrowLeft />
+          </Button>
+          <ContactAvatar contact={{ name: ouvert.name, email: ouvert.email }} className="size-6" />
+          <span className="min-w-0 flex-1 leading-tight">
+            <span className="block truncate text-[13px] font-semibold">{ouvert.name}</span>
+            <span className="block truncate text-[11px] text-muted-foreground">{ouvert.email}</span>
+          </span>
+          <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
+            {ouvert.threads.length}
+          </span>
         </div>
       )}
 
@@ -152,7 +224,28 @@ export function ThreadList({ className }: { className?: string }) {
           className="h-full overflow-hidden rounded-t-[28px] bg-card shadow-[0_-8px_30px_rgb(0_0_0/0.06)] ring-1 ring-black/[0.05] md:rounded-none md:bg-transparent md:shadow-none md:ring-0 dark:ring-white/12"
         >
         <ScrollArea className="h-full">
-          {threads.length === 0 ? (
+          {/* Vue par correspondant, premier niveau : les gens. Le second — leurs
+              fils — reprend la liste ordinaire, avec la personne en tête. */}
+          {groupBy === "correspondant" && !ouvert ? (
+            correspondants.length === 0 ? (
+              loading ? (
+                <Attente />
+              ) : (
+                <Vide unreadOnly={unreadOnly} />
+              )
+            ) : (
+              <ul className="flex flex-col pt-2 max-md:pb-[calc(var(--nav-height)+0.5rem)] md:gap-0.5 md:p-2">
+                {correspondants.map((c) => (
+                  <RangeeCorrespondant
+                    key={c.email}
+                    correspondant={c}
+                    accent={space.theme.accent}
+                    onSelect={() => setCorrespondent(c.email)}
+                  />
+                ))}
+              </ul>
+            )
+          ) : visibles.length === 0 ? (
             /* Une carte vide pendant une à deux secondes ne dit pas qu'on
                travaille : elle dit qu'il n'y a rien. « Rien ici » serait un
                mensonge pour la durée de la lecture, d'où ces rangées grises,
@@ -160,16 +253,13 @@ export function ThreadList({ className }: { className?: string }) {
             loading ? (
               <Attente />
             ) : (
-              <div className="flex flex-col items-center gap-2 px-6 py-16 text-center text-muted-foreground">
-                <Inbox className="size-8 opacity-40" />
-                <p className="text-sm">{unreadOnly ? "Tout est lu." : "Rien ici pour l'instant."}</p>
-              </div>
+              <Vide unreadOnly={unreadOnly} />
             )
           ) : (
             /* The bar floats over the list rather than beside it, so the last
                rows need room to pass under it — see `--nav-height`. */
             <ul className="flex flex-col pt-2 max-md:pb-[calc(var(--nav-height)+0.5rem)] md:gap-0.5 md:p-2">
-              {threads.map((t, i) => (
+              {visibles.map((t, i) => (
                 <Fragment key={t.id}>
                   <ThreadRow
                     thread={t}
@@ -182,10 +272,10 @@ export function ThreadList({ className }: { className?: string }) {
                   {/* Au bout de chaque lot, une balise invisible : quand elle
                       entre dans l'écran, le lot suivant part se chercher. Le
                       défilement continue de dérouler des messages déjà là. */}
-                  {i % LOT === LOT - 1 && i + 1 < threads.length && (
+                  {i % LOT === LOT - 1 && i + 1 < visibles.length && (
                     <Sentinelle
                       onVisible={() =>
-                        prefetchThreads(threads.slice(i + 1, i + 1 + LOT).map((x) => x.id))
+                        prefetchThreads(visibles.slice(i + 1, i + 1 + LOT).map((x) => x.id))
                       }
                     />
                   )}
@@ -461,4 +551,72 @@ async function versionFraiche() {
   navigator.serviceWorker.addEventListener("controllerchange", () => window.location.reload(), {
     once: true,
   });
+}
+
+/** « Rien ici », dit une fois pour les deux vues. */
+function Vide({ unreadOnly }: { unreadOnly: boolean }) {
+  return (
+    <div className="flex flex-col items-center gap-2 px-6 py-16 text-center text-muted-foreground">
+      <Inbox className="size-8 opacity-40" />
+      <p className="text-sm">{unreadOnly ? "Tout est lu." : "Rien ici pour l\u2019instant."}</p>
+    </div>
+  );
+}
+
+/**
+ * Une personne, et ce qu'on a d'elle.
+ *
+ * La même forme qu'une rangée de fil — avatar, deux lignes, date à droite —
+ * pour que passer d'une vue à l'autre ne demande pas de réapprendre à lire.
+ * Ce qui change est ce qu'elle compte : des conversations, pas des messages.
+ */
+function RangeeCorrespondant({
+  correspondant: c,
+  accent,
+  onSelect,
+}: {
+  correspondant: Correspondant;
+  accent: string;
+  onSelect: () => void;
+}) {
+  const contact = { name: c.name, email: c.email };
+  return (
+    <li>
+      <button
+        type="button"
+        onClick={onSelect}
+        className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-accent/50 active:bg-accent md:rounded-xl"
+      >
+        <ContactAvatar contact={contact} />
+        <span className="min-w-0 flex-1">
+          <span className="flex items-baseline gap-2">
+            <span className={cn("min-w-0 flex-1 truncate text-[15px] md:text-sm", c.unread > 0 && "font-semibold")}>
+              {c.name}
+            </span>
+            <time
+              dateTime={c.date}
+              suppressHydrationWarning
+              className="shrink-0 text-xs text-muted-foreground tabular-nums"
+            >
+              {formatShortDate(c.date)}
+            </time>
+          </span>
+          <span className="mt-0.5 flex items-center gap-2">
+            <span className="min-w-0 flex-1 truncate text-[13px] text-muted-foreground">{c.email}</span>
+            {c.unread > 0 && (
+              <span
+                className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full px-1.5 text-[11px] font-semibold text-white tabular-nums"
+                style={{ background: accent }}
+              >
+                {c.unread}
+              </span>
+            )}
+          </span>
+          <span className="mt-0.5 block text-[11px] text-muted-foreground tabular-nums">
+            {c.threads.length} conversation{c.threads.length > 1 ? "s" : ""}
+          </span>
+        </span>
+      </button>
+    </li>
+  );
 }

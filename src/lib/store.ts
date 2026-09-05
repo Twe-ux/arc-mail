@@ -30,6 +30,16 @@ export type MailState = {
   listWidth: number;
   /** The attachment being looked at, `null` when none; it lives in the open thread. */
   previewId: string | null;
+  /**
+   * Comment la liste range : par fil (le défaut) ou par correspondant.
+   *
+   * Par fil, c'est ce qu'est un e-mail — un objet, des réponses. Par
+   * correspondant, c'est « tout ce que cette personne m'a écrit », ce que le
+   * courrier ne dit pas de lui-même mais qu'on cherche parfois.
+   */
+  groupBy: "fil" | "correspondant";
+  /** La personne ouverte dans la vue par correspondant. Passager, jamais persisté. */
+  correspondent: string | null;
   dark: boolean;
   /** Everything loaded so far, every space and folder; selectors slice it. */
   threads: Thread[];
@@ -75,6 +85,8 @@ export type MailState = {
   setSpaces: (spaces: Space[]) => void;
   toggleSidebarCollapsed: () => void;
   toggleSidebarSide: () => void;
+  setGroupBy: (mode: MailState["groupBy"]) => void;
+  setCorrespondent: (email: string | null) => void;
   setListWidth: (px: number) => void;
   setPreview: (attachmentId: string | null) => void;
   toggleDark: () => void;
@@ -436,6 +448,8 @@ export const useMail = create<MailState>()(
   sidebarCollapsed: false,
   sidebarSide: "left",
   listWidth: LISTE_DEFAUT,
+  groupBy: "fil",
+  correspondent: null,
   previewId: null,
   dark: false,
   threads: [],
@@ -606,6 +620,11 @@ export const useMail = create<MailState>()(
   toggleSidebarSide: () =>
     set((s) => ({ sidebarSide: s.sidebarSide === "left" ? "right" : "left" })),
   setListWidth: (px) => set({ listWidth: borne(px) }),
+  /* Changer de rangement referme la personne ouverte : sa liste n'a plus de
+     sens dans l'autre vue, et la garder ferait revenir un écran qu'on ne
+     saurait plus quitter. */
+  setGroupBy: (groupBy) => set({ groupBy, correspondent: null }),
+  setCorrespondent: (correspondent) => set({ correspondent }),
   setPreview: (previewId) => set({ previewId }),
   toggleDark: () => set((s) => ({ dark: !s.dark })),
 
@@ -850,6 +869,7 @@ export const useMail = create<MailState>()(
           | "sidebarCollapsed"
           | "sidebarSide"
           | "listWidth"
+          | "groupBy"
           | "recent"
           | "threads"
         >,
@@ -862,6 +882,7 @@ export const useMail = create<MailState>()(
         sidebarCollapsed: s.sidebarCollapsed,
         sidebarSide: s.sidebarSide,
         listWidth: s.listWidth,
+        groupBy: s.groupBy,
         recent: s.recent,
         threads: enMemoire(s.threads),
       }),
@@ -912,6 +933,78 @@ export function usePreview(): Preview | null {
     () => findPreview(threads, selectedThreadId, previewId),
     [threads, selectedThreadId, previewId],
   );
+}
+
+/** Une personne, et ce qu'on a d'elle dans le dossier regardé. */
+export type Correspondant = {
+  email: string;
+  name: string;
+  threads: Thread[];
+  unread: number;
+  /** La date du fil le plus récent, pour trier comme la liste ordinaire. */
+  date: string;
+};
+
+/**
+ * Qui est en face, dans un fil.
+ *
+ * L'expéditeur du dernier message — sauf si c'est nous, et alors le premier
+ * destinataire. Un dossier « Envoyés » rangé par expéditeur ne montrerait
+ * qu'une seule personne : soi.
+ */
+function enFace(t: Thread, moi: string): Contact {
+  const dernier = t.messages[t.messages.length - 1];
+  if (dernier.from.email.toLowerCase() !== moi) return dernier.from;
+  return dernier.to[0] ?? dernier.from;
+}
+
+/**
+ * Les fils du dossier, rangés par personne.
+ *
+ * **Ce n'est pas le rangement de l'app, c'est une vue.** Un e-mail est un
+ * objet et ses réponses ; regrouper par adresse fusionne deux échanges sans
+ * rapport avec la même personne, et c'est exactement la dérive dont ce projet
+ * est né. Mais « tout ce que cette personne m'a écrit » est une question
+ * qu'on se pose, et le courrier n'y répond pas de lui-même — d'où cette vue,
+ * à côté, jamais à la place.
+ *
+ * Les fils restent des fils : on les range, on ne les fond pas.
+ */
+export function useCorrespondants(): Correspondant[] {
+  const threads = useVisibleThreads();
+  const spaces = useMail((s) => s.spaces);
+  const spaceId = useMail((s) => s.spaceId);
+
+  return useMemo(() => {
+    const moi = (spaces.find((sp) => sp.id === spaceId)?.identity.email ?? "").toLowerCase();
+    const par = new Map<string, Correspondant>();
+
+    for (const t of threads) {
+      const qui = enFace(t, moi);
+      const cle = qui.email.toLowerCase();
+      const vu = par.get(cle);
+      const date = lastMessageDate(t);
+      if (!vu) {
+        par.set(cle, {
+          email: qui.email,
+          name: qui.name || qui.email,
+          threads: [t],
+          unread: t.unread ? 1 : 0,
+          date,
+        });
+      } else {
+        vu.threads.push(t);
+        if (t.unread) vu.unread += 1;
+        if (date > vu.date) {
+          vu.date = date;
+          /* Le nom le plus récent gagne : les gens changent de signature. */
+          vu.name = qui.name || vu.name;
+        }
+      }
+    }
+
+    return [...par.values()].sort((a, b) => (a.date < b.date ? 1 : -1));
+  }, [threads, spaces, spaceId]);
 }
 
 /** True while the current space is being read for the first time — nothing to show yet. */

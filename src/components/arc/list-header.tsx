@@ -215,19 +215,31 @@ export function plural(n: number, word: string): string {
   return `${n} ${word}${n > 1 ? "s" : ""}`;
 }
 
-/** Le bouton d'infobulle du bureau, qui partage la même bascule que le téléphone. */
+/**
+ * La bascule « par correspondant », la même sur téléphone et sur bureau.
+ *
+ * **Enclenchée, elle se remplit.** Un `aria-pressed` sans état visible laissait
+ * la liste changer de forme sans que rien ne dise pourquoi — et l'icône seule,
+ * en accent, aurait écrit la couleur au lieu de la remplir. C'est la règle de
+ * l'app : l'accent se remplit (22 %), l'encre passe en `--space-ink`.
+ */
 export function GroupByToggle() {
   const groupBy = useMail((s) => s.groupBy);
   const setGroupBy = useMail((s) => s.setGroupBy);
+  const actif = groupBy === "correspondant";
   return (
     <Tooltip>
       <TooltipTrigger asChild>
         <Button
           variant="ghost"
           size="icon-xs"
-          onClick={() => setGroupBy(groupBy === "fil" ? "correspondant" : "fil")}
-          aria-pressed={groupBy === "correspondant"}
+          onClick={() => setGroupBy(actif ? "fil" : "correspondant")}
+          aria-pressed={actif}
           aria-label="Ranger par correspondant"
+          className={cn(
+            actif &&
+              "bg-[color-mix(in_oklch,var(--space-accent)_22%,transparent)] text-[var(--space-ink)] hover:bg-[color-mix(in_oklch,var(--space-accent)_28%,transparent)] hover:text-[var(--space-ink)]",
+          )}
         >
           <Users />
         </Button>

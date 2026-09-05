@@ -47,6 +47,12 @@ manquait** — trois lignes sans trait se lisaient comme un seul bloc. En pleine
 passe sur une ligne, **l'adresse tombe** et l'objet du dernier fil prend sa place : les trois lignes
 empilées laissaient les deux tiers de la fenêtre vides à droite.
 
+Enfin la tête de bureau s'est rangée : `Tous / Non lus` est passé **à gauche**, contre le sélecteur
+de barre — c'est le premier choix qu'on fait sur une liste —, le sélecteur **ne montre plus l'état
+où l'on est** (deux cases, les deux chemins possibles), le regroupement enclenché **se remplit**, et
+le champ de recherche commence désormais **où commence l'objet des mails** : mesuré au pixel dans
+les trois états, de 768 à 1600 px, la ligne se repliant plutôt que de serrer.
+
 ## 5 septembre 2026 — le lot mobile
 
 Le handoff `design_handoff_arc_mail_mobile` monté de bout en bout : la pill d'actions partagée, la

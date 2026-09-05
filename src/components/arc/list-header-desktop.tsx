@@ -9,10 +9,15 @@ import type { FolderId } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { EPINGLES, GroupByToggle, plural, Segmented } from "./list-header";
 
+/* **Les trois états, moins celui où l'on est.** Un sélecteur qui montre la
+   position courante demande de la lire avant d'agir ; ces trois cases ne sont
+   pas un réglage à consulter mais deux chemins à prendre, et l'état, la fenêtre
+   le dit déjà — la barre est là, ou en rail, ou absente. Il en reste toujours
+   exactement deux : la largeur ne bouge pas d'un état à l'autre. */
 const MODES: { id: SidebarMode; icon: LucideIcon; label: string }[] = [
-  { id: "full", icon: PanelLeft, label: "Barre latérale attachée · ⌘B" },
+  { id: "full", icon: PanelLeft, label: "Attacher la barre latérale · ⌘B" },
   { id: "rail", icon: PanelLeftDashed, label: "Réduire en rail · ⌘B" },
-  { id: "hidden", icon: Square, label: "Masquée — survole le bord gauche" },
+  { id: "hidden", icon: Square, label: "Masquer la barre latérale" },
 ];
 
 /**
@@ -26,15 +31,28 @@ const MODES: { id: SidebarMode; icon: LucideIcon; label: string }[] = [
  *
  * **Les dossiers, eux, n'apparaissent toujours qu'une fois** : la barre attachée
  * les liste, le rail les porte en icônes, et ce n'est que masquée que la tête
- * les reprend en tuiles.
+ * les reprend en tuiles, au bout de la ligne.
  *
  * **Une seule ligne en pleine largeur, deux en colonne étroite.** Mesuré à
  * 360 px : sélecteur, recherche, filtre et regroupement sur une ligne laissaient
  * au champ la place de son icône, et un champ sans son mot n'est plus un champ.
  * Large, tout tient et le vide serait pire.
  *
+ * **La ligne se replie plutôt que de serrer.** Sous 1000 px, barre masquée, les
+ * quatre tuiles de dossiers ne rentraient plus : elles passent à la ligne
+ * (`flex-wrap`) au lieu de rogner les noms ou de sortir du cadre — mesuré à 768,
+ * 820 et 900 px, aucun débordement et aucun nom coupé. Le champ garde un
+ * plancher de 152 px, ce qui le fait passer à la ligne avant de devenir illisible.
+ *
+ * **Le champ de recherche commence où commence le corps des mails.** Le
+ * sélecteur et la boîte du filtre couvrent exactement ce qui précède l'objet
+ * dans une rangée — 20 px de marge, la pastille, la colonne des expéditeurs —
+ * et le champ prend le reste : la tête retombe sur la même verticale que les
+ * objets, quatre-vingts fois de suite. La largeur est **mesurée**, pas déduite ;
+ * elle vit sur la boîte du filtre, la pilule gardant sa taille.
+ *
  * Les 20 px de côté sont mesurés : c'est là que tombent les avatars des rangées
- * (8 px de la liste + 12 de la rangée), donc sélecteur, recherche et tuiles
+ * (8 px de la liste + 12 de la rangée), donc sélecteur, tuiles et bloc de gauche
  * s'alignent sur eux.
  */
 export function ListHeaderDesktop() {
@@ -49,24 +67,25 @@ export function ListHeaderDesktop() {
     <div
       className={cn(
         "hidden shrink-0 flex-col gap-2.5 border-b border-black/[0.06] px-5 pt-3.5 pb-4 md:flex dark:border-white/10",
-        "md:group-data-[large=true]/liste:flex-row md:group-data-[large=true]/liste:items-center md:group-data-[large=true]/liste:gap-3 md:group-data-[large=true]/liste:pb-3.5",
+        "md:group-data-[large=true]/liste:flex-row md:group-data-[large=true]/liste:flex-wrap md:group-data-[large=true]/liste:items-center md:group-data-[large=true]/liste:gap-3 md:group-data-[large=true]/liste:pb-3.5",
       )}
     >
-      <div className="flex items-center gap-2 md:group-data-[large=true]/liste:min-w-0 md:group-data-[large=true]/liste:flex-1">
-        <div role="radiogroup" aria-label="Barre latérale" className="flex shrink-0 rounded-[9px] bg-muted p-0.5">
-          {MODES.map(({ id, icon: Icon, label }) => (
+      {/* Rangée du haut en colonne étroite ; en pleine largeur elle s'efface
+          (`contents`) et ses trois enfants se rangent eux-mêmes sur la ligne. */}
+      <div className="flex items-center gap-2 md:group-data-[large=true]/liste:contents">
+        <div
+          role="group"
+          aria-label="Barre latérale"
+          className="flex shrink-0 rounded-[9px] bg-muted p-0.5 md:group-data-[large=true]/liste:order-1"
+        >
+          {MODES.filter(({ id }) => id !== mode).map(({ id, icon: Icon, label }) => (
             <Tooltip key={id}>
               <TooltipTrigger asChild>
                 <button
                   type="button"
-                  role="radio"
-                  aria-checked={mode === id}
                   aria-label={label}
                   onClick={() => setSidebarMode(id)}
-                  className={cn(
-                    "grid size-[26px] place-items-center rounded-[7px] transition-colors",
-                    mode === id ? "bg-background text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground",
-                  )}
+                  className="grid size-[26px] place-items-center rounded-[7px] text-muted-foreground transition-colors hover:bg-background hover:text-foreground hover:shadow-xs"
                 >
                   <Icon className="size-[15px]" />
                 </button>
@@ -79,7 +98,7 @@ export function ListHeaderDesktop() {
         <button
           type="button"
           onClick={() => setCommandOpen(true)}
-          className="flex h-[30px] min-w-0 flex-1 items-center gap-2 rounded-lg bg-muted px-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted/70"
+          className="flex h-[30px] min-w-0 flex-1 items-center gap-2 rounded-lg bg-muted px-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted/70 md:group-data-[large=true]/liste:order-3 md:group-data-[large=true]/liste:min-w-[9.5rem]"
         >
           <Search className="size-4 shrink-0" />
           <span className="min-w-0 flex-1 truncate text-left">Rechercher</span>
@@ -98,7 +117,7 @@ export function ListHeaderDesktop() {
                 type="button"
                 onClick={() => openCompose()}
                 aria-label="Nouveau message"
-                className="grid size-[30px] shrink-0 place-items-center rounded-lg bg-muted text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground"
+                className="grid size-[30px] shrink-0 place-items-center rounded-lg bg-muted text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground md:group-data-[large=true]/liste:order-4"
               >
                 <SquarePen className="size-4" />
               </button>
@@ -108,23 +127,37 @@ export function ListHeaderDesktop() {
         )}
       </div>
 
-      {/* **Deux rangées en colonne étroite, une seule en pleine largeur.**
-          Mesuré à 360 px : le sélecteur, la recherche, le filtre et le
-          regroupement sur une ligne laissaient au champ la place de son icône —
-          le mot « Rechercher » disparaissait, et un champ sans son mot n'est
-          plus un champ. Large, tout tient largement. */}
-      <div className="flex items-center gap-2 md:group-data-[large=true]/liste:shrink-0">
-        <Segmented tone="muted" />
-        <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground md:group-data-[large=true]/liste:flex-none">
+      {/* Deuxième rangée en colonne étroite ; en pleine largeur elle s'efface
+          aussi, et ses trois enfants se répartissent sur la ligne — le filtre à
+          gauche contre le sélecteur, le compte et le regroupement au bout. */}
+      <div className="flex items-center gap-2 md:group-data-[large=true]/liste:contents">
+        {/* **Le filtre passe à gauche, contre le sélecteur** : c'est le premier
+            choix qu'on fait sur une liste, et le chercher au bout de la fenêtre
+            après avoir lu à gauche coûte un aller-retour du regard à chaque
+            dossier. Sa boîte porte la largeur qui fait tomber le champ de
+            recherche sur le début du corps des mails (voir plus haut) ; la
+            pilule, elle, garde sa taille. Elle ne se rogne pas : c'est ce qui
+            garantit que l'alignement tient à toutes les largeurs — sous 1000 px
+            ce sont les tuiles de dossiers qui passent à la ligne (voir la tête
+            plus haut), et rien ne se serre. */}
+        <span className="shrink-0 md:group-data-[large=true]/liste:order-2 md:group-data-[large=true]/liste:w-[188px]">
+          <Segmented tone="muted" />
+        </span>
+        <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground md:group-data-[large=true]/liste:order-5 md:group-data-[large=true]/liste:flex-none">
           {plural(threads.length, "conversation")}
         </span>
-        <GroupByToggle />
+        <span className="md:group-data-[large=true]/liste:order-6">
+          <GroupByToggle />
+        </span>
       </div>
 
       {/* Masquée : la tête reprend les quatre dossiers, puisque plus rien
           d'autre ne les porte. */}
       {mode === "hidden" && (
-        <nav aria-label="Dossiers épinglés" className="grid grid-cols-4 gap-2">
+        <nav
+          aria-label="Dossiers épinglés"
+          className="grid grid-cols-4 gap-2 md:group-data-[large=true]/liste:order-7 md:group-data-[large=true]/liste:shrink-0"
+        >
           {EPINGLES.map(({ id, label }) => (
             <TuileBureau key={id} id={id} label={label} active={id === folder.id} />
           ))}

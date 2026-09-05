@@ -142,7 +142,10 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - Les dossiers n'apparaissent **qu'une fois** : barre attachée, ou rail, ou tuiles de la tête ; la
   recherche et le sélecteur de barre, eux, sont toujours dans la tête, jamais dans la barre.
 - La tête de liste tient sur **une ligne en pleine largeur**, deux en colonne étroite (mesuré à
-  360 px : le mot « Rechercher » y disparaissait).
+  360 px : le mot « Rechercher » y disparaissait) ; le champ de recherche commence **où commence
+  l'objet des mails** (boîte du filtre à 188 px), et la ligne se replie plutôt que de serrer.
+- Le sélecteur de barre **ne montre pas l'état courant** : deux cases, les deux chemins possibles.
+- Le regroupement par correspondant enclenché **se remplit** (accent 22 %, encre `--space-ink`).
 - Ouvrir le troisième volet **réduit une barre attachée en rail** ; il fait 460 px à chaque
   ouverture, sa largeur a sa propre clé, et il porte un message **ou** un fichier.
 - Le composeur ne dispute plus la colonne de droite au volet : c'est une fenêtre posée dessus.

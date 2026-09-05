@@ -32,6 +32,11 @@ la coque — sans quoi la bande ferait 32 px et non les 16 que les bornes compte
 | **rail** | 52 px : boîtes, dossiers, écriture | sélecteur + recherche + filtre |
 | **masquée** (`hidden`) | rien | sélecteur + recherche + filtre + 4 tuiles |
 
+**Le sélecteur ne montre pas l'état où l'on est** : il reste toujours exactement deux cases, les
+deux chemins qu'on peut prendre. Un sélecteur qui affiche la position courante demande de la lire
+avant d'agir, et l'état, la fenêtre le dit déjà — la barre est là, en rail, ou absente. Deux cases
+dans les trois états : la largeur ne bouge pas.
+
 **La tête est là dans les trois états**, et c'est elle qui porte la recherche et le sélecteur de
 barre. Ils vivaient en haut de la barre latérale : ils disparaissaient donc avec elle, et la tête
 devait s'effacer entièrement en état attaché pour ne pas doubler le champ — un champ de recherche
@@ -78,12 +83,29 @@ et **les réunit en une seule dès qu'elle est pleine largeur** (`data-large` pu
 là tout tient largement, et deux rangées n'auraient été que du vide empilé. Masquée, les tuiles de
 dossiers rejoignent la même ligne.
 
-1. sélecteur de barre (trois cases de 26, rayon 9) + champ de recherche `⌘K` + **« Nouveau
+1. sélecteur de barre (deux cases de 26, rayon 9) + champ de recherche `⌘K` + **« Nouveau
    message » quand la barre est masquée** : la rangée du bas de la barre le porte, le rail aussi,
    et masquée il ne restait que ⌘N — un raccourci ne s'annonce pas. Même règle anti-doublon que
    les tuiles de dossiers.
 2. `Tous / Non lus` + le compte + le regroupement par correspondant.
 3. masquée seulement : les quatre tuiles de dossiers.
+
+En pleine largeur les deux rangées s'effacent (`display: contents`) et leurs enfants se rangent
+eux-mêmes sur la ligne par leur `order` : sélecteur, filtre, recherche, écrire, compte,
+regroupement, tuiles. Un `order` plutôt qu'un DOM réordonné — la colonne étroite garde l'ordre de
+lecture, et rien n'est rendu deux fois.
+
+**Le champ de recherche commence où commence le corps des mails.** Le sélecteur et la boîte du
+filtre couvrent exactement ce qui précède l'objet dans une rangée — 20 px de marge, la pastille de
+24, la colonne des expéditeurs de 224 — soit **188 px** pour la boîte du filtre (la pilule, elle,
+garde sa taille). Mesuré : le champ et l'objet tombent au même pixel dans les trois états et de 768
+à 1600 px de fenêtre. Le filtre est à gauche, contre le sélecteur, et non au bout de la ligne :
+c'est le premier choix qu'on fait sur une liste.
+
+**La ligne se replie plutôt que de serrer.** Sous 1000 px, barre masquée, les quatre tuiles ne
+rentrent plus : elles passent à la ligne (`flex-wrap`) au lieu de rogner leurs noms ou de sortir du
+cadre. Le champ garde un plancher de 152 px, ce qui le fait passer à la ligne avant de devenir
+illisible. Mesuré à 768, 820 et 900 px : aucun débordement, aucun nom coupé.
 
 Les **20 px** de côté sont mesurés : c'est là que tombent les avatars des rangées (8 de la liste +
 12 de la rangée). Les tuiles de dossiers n'ont **pas d'icône** et affichent un point, pas un
@@ -93,7 +115,10 @@ qui manquait. Le point est **posé sur la tuile** et non dans la rangée : dans 
 12 px des 58 laissés au texte, et le nom se retronquait.
 
 Le filtre `Tous / Non lus` et le regroupement ne sont pas dans le handoff : ils y ont été gardés
-parce qu'ils sont le seul chemin vers la vue par correspondant.
+parce qu'ils sont le seul chemin vers la vue par correspondant. **Le regroupement enclenché se
+remplit** (accent à 22 %, encre `--space-ink`) : un `aria-pressed` sans état visible laissait la
+liste changer de forme sans que rien ne dise pourquoi, et l'icône en accent aurait écrit la couleur
+au lieu de la remplir → [thème](theme.md).
 
 ## Deux dispositions, selon qu'un message est ouvert
 

@@ -62,8 +62,8 @@ const CLICK_TEXT = (text) =>
 
 /* Les trois états de la barre se commutent depuis la **tête de liste** : le
    sélecteur y vit désormais, et la barre n'a plus de rangée du haut. */
-const RAIL = `document.querySelector('div[role="radiogroup"][aria-label="Barre latérale"] button[aria-label^="Réduire en rail"]')?.click()`;
-const MASQUEE = `document.querySelector('div[role="radiogroup"][aria-label="Barre latérale"] button[aria-label^="Masquée"]')?.click()`;
+const RAIL = `document.querySelector('div[role="group"][aria-label="Barre latérale"] button[aria-label^="Réduire en rail"]')?.click()`;
+const MASQUEE = `document.querySelector('div[role="group"][aria-label="Barre latérale"] button[aria-label^="Masquer"]')?.click()`;
 
 const OPENERS = {
   /* La case d'espace de la barre **change** d'espace depuis le lot mobile ;

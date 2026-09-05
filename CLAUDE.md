@@ -154,6 +154,9 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - Un fournisseur ne connaît pas les espaces : il rend `spaceId: ""`, le store tamponne (`stamp`).
 - On compte les allers-retours : `folderPaths` est paresseux, ouvrir un message tient en un `FETCH`,
   et l'aperçu voyage avec l'enveloppe (`bodyParts` partiel, en `PEEK` : il ne marque pas comme lu).
+- Les connexions se gardent entre deux requêtes, par **empreinte d'identifiants** (jamais par
+  identifiant de compte : la vérification en partage un) ; `NOOP` avant reprise, jamais après une
+  erreur.
 - Les **enveloppes** des 150 derniers fils sont persistées (`enMemoire`) pour que la boîte s'ouvre
   sans attendre ; corps et pièces jointes non, et la déconnexion efface le tout.
 

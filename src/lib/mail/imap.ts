@@ -1,5 +1,7 @@
 import "server-only";
 
+import { createHash } from "node:crypto";
+
 import {
   ImapFlow,
   type FetchMessageObject,
@@ -66,18 +68,94 @@ export async function connect(account: StoredAccount, password: string): Promise
 }
 
 /** Ouvre, fait, ferme — quoi qu'il arrive. */
+/**
+ * Les connexions gardées entre deux requêtes, par compte.
+ *
+ * **Ce qui coûte dans une lecture, c'est d'arriver** : résolution DNS, poignée
+ * de main TLS, `LOGIN`, `SELECT`. Le `FETCH` lui-même est court. Rouvrir tout
+ * ça à chaque appel, c'est payer le trajet plus cher que la course.
+ *
+ * Sur Vercel, une instance sert plusieurs requêtes tant qu'elle reste chaude :
+ * la deuxième lecture retrouve la connexion de la première. Elle ne survit pas
+ * à une instance neuve — le premier appel après un moment paie toujours le
+ * trajet. Sur un hébergeur qui fait tourner un vrai processus, la même carte
+ * garde ses connexions ouvertes en permanence, et c'est là que ça change tout.
+ *
+ * **La clé est l'empreinte des identifiants**, pas celle du compte. Brancher
+ * une boîte vérifie la connexion *avant* d'enregistrer la ligne, donc sous un
+ * identifiant provisoire que tout le monde partage : une clé faite du seul
+ * identifiant aurait rendu à l'un la session ouverte de l'autre. Avec
+ * l'adresse, l'hôte et le mot de passe dans l'empreinte, une connexion n'est
+ * reprise que par des identifiants rigoureusement identiques — et un mot de
+ * passe faux n'hérite jamais d'une session déjà authentifiée.
+ */
+const ouvertes = new Map<string, { client: ImapFlow; expire: number }>();
+
+/** Le mot de passe n'est pas gardé : seulement de quoi reconnaître le même. */
+const empreinte = (account: StoredAccount, password: string) =>
+  createHash("sha256")
+    .update(`${account.id}\0${account.email}\0${account.imapHost ?? ""}\0${password}`)
+    .digest("hex");
+
+/** Au-delà, on rouvre : une session laissée trop longtemps est fermée d'en face. */
+const GARDE = 4 * 60_000;
+
+/** Une connexion morte peut ne jamais répondre : on n'attend pas sa réponse longtemps. */
+const PING = 1500;
+
+async function vivante(client: ImapFlow): Promise<boolean> {
+  if (!client.usable) return false;
+  try {
+    await Promise.race([
+      client.noop(),
+      new Promise((_, non) => setTimeout(() => non(new Error("muette")), PING)),
+    ]);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function reprendre(cle: string): Promise<ImapFlow | null> {
+  const gardee = ouvertes.get(cle);
+  if (!gardee) return null;
+  ouvertes.delete(cle);
+  if (Date.now() > gardee.expire || !(await vivante(gardee.client))) {
+    await gardee.client.logout().catch(() => {});
+    return null;
+  }
+  return gardee.client;
+}
+
+/**
+ * Ouvre (ou reprend), fait, garde — et ferme pour de bon si quelque chose a
+ * cassé.
+ *
+ * Une connexion sur laquelle une commande a échoué ne retourne **pas** dans la
+ * carte : on ne sait pas dans quel état elle est, et la garder ferait échouer
+ * la requête suivante pour la faute de celle-ci.
+ */
 export async function withImap<T>(
   account: StoredAccount,
   password: string,
   run: (client: ImapFlow) => Promise<T>,
 ): Promise<T> {
-  const client = await connect(account, password);
+  const cle = empreinte(account, password);
+  const client = (await reprendre(cle)) ?? (await connect(account, password));
   try {
-    return await run(client);
-  } finally {
+    const resultat = await run(client);
+    /* Deux requêtes en parallèle sur la même instance ouvrent chacune la
+       leur : sans ça, la seconde à ranger écraserait la première, qui ne
+       serait plus jamais fermée. */
+    const deja = ouvertes.get(cle);
+    if (deja && deja.client !== client) await deja.client.logout().catch(() => {});
+    ouvertes.set(cle, { client, expire: Date.now() + GARDE });
+    return resultat;
+  } catch (error) {
     await client.logout().catch(() => {
       /* La connexion est morte : rien à sauver, et l'erreur d'origine compte plus. */
     });
+    throw error;
   }
 }
 

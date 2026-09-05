@@ -20,11 +20,45 @@ d'un compte, le serveur le résout, se connecte, ferme. C'est exactement ce que 
 **Une seule route pour les six appels** : elle épouse l'interface, et il n'y a donc qu'un endroit
 où vérifier qui demande. `runtime = "nodejs"` : IMAP est du TCP, pas du HTTP.
 
+## La connexion se garde tant qu'on peut
+
+**Ce qui coûte dans une lecture, c'est d'arriver** : DNS, poignée de main TLS, `LOGIN`, `SELECT`.
+Le `FETCH` lui-même est court. Rouvrir tout ça à chaque appel, c'est payer le trajet plus cher que
+la course — alors les connexions restent dans une table de module, par empreinte d'identifiants.
+
+Mesuré contre un serveur de test, sur la même instance :
+
+| | |
+|---|---|
+| 1ʳᵉ lecture | 285 ms — connexion, TLS, `LOGIN` |
+| 2ᵉ et 3ᵉ, mêmes identifiants | **4 ms et 3 ms** — reprise |
+| même compte, mot de passe faux | 155 ms — connexion neuve |
+| autre compte, même identifiant provisoire | 156 ms — connexion neuve |
+
+Trois connexions TCP pour cinq lectures : exactement le nombre de jeux d'identifiants distincts.
+
+**La clé est l'empreinte des identifiants, pas l'identifiant du compte.** Brancher une boîte vérifie
+la connexion *avant* d'enregistrer la ligne, donc sous un identifiant provisoire que tout le monde
+partage : une clé faite du seul identifiant aurait rendu à l'un la session ouverte de l'autre. Avec
+l'adresse, l'hôte et le mot de passe dans l'empreinte (jamais le mot de passe lui-même), un mot de
+passe faux n'hérite jamais d'une session déjà authentifiée — les deux dernières lignes du tableau
+sont ce test.
+
+Trois précautions : on vérifie qu'elle répond (`NOOP`, abandonné à 1,5 s — une connexion morte peut
+ne jamais répondre), on ne la garde que 4 minutes, et **une connexion sur laquelle une commande a
+échoué ne retourne pas dans la table** : on ne sait pas dans quel état elle est, et la garder ferait
+échouer la requête suivante pour la faute de celle-ci.
+
+**Ce que ça ne fait pas** : une instance neuve n'a rien à reprendre, donc le premier appel après un
+moment paie toujours le trajet. C'est là qu'un hébergeur faisant tourner un vrai processus change
+tout — la même table garde alors ses connexions ouvertes en permanence, et `IDLE` devient possible.
+
 ## Une connexion par requête
 
-Sur Vercel il n'y a pas de processus qui vive entre deux requêtes : chaque lecture ouvre une
-connexion, lit, et se déconnecte. C'est **1 à 2 s** par lecture, et c'est le prix du serverless.
-Le tirage pour rafraîchir existe déjà ; le push (IMAP `IDLE`) demandera un vrai serveur.
+Sur Vercel il n'y a pas de processus qui vive entre deux requêtes : une instance sert plusieurs
+requêtes tant qu'elle reste chaude (d'où la table ci-dessus), mais elle finit par disparaître. Une
+lecture qui doit rouvrir coûte **1 à 2 s**, et c'est le prix du serverless. Le tirage pour
+rafraîchir existe déjà ; le push (IMAP `IDLE`) demandera un vrai serveur.
 
 Ce prix ne se négocie pas, alors on compte les allers-retours :
 

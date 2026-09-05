@@ -1,29 +1,3 @@
-## Le geste de retour, rendu au message HTML
-
-**Un `iframe` garde pour lui tous les touchers qui naissent sur lui.** Le balayage de retour
-n'existait donc pas sur une infolettre — c'est-à-dire sur la moitié du courrier réel : l'app n'avait
-plus de retour au doigt. Mesuré sur une page nue, hors React : un toucher au milieu d'un `iframe`
-n'est **jamais** vu par le conteneur.
-
-Une bande de 20 px au bord gauche avait d'abord servi de porte. Elle marchait, mais elle ne rendait
-que le bord, et le geste se fait du milieu. Le cadre **relaie** donc ses touchers : son script (celui
-qui rapporte déjà sa hauteur) poste `arc-mail-touch` avec les coordonnées, `MessageBody` y ajoute la
-position du cadre à l'écran, et `useEdgeSwipeBack` les reçoit par un `feed` — les mêmes trois
-moments, il ne fait pas la différence. Le relais voyage par un contexte que `BackSwipe` fournit ;
-ailleurs il vaut `null` et personne n'a rien à faire.
-
-Le cadre pose `touch-action: pan-y` : l'horizontale appartient au geste, le panorama vertical
-continue de remonter au défilant de la page. **Ce qu'on y perd** : tirer latéralement un courrier
-plus large que l'écran. C'est rare — `overflow-wrap`, `img` et `table` sont déjà bornés — et le
-geste de retour vaut plus.
-
-Le cadre **observe seulement**, sans `preventDefault` : un simple appui sur un lien du message reste
-un appui (vérifié), et le geste ne se réclame qu'après 8 px franchement horizontaux.
-
-Vérifié sur la vraie infolettre du jeu de données, aux quatre cas : HTML depuis le milieu et depuis
-le bord, texte depuis le milieu et depuis le bord — les quatre reviennent à la liste, et un appui
-laisse le mail ouvert.
-
 # Le mail ouvert
 
 Refonte du 5 septembre 2026, d'après le handoff mobile.
@@ -84,20 +58,31 @@ vaut `--nav-height`, et elle disparaît quand la barre de réponse prend la plac
 le flux). C'est ce qui donne au verre quelque chose à flouter — un fondu avait été essayé d'abord,
 mais un texte qui se dissout se lit comme un texte qu'on perd.
 
-## Le bord gauche, rendu au geste de retour
+## Le geste de retour, rendu au message HTML
 
-**Un message HTML est une `iframe`, et une `iframe` avale tous les touchers qui naissent sur elle.**
-Le balayage de retour n'avait donc plus où commencer sur une infolettre — c'est-à-dire sur la moitié
-du courrier réel : l'app n'avait plus de retour au doigt.
+**Un `iframe` garde pour lui tous les touchers qui naissent sur lui.** Le balayage de retour
+n'existait donc pas sur une infolettre — c'est-à-dire sur la moitié du courrier réel : l'app n'avait
+plus de retour au doigt. Mesuré sur une page nue, hors React : un toucher au milieu d'un `iframe`
+n'est **jamais** vu par le conteneur.
 
-Une bande de **20 px** le long du bord gauche (l'encart que le système se réserve lui-même) se pose
-au-dessus du cadre et laisse le toucher remonter jusqu'à `BackSwipe`, qui n'a rien à changer. Elle
-vit **dans le défilant**, pas par-dessus : un glissement vertical qui y naît fait donc défiler le
-message, comme partout ailleurs.
+Une bande de 20 px au bord gauche avait d'abord servi de porte. Elle marchait, mais elle ne rendait
+que le bord, et le geste se fait du milieu. Le cadre **relaie** donc ses touchers : son script (celui
+qui rapporte déjà sa hauteur) poste `arc-mail-touch` avec les coordonnées, `MessageBody` y ajoute la
+position du cadre à l'écran, et `useEdgeSwipeBack` les reçoit par un `feed` — les mêmes trois
+moments, il ne fait pas la différence. Le relais voyage par un contexte que `BackSwipe` fournit ;
+ailleurs il vaut `null` et personne n'a rien à faire.
 
-Mesuré sur une page nue — un toucher au milieu d'une `iframe` n'est **jamais** vu par le conteneur,
-un toucher sur la bande l'est — puis dans l'app : le retour part depuis la bande comme depuis le
-plein milieu d'un message texte.
+Le cadre pose `touch-action: pan-y` : l'horizontale appartient au geste, le panorama vertical
+continue de remonter au défilant de la page. **Ce qu'on y perd** : tirer latéralement un courrier
+plus large que l'écran. C'est rare — `overflow-wrap`, `img` et `table` sont déjà bornés — et le
+geste de retour vaut plus.
+
+Le cadre **observe seulement**, sans `preventDefault` : un simple appui sur un lien du message reste
+un appui (vérifié), et le geste ne se réclame qu'après 8 px franchement horizontaux.
+
+Vérifié sur la vraie infolettre du jeu de données, aux quatre cas : HTML depuis le milieu et depuis
+le bord, texte depuis le milieu et depuis le bord — les quatre reviennent à la liste, et un appui
+laisse le mail ouvert.
 
 ## La pill, et ce qu'elle range
 

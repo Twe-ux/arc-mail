@@ -46,7 +46,6 @@ export function AppShell() {
   const third = useMail((s) => s.third);
   const listWidth = useMail((s) => s.listWidth);
   const thirdWidth = useMail((s) => s.thirdWidth);
-  const compose = useMail((s) => s.compose);
   const coque = useRef<HTMLDivElement>(null);
 
   useKeyboardShortcuts();
@@ -88,25 +87,20 @@ export function AppShell() {
   }, [space.theme.accent, space.theme.gradient]);
 
   const hasSelection = selectedThreadId !== null;
-  /* **Une seule colonne à droite.** Le composeur la prend au troisième volet
-     quand il est ouvert : écrire est ce qu'on est venu faire, et le volet se
-     rouvre d'un clic — il garde son message. */
-  const composeOnDesktop = compose !== null;
-  const troisiemeOuvert = third !== null && !composeOnDesktop;
+  const troisiemeOuvert = third !== null;
   /* Assez large pour tenir barre, liste, message **et** volet : au-dessous, la
      liste s'efface le temps qu'on regarde. */
   const troisColonnes = useMediaQuery("(min-width: 1400px)");
-  /* Sur un écran étroit, la colonne de droite prend la place de la liste — mais
-     seulement s'il reste un message à côté : sinon on n'aurait plus qu'elle. */
-  const colonneDroite = troisiemeOuvert || composeOnDesktop;
-  const listeCede = colonneDroite && hasSelection && !troisColonnes;
+  /* Sur un écran étroit, le volet prend la place de la liste — mais seulement
+     s'il reste un message à côté : sinon on n'aurait plus que lui. */
+  const listeCede = troisiemeOuvert && hasSelection && !troisColonnes;
   const listOnDesktop = (splitView || !hasSelection) && !listeCede;
   const viewOnDesktop = splitView || hasSelection;
 
-  /* Les trois pistes. Le composeur, lui, partage la piste de lecture : agrandi
-     il passe en `fixed`, et une piste réservée pour lui aurait laissé 460 px de
-     vide derrière son voile. */
-  const droite = viewOnDesktop ? "minmax(0,1fr)" : composeOnDesktop ? "var(--compose-width)" : "0px";
+  /* Les trois pistes. Le composeur n'en prend aucune : c'est une **fenêtre
+     posée sur la boîte**, pas une colonne — il ne dispute donc plus sa largeur
+     ni à la conversation ni au troisième volet. */
+  const droite = viewOnDesktop ? "minmax(0,1fr)" : "0px";
   const partage = splitView && listOnDesktop && droite !== "0px";
   const gauche = !listOnDesktop ? "0px" : partage ? "var(--list-width)" : "minmax(0,1fr)";
 
@@ -123,9 +117,6 @@ export function AppShell() {
                largeur qu'au relâchement. */
             "--list-width": `${listWidth}px`,
             "--third-width": `${thirdWidth}px`,
-            /* Un peu plus large que le volet : on y écrit, avec des champs et
-               une barre d'outils, là où le volet ne fait que montrer. */
-            "--compose-width": "460px",
           } as CSSProperties
         }
       >
@@ -146,8 +137,6 @@ export function AppShell() {
             )}
           />
           {partage && <SplitHandle coque={coque} />}
-          {/* La lecture et le composeur partagent la troisième piste : côte à
-              côte, le composeur pousse le message au lieu de le couvrir. */}
           <div className="flex min-h-0 min-w-0 flex-1 md:col-start-3 md:row-start-1">
             <BackSwipe
               enabled={hasSelection}
@@ -166,9 +155,6 @@ export function AppShell() {
             >
               <ThreadView className="flex" />
             </BackSwipe>
-            {/* Sur téléphone le composeur se rend en `Sheet`, portalisée — sa
-                place dans l'arbre n'y change rien. */}
-            <ComposeDialog />
           </div>
         </main>
         {/* Le troisième volet est **une fenêtre à part** : le dégradé passe
@@ -183,6 +169,10 @@ export function AppShell() {
         {/* Laid over the list, not beside it: the rows pass under the frosted
             pill, which is what gives the material something to blur. */}
         <MobileNav className={cn("absolute inset-x-0 bottom-0 z-30", hasSelection && "hidden")} />
+        {/* Carte flottante sur téléphone, fenêtre posée sur la boîte sur
+            bureau : les deux se rendent hors du flux, leur place dans l'arbre
+            n'y change rien. */}
+        <ComposeDialog />
         <MobileMenu />
         <MobileSettings />
         <CommandPalette />

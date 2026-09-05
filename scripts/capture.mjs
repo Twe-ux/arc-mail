@@ -74,6 +74,14 @@ const OPENERS = {
     `document.querySelector('button[aria-label="Réduire la barre latérale en rail"]')?.click()`,
     `document.querySelector('button[aria-label^="Masquée"]')?.click()`,
   ],
+  /* Bureau : un courrier HTML, barre masquée — le volet occupe tout. */
+  "html-large": [
+    `document.querySelector('button[aria-label="Réduire la barre latérale en rail"]')?.click()`,
+    `document.querySelector('button[aria-label^="Masquée"]')?.click()`,
+    CLICK_TEXT("Les bons plans du mois"),
+  ],
+  /* Bureau : la fenêtre du composeur, posée sur la boîte. */
+  composeur: [`document.querySelector('button[aria-label="Nouveau message"]')?.click()`],
   /* Bureau : le troisième volet, sur un message détaché du fil. */
   "volet-message": [
     `document.querySelector('button[aria-label="Réduire la barre latérale en rail"]')?.click()`,
@@ -83,7 +91,7 @@ const OPENERS = {
 };
 
 /** Les écrans qui ne sont pas des cartes flottantes : rien à mesurer, mais à capturer partout. */
-const BOTH_SIZES = new Set(["fil", "piece-jointe", "rail", "masquee", "volet-message"]);
+const BOTH_SIZES = new Set(["fil", "piece-jointe", "rail", "masquee", "volet-message", "composeur", "html-large"]);
 
 const CARD = `(() => {
   const el = document.querySelector('[data-slot="sheet-content"], [data-slot="dialog-content"]');
@@ -128,6 +136,11 @@ async function main() {
       /* Le thème est lu dans localStorage avant la première peinture (layout.tsx) : on le
          pose comme l'app le persisterait, pour capturer le vrai chemin et non une classe forcée. */
       await page.addInitScript((dark) => {
+        /* `addInitScript` s'exécute dans **tous** les cadres, y compris l'iframe
+           en bac à sable d'un message HTML — qui n'a pas d'origine, donc pas de
+           `localStorage`, et l'accès y lève. C'était l'outil de mesure qui
+           signalait une erreur de page, pas l'app. */
+        if (window.top !== window.self) return;
         const raw = localStorage.getItem("arc-mail");
         const state = raw ? JSON.parse(raw) : { state: {}, version: 0 };
         state.state = { themes: {}, splitView: true, recent: { perso: [], pro: [], side: [] }, ...state.state, dark };

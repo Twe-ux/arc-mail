@@ -48,17 +48,35 @@ export function MessageCard({
   const bureau = useMediaQuery("(min-width: 768px)");
   const openThird = useMail((s) => s.openThird);
   const detache = useMail((s) => s.third?.kind === "message" && s.third.messageId === message.id);
+  /* Un courrier HTML apporte **sa propre feuille blanche**. Le bloc ne peint
+     donc pas la sienne derrière : trois cadres emboîtés — le volet sombre, le
+     bloc teinté, la feuille — c'est le défaut qu'on avait déjà corrigé sur
+     téléphone. Ici c'est l'en-tête seul qui porte la teinte, et c'est lui qui
+     détache le message. */
+  const estHtml = Boolean(message.html);
   const aQui = destinataires(message.to, space.identity.email);
 
   return (
     <div
       className={cn(
         "group/msg border-t border-black/[0.06] first-of-type:border-0 dark:border-white/[0.08]",
-        "md:rounded-xl md:border-0 md:px-4 md:py-3.5 md:transition-colors",
-        detache ? "md:bg-foreground/[0.07]" : "md:hover:bg-foreground/[0.04]",
+        "md:rounded-xl md:border-0 md:transition-colors",
+        estHtml
+          ? "md:px-2 md:py-2"
+          : cn("md:px-4 md:py-3.5", detache ? "md:bg-foreground/[0.07]" : "md:hover:bg-foreground/[0.04]"),
       )}
     >
-      <div className="flex items-center gap-3 px-5 pt-3.5 md:gap-2.5 md:px-0 md:pt-0">
+      <div
+        className={cn(
+          "flex items-center gap-3 px-5 pt-3.5 md:gap-2.5 md:pt-0",
+          estHtml
+            ? cn(
+                "md:rounded-lg md:px-2 md:py-1.5 md:transition-colors",
+                detache ? "md:bg-foreground/[0.07]" : "md:group-hover/msg:bg-foreground/[0.04]",
+              )
+            : "md:px-0",
+        )}
+      >
         {/* **Sur bureau** l'en-tête détache le message dans le troisième
             volet : lire un message à côté du fil est ce qu'on vient y faire, et
             la réponse ciblée garde son bouton juste à droite.
@@ -135,10 +153,16 @@ export function MessageCard({
         message={message}
         /* Sur bureau le texte s'aligne sous le nom, pas sous l'avatar : 28 px
            de tuile plus 10 de gouttière. */
-        className="block px-5 py-[18px] text-[15px] leading-[1.6] whitespace-pre-wrap md:mt-2.5 md:ms-[38px] md:px-0 md:py-0 md:text-sm md:leading-[1.65]"
+        className={cn(
+          "block px-5 py-[18px] text-[15px] leading-[1.6] whitespace-pre-wrap md:mt-2.5 md:px-0 md:py-0 md:text-sm md:leading-[1.65]",
+          /* Le texte simple borne **sa propre longueur de ligne** : la colonne
+             ne le fait plus, et 200 caractères par ligne ne se lisent pas. Le
+             HTML, lui, garde toute la largeur — il porte la sienne. */
+          estHtml ? "md:mt-2" : "md:ms-[38px] md:max-w-[68ch]",
+        )}
       />
       {message.attachments && message.attachments.length > 0 && (
-        <div className="px-5 pb-4 md:ms-[38px] md:px-0 md:pb-0">
+        <div className={cn("px-5 pb-4 md:px-0 md:pb-0", !estHtml && "md:ms-[38px]")}>
           <AttachmentRow attachments={message.attachments} />
         </div>
       )}

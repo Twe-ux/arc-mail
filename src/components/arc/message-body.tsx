@@ -207,7 +207,9 @@ function CorpsHtml({ html, bloquees }: { html: string; bloquees: number }) {
       )}
       <iframe
         ref={cadre}
-        title="Message"
+        /* Le navigateur en fait une infobulle native au survol : « Message »
+           tout court apparaissait comme une étiquette égarée sur l'en-tête. */
+        title="Contenu du message"
         srcDoc={srcDoc}
         onLoad={() => cadre.current?.contentWindow?.postMessage({ type: "arc-mail-ping" }, "*")}
         /* Pas de `allow-same-origin` : c'est cette absence qui donne au cadre

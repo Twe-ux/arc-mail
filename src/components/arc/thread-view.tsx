@@ -159,7 +159,12 @@ export function ThreadView({ className }: { className?: string }) {
                  comme un texte qu'on perd. La réserve suit `--nav-height`, et
                  disparaît quand la barre de réponse prend la place de la pill
                  (elle, elle est dans le flux). */
-              "mx-auto flex w-full max-w-3xl flex-col md:gap-0.5 md:p-2",
+              /* **Pas de colonne étroite centrée sur bureau.** À 1500 px de volet,
+                 768 px au milieu laissaient 350 px de vide noir de chaque côté,
+                 et un courrier HTML — qui porte sa propre largeur — y flottait
+                 comme un timbre. Le volet est la page ; c'est le **texte** qui
+                 borne sa longueur de ligne, pas la colonne. */
+              "mx-auto flex w-full max-w-3xl flex-col md:max-w-none md:gap-0.5 md:p-2",
               replyOpen ? "max-md:pb-4" : "max-md:pb-[calc(var(--nav-height)+0.5rem)]",
             )}
           >

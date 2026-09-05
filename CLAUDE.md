@@ -86,8 +86,9 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - Une seule surface par carte (`Command` en `bg-transparent`).
 - Le composeur occupe le **rectangle visible** (`--vv-top`, `--vv-height`), il ne compense pas le
   clavier : c'est le défilement du navigateur qu'on annule, pas un décalage qu'on ajoute.
-- Sur bureau le composeur est **une colonne à droite du message**, dans le flux (`--compose-width`),
-  pas une fenêtre posée dessus ; une seule colonne à droite, et il la prend sur l'aperçu.
+- Sur bureau le composeur est **une fenêtre de 760 × 560 posée sur la boîte** (rayon 16, voile à
+  35 %), pas une colonne : il ne prend aucune piste de la grille. En-tête discret — un filet et un
+  titre, pas le dégradé ; la couleur de l'espace reste sur le bouton d'envoi. Le voile ne ferme pas.
 - Pas de clic-en-dehors Radix ; la recherche a son bouton « Annuler » sur téléphone.
 
 **Gestes** → [docs/features/gestes.md](docs/features/gestes.md)
@@ -134,7 +135,7 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - Les dossiers n'apparaissent **qu'une fois** : barre attachée, ou rail, ou tuiles de la tête.
 - Ouvrir le troisième volet **réduit une barre attachée en rail** ; il fait 460 px à chaque
   ouverture, sa largeur a sa propre clé, et il porte un message **ou** un fichier.
-- Une seule colonne à droite : le composeur la prend au volet, et le volet revient en la rendant.
+- Le composeur ne dispute plus la colonne de droite au volet : c'est une fenêtre posée dessus.
 - La révélation au survol part de la **bande du bord**, jamais du rail ; son voile est en
   `pointer-events: none`, sinon quitter la barre ne la retire jamais.
 - Les boîtes sont des tuiles de verre (`SpaceTile`) à **point d'accent** ; nom, adresse et raccourci
@@ -144,6 +145,9 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - En-tête de conversation : Archiver et Supprimer **dehors**, pas de « Répondre » (le champ est en
   bas, hors du défilant) ; un bloc de message se clique pour le détacher, et c'est le bouton du
   survol qui vise la réponse.
+- Le volet **est** la page : pas de colonne étroite centrée, c'est le texte simple qui borne sa
+  ligne (68ch). Un courrier HTML garde toute la largeur et **sa feuille blanche est la surface** —
+  le bloc ne peint pas la sienne derrière, seul l'en-tête porte la teinte.
 
 **Liste sur téléphone** → [docs/features/liste-telephone.md](docs/features/liste-telephone.md)
 - Grand titre 30/1.15/-0.02em, ligne méta tronquée, **quatre** tuiles épinglées ; la carte porte le

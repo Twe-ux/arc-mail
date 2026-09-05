@@ -17,10 +17,6 @@ DOM. La raison est mesurable : un enfant en `display:none` n'est plus un éléme
 et le placement automatique faisait alors glisser la lecture dans la piste de la liste dès qu'un
 état la masquait. Les pistes inutiles valent `0px` : elles restent, et rien ne bouge.
 
-La lecture et le composeur **partagent la troisième piste** — côte à côte dans une boîte flexible.
-Le composeur agrandi passe en `fixed` ; une piste réservée pour lui aurait laissé 460 px de vide
-derrière son voile.
-
 Le troisième volet, lui, est **hors de la fenêtre principale** : une fenêtre à part, précédée d'une
 gouttière de 16 px de dégradé. Sa poignée porte `-mx-2` pour manger les deux gouttières de 8 px de
 la coque — sans quoi la bande ferait 32 px et non les 16 que les bornes comptent.
@@ -115,6 +111,16 @@ Avatar 28, texte décalé de 38 px (l'aplomb du nom), pièces jointes en vignett
 
 **L'objet n'est pas répété** dans le corps : il est dans l'en-tête, deux centimètres au-dessus.
 
+**Pas de colonne étroite centrée.** Le volet est la page : à 1500 px de large, 768 px au milieu
+laissaient 350 px de vide noir de chaque côté, et un courrier HTML — qui porte sa propre largeur —
+y flottait comme un timbre. C'est le **texte simple** qui borne sa longueur de ligne (`68ch`), pas
+la colonne ; le HTML garde toute la largeur.
+
+**Un courrier HTML apporte sa propre feuille blanche, et c'est elle la surface.** Le bloc ne peint
+donc pas la sienne derrière : le volet sombre, le bloc teinté et la feuille faisaient trois cadres
+emboîtés — le défaut déjà corrigé sur téléphone. C'est l'**en-tête seul** qui porte la teinte, et
+c'est lui qui détache le message.
+
 **Le champ de réponse est hors du défilant**, toujours en bas du volet : à la fin du fil, il était
 invisible sur une conversation de cinq messages, et répondre est ce qu'on vient y faire. 44 px au
 repos, il pousse avec le texte (`field-sizing-content`) jusqu'à un tiers du volet ; son pied
@@ -131,9 +137,8 @@ Il porte **un message ou un fichier, jamais les deux**, et sa largeur vit sur un
 (`thirdWidth`) : partagée avec ce qu'il porte, tirer la poignée le faisait basculer de l'un à
 l'autre.
 
-**Une seule colonne à droite** : le composeur la prend au volet quand il est ouvert, et le volet
-revient avec son message dès qu'on referme — c'est la règle déjà écrite dans
-[cartes flottantes](cartes-flottantes.md).
+Le composeur ne lui dispute plus sa place : c'est une **fenêtre posée sur la boîte**, pas une
+colonne → [cartes flottantes](cartes-flottantes.md).
 
 ## Ce qui a été retiré du handoff, et pourquoi
 
@@ -143,8 +148,6 @@ revient avec son message dès qu'on referme — c'est la règle déjà écrite d
   des icônes absentes ; les trois sont dans [`a-faire.md`](../a-faire.md). Même coupe dans le `⋯`,
   où « Ajouter aux favoris · s » a en revanche été **ajouté** : le raccourci `s` n'avait aucune
   contrepartie visible sur bureau.
-- **Le composeur reste une colonne à droite du message**, pas la fenêtre de 760 × 560 du handoff :
-  c'est une instruction de l'utilisateur, consignée dans [cartes flottantes](cartes-flottantes.md).
 - **Les infobulles sont celles de Radix**, pas le mécanisme maison décrit par le handoff : elles
   satisfont déjà « un seul mécanisme, pas la `title` native » et résolvent les pièges de placement
   qu'il énumère.

@@ -302,119 +302,114 @@ function SendFailed({ detail }: { detail: string }) {
   );
 }
 
-// ───────────── Desktop: Gmail floating window ─────────────
+// ───────────── Bureau : une fenêtre, posée sur la boîte ─────────────
+
+/**
+ * **760 × 560, au centre.** Elle a été une colonne à droite du message pendant
+ * une version : côte à côte, on voyait ce à quoi on répond. Mais écrire n'est
+ * pas lire — la colonne prenait sa largeur sur la conversation, se disputait la
+ * place avec le troisième volet, et n'avait ni coin ni ombre pour dire qu'elle
+ * était autre chose. La fenêtre du handoff est revenue, avec sa grille
+ * `auto auto minmax(0,1fr) auto` : les champs prennent leur hauteur, le corps
+ * prend tout le reste.
+ */
 
 function ComposePanel({ draft }: { draft: ComposeDraft }) {
   const closeCompose = useMail((s) => s.closeCompose);
   const sendMail = useMail((s) => s.sendMail);
   const sendError = useMail((s) => s.sendError);
   const deleteDraft = useMail((s) => s.deleteDraft);
-  /* Plus de « réduit » : une colonne ne se réduit pas, elle se ferme — et la
-     fermer garde le brouillon, ce que « réduire » ne faisait que reporter. */
-  const [mode, setMode] = useState<"colonne" | "expanded">("colonne");
+  /* Plus de « réduit » : une fenêtre réduite est une fenêtre qu'on a oubliée.
+     Fermer garde le brouillon, ce que « réduire » ne faisait que reporter. */
+  const [grande, setGrande] = useState(false);
   const canSend = draft.to.length > 0;
-  const title =
-    draft.subject.trim() || (draft.draftId ? "Brouillon" : "Nouveau message");
+  const title = draft.subject.trim() || (draft.draftId ? "Brouillon" : "Nouveau message");
 
-  const panel = (
-    <section
-      role="dialog"
-      aria-label={title}
-      onKeyDown={(e) => {
-        if (e.key === "Escape") {
-          e.stopPropagation();
-          closeCompose();
-        }
-      }}
-      className={cn(
-        "pointer-events-auto flex flex-col overflow-hidden bg-card text-card-foreground",
-        mode === "colonne" &&
-          /* Dans le flux, pas au-dessus : elle pousse le message au lieu de le
-             couvrir, et n'a donc ni ombre portée ni coins — c'est une colonne
-             de la fenêtre, pas une carte posée dessus. */
-          "h-full w-[var(--compose-width)] shrink-0 border-l animate-in fade-in-0 slide-in-from-right-4 duration-200",
-        mode === "expanded" &&
-          "h-[min(860px,calc(100vh-4rem))] w-[min(900px,calc(100vw-4rem))] rounded-2xl shadow-[0_24px_80px_rgb(0_0_0/0.35)] ring-1 ring-black/10 animate-in fade-in-0 zoom-in-95 duration-200 dark:ring-white/10",
-      )}
+  return (
+    <div
+      /* Le voile pose la fenêtre au-dessus de la boîte sans la cacher. Un clic
+         dessus ne ferme pas — comme les cartes du téléphone : on ne perd pas un
+         message en cours parce que le pointeur a glissé. Il ne fait que rendre
+         sa taille à une fenêtre agrandie. */
+      className="fixed inset-0 z-50 hidden place-items-center bg-black/35 backdrop-blur-[2px] animate-in fade-in-0 sm:grid"
+      onClick={(e) => e.target === e.currentTarget && grande && setGrande(false)}
     >
-      {/* Header: the space gradient, the Arc signature, where Gmail paints grey */}
-      <header
-        className="flex h-11 shrink-0 cursor-default items-center gap-1 px-4 text-white [background:var(--space-gradient)]"
-        onDoubleClick={() => setMode((m) => (m === "expanded" ? "colonne" : "expanded"))}
+      <section
+        role="dialog"
+        aria-label={title}
+        onKeyDown={(e) => {
+          if (e.key === "Escape") {
+            e.stopPropagation();
+            closeCompose();
+          }
+        }}
+        className={cn(
+          /* Colonne flexible, et `ComposeFields` porte `min-h-0 flex-1` : c'est
+             ce qui l'étire au lieu de la laisser se dimensionner sur son
+             contenu — le piège que le handoff signale pour les grilles. */
+          "flex flex-col overflow-hidden rounded-2xl bg-card text-card-foreground",
+          "shadow-[0_40px_90px_-10px_rgb(0_0_0/0.55)] ring-1 ring-black/10 animate-in fade-in-0 zoom-in-95 duration-200 dark:ring-white/14",
+          grande
+            ? "h-[min(860px,calc(100vh-4rem))] w-[min(1000px,calc(100vw-4rem))]"
+            : "h-[min(560px,calc(100vh-4rem))] w-[min(760px,calc(100vw-4rem))]",
+        )}
       >
-        <span className="min-w-0 flex-1 truncate text-sm font-semibold">
-          {title}
-        </span>
-        <HeaderButton
-          label={mode === "expanded" ? "Revenir à la colonne" : "Plein écran"}
-          onClick={() => setMode((m) => (m === "expanded" ? "colonne" : "expanded"))}
+        {/* **Discret.** Il portait le dégradé de l'espace : sur 760 px de large
+            la bande de couleur pesait plus que le message qu'on venait écrire,
+            et elle disait « fenêtre système » là où le reste de l'app est en
+            surfaces neutres. Un filet et un titre suffisent ; la couleur de
+            l'espace reste sur l'action, le bouton d'envoi. */}
+        <header
+          className="flex shrink-0 cursor-default items-center gap-1 border-b border-black/[0.07] px-3.5 py-3 dark:border-white/10"
+          onDoubleClick={() => setGrande((g) => !g)}
         >
-          {mode === "expanded" ? <Minimize2 /> : <Maximize2 />}
-        </HeaderButton>
-        <HeaderButton
-          label="Fermer (brouillon conservé)"
-          onClick={closeCompose}
-        >
-          <X />
-        </HeaderButton>
-      </header>
+          <h2 className="min-w-0 flex-1 truncate text-[15px] font-semibold">{title}</h2>
+          <HeaderButton label={grande ? "Réduire la fenêtre" : "Agrandir la fenêtre"} onClick={() => setGrande((g) => !g)}>
+            {grande ? <Minimize2 /> : <Maximize2 />}
+          </HeaderButton>
+          <HeaderButton label="Fermer (brouillon conservé)" onClick={closeCompose}>
+            <X />
+          </HeaderButton>
+        </header>
 
-      {(
-        <>
-          <ComposeFields draft={draft} />
-          {sendError && <SendFailed detail={sendError} />}
-          <footer className="flex shrink-0 items-center gap-1 border-t border-black/[0.07] dark:border-white/[0.12] px-3 py-2.5">
-            <button
-              type="button"
-              onClick={sendMail}
-              disabled={!canSend}
-              className="flex h-9 items-center gap-2 rounded-full pr-2 pl-4 text-sm font-semibold text-white shadow-md transition-[filter,transform] ease-out hover:brightness-110 active:scale-[0.98] active:duration-0 disabled:opacity-40 disabled:shadow-none disabled:hover:brightness-100 [background:var(--space-gradient)]"
-            >
-              <Send className="size-4" />
-              {sendError ? "Réessayer" : "Envoyer"}
-              <Kbd className="bg-white/20 text-white/90">⌘⏎</Kbd>
-            </button>
-            <Toolbar
-              draft={draft}
-              className="flex-1 border-0 px-1 py-0"
-              hideDelete
-            />
-            <span className="text-xs text-muted-foreground">
-              {draft.draftId ? "Brouillon" : "Brouillon à la fermeture"}
-            </span>
-            {draft.draftId && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    onClick={() => deleteDraft(draft.draftId!)}
-                    aria-label="Supprimer le brouillon"
-                    className="text-muted-foreground hover:text-destructive"
-                  >
-                    <Trash2 />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Supprimer le brouillon</TooltipContent>
-              </Tooltip>
-            )}
-          </footer>
-        </>
-      )}
-    </section>
+        <ComposeFields draft={draft} />
+        {sendError && <SendFailed detail={sendError} />}
+
+        <footer className="flex shrink-0 items-center gap-1 border-t border-black/[0.07] px-3 py-2.5 dark:border-white/[0.12]">
+          <button
+            type="button"
+            onClick={sendMail}
+            disabled={!canSend}
+            className="flex h-9 items-center gap-2 rounded-[9px] pr-2 pl-4 text-sm font-semibold text-white shadow-md transition-[filter,transform] ease-out hover:brightness-110 active:scale-[0.98] active:duration-0 disabled:opacity-40 disabled:shadow-none disabled:hover:brightness-100 [background:var(--space-gradient)]"
+          >
+            <Send className="size-4" />
+            {sendError ? "Réessayer" : "Envoyer"}
+            <Kbd className="bg-white/20 text-white/90">⌘⏎</Kbd>
+          </button>
+          <Toolbar draft={draft} className="flex-1 border-0 px-1 py-0" hideDelete />
+          <span className="text-xs text-muted-foreground">
+            {draft.draftId ? "Brouillon" : "Brouillon à la fermeture"}
+          </span>
+          {draft.draftId && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={() => deleteDraft(draft.draftId!)}
+                  aria-label="Supprimer le brouillon"
+                  className="text-muted-foreground hover:text-destructive"
+                >
+                  <Trash2 />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Supprimer le brouillon</TooltipContent>
+            </Tooltip>
+          )}
+        </footer>
+      </section>
+    </div>
   );
-
-  if (mode === "expanded") {
-    return (
-      <div
-        className="fixed inset-0 z-50 grid place-items-center bg-black/40 backdrop-blur-[2px] animate-in fade-in-0"
-        onClick={(e) => e.target === e.currentTarget && setMode("colonne")}
-      >
-        {panel}
-      </div>
-    );
-  }
-  return panel;
 }
 
 function HeaderButton({
@@ -433,7 +428,10 @@ function HeaderButton({
           type="button"
           onClick={onClick}
           aria-label={label}
-          className="flex size-7 items-center justify-center rounded-md text-white/80 transition-colors hover:bg-white/20 hover:text-white [&_svg]:size-4"
+          /* Encre sourde sur une surface, plus blanche sur un dégradé : le
+             bandeau coloré est parti, et deux glyphes blancs sur une carte
+             blanche ne se voyaient plus. 30 px et rayon 7, la case du bureau. */
+          className="grid size-[30px] shrink-0 place-items-center rounded-[7px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground [&_svg]:size-4"
         >
           {children}
         </button>

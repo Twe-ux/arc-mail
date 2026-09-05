@@ -10,7 +10,12 @@ verre, la tête de liste sur deux rangées, les rangées au gabarit bureau et le
 de conversation avec son menu et ses détails, les blocs de message cliquables, et le troisième
 volet détaché (message ou fichier) avec sa gouttière et sa poignée.
 
-Puis trois retours : la barre ne se range plus à droite (`sidebarSide` retiré, persistance v4), un
+Puis la lecture a perdu sa colonne étroite (le volet est la page, c'est le texte qui borne sa ligne)
+et un courrier HTML a cessé d'être un timbre blanc dans trois cadres emboîtés. Le composeur est
+redevenu **une fenêtre de 760 × 560** posée sur la boîte, en-tête neutre : la
+colonne de droite prenait sa largeur sur la conversation, se disputait la place avec le troisième
+volet, et son bandeau en dégradé pesait plus que le message. Et trois retours : la barre ne se range
+plus à droite (`sidebarSide` retiré, persistance v4), un
 objet long garde 16 px avant « Archiver », et « Nouveau message » revient dans la tête de liste
 quand la barre est masquée — sans quoi il n'y restait que ⌘N.
 

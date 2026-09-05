@@ -108,21 +108,35 @@ maintenant au-dessus des touches, et ce coussin ne ferait plus que du vide sous 
 La recherche fait exception, voir [Recherche](recherche.md). Le calcul de `--keyboard-inset` est
 dans [PWA iOS](pwa-ios.md).
 
-## Le composeur sur bureau : une colonne, pas une fenêtre
+## Le composeur sur bureau : une fenêtre de 760 × 560
 
-C'était une fenêtre façon Gmail, posée en bas à droite. Écrire, c'est regarder ce à quoi on
-répond — et cette fenêtre couvrait précisément ce qu'on venait de lire. Le composeur est maintenant
-**une colonne à droite du message**, dans le flux : il pousse, il ne couvre pas. Donc ni ombre
-portée ni coins arrondis — c'est une colonne de la fenêtre, pas une carte posée dessus.
+Elle a été une **colonne à droite du message** pendant une version, sur l'idée qu'écrire c'est
+regarder ce à quoi on répond. À l'usage, non : écrire n'est pas lire. La colonne prenait sa largeur
+sur la conversation, se disputait la place avec le troisième volet du lot bureau, et n'avait ni
+coin ni ombre pour dire qu'elle était autre chose que la boîte. C'est la fenêtre du handoff bureau
+qui est revenue, et elle est **posée sur la boîte** :
 
-**Une seule colonne à droite**, et le composeur la prend quand il est ouvert : écrire est ce qu'on
-est venu faire, et un aperçu se rouvre d'un clic. Sur un écran étroit (moins de 1400 px) c'est la
-liste qui cède la place — mais seulement s'il reste un message à côté, sinon on n'aurait plus que
-le composeur.
+```
+fenêtre    : 760 × 560 (bornée à 100vw/vh − 4rem) · rayon 16 · bg-card
+             ring 1 · ombre 0 40px 90px -10px rgb(0 0 0 / .55)
+voile      : noir 35 % + flou 2 px — la boîte reste lisible derrière
+agrandie   : min(1000px, 100vw − 4rem) × min(860px, 100vh − 4rem)
+```
 
-Le mode « plein écran » reste, pour un texte long. Le mode « réduit » a disparu : une colonne ne se
-réduit pas, elle se ferme — et la fermer garde le brouillon, ce que « réduire » ne faisait que
-reporter.
+**Elle ne prend aucune piste de la grille.** C'est ce qui la distingue d'une colonne : la liste, la
+conversation et le troisième volet gardent leur largeur, quoi qu'on écrive.
+
+**Son en-tête est discret** — un filet, un titre 15/600, deux cases de 30 px (agrandir, fermer).
+Il portait le dégradé de l'espace : sur 760 px de large, la bande de couleur pesait plus que le
+message qu'on venait écrire, et elle disait « fenêtre système » là où le reste de l'app est en
+surfaces neutres. La couleur de l'espace reste **sur l'action** : le bouton d'envoi.
+
+**Un clic sur le voile ne ferme pas** — la règle des autres cartes : on ne perd pas un message en
+cours parce que le pointeur a glissé. Il rend seulement sa taille à une fenêtre agrandie ; `Échap`
+ferme, et fermer garde le brouillon.
+
+Le mode « réduit » n'est pas revenu : une fenêtre réduite est une fenêtre qu'on a oubliée, et
+fermer garde déjà le brouillon.
 
 ---
 

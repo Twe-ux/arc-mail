@@ -114,4 +114,6 @@ d'un message visent, le champ montre les destinataires réels.
 Cette fiche décrit le téléphone. Sur bureau, l'en-tête à trois éléments et la pill laissent la
 place à une barre d'en-tête (avatar, expéditeur/objet, Archiver, Supprimer, `⋯`, ⓘ), à des blocs de
 message cliquables qui détachent leur message dans le troisième volet, et à un champ de réponse
-posé hors du défilant. Le détail est dans [La fenêtre du bureau](bureau.md).
+posé hors du défilant. La règle du cadre unique y vaut aussi : un courrier HTML apporte sa feuille
+blanche, et le bloc ne peint pas la sienne derrière. Le détail est dans
+[La fenêtre du bureau](bureau.md).

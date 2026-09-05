@@ -588,9 +588,11 @@ rangées, absente quand la barre est attachée. Rangées : rayon **10**, `10px 1
 message rayon 12, `px-4 py-3.5`, texte décalé de 38 px ; champ de réponse hors du défilant
 (`px-3.5 py-3`, 44 px, rayon 12). Le **troisième volet** est une fenêtre à part de 460 px (plancher
 320), précédée d'une gouttière de 16 px de dégradé qui porte sa poignée (pilule 5 × 44, 72 px et
-accent à l'approche). Le composeur bureau reste une colonne de `--compose-width` (460 px) dans le
-flux, à droite du message, étendue sous un voile en `min(900px, 100vw − 4rem)` ×
-`min(860px, 100vh − 4rem)`.
+accent à l'approche). Le composeur bureau est une **fenêtre de 760 × 560** (rayon 16, `bg-card`, ring
+1, ombre `0 40px 90px -10px rgb(0 0 0 / .55)`) centrée sous un voile noir à 35 %
+avec 2 px de flou, agrandie en `min(1000px, 100vw − 4rem)` ×
+`min(860px, 100vh − 4rem)` ; son en-tête est neutre (filet, titre 15/600, deux
+cases de 30 px), la couleur de l'espace ne restant que sur le bouton d'envoi.
 
 **Téléphone (< 768 px).** Le shell est `space-wash`, `pt-[var(--safe-top)]`, colonne. Le grand
 titre vit sur le voile (`px-5`, 20 px de marge), puis la liste est une carte `rounded-t-[28px]`

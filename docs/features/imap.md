@@ -117,9 +117,14 @@ d'un coup et ne repasse jamais par là.
 Le corps arrive par une requête, et cette requête partait au moment du clic : l'attente était
 entièrement devant les yeux. Elle part maintenant plus tôt, de deux façons.
 
-**Les deux premiers fils** d'une liste fraîche vont chercher leur corps tout seuls, pendant qu'on
-lit les objets. Deux et pas dix : un message est lourd, et ce sont des octets sur un forfait mobile
-pour des messages qu'on n'ouvrira peut-être pas.
+**Les trois premiers fils** d'une liste fraîche vont chercher leur corps ensemble, **en une seule
+requête** (`getThreads`), pendant qu'on lit les objets. Trois et pas dix : un message est lourd, et
+ce sont des octets sur un forfait mobile pour des messages qu'on n'ouvrira peut-être pas.
+
+L'appel groupé n'est pas une commodité, c'est tout le sujet : trois appels séparés, ce sont trois
+requêtes HTTP, donc sur du serverless trois instances possiblement froides et trois sessions IMAP
+ouvertes pour rien — le préchargement arrivait après le doigt. Côté serveur, `readThreads` verrouille
+la boîte une fois et envoie les UID ensemble.
 
 **Au premier appui** (`onPointerDown`), avant même le clic et l'ouverture de la vue — cent à trois
 cents millisecondes prises sur le geste plutôt que sur l'attente. À l'appui et **pas au survol** :
@@ -129,8 +134,13 @@ un pointeur qui balaie la liste ferait descendre vingt messages qu'on ne lira pa
 ouverture réessaiera et parlera, elle. Et `remplir` tient la liste de ce qui est déjà en vol, pour
 qu'un appui suivi d'un clic ne fasse qu'une requête.
 
-Mesuré en émulation, fournisseur ralenti à 1200 ms : un message préchargé s'ouvre en **5 ms**, un
-autre en **1164 ms**.
+Mesuré en émulation, fournisseur ralenti à 1200 ms : un seul appel `getThreads(3)` part tout seul,
+un message préchargé s'ouvre en **3 ms** sans provoquer d'appel de plus, un message non préchargé en
+**1164 ms**.
+
+**Et pendant qu'on attend, ça se voit** : le corps montre quatre lignes grises, comme la liste
+montre ses rangées. Un message qui n'a vraiment pas de texte le dit (« Message sans texte »), sans
+quoi rien ne distinguerait « rien à lire » de « pas encore arrivé ».
 
 L'hydratation **complète** le fil de la liste, elle ne le remplace pas : la liste a regroupé
 plusieurs messages, la lecture n'en rend qu'un — remplacer perdrait les autres.

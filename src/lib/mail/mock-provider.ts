@@ -34,6 +34,10 @@ export class MockProvider implements MailProvider {
     return this.threads.find((t) => t.id === id) ?? null;
   }
 
+  async getThreads(_account: AccountRef, ids: string[]): Promise<Thread[]> {
+    return this.threads.filter((t) => ids.includes(t.id));
+  }
+
   async modify(_account: AccountRef, id: string, patch: ThreadPatch): Promise<void> {
     this.patch(id, (t) => ({
       ...t,

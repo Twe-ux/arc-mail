@@ -6,6 +6,7 @@ import {
   parseThreadId,
   readFolder,
   readThread,
+  readThreads,
   withImap,
   writeThread,
 } from "@/lib/mail/imap";
@@ -30,6 +31,7 @@ export const dynamic = "force-dynamic";
 type Body =
   | { op: "listThreads"; accountId: string; folder: FolderId; inboxPath?: string; limit?: number }
   | { op: "getThread"; accountId: string; id: string }
+  | { op: "getThreads"; accountId: string; ids: string[] }
   | {
       op: "modify";
       accountId: string;
@@ -111,6 +113,14 @@ export async function POST(request: NextRequest) {
       if (body.op === "deleteDraft") {
         await deleteDraftMessage(client, (await paths()).trash, body.id);
         return { ok: true };
+      }
+
+      if (body.op === "getThreads") {
+        /* Le préchargement : plusieurs messages, une ouverture de dossier, un
+           `FETCH`. Le dossier rendu est « inbox » — ces fils viennent de la
+           liste qu'on regarde, et le store ne s'en sert que pour remplir des
+           corps, jamais pour les ranger. */
+        return { threads: await readThreads(client, body.ids.slice(0, 5), "inbox") };
       }
 
       if (body.op === "modify") {

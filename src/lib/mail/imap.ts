@@ -399,6 +399,107 @@ export async function writeThread(
   }
 }
 
+/**
+ * Plusieurs messages entiers, en **une** ouverture de dossier et **un** `FETCH`.
+ *
+ * C'est ce que le préchargement demande. Trois appels à `readThread`, c'est
+ * trois requêtes HTTP, trois instances possiblement froides et trois sessions
+ * IMAP ; ici la boîte est verrouillée une fois et les UID partent ensemble.
+ *
+ * Les identifiants sont regroupés par dossier : rien n'oblige les fils d'une
+ * même demande à venir du même, et un verrou par dossier suffit.
+ *
+ * Un message illisible ne fait pas échouer les autres — c'est un préchargement,
+ * son échec doit rester sans conséquence.
+ */
+export async function readThreads(
+  client: ImapFlow,
+  ids: string[],
+  folder: FolderId,
+): Promise<Thread[]> {
+  const parDossier = new Map<string, number[]>();
+  for (const id of ids) {
+    const parsed = parseThreadId(id);
+    if (!parsed) continue;
+    parDossier.set(parsed.path, [...(parDossier.get(parsed.path) ?? []), parsed.uid]);
+  }
+
+  const fils: Thread[] = [];
+  for (const [path, uids] of parDossier) {
+    const lock = await client.getMailboxLock(path);
+    try {
+      for await (const message of client.fetch(uids, { ...ENVELOPE_QUERY, source: true }, { uid: true })) {
+        if (!message.source) continue;
+        try {
+          fils.push(await complet(message, path, folder));
+        } catch {
+          /* Ce message-là ne sera pas préchargé, les autres si. */
+        }
+      }
+    } finally {
+      lock.release();
+    }
+  }
+  return fils;
+}
+
+/**
+ * Un message lu de bout en bout : son corps, son HTML lavé, ses pièces.
+ *
+ * Écrit une fois et appelé par les deux lectures — celle d'un message ouvert
+ * et celle d'un préchargement — pour qu'un fil arrive dans le même état quelle
+ * que soit la porte par laquelle il entre.
+ */
+async function complet(
+  message: FetchMessageObject,
+  path: string,
+  folder: FolderId,
+): Promise<Thread> {
+  const mime = await simpleParser(message.source!);
+  const id = threadId(path, message.uid);
+
+  /* On hydrate le message lu, pas tout le fil : c'est celui qu'on regarde, et
+     chaque corps de plus est un aller-retour de plus. */
+  const thread = toThread([message], path, folder);
+  const body = (mime.text ?? "").trim();
+  thread.messages[0].body = body;
+
+  /* La plupart des messages sont écrits en HTML, et une infolettre lue en
+     texte n'est plus qu'une liste d'URL entre crochets. On la lave ici, une
+     fois, côté serveur : le navigateur ne voit jamais le HTML d'origine. */
+  if (mime.html) {
+    const propre = nettoyer(mime.html, inlineImages(mime.attachments));
+    thread.messages[0].html = propre.html;
+    thread.messages[0].blockedImages = propre.bloquees;
+    /* L'aperçu vient du texte quand il existe, du HTML lavé sinon : un message
+       en HTML seul n'aurait aucune ligne de résumé. */
+    if (!body) thread.messages[0].body = propre.texte.slice(0, 2000);
+  }
+
+  /* Un corps vide et pas de HTML, c'est un message sans texte — une invitation,
+     une pièce jointe seule. Le dire : sinon l'affichage ne peut pas distinguer
+     « rien à lire » de « pas encore arrivé », et montrerait un squelette pour
+     l'éternité. */
+  if (!thread.messages[0].body && !thread.messages[0].html) {
+    thread.messages[0].body = "(Message sans texte)";
+  }
+
+  const apercu = thread.messages[0].body;
+  thread.snippet = apercu.split("\n").find((line) => line.trim())?.slice(0, 140) ?? thread.snippet;
+
+  /* Les images du corps ne sont pas des pièces jointes : elles sont déjà dans
+     le message, les lister ferait une rangée de fichiers fantômes. */
+  thread.messages[0].attachments = mime.attachments
+    .filter((a) => !a.cid || !a.contentType?.startsWith("image/"))
+    .map((a, i) => ({
+      id: `${id} ${i}`,
+      name: a.filename ?? `pièce jointe ${i + 1}`,
+      mime: a.contentType,
+      size: a.size,
+    }));
+  return thread;
+}
+
 /** Un message entier, corps et pièces jointes : ce que `readFolder` ne rapporte pas. */
 export async function readThread(
   client: ImapFlow,
@@ -413,46 +514,13 @@ export async function readThread(
        C'était `fetchOne` puis `download`, deux commandes là où le serveur sait
        tout donner d'un coup — et sur une connexion qui vit le temps d'une
        requête, chaque aller-retour se voit. */
-    const envelope = await client.fetchOne(
+    const message = await client.fetchOne(
       String(parsed.uid),
       { ...ENVELOPE_QUERY, source: true },
       { uid: true },
     );
-    if (!envelope || !envelope.source) return null;
-    const mime = await simpleParser(envelope.source);
-
-    /* On hydrate le message ouvert, pas tout le fil : c'est celui qu'on
-       regarde, et chaque corps de plus est un aller-retour de plus. */
-    const thread = toThread([envelope], parsed.path, folder);
-    const body = (mime.text ?? "").trim();
-    thread.messages[0].body = body;
-
-    /* La plupart des messages sont écrits en HTML, et une infolettre lue en
-       texte n'est plus qu'une liste d'URL entre crochets. On la lave ici, une
-       fois, côté serveur : le navigateur ne voit jamais le HTML d'origine. */
-    if (mime.html) {
-      const propre = nettoyer(mime.html, inlineImages(mime.attachments));
-      thread.messages[0].html = propre.html;
-      thread.messages[0].blockedImages = propre.bloquees;
-      /* L'aperçu vient du texte quand il existe, du HTML lavé sinon : un
-         message en HTML seul n'avait aucune ligne de résumé. */
-      if (!body) thread.messages[0].body = propre.texte.slice(0, 2000);
-    }
-
-    const apercu = thread.messages[0].body;
-    thread.snippet = apercu.split("\n").find((line) => line.trim())?.slice(0, 140) ?? "";
-
-    /* Les images du corps ne sont pas des pièces jointes : elles sont déjà
-       dans le message, les lister ferait une rangée de fichiers fantômes. */
-    thread.messages[0].attachments = mime.attachments
-      .filter((a) => !a.cid || !a.contentType?.startsWith("image/"))
-      .map((a, i) => ({
-      id: `${id} ${i}`,
-      name: a.filename ?? `pièce jointe ${i + 1}`,
-      mime: a.contentType,
-      size: a.size,
-    }));
-    return thread;
+    if (!message || !message.source) return null;
+    return await complet(message, parsed.path, folder);
   } finally {
     lock.release();
   }

@@ -276,6 +276,45 @@ async function remplir(id: string, bruyant: boolean): Promise<void> {
   }
 }
 
+/**
+ * Précharger plusieurs fils **en une seule requête**.
+ *
+ * C'est tout le sujet. Demander trois corps par trois appels, c'est trois
+ * requêtes HTTP : sur du serverless, trois instances possiblement froides et
+ * trois sessions IMAP ouvertes pour rien — le préchargement arrivait après le
+ * doigt, donc ne servait à rien. Un seul appel, une connexion, un `FETCH`.
+ *
+ * Muet, comme tout préchargement : personne ne l'a demandé.
+ */
+async function precharger(ids: string[]): Promise<void> {
+  const état = useMail.getState();
+  const cibles = ids
+    .map((id) => état.threads.find((t) => t.id === id))
+    .filter((t): t is Thread => !!t && !enVol.has(t.id) && t.messages.every((m) => !m.body));
+  if (cibles.length === 0) return;
+
+  for (const t of cibles) enVol.add(t.id);
+  try {
+    /* Tous d'un même dossier, donc d'un même compte : ils viennent de la
+       lecture qui vient d'arriver. */
+    const account = accountOf(cibles[0].spaceId);
+    const pleins = await providerFor(account).getThreads(
+      account,
+      cibles.map((t) => t.id),
+    );
+    useMail.setState((s) => ({
+      threads: pleins.reduce(
+        (liste, full) => patchThread(liste, full.id, (t) => hydrate(t, full)),
+        s.threads,
+      ),
+    }));
+  } catch {
+    /* La vraie ouverture réessaiera, et parlera, elle. */
+  } finally {
+    for (const t of cibles) enVol.delete(t.id);
+  }
+}
+
 /** Une table indexée par espace, dont une clé change de nom. */
 function renomme<T>(table: Partial<Record<SpaceId, T>>, de: SpaceId, vers: SpaceId) {
   if (!(de in table)) return table;
@@ -392,11 +431,11 @@ export const useMail = create<MailState>()(
         loading: { ...s.loading, [spaceId]: false },
         error: null,
       }));
-      /* Les premiers de la liste sont ceux qu'on ouvre : leur corps part
-         chercher lui-même, pendant qu'on lit les objets. Deux, pas dix — un
-         message est lourd, et ce sont des octets sur un forfait mobile pour
-         des messages qu'on n'ouvrira peut-être pas. */
-      for (const t of fresh.slice(0, 2)) void remplir(t.id, false);
+      /* Les premiers de la liste sont ceux qu'on ouvre : leurs corps partent
+         ensemble, en une requête, pendant qu'on lit les objets. Trois, pas
+         dix — un message est lourd, et ce sont des octets sur un forfait
+         mobile pour des messages qu'on n'ouvrira peut-être pas. */
+      void precharger(fresh.slice(0, 3).map((t) => t.id));
     } catch (err) {
       if (loadTokens.get(spaceId) !== token) return;
       done({ error: describe(err) });

@@ -65,6 +65,15 @@ export interface MailProvider {
   listThreads(account: AccountRef, query: ThreadQuery): Promise<Thread[]>;
   /** One thread with all its messages — a list may carry less than that. */
   getThread(account: AccountRef, id: string): Promise<Thread | null>;
+  /**
+   * Plusieurs d'un coup, pour précharger.
+   *
+   * Pas une commodité : c'est **une seule requête, une seule connexion**. En
+   * demandant trois messages par trois appels, chacun repart de zéro — sur du
+   * serverless, trois instances froides et trois sessions IMAP ouvertes pour
+   * rien, et le préchargement arrive après le doigt.
+   */
+  getThreads(account: AccountRef, ids: string[]): Promise<Thread[]>;
   /** Flags and moves. */
   modify(account: AccountRef, id: string, patch: ThreadPatch): Promise<void>;
   /** Send. A reply lands in its thread; anything else opens one in Sent. */

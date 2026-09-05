@@ -49,6 +49,15 @@ export class HttpProvider implements MailProvider {
     return thread;
   }
 
+  async getThreads(account: AccountRef, ids: string[]): Promise<Thread[]> {
+    const { threads } = await this.call<{ threads: Thread[] }>({
+      op: "getThreads",
+      accountId: account.id,
+      ids,
+    });
+    return threads;
+  }
+
   async modify(account: AccountRef, id: string, patch: ThreadPatch): Promise<void> {
     await this.call({ op: "modify", accountId: account.id, id, patch });
   }

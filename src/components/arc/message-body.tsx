@@ -25,11 +25,31 @@ import type { Message } from "@/lib/types";
  */
 export function MessageBody({ message, className }: { message: Message; className?: string }) {
   if (!message.html) {
-    return (
-      <p className={className}>{message.body}</p>
-    );
+    /* Ni corps ni HTML : il arrive. Une liste vient de dire ce que le message
+       raconte (`snippet`), l'ouvrir ne doit pas montrer moins que la liste —
+       on garde donc cette ligne, en gris, et le reste en attente dessous. Un
+       message vraiment sans texte le dit lui-même, il ne passe pas par ici. */
+    if (!message.body) return <Attente />;
+    return <p className={className}>{message.body}</p>;
   }
   return <CorpsHtml html={message.html} bloquees={message.blockedImages ?? 0} />;
+}
+
+/**
+ * Les lignes du message, avant le message. Sans animation, comme la liste.
+ *
+ * Sans la classe de l'appelant : elle porte `block`, qui l'emporterait sur le
+ * `flex` d'ici — les barres deviendraient des `span` en ligne, donc sans
+ * hauteur, donc invisibles. Mesuré, une fois le squelette resté introuvable.
+ */
+function Attente() {
+  return (
+    <span aria-hidden className="mt-4 flex flex-col gap-2.5">
+      {[92, 100, 96, 64].map((w, i) => (
+        <span key={i} className="h-3 rounded-full bg-foreground/[0.07]" style={{ width: `${w}%` }} />
+      ))}
+    </span>
+  );
 }
 
 const STYLE = `

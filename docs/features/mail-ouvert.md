@@ -39,6 +39,24 @@ destinataires et une date longue sur 390 px : nommer le lecteur au milieu mangea
 la seule chose qu'on vienne y chercher. Notre adresse devient « moi », les autres se comptent
 (« moi et 2 autres »). Le chevron rond de 36 px déplie la liste réelle — De, À, Cc — à la demande.
 
+## Les marges, alignées sur la liste
+
+C'est le décalage qu'on voyait sur un vrai téléphone : la barre du bas était collée aux trois
+bords. Elle utilisait la variante **encartée** de la [pill](pill-actions.md), celle qui rend les
+8 px d'une carte qui flotte — et le mail ouvert, lui, va d'un bord à l'autre. Marges pleines
+maintenant : **14 px** sur les côtés, **16 px** du bas, exactement comme la liste et le composeur.
+La barre de réponse qui la remplace prend les mêmes : elle occupe sa place, elle ne doit pas
+décaler l'écran en arrivant.
+
+L'en-tête suit : `px-5` comme le grand titre de la liste et comme le contenu de la carte, avec les
+deux boutons qui **débordent de 10 px**. Une cible de 44 posée à 20 px mettrait son glyphe de 24 à
+30 px du bord, décalé de tout le reste de l'app : c'est le dessin qui s'aligne, pas la boîte.
+Mesuré : le trait du retour tombe à 20 px, comme le « B » de « Boîte de réception » dans la liste.
+
+Et le message **se dissout** au-dessus de la barre (`mask-image` sur les 20 derniers pixels) au lieu
+d'y être coupé net — le bord de défilement d'iOS, et ce qui donne à la barre l'air d'être posée sur
+quelque chose.
+
 ## La pill, et ce qu'elle range
 
 `Répondre` (primaire) · `Archiver` · `Supprimer` (en `destructive`) · `Déplacer` · `⋯`.

@@ -101,7 +101,9 @@ export function CommandPalette() {
               type="button"
               onClick={() => setCommandOpen(false)}
               /* 44px tall to the finger, one line to the eye. */
-              className="-my-2 shrink-0 py-2 pl-2 text-[15px] text-[var(--space-ink)] active:opacity-60"
+              /* Il touchait presque le bord : `mr-1.5` amène son bord droit sur
+                 la marge du contenu de la carte, au lieu des 12 px du champ. */
+              className="-my-2 mr-1.5 shrink-0 py-2 pl-2 text-[15px] text-[var(--space-ink)] active:opacity-60"
             >
               Annuler
             </button>

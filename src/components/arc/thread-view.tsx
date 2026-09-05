@@ -160,12 +160,16 @@ export function ThreadView({ className }: { className?: string }) {
           vivaient ici sont descendues dans la pill, où le pouce les atteint ;
           ce qui reste en haut dit **où l'on est**, ce qu'un titre répété sous
           l'objet ne disait pas. */}
-      <div className="flex shrink-0 items-center gap-1 px-3 pt-0.5 pb-2.5 md:hidden">
+      {/* `px-5` comme le grand titre de la liste et comme le contenu de la
+          carte, et les deux boutons débordent de 10 px : une cible de 44 posée
+          à 20 px mettrait son **glyphe** de 24 à 30 px du bord, décalé de tout
+          le reste de l'app. C'est le dessin qui s'aligne, pas la boîte. */}
+      <div className="flex shrink-0 items-center gap-1 px-5 pt-0.5 pb-2.5 md:hidden">
         <button
           type="button"
           onClick={() => selectThread(null)}
           aria-label="Retour"
-          className="-ml-2 grid size-11 shrink-0 place-items-center rounded-full text-foreground transition-transform active:scale-95 active:duration-0"
+          className="-ml-2.5 grid size-11 shrink-0 place-items-center rounded-full text-foreground transition-transform active:scale-95 active:duration-0"
         >
           <ArrowLeft className="size-6" strokeWidth={1.75} />
         </button>
@@ -184,7 +188,7 @@ export function ThreadView({ className }: { className?: string }) {
           onClick={() => toggleStar(thread.id)}
           aria-label={thread.starred ? "Retirer des favoris" : "Ajouter aux favoris"}
           aria-pressed={thread.starred}
-          className="grid size-11 shrink-0 place-items-center rounded-full transition-transform active:scale-95 active:duration-0"
+          className="-mr-2.5 grid size-11 shrink-0 place-items-center rounded-full transition-transform active:scale-95 active:duration-0"
         >
           <Star
             className={cn("size-5", thread.starred ? "fill-amber-400 text-amber-400" : "text-muted-foreground")}
@@ -210,7 +214,10 @@ export function ThreadView({ className }: { className?: string }) {
 
       {/* Le message : une carte flottante sur téléphone, une colonne sur bureau. */}
       <div className="list-card flex min-h-0 flex-1 flex-col overflow-hidden rounded-t-[28px] bg-card md:rounded-none md:bg-transparent">
-        <ScrollArea className="min-h-0 flex-1">
+        {/* Le message se **dissout** au-dessus de la barre plutôt que d'y être
+            coupé net : le bord de défilement d'iOS, et ce qui donne à la barre
+            l'air d'être posée sur quelque chose. */}
+        <ScrollArea className="min-h-0 flex-1 max-md:[mask-image:linear-gradient(to_bottom,#000_calc(100%-1.25rem),transparent)]">
           <div className="mx-auto flex w-full max-w-3xl flex-col md:gap-4 md:p-6">
             {/* L'objet, à bord perdu comme le reste : sur téléphone il est le
                 titre de la carte, pas celui d'une sous-carte. */}
@@ -245,7 +252,11 @@ export function ThreadView({ className }: { className?: string }) {
             onClose={() => setReplyOpen(false)}
           />
         ) : (
-          <ActionBar inset className="md:hidden">
+          /* **Pas `inset` ici.** Cette variante rend les 8 px d'une carte qui
+             flotte ; le mail ouvert, lui, va d'un bord à l'autre, et la barre
+             se retrouvait collée aux trois côtés. Les marges pleines la posent
+             exactement comme celle de la liste. */
+          <ActionBar className="md:hidden">
             <Pill className="w-full justify-between">
               <PillPrimary label="Répondre" onClick={() => aimReply(canReplyAll ? null : [sender])}>
                 <Reply strokeWidth={2.25} />

@@ -15,6 +15,9 @@ n'existe qu'à un endroit : [`src/components/arc/action-pill.tsx`](../../src/com
 | Primaire | 44 de haut, `0 16px 0 14px`, dégradé de l'espace, 15/600 |
 | Bouton rond | **56 × 56**, dégradé, ombre `0 8px 24px` |
 
+**Mesuré aux trois écrans** : gauche 14, bas 16, hauteur 56 partout. La barre du mail ouvert est à
+15 px et non 14 — le filet gauche de sa carte, un pixel, sous le seuil de perception.
+
 **Elles ont maigri le 5 septembre au soir.** Le handoff donnait 52 / 68, et sur une vraie boîte la
 barre pesait plus que ce qu'elle surmontait : 96 px, soit une rangée et demie de liste mangée en
 permanence. 44 est la cible minimale d'Apple — on descend jusqu'à elle, pas en dessous — et la
@@ -25,11 +28,12 @@ règles pour la même chose, et c'est la barre qui finit dépareillée.
 
 - **Les cases sont `shrink-0`.** Sans ça elles se compriment sur l'écran qui en porte le plus, et
   la pill de lecture cesse d'être identique aux autres.
-- **`p-[8px_10px]` et `gap-0` ne sont pas négociables** : cinq éléments (un primaire et quatre
-  icônes) ne tiennent dans 390 px qu'à ce prix. Avec 14 px de padding latéral, le `⋯` sortait du
-  conteneur.
-- **Une carte déjà encartée de 8 px compense son propre encart** (`inset`, `padding: 10px 7px`)
-  pour retomber sur les mêmes 15 px de l'écran. C'est le cas du composeur.
+- **`p-[6px_8px]` et `gap-0` ne sont pas négociables** : cinq éléments (un primaire et quatre
+  icônes) ne tiennent dans 390 px qu'à ce prix.
+- **`inset` est pour une carte qui flotte, et pour elle seule.** La variante rend les 8 px que la
+  carte prend déjà (`padding: 8px 6px`) pour retomber sur les mêmes 14 px de l'écran : c'est le cas
+  du composeur, dont la feuille est encartée. Le mail ouvert, lui, va d'un bord à l'autre — l'y
+  mettre collait sa barre aux trois côtés. Dans le doute, marges pleines.
 - **L'état actif se remplit** — `color-mix(in oklch, var(--space-accent) 22%, transparent)` en fond,
   `--space-ink` par-dessus. Jamais une encre en accent : c'est la règle du thème, et la seule qui
   tienne quand la teinte de l'espace change sous le doigt.

@@ -160,7 +160,9 @@ export function MobileReply({
   };
 
   return (
-    <div className="shrink-0 border-t border-black/[0.08] bg-card px-3 pt-2.5 pb-[max(18px,calc(env(safe-area-inset-bottom)-16px))] md:hidden dark:border-white/12">
+    /* Mêmes marges que la pill qu'elle remplace (14 px, 16 px du bas) : elle
+       prend sa place, elle ne doit pas décaler l'écran en arrivant. */
+    <div className="shrink-0 border-t border-black/[0.08] bg-card px-[14px] pt-2 pb-[max(16px,calc(env(safe-area-inset-bottom)-18px))] md:hidden dark:border-white/12">
       <div className="flex items-center gap-2 pb-1.5">
         <div className="min-w-0 flex-1">
           <ReplyTargets to={to} everyone={everyone} onReplyAll={onReplyAll} className="px-1" />

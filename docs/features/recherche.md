@@ -41,6 +41,8 @@ carte `#26262a` faisait une bande claire dès qu'un bout de carte dépassait (la
 - **Les conversations d'abord**, sous « Conversations récentes » tant qu'on n'a rien tapé, puis
   « Conversations ». Actions et « Aller à » (dossiers, espaces) suivent : on ouvre cette carte pour
   retrouver un message neuf fois sur dix.
+- « Annuler » garde `mr-1.5` : son bord droit tombe sur la marge du contenu de la carte, pas sur les
+  12 px du champ — il touchait presque le bord.
 - Une rangée montre l'objet **et** l'expéditeur sur deux lignes, avec le terme trouvé **surligné**
   (`color-mix(in oklch, var(--space-accent) 30%, transparent)`, rayon 3). C'est un **fond**, jamais
   une encre colorée : la règle du thème, et le seul choix lisible dans les deux thèmes. Un résultat

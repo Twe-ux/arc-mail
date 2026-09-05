@@ -143,7 +143,8 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   destinataires (il vise la réponse sur bureau seulement), et la rangée de la liste avale le clic
   fantôme d'iOS qui retombait sur « Répondre ».
 - Archiver et Supprimer **renvoient à la liste** avec un toast ; répondre remplace la pill, jamais
-  par-dessus.
+  par-dessus — et il prend ses marges (14 / 16), pas la variante `inset` : le mail ouvert n'est pas
+  une carte qui flotte. L'en-tête est en `px-5`, boutons débordant de 10 px pour aligner le glyphe.
 
 **Composeur** → [docs/features/composeur-panneaux.md](docs/features/composeur-panneaux.md)
 - « De » est une pastille en haut sur téléphone ; l'envoi est le bouton rond de la barre.

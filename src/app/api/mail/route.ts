@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
            `FETCH`. Le dossier rendu est « inbox » — ces fils viennent de la
            liste qu'on regarde, et le store ne s'en sert que pour remplir des
            corps, jamais pour les ranger. */
-        return { threads: await readThreads(client, body.ids.slice(0, 5), "inbox") };
+        return { threads: await readThreads(client, body.ids.slice(0, 12), "inbox") };
       }
 
       if (body.op === "modify") {

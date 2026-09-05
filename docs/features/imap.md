@@ -117,14 +117,24 @@ d'un coup et ne repasse jamais par là.
 Le corps arrive par une requête, et cette requête partait au moment du clic : l'attente était
 entièrement devant les yeux. Elle part maintenant plus tôt, de deux façons.
 
-**Les trois premiers fils** d'une liste fraîche vont chercher leur corps ensemble, **en une seule
-requête** (`getThreads`), pendant qu'on lit les objets. Trois et pas dix : un message est lourd, et
-ce sont des octets sur un forfait mobile pour des messages qu'on n'ouvrira peut-être pas.
+**Par lots de dix, à mesure qu'on descend.** Le premier écran part avec la liste, en une seule
+requête (`getThreads`) ; une balise invisible posée au bout de chaque lot demande le suivant quand
+le défilement s'en approche (400 px avant, pas plus — plus large, la balise du deuxième lot est
+déjà « visible » au chargement et on descendrait vingt messages là où on en voulait dix).
 
-L'appel groupé n'est pas une commodité, c'est tout le sujet : trois appels séparés, ce sont trois
-requêtes HTTP, donc sur du serverless trois instances possiblement froides et trois sessions IMAP
-ouvertes pour rien — le préchargement arrivait après le doigt. Côté serveur, `readThreads` verrouille
-la boîte une fois et envoie les UID ensemble.
+L'appel groupé n'est pas une commodité, c'est tout le sujet : dix appels séparés, ce sont dix
+requêtes HTTP, donc sur du serverless dix instances possiblement froides et dix sessions IMAP
+ouvertes pour rien — le préchargement arrivait après le doigt. Côté serveur, `readThreads`
+verrouille la boîte une fois et envoie les UID ensemble.
+
+**Un budget d'octets, pas seulement un nombre.** Dix messages courts font 30 Ko ; dix infolettres
+avec leurs images en `data:` en font plusieurs mégaoctets, et c'est le forfait de quelqu'un. Le
+serveur s'arrête à 1,2 Mo et rend ce qui tenait ; les autres seront lus à l'ouverture — un
+préchargement est un bonus, jamais une dette. Et si le navigateur annonce l'économiseur de données
+(`connection.saveData`), on ne précharge rien du tout.
+
+**Précharger ne marque pas comme lu** : imapflow lit tout corps en `BODY.PEEK`. Sans cela, dix
+messages seraient passés en « lu » à chaque ouverture de la boîte.
 
 **Au premier appui** (`onPointerDown`), avant même le clic et l'ouverture de la vue — cent à trois
 cents millisecondes prises sur le geste plutôt que sur l'attente. À l'appui et **pas au survol** :
@@ -134,7 +144,10 @@ un pointeur qui balaie la liste ferait descendre vingt messages qu'on ne lira pa
 ouverture réessaiera et parlera, elle. Et `remplir` tient la liste de ce qui est déjà en vol, pour
 qu'un appui suivi d'un clic ne fasse qu'une requête.
 
-Mesuré en émulation, fournisseur ralenti à 1200 ms : un seul appel `getThreads(3)` part tout seul,
+Mesuré en émulation (liste de 16 fils) : un lot de 10 au chargement, un lot de 6 au premier écran
+de défilement, puis plus rien — et avec des lots de 4 pour voir la suite, cinq lots qui couvrent
+exactement les 16, sans doublon. Fournisseur ralenti à 1200 ms : un seul appel `getThreads` part
+tout seul,
 un message préchargé s'ouvre en **3 ms** sans provoquer d'appel de plus, un message non préchargé en
 **1164 ms**.
 

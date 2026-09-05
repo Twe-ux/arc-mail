@@ -56,6 +56,8 @@ export type MailState = {
   selectThread: (id: string | null) => void;
   /** Demande le corps d'un fil sans l'ouvrir : l'attente passe avant le geste. */
   prefetchThread: (id: string) => void;
+  /** Le lot suivant, quand le défilement s'en approche. Une requête pour tous. */
+  prefetchThreads: (ids: string[]) => void;
   toggleStar: (id: string) => void;
   toggleUnread: (id: string) => void;
   moveThread: (id: string, folder: FolderId) => void;
@@ -248,6 +250,9 @@ const enMemoire = (threads: Thread[]): Thread[] =>
 /** Les corps déjà demandés, pour ne pas les demander deux fois. */
 const enVol = new Set<string>();
 
+/** Combien de fils par lot : à peu près un écran de liste. */
+export const LOT = 10;
+
 /**
  * Va chercher le corps d'un fil, une seule fois.
  *
@@ -292,6 +297,11 @@ async function precharger(ids: string[]): Promise<void> {
     .map((id) => état.threads.find((t) => t.id === id))
     .filter((t): t is Thread => !!t && !enVol.has(t.id) && t.messages.every((m) => !m.body));
   if (cibles.length === 0) return;
+
+  /* Économiseur de données activé : on ne descend rien que personne n'a
+     demandé. La lecture à l'ouverture, elle, reste. */
+  const lien = (navigator as { connection?: { saveData?: boolean } }).connection;
+  if (lien?.saveData) return;
 
   for (const t of cibles) enVol.add(t.id);
   try {
@@ -431,11 +441,11 @@ export const useMail = create<MailState>()(
         loading: { ...s.loading, [spaceId]: false },
         error: null,
       }));
-      /* Les premiers de la liste sont ceux qu'on ouvre : leurs corps partent
-         ensemble, en une requête, pendant qu'on lit les objets. Trois, pas
-         dix — un message est lourd, et ce sont des octets sur un forfait
-         mobile pour des messages qu'on n'ouvrira peut-être pas. */
-      void precharger(fresh.slice(0, 3).map((t) => t.id));
+      /* Le premier écran de la liste part chercher ses corps ensemble, en une
+         requête, pendant qu'on lit les objets ; la suite viendra au
+         défilement. Dix, parce que c'est ce qu'on voit — et le serveur
+         s'arrête de lui-même si dix infolettres pèsent trop. */
+      void precharger(fresh.slice(0, LOT).map((t) => t.id));
     } catch (err) {
       if (loadTokens.get(spaceId) !== token) return;
       done({ error: describe(err) });
@@ -488,6 +498,10 @@ export const useMail = create<MailState>()(
    */
   prefetchThread: (id) => {
     void remplir(id, false);
+  },
+
+  prefetchThreads: (ids) => {
+    void precharger(ids);
   },
 
   toggleStar: (id) => {

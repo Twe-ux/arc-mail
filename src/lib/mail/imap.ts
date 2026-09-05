@@ -411,7 +411,18 @@ export async function writeThread(
  *
  * Un message illisible ne fait pas échouer les autres — c'est un préchargement,
  * son échec doit rester sans conséquence.
+ *
+ * **Un budget d'octets, pas seulement un nombre.** Dix messages courts font
+ * 30 Ko ; dix infolettres avec leurs images en `data:` en font plusieurs
+ * mégaoctets, et c'est le forfait mobile de quelqu'un. On s'arrête quand la
+ * réponse est pleine, et les fils qui n'y tiennent pas seront lus à
+ * l'ouverture — le préchargement est un bonus, jamais une dette.
+ *
+ * **`source` passe en `BODY.PEEK`** (imapflow le fait pour toute lecture de
+ * corps) : précharger ne marque **pas** comme lu. Sans ça, la boîte se serait
+ * vidée de ses non-lus toute seule.
  */
+const BUDGET = 1_200_000;
 export async function readThreads(
   client: ImapFlow,
   ids: string[],
@@ -425,13 +436,19 @@ export async function readThreads(
   }
 
   const fils: Thread[] = [];
+  let poids = 0;
   for (const [path, uids] of parDossier) {
+    if (poids > BUDGET) break;
     const lock = await client.getMailboxLock(path);
     try {
       for await (const message of client.fetch(uids, { ...ENVELOPE_QUERY, source: true }, { uid: true })) {
         if (!message.source) continue;
         try {
-          fils.push(await complet(message, path, folder));
+          const fil = await complet(message, path, folder);
+          fils.push(fil);
+          const lu = fil.messages[0];
+          poids += (lu.html?.length ?? 0) + lu.body.length;
+          if (poids > BUDGET) break;
         } catch {
           /* Ce message-là ne sera pas préchargé, les autres si. */
         }

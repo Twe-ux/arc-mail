@@ -1,13 +1,14 @@
 "use client";
 
 import { CloudOff, Columns2, Inbox, PanelLeftOpen, RefreshCw, Star } from "lucide-react";
+import { Fragment, useEffect, useRef } from "react";
 
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { usePullToRefresh } from "@/hooks/use-pull-to-refresh";
 import { formatShortDate } from "@/lib/format";
-import { selectFolder, selectLoading, useMail, useSpace, useVisibleThreads } from "@/lib/store";
+import { LOT, selectFolder, selectLoading, useMail, useSpace, useVisibleThreads } from "@/lib/store";
 import type { Thread } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { ContactAvatar } from "./contact-avatar";
@@ -21,6 +22,7 @@ export function ThreadList({ className }: { className?: string }) {
   const selectedThreadId = useMail((s) => s.selectedThreadId);
   const selectThread = useMail((s) => s.selectThread);
   const prefetchThread = useMail((s) => s.prefetchThread);
+  const prefetchThreads = useMail((s) => s.prefetchThreads);
   const openDraft = useMail((s) => s.openDraft);
   const toggleStar = useMail((s) => s.toggleStar);
   const unreadOnly = useMail((s) => s.unreadOnly);
@@ -161,16 +163,27 @@ export function ThreadList({ className }: { className?: string }) {
             /* The bar floats over the list rather than beside it, so the last
                rows need room to pass under it — see `--nav-height`. */
             <ul className="flex flex-col pt-2 max-md:pb-[calc(var(--nav-height)+0.5rem)] md:gap-0.5 md:p-2">
-              {threads.map((t) => (
-                <ThreadRow
-                  key={t.id}
-                  thread={t}
-                  accent={space.theme.accent}
-                  active={t.id === selectedThreadId}
-                  onSelect={() => (t.folder === "drafts" ? openDraft(t.id) : selectThread(t.id))}
-                  onIntent={() => prefetchThread(t.id)}
-                  onStar={() => toggleStar(t.id)}
-                />
+              {threads.map((t, i) => (
+                <Fragment key={t.id}>
+                  <ThreadRow
+                    thread={t}
+                    accent={space.theme.accent}
+                    active={t.id === selectedThreadId}
+                    onSelect={() => (t.folder === "drafts" ? openDraft(t.id) : selectThread(t.id))}
+                    onIntent={() => prefetchThread(t.id)}
+                    onStar={() => toggleStar(t.id)}
+                  />
+                  {/* Au bout de chaque lot, une balise invisible : quand elle
+                      entre dans l'écran, le lot suivant part se chercher. Le
+                      défilement continue de dérouler des messages déjà là. */}
+                  {i % LOT === LOT - 1 && i + 1 < threads.length && (
+                    <Sentinelle
+                      onVisible={() =>
+                        prefetchThreads(threads.slice(i + 1, i + 1 + LOT).map((x) => x.id))
+                      }
+                    />
+                  )}
+                </Fragment>
               ))}
             </ul>
           )}
@@ -361,4 +374,46 @@ function Attente() {
       ))}
     </ul>
   );
+}
+
+/**
+ * Une balise sans hauteur, posée au bout d'un lot.
+ *
+ * Elle ne se voit pas et ne se lit pas : elle sert au navigateur à dire « on
+ * approche », et c'est le seul signal fiable — un calcul sur l'événement de
+ * défilement coûterait un travail à chaque pixel pour la même réponse.
+ *
+ * `rootMargin` la déclenche **avant** qu'elle n'arrive : le lot part pendant
+ * qu'on lit les messages du précédent, ce qui est tout l'intérêt. 400 px et
+ * pas 800 : plus large, la balise du deuxième lot est déjà « visible » au
+ * chargement, et on descendrait vingt messages là où on en voulait dix.
+ * Elle ne parle qu'une fois — le lot suivant a sa propre balise.
+ */
+function Sentinelle({ onVisible }: { onVisible: () => void }) {
+  const ancre = useRef<HTMLLIElement>(null);
+  const fait = useRef(false);
+  const rappel = useRef(onVisible);
+  /* Le rappel change à chaque rendu (il capture la liste du moment) ; on le
+     range dans un effet, jamais pendant le rendu, et l'observateur lit
+     toujours le dernier sans être reconstruit pour autant. */
+  useEffect(() => {
+    rappel.current = onVisible;
+  });
+
+  useEffect(() => {
+    const noeud = ancre.current;
+    if (!noeud) return;
+    const observateur = new IntersectionObserver(
+      (entrees) => {
+        if (!entrees.some((e) => e.isIntersecting) || fait.current) return;
+        fait.current = true;
+        rappel.current();
+      },
+      { rootMargin: "400px 0px" },
+    );
+    observateur.observe(noeud);
+    return () => observateur.disconnect();
+  }, []);
+
+  return <li ref={ancre} aria-hidden className="h-px" />;
 }

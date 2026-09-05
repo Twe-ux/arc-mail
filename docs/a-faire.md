@@ -47,6 +47,9 @@ Essais portés d'`arc-messenger` sur le bureau (5 sept.), poussés sur `preview`
 - [ ] La barre repliée revient **au survol du bord** au lieu de disparaître (bande de 14 px, panneau
       flottant qui emporte le fond du bureau avec lui).
 - [ ] La barre se range **à gauche ou à droite** (bouton à côté du repli, choix persisté).
+- [ ] La **séparation liste / message se déplace** en vue partagée : poignée de 11 px, largeur
+      écrite sur le nœud pendant le geste, bornée 300–640, persistée, double-clic pour revenir à
+      380, flèches au clavier.
 
 Non repris : le style plat violet, les bulles de conversation, la barre de catégories réordonnable
 et le panneau de réglages déplaçable — le premier change le langage visuel d'Arc Mail, les autres

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, type CSSProperties } from "react";
+import { useEffect, useRef, type CSSProperties } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
@@ -13,6 +13,7 @@ import { ComposeDialog } from "./compose-dialog";
 import { MobileNav } from "./mobile-nav";
 import { MobileMenu } from "./mobile-menu";
 import { Sidebar } from "./sidebar";
+import { SplitHandle } from "./split-handle";
 import { ThreadList } from "./thread-list";
 import { ThreadView } from "./thread-view";
 
@@ -34,6 +35,8 @@ export function AppShell() {
   const loadSpace = useMail((s) => s.loadSpace);
   const previewId = useMail((s) => s.previewId);
   const sidebarSide = useMail((s) => s.sidebarSide);
+  const listWidth = useMail((s) => s.listWidth);
+  const coque = useRef<HTMLDivElement>(null);
 
   useKeyboardShortcuts();
 
@@ -91,7 +94,16 @@ export function AppShell() {
              suffit — rien d'autre ne connaît son côté. */
           sidebarSide === "right" ? "md:flex-row-reverse" : "md:flex-row",
         )}
-        style={{ "--space-gradient": space.theme.gradient, "--space-accent": space.theme.accent } as CSSProperties}
+        ref={coque}
+        style={
+          {
+            "--space-gradient": space.theme.gradient,
+            "--space-accent": space.theme.accent,
+            /* La poignée réécrit cette variable à la frame ; React n'apprend la
+               largeur qu'au relâchement. */
+            "--list-width": `${listWidth}px`,
+          } as CSSProperties
+        }
       >
         <Sidebar />
         <main className="flex min-h-0 min-w-0 flex-1 overflow-hidden text-foreground md:rounded-xl md:bg-background md:shadow-2xl md:ring-1 md:ring-black/10">
@@ -100,9 +112,10 @@ export function AppShell() {
               "w-full",
               hasSelection ? "hidden" : "flex",
               listOnDesktop ? "md:flex" : "md:hidden",
-              splitView ? "md:w-[380px] md:shrink-0 md:border-r" : "md:flex-1",
+              splitView ? "md:w-[var(--list-width)] md:shrink-0 md:border-r" : "md:flex-1",
             )}
           />
+          {splitView && !previewOnDesktop && <SplitHandle coque={coque} />}
           <BackSwipe
             enabled={hasSelection}
             onBack={() => selectThread(null)}

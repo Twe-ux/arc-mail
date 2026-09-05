@@ -26,6 +26,8 @@ export type MailState = {
   sidebarCollapsed: boolean;
   /** Essai : de quel côté la barre latérale se range, sur bureau. */
   sidebarSide: "left" | "right";
+  /** Largeur de la liste en vue partagée, sur bureau, en pixels. */
+  listWidth: number;
   /** The attachment being looked at, `null` when none; it lives in the open thread. */
   previewId: string | null;
   dark: boolean;
@@ -73,6 +75,7 @@ export type MailState = {
   setSpaces: (spaces: Space[]) => void;
   toggleSidebarCollapsed: () => void;
   toggleSidebarSide: () => void;
+  setListWidth: (px: number) => void;
   setPreview: (attachmentId: string | null) => void;
   toggleDark: () => void;
   /**
@@ -265,6 +268,19 @@ const enMemoire = (threads: Thread[]): Thread[] =>
 /** Les corps déjà demandés, pour ne pas les demander deux fois. */
 const enVol = new Set<string>();
 
+/**
+ * La liste en vue partagée : sa largeur, et ce qu'elle ne dépasse pas.
+ *
+ * En dessous de 300 px, l'objet et l'expéditeur se tronquent tous les deux et
+ * la rangée ne dit plus rien ; au-delà de 640, c'est le message qu'on lit qui
+ * n'a plus la place d'une ligne confortable.
+ */
+export const LISTE_MIN = 300;
+export const LISTE_MAX = 640;
+export const LISTE_DEFAUT = 380;
+
+export const borne = (px: number) => Math.round(Math.min(LISTE_MAX, Math.max(LISTE_MIN, px)));
+
 /** Combien de fils par lot : à peu près un écran de liste. */
 export const LOT = 10;
 
@@ -419,6 +435,7 @@ export const useMail = create<MailState>()(
   sidebarOpen: false,
   sidebarCollapsed: false,
   sidebarSide: "left",
+  listWidth: LISTE_DEFAUT,
   previewId: null,
   dark: false,
   threads: [],
@@ -588,6 +605,7 @@ export const useMail = create<MailState>()(
   toggleSidebarCollapsed: () => set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
   toggleSidebarSide: () =>
     set((s) => ({ sidebarSide: s.sidebarSide === "left" ? "right" : "left" })),
+  setListWidth: (px) => set({ listWidth: borne(px) }),
   setPreview: (previewId) => set({ previewId }),
   toggleDark: () => set((s) => ({ dark: !s.dark })),
 
@@ -826,7 +844,14 @@ export const useMail = create<MailState>()(
       migrate: (persisted) =>
         persisted as Pick<
           MailState,
-          "themes" | "dark" | "splitView" | "sidebarCollapsed" | "sidebarSide" | "recent" | "threads"
+          | "themes"
+          | "dark"
+          | "splitView"
+          | "sidebarCollapsed"
+          | "sidebarSide"
+          | "listWidth"
+          | "recent"
+          | "threads"
         >,
       /* Ce qui doit survivre à un rechargement : les préférences, et de quoi
          montrer une liste tout de suite. Le composeur est passager. */
@@ -836,6 +861,7 @@ export const useMail = create<MailState>()(
         splitView: s.splitView,
         sidebarCollapsed: s.sidebarCollapsed,
         sidebarSide: s.sidebarSide,
+        listWidth: s.listWidth,
         recent: s.recent,
         threads: enMemoire(s.threads),
       }),

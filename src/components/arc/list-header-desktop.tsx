@@ -1,6 +1,6 @@
 "use client";
 
-import { PanelLeft, PanelLeftDashed, Search, Square, type LucideIcon } from "lucide-react";
+import { PanelLeft, PanelLeftDashed, Search, Square, SquarePen, type LucideIcon } from "lucide-react";
 
 import { Kbd } from "@/components/ui/kbd";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -32,6 +32,7 @@ export function ListHeaderDesktop() {
   const mode = useMail((s) => s.sidebarMode);
   const setSidebarMode = useMail((s) => s.setSidebarMode);
   const setCommandOpen = useMail((s) => s.setCommandOpen);
+  const openCompose = useMail((s) => s.openCompose);
   const folder = useMail(selectFolder);
   const threads = useVisibleThreads();
 
@@ -72,6 +73,27 @@ export function ListHeaderDesktop() {
           <span className="min-w-0 flex-1 truncate text-left">Rechercher</span>
           <Kbd>⌘K</Kbd>
         </button>
+
+        {/* **Écrire n'a pas de place quand la barre est masquée** : la rangée du
+            bas de la barre la porte, le rail aussi, et masquée il ne restait
+            que ⌘N — un raccourci ne s'annonce pas. Même règle que les tuiles de
+            dossiers : ça n'apparaît ici que là où plus rien d'autre ne le
+            porte. */}
+        {mode === "hidden" && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                onClick={() => openCompose()}
+                aria-label="Nouveau message"
+                className="grid size-[30px] shrink-0 place-items-center rounded-lg bg-muted text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground"
+              >
+                <SquarePen className="size-4" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">Nouveau message · ⌘N</TooltipContent>
+          </Tooltip>
+        )}
       </div>
 
       {/* **Deux rangées, pas une.** Mesuré à 360 px de colonne : le sélecteur,
@@ -121,7 +143,7 @@ function TuileBureau({
       }}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "flex h-[34px] items-center justify-center gap-1.5 rounded-[9px] px-2 text-xs font-medium transition-colors",
+        "relative flex h-[34px] items-center justify-center rounded-[9px] px-2 text-xs font-medium transition-colors",
         active ? "bg-muted text-foreground" : "bg-foreground/[0.05] text-muted-foreground hover:text-foreground",
       )}
     >
@@ -130,8 +152,13 @@ function TuileBureau({
           compteur posés, et « Réception » y devenait « Réc… ». Le dossier a son
           glyphe partout ailleurs — barre, rail, palette ; c'est son nom entier
           qui manquait. */}
-      {count > 0 && <span className="size-1.5 shrink-0 rounded-full bg-[var(--space-accent)]" />}
       <span className="truncate">{label}</span>
+      {/* Le point est **posé sur la tuile**, pas dans la rangée : dans le flux
+          il prenait 12 px des 58 laissés au texte, et « Réception » redevenait
+          « Réce… ». */}
+      {count > 0 && (
+        <span className="absolute top-1.5 right-1.5 size-1.5 rounded-full bg-[var(--space-accent)]" />
+      )}
     </button>
   );
 }

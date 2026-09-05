@@ -10,6 +10,10 @@ verre, la tête de liste sur deux rangées, les rangées au gabarit bureau et le
 de conversation avec son menu et ses détails, les blocs de message cliquables, et le troisième
 volet détaché (message ou fichier) avec sa gouttière et sa poignée.
 
+Puis trois retours : la barre ne se range plus à droite (`sidebarSide` retiré, persistance v4), un
+objet long garde 16 px avant « Archiver », et « Nouveau message » revient dans la tête de liste
+quand la barre est masquée — sans quoi il n'y restait que ⌘N.
+
 ## 5 septembre 2026 — le lot mobile
 
 Le handoff `design_handoff_arc_mail_mobile` monté de bout en bout : la pill d'actions partagée, la

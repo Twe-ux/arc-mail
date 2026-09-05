@@ -53,8 +53,6 @@ export type MailState = {
   sidebarMode: SidebarMode;
   /** Bureau : la hauteur d'une rangée de liste. */
   listDensity: "confort" | "compact";
-  /** Essai : de quel côté la barre latérale se range, sur bureau. */
-  sidebarSide: "left" | "right";
   /** Largeur de la liste en vue partagée, sur bureau, en pixels. */
   listWidth: number;
   /** The attachment being looked at, `null` when none; it lives in the open thread. */
@@ -118,7 +116,6 @@ export type MailState = {
   cycleSpace: (direction?: 1 | -1) => void;
   /** Posé une fois par `SpacesInit`, avec ce que le serveur a lu. */
   setSpaces: (spaces: Space[]) => void;
-  toggleSidebarSide: () => void;
   setGroupBy: (mode: MailState["groupBy"]) => void;
   setCorrespondent: (email: string | null) => void;
   setListWidth: (px: number) => void;
@@ -496,7 +493,6 @@ export const useMail = create<MailState>()(
   settingsOpen: false,
   sidebarMode: "full",
   listDensity: "confort",
-  sidebarSide: "left",
   listWidth: LISTE_DEFAUT,
   groupBy: "fil",
   correspondent: null,
@@ -686,8 +682,6 @@ export const useMail = create<MailState>()(
     set((s) => ({
       sidebarMode: s.sidebarMode === "full" ? "rail" : s.sidebarMode === "rail" ? "hidden" : "full",
     })),
-  toggleSidebarSide: () =>
-    set((s) => ({ sidebarSide: s.sidebarSide === "left" ? "right" : "left" })),
   setListWidth: (px) => set({ listWidth: borne(px) }),
   /* Changer de rangement referme la personne ouverte : sa liste n'a plus de
      sens dans l'autre vue, et la garder ferait revenir un écran qu'on ne
@@ -952,13 +946,21 @@ export const useMail = create<MailState>()(
          barre repliée revient en **rail** et non masquée : c'est ce que le
          bouton de repli fait désormais, et personne ne perd ses dossiers au
          rechargement. */
-      version: 3,
+      version: 4,
       migrate: (persisted, version) => {
-        const avant = persisted as Partial<MailState> & { sidebarCollapsed?: boolean };
+        const avant = persisted as Partial<MailState> & {
+          sidebarCollapsed?: boolean;
+          sidebarSide?: string;
+        };
         if (version < 3) {
           avant.sidebarMode = avant.sidebarCollapsed ? "rail" : "full";
           delete avant.sidebarCollapsed;
         }
+        /* 4 : la barre ne se range plus à droite. L'essai n'a jamais servi, et
+           il coûtait une piste inversée dans la coque, un côté à consulter dans
+           la bande de révélation, et un bouton dans une rangée qui en portait
+           déjà deux. */
+        if (version < 4) delete avant.sidebarSide;
         return avant as Pick<
           MailState,
           | "themes"
@@ -966,7 +968,6 @@ export const useMail = create<MailState>()(
           | "splitView"
           | "sidebarMode"
           | "listDensity"
-          | "sidebarSide"
           | "listWidth"
           | "thirdWidth"
           | "groupBy"
@@ -982,7 +983,6 @@ export const useMail = create<MailState>()(
         splitView: s.splitView,
         sidebarMode: s.sidebarMode,
         listDensity: s.listDensity,
-        sidebarSide: s.sidebarSide,
         listWidth: s.listWidth,
         thirdWidth: s.thirdWidth,
         groupBy: s.groupBy,

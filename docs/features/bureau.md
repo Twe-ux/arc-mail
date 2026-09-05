@@ -41,7 +41,11 @@ Le troisième état existe parce qu'à 1440 px, barre attachée + liste + conver
 laissaient que **309 px** à la colonne qu'on lit : trois ou quatre mots par ligne. **Ouvrir le
 volet réduit donc une barre attachée en rail** (`openThird`).
 
-**Révélation au survol** (rail et masquée) : une bande de 14 px au bord de la fenêtre, jamais le
+**La barre ne se range plus à droite.** L'essai `sidebarSide` a été retiré (migration persistée v4) :
+il n'a jamais servi et il coûtait une rangée inversée dans la coque, un côté à consulter dans la
+bande de révélation, et un troisième bouton dans une rangée qui en portait déjà deux.
+
+**Révélation au survol** (rail et masquée) : une bande de 14 px au bord gauche de la fenêtre, jamais le
 rail lui-même — sinon ses propres icônes deviennent inatteignables au moment où l'on vise. La
 barre révélée emporte **le fond du bureau avec elle** (`space-backdrop`) plutôt qu'un verre : à
 72 % d'opacité et avec un flou, la liste se lisait encore au travers. Le voile derrière elle est en
@@ -65,7 +69,10 @@ Mesuré à 360 px de colonne : sélecteur, recherche, filtre et regroupement sur
 laissaient au champ de recherche la place de son icône, et le mot « Rechercher » disparaissait. Un
 champ sans son mot n'est plus un champ.
 
-1. sélecteur de barre (trois cases de 26, rayon 9) + champ de recherche `⌘K`.
+1. sélecteur de barre (trois cases de 26, rayon 9) + champ de recherche `⌘K` + **« Nouveau
+   message » quand la barre est masquée** : la rangée du bas de la barre le porte, le rail aussi,
+   et masquée il ne restait que ⌘N — un raccourci ne s'annonce pas. Même règle anti-doublon que
+   les tuiles de dossiers.
 2. `Tous / Non lus` + le compte + le regroupement par correspondant.
 3. masquée seulement : les quatre tuiles de dossiers.
 
@@ -73,7 +80,8 @@ Les **20 px** de côté sont mesurés : c'est là que tombent les avatars des ra
 12 de la rangée). Les tuiles de dossiers n'ont **pas d'icône** et affichent un point, pas un
 nombre : quatre tuiles sur 360 px laissent 42 px au texte une fois l'icône et le compteur posés, et
 « Réception » y devenait « Réc… ». Le glyphe du dossier est partout ailleurs ; c'est son nom entier
-qui manquait.
+qui manquait. Le point est **posé sur la tuile** et non dans la rangée : dans le flux il reprenait
+12 px des 58 laissés au texte, et le nom se retronquait.
 
 Le filtre `Tous / Non lus` et le regroupement ne sont pas dans le handoff : ils y ont été gardés
 parce que l'état attaché n'a pas de tête du tout, et les perdre aurait retiré le seul chemin vers
@@ -94,7 +102,9 @@ perd son aperçu — la ligne la plus coûteuse en hauteur et la moins nécessai
 ## La conversation
 
 **En-tête** (`px-3.5 py-3`) : avatar 34 + expéditeur/objet, puis Archiver, Supprimer, un filet, `⋯`
-et ⓘ, en cases de 30 px rayon 7. Archiver et Supprimer **restent dehors** : dans le `⋯` c'était
+et ⓘ, en cases de 30 px rayon 7. Le bloc de texte garde **16 px avant la première case** (20 px
+mesurés jusqu'au bouton) : un objet long — un rapport DMARC, un identifiant de suivi — venait
+coller ses points de suspension à « Archiver », et les deux se lisaient comme un seul bloc. Archiver et Supprimer **restent dehors** : dans le `⋯` c'était
 deux clics pour les deux gestes du quotidien, le même raisonnement que la pill du téléphone. **Pas
 de « Répondre » ici** — le champ est en bas du volet, et deux entrées pour un geste sèment le
 doute. Le retour ne se rend qu'en vue pleine.

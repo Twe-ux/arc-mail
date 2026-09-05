@@ -44,7 +44,6 @@ export function AppShell() {
   const folderId = useMail((s) => s.folderId);
   const loadSpace = useMail((s) => s.loadSpace);
   const third = useMail((s) => s.third);
-  const sidebarSide = useMail((s) => s.sidebarSide);
   const listWidth = useMail((s) => s.listWidth);
   const thirdWidth = useMail((s) => s.thirdWidth);
   const compose = useMail((s) => s.compose);
@@ -114,12 +113,7 @@ export function AppShell() {
   return (
     <TooltipProvider>
       <div
-        className={cn(
-          "space-wash fixed inset-0 flex flex-col pt-[calc(var(--safe-top)+var(--titlebar))] transition-[background] duration-500 md:gap-2 md:p-2 md:pt-[calc(0.5rem+var(--titlebar))] md:space-backdrop",
-          /* Essai : la barre peut se ranger à droite. Inverser la rangée
-             suffit — rien d'autre ne connaît son côté. */
-          sidebarSide === "right" ? "md:flex-row-reverse" : "md:flex-row",
-        )}
+        className="space-wash fixed inset-0 flex flex-col pt-[calc(var(--safe-top)+var(--titlebar))] transition-[background] duration-500 md:flex-row md:gap-2 md:p-2 md:pt-[calc(0.5rem+var(--titlebar))] md:space-backdrop"
         ref={coque}
         style={
           {

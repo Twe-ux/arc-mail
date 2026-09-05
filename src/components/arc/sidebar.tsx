@@ -34,7 +34,6 @@ import { SidebarRail } from "./sidebar-rail";
  */
 export function Sidebar() {
   const mode = useMail((s) => s.sidebarMode);
-  const cote = useMail((s) => s.sidebarSide);
   const [survol, setSurvol] = useState(false);
 
   if (mode === "full") {
@@ -54,7 +53,7 @@ export function Sidebar() {
           de la **fenêtre**, jamais sur le rail. */}
       <div
         onPointerEnter={() => setSurvol(true)}
-        className={cn("fixed inset-y-0 z-30 hidden w-3.5 md:block", cote === "left" ? "left-0" : "right-0")}
+        className="fixed inset-y-0 left-0 z-30 hidden w-3.5 md:block"
       />
 
       {survol && (
@@ -63,10 +62,9 @@ export function Sidebar() {
           <aside
             onPointerLeave={() => setSurvol(false)}
             className={cn(
-              "space-backdrop fixed inset-y-2 z-40 hidden w-[264px] flex-col gap-3 rounded-2xl px-2 py-2 text-white",
+              "space-backdrop fixed inset-y-2 left-2 z-40 hidden w-[264px] flex-col gap-3 rounded-2xl px-2 py-2 text-white",
               "shadow-[0_40px_90px_-10px_rgb(0_0_0/0.85)] ring-1 ring-white/20 md:flex",
-              "animate-in fade-in-0 duration-200 ease-out",
-              cote === "left" ? "left-2 slide-in-from-left-3" : "right-2 slide-in-from-right-3",
+              "animate-in fade-in-0 slide-in-from-left-3 duration-200 ease-out",
             )}
           >
             {/* Révélée, elle **masque sa rangée du haut** : la tête de liste

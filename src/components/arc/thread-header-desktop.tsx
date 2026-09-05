@@ -71,7 +71,11 @@ export function ThreadHeaderDesktop({
         </Case>
       )}
       <ContactAvatar contact={dernier.from} className="size-[34px] shrink-0" />
-      <div className="mx-1.5 min-w-0 flex-1 leading-tight">
+      {/* **16 px avant la première case**, pas 4 : un objet long — un rapport
+          DMARC, un identifiant de suivi — venait coller ses points de suspension
+          au bouton Archiver, et les deux se lisaient comme un seul bloc. Le
+          retrait est sur la boîte du texte, donc l'ellipse tombe avant. */}
+      <div className="ms-1.5 me-4 min-w-0 flex-1 leading-tight">
         <p className="truncate text-xs text-muted-foreground">{dernier.from.name}</p>
         <h2 className="truncate text-[15px] font-semibold">{thread.subject}</h2>
       </div>

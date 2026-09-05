@@ -7,8 +7,6 @@ import {
   Inbox,
   Moon,
   PanelLeftClose,
-  PanelRight,
-  PanelLeft,
   Search,
   Send,
   SquarePen,
@@ -89,8 +87,6 @@ export function SidebarContent({ topRow = true }: { topRow?: boolean }) {
   const folderId = useMail((s) => s.folderId);
   const setFolder = useMail((s) => s.setFolder);
   const setCommandOpen = useMail((s) => s.setCommandOpen);
-  const cote = useMail((s) => s.sidebarSide);
-  const toggleSide = useMail((s) => s.toggleSidebarSide);
   const setSidebarMode = useMail((s) => s.setSidebarMode);
   const openCompose = useMail((s) => s.openCompose);
   const inboxUnread = useMail((s) => selectUnreadCount(s, s.spaceId, "inbox"));
@@ -110,19 +106,6 @@ export function SidebarContent({ topRow = true }: { topRow?: boolean }) {
             <span className="min-w-0 flex-1 truncate text-left">{folder.name}</span>
             <Kbd className={cn("hidden md:inline-flex", TN.kbd)}>⌘K</Kbd>
           </button>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                type="button"
-                onClick={toggleSide}
-                aria-label={cote === "left" ? "Passer la barre à droite" : "Passer la barre à gauche"}
-                className={cn("flex size-9 shrink-0 items-center justify-center rounded-lg transition-colors", TN.bar)}
-              >
-                {cote === "left" ? <PanelRight className="size-4" /> : <PanelLeft className="size-4" />}
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">{cote === "left" ? "Passer à droite" : "Passer à gauche"}</TooltipContent>
-          </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
               <button

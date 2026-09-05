@@ -55,6 +55,11 @@ const SIZES = {
 const CLICK_TEXT = (text) =>
   `[...document.querySelectorAll('button')].find((b) => b.textContent?.includes(${JSON.stringify(text)}))?.click()`;
 
+/* Les trois états de la barre se commutent depuis la **tête de liste** : le
+   sélecteur y vit désormais, et la barre n'a plus de rangée du haut. */
+const RAIL = `document.querySelector('div[role="radiogroup"][aria-label="Barre latérale"] button[aria-label^="Réduire en rail"]')?.click()`;
+const MASQUEE = `document.querySelector('div[role="radiogroup"][aria-label="Barre latérale"] button[aria-label^="Masquée"]')?.click()`;
+
 const OPENERS = {
   /* La case d'espace de la barre **change** d'espace depuis le lot mobile ;
      c'est « Dossiers » qui ouvre la feuille. */
@@ -69,22 +74,22 @@ const OPENERS = {
   ],
   /* Bureau : la barre réduite en rail, puis masquée — les deux états où la
      tête de liste reprend ce que la barre portait. */
-  rail: [`document.querySelector('button[aria-label="Réduire la barre latérale en rail"]')?.click()`],
+  rail: [RAIL],
   masquee: [
-    `document.querySelector('button[aria-label="Réduire la barre latérale en rail"]')?.click()`,
-    `document.querySelector('button[aria-label^="Masquée"]')?.click()`,
+    RAIL,
+    MASQUEE,
   ],
   /* Bureau : un courrier HTML, barre masquée — le volet occupe tout. */
   "html-large": [
-    `document.querySelector('button[aria-label="Réduire la barre latérale en rail"]')?.click()`,
-    `document.querySelector('button[aria-label^="Masquée"]')?.click()`,
+    RAIL,
+    MASQUEE,
     CLICK_TEXT("Les bons plans du mois"),
   ],
   /* Bureau : la fenêtre du composeur, posée sur la boîte. */
   composeur: [`document.querySelector('button[aria-label="Nouveau message"]')?.click()`],
   /* Bureau : le troisième volet, sur un message détaché du fil. */
   "volet-message": [
-    `document.querySelector('button[aria-label="Réduire la barre latérale en rail"]')?.click()`,
+    RAIL,
     CLICK_TEXT("Photos de l'anniversaire"),
     `document.querySelector('button[aria-label^="Ouvrir le message de"]')?.click()`,
   ],

@@ -28,13 +28,19 @@ la coque — sans quoi la bande ferait 32 px et non les 16 que les bornes compte
 
 | État | Ce qui est à l'écran | Ce que porte la tête de liste |
 | --- | --- | --- |
-| **attachée** (`full`) | 260 px, en ligne sur le dégradé | **rien** — elle disparaît |
+| **attachée** (`full`) | 260 px de dossiers, en ligne sur le dégradé | sélecteur + recherche + filtre |
 | **rail** | 52 px : boîtes, dossiers, écriture | sélecteur + recherche + filtre |
 | **masquée** (`hidden`) | rien | sélecteur + recherche + filtre + 4 tuiles |
 
-C'est la règle anti-doublon : **les dossiers n'apparaissent qu'une fois.** ⌘B fait le tour
-(`cycleSidebarMode`), et la palette ⌘K porte l'entrée — attachée, la tête de liste s'efface avec
-son sélecteur, et un raccourci ne s'annonce pas tout seul.
+**La tête est là dans les trois états**, et c'est elle qui porte la recherche et le sélecteur de
+barre. Ils vivaient en haut de la barre latérale : ils disparaissaient donc avec elle, et la tête
+devait s'effacer entièrement en état attaché pour ne pas doubler le champ — un champ de recherche
+qui se déplace selon l'état de la barre est un champ qu'on cherche. Descendus ici, ils ne bougent
+plus.
+
+La règle anti-doublon, elle, ne change pas : **les dossiers n'apparaissent qu'une fois** — la barre
+attachée les liste, le rail les porte en icônes, et ce n'est que masquée que la tête les reprend en
+tuiles. ⌘B fait le tour (`cycleSidebarMode`), et la palette ⌘K porte l'entrée.
 
 Le troisième état existe parce qu'à 1440 px, barre attachée + liste + conversation + volet ne
 laissaient que **309 px** à la colonne qu'on lit : trois ou quatre mots par ligne. **Ouvrir le
@@ -48,8 +54,9 @@ bande de révélation, et un troisième bouton dans une rangée qui en portait d
 rail lui-même — sinon ses propres icônes deviennent inatteignables au moment où l'on vise. La
 barre révélée emporte **le fond du bureau avec elle** (`.fond-bureau`, quel qu’il soit) plutôt qu’un verre : à
 72 % d'opacité et avec un flou, la liste se lisait encore au travers. Le voile derrière elle est en
-`pointer-events: none`, sans quoi la quitter ne la ferait jamais se retirer. Révélée, elle **masque
-sa rangée du haut** : la tête de liste porte déjà la recherche.
+`pointer-events: none`, sans quoi la quitter ne la ferait jamais se retirer. Révélée, elle n'a
+**plus de rangée du haut à masquer** : sa recherche et son bouton de repli sont descendus dans la
+tête de liste.
 
 ## Les boîtes sont des tuiles de verre
 
@@ -62,11 +69,14 @@ tuile seule ne dit plus quelle boîte elle est.
 Le bloc nom + adresse + palette a été retiré du milieu de la barre : deux doublons (le nom est déjà
 sur la rangée du bas, la palette faisait ce que fait le bouton d'apparence à côté d'elle).
 
-## La tête de liste : deux rangées
+## La tête de liste : une ligne en pleine largeur, deux en colonne étroite
 
 Mesuré à 360 px de colonne : sélecteur, recherche, filtre et regroupement sur **une** ligne
 laissaient au champ de recherche la place de son icône, et le mot « Rechercher » disparaissait. Un
-champ sans son mot n'est plus un champ.
+champ sans son mot n'est plus un champ. Elle garde donc deux rangées tant que la liste est étroite,
+et **les réunit en une seule dès qu'elle est pleine largeur** (`data-large` publié sur la colonne) :
+là tout tient largement, et deux rangées n'auraient été que du vide empilé. Masquée, les tuiles de
+dossiers rejoignent la même ligne.
 
 1. sélecteur de barre (trois cases de 26, rayon 9) + champ de recherche `⌘K` + **« Nouveau
    message » quand la barre est masquée** : la rangée du bas de la barre le porte, le rail aussi,
@@ -83,8 +93,7 @@ qui manquait. Le point est **posé sur la tuile** et non dans la rangée : dans 
 12 px des 58 laissés au texte, et le nom se retronquait.
 
 Le filtre `Tous / Non lus` et le regroupement ne sont pas dans le handoff : ils y ont été gardés
-parce que l'état attaché n'a pas de tête du tout, et les perdre aurait retiré le seul chemin vers
-la vue par correspondant.
+parce qu'ils sont le seul chemin vers la vue par correspondant.
 
 ## Deux dispositions, selon qu'un message est ouvert
 

@@ -33,6 +33,13 @@ plus à droite (`sidebarSide` retiré, persistance v4), un
 objet long garde 16 px avant « Archiver », et « Nouveau message » revient dans la tête de liste
 quand la barre est masquée — sans quoi il n'y restait que ⌘N.
 
+Enfin la recherche et le sélecteur de barre sont **descendus de la barre latérale dans la tête de
+liste**, qui est désormais là dans les trois états : ils disparaissaient avec la barre, et la tête
+devait s'effacer entièrement en état attaché pour ne pas doubler le champ. En pleine largeur, la
+tête tient sur **une seule ligne** — sélecteur, recherche, `Tous / Non lus`, le compte, le
+regroupement, et les quatre tuiles quand la barre est masquée ; à 360 px elle garde ses deux
+rangées, où « Rechercher » n'aurait plus tenu.
+
 ## 5 septembre 2026 — le lot mobile
 
 Le handoff `design_handoff_arc_mail_mobile` monté de bout en bout : la pill d'actions partagée, la

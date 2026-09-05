@@ -6,8 +6,6 @@ import {
   FileText,
   Inbox,
   Moon,
-  PanelLeftClose,
-  Search,
   Send,
   SquarePen,
   Star,
@@ -16,11 +14,10 @@ import {
 } from "lucide-react";
 
 import { SignOut } from "@/components/auth/sign-out";
-import { Kbd } from "@/components/ui/kbd";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { FOLDERS } from "@/lib/mock-data";
-import { selectFolder, selectUnreadCount, useMail } from "@/lib/store";
+import { selectUnreadCount, useMail } from "@/lib/store";
 import type { FolderId } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { AppearancePanel } from "./theme-picker";
@@ -58,8 +55,6 @@ export const TN = {
   sub: "text-[var(--side-ink-soft)]",
   faint: "text-[var(--side-ink-soft)]",
   heading: "text-[var(--side-ink-soft)]",
-  bar: "bg-[var(--side-fill)] text-[var(--side-ink-soft)] hover:bg-[var(--side-fill-hover)] hover:text-[var(--side-ink)]",
-  kbd: "bg-[var(--side-fill-hover)] text-[var(--side-ink-soft)]",
   tile: "bg-[var(--side-fill)] text-[var(--side-ink-soft)] hover:bg-[var(--side-fill-hover)] hover:text-[var(--side-ink)]",
   tileActive: "bg-[var(--side-fill-active)] text-[var(--side-ink)]",
   item: "text-[var(--side-ink-soft)] hover:bg-[var(--side-fill-hover)] hover:text-[var(--side-ink)]",
@@ -78,54 +73,20 @@ export const TN = {
  * l'espace est déjà porté par la rangée de boîtes en bas, et la palette faisait
  * exactement ce que fait le bouton « Apparence » à côté d'elle.
  *
- * `topRow` est faux quand la barre est **révélée au survol** : la tête de liste
- * porte alors déjà la recherche et le sélecteur, et les répéter ici ferait deux
- * champs de recherche à l'écran.
+ * **Elle ne porte plus la recherche ni le repli** : ils vivaient tout en haut et
+ * disparaissaient avec elle, ce qui obligeait la tête de liste à s'effacer quand
+ * la barre était attachée — sinon deux champs de recherche à l'écran. Descendus
+ * dans la tête de liste, ils ne bougent plus, et la barre commence par ce
+ * qu'elle est seule à savoir faire : les dossiers.
  */
-export function SidebarContent({ topRow = true }: { topRow?: boolean }) {
-  const folder = useMail(selectFolder);
+export function SidebarContent() {
   const folderId = useMail((s) => s.folderId);
   const setFolder = useMail((s) => s.setFolder);
-  const setCommandOpen = useMail((s) => s.setCommandOpen);
-  const setSidebarMode = useMail((s) => s.setSidebarMode);
   const openCompose = useMail((s) => s.openCompose);
   const inboxUnread = useMail((s) => selectUnreadCount(s, s.spaceId, "inbox"));
 
   return (
     <>
-      {topRow && (
-        /* La barre d'adresse → la palette, et les deux commandes qui parlent de
-           la barre elle-même, en haut de la barre. */
-        <div className="flex shrink-0 items-center gap-1.5">
-          <button
-            type="button"
-            onClick={() => setCommandOpen(true)}
-            className={cn("flex h-9 min-w-0 flex-1 items-center gap-2 rounded-lg px-3 text-sm transition-colors", TN.bar)}
-          >
-            <Search className="size-4 shrink-0" />
-            <span className="min-w-0 flex-1 truncate text-left">{folder.name}</span>
-            <Kbd className={cn("hidden md:inline-flex", TN.kbd)}>⌘K</Kbd>
-          </button>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                type="button"
-                /* **Le repli réduit en rail, pas en masqué** : espaces et
-                   dossiers restent à l'écran, et on ne perd pas sa navigation
-                   pour gagner deux cents pixels. Masquer se demande au
-                   sélecteur, qui le dit. */
-                onClick={() => setSidebarMode("rail")}
-                aria-label="Réduire la barre latérale en rail"
-                className={cn("flex size-9 shrink-0 items-center justify-center rounded-lg transition-colors", TN.bar)}
-              >
-                <PanelLeftClose className="size-4" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">Réduire en rail · ⌘B</TooltipContent>
-          </Tooltip>
-        </div>
-      )}
-
       {/* Pinned favorites */}
       <div className="grid shrink-0 grid-cols-4 gap-1.5">
         {PINNED.map((id) => {

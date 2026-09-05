@@ -25,8 +25,8 @@ d'Arc (espaces colorés, sidebar translucide, favoris épinglés, onglets « Auj
   `radix-ui`, icônes `lucide-react`. `npx shadcn@latest add <x>` pour ajouter une primitive ; ne
   pas réécrire celles qui existent.
 - Barre latérale bureau à **trois états** (`sidebarMode` : attachée · rail · masquée, persisté,
-  ⌘B fait le tour) ; le sélecteur vit dans la tête de liste, qui s'efface quand la barre est
-  attachée → [fiche bureau](docs/features/bureau.md).
+  ⌘B fait le tour) ; sélecteur et recherche vivent dans la tête de liste, présente dans les trois
+  états → [fiche bureau](docs/features/bureau.md).
 - État UI dans `src/lib/store.ts` (zustand + `persist`, clé `arc-mail`). Le composeur y vit
   aussi ; ne pas dupliquer son état en local. Les sélecteurs qui renvoient des tableaux passent par
   `useVisibleThreads()` (memo).
@@ -139,7 +139,10 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 **Fenêtre du bureau** → [docs/features/bureau.md](docs/features/bureau.md)
 - La fenêtre principale est une **grille à pistes explicites** et chaque enfant est posé par son
   `col-start` : un enfant caché n'est plus un élément de grille, et le placement auto décalait tout.
-- Les dossiers n'apparaissent **qu'une fois** : barre attachée, ou rail, ou tuiles de la tête.
+- Les dossiers n'apparaissent **qu'une fois** : barre attachée, ou rail, ou tuiles de la tête ; la
+  recherche et le sélecteur de barre, eux, sont toujours dans la tête, jamais dans la barre.
+- La tête de liste tient sur **une ligne en pleine largeur**, deux en colonne étroite (mesuré à
+  360 px : le mot « Rechercher » y disparaissait).
 - Ouvrir le troisième volet **réduit une barre attachée en rail** ; il fait 460 px à chaque
   ouverture, sa largeur a sa propre clé, et il porte un message **ou** un fichier.
 - Le composeur ne dispute plus la colonne de droite au volet : c'est une fenêtre posée dessus.

@@ -68,10 +68,7 @@ export function Sidebar() {
               "animate-in fade-in-0 slide-in-from-left-3 duration-200 ease-out",
             )}
           >
-            {/* Révélée, elle **masque sa rangée du haut** : la tête de liste
-                porte déjà la recherche et le sélecteur, et deux champs de
-                recherche à l'écran ne se justifient pas. */}
-            <SidebarContent topRow={false} />
+            <SidebarContent />
           </aside>
         </>
       )}

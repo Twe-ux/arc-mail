@@ -18,11 +18,20 @@ const MODES: { id: SidebarMode; icon: LucideIcon; label: string }[] = [
 /**
  * La tête de la colonne liste, sur bureau.
  *
- * **Les dossiers n'apparaissent qu'une fois**, et c'est la règle qui décide de
- * tout ici : la barre attachée les liste, le rail les porte en icônes, et ce
- * n'est que masquée que la tête les reprend en tuiles. Idem pour la recherche —
- * la barre attachée a sa propre barre d'adresse, donc dans cet état la tête
- * s'efface **entièrement** et les rangées commencent en haut de la fenêtre.
+ * **Elle est là dans les trois états**, et c'est elle qui porte la recherche et
+ * le repli — ils vivaient en haut de la barre latérale, ce qui les faisait
+ * disparaître avec elle et obligeait la tête à s'effacer pour ne pas doubler le
+ * champ. Descendus ici, ils ne bougent plus : la barre se replie, la recherche
+ * reste où on l'a laissée.
+ *
+ * **Les dossiers, eux, n'apparaissent toujours qu'une fois** : la barre attachée
+ * les liste, le rail les porte en icônes, et ce n'est que masquée que la tête
+ * les reprend en tuiles.
+ *
+ * **Une seule ligne en pleine largeur, deux en colonne étroite.** Mesuré à
+ * 360 px : sélecteur, recherche, filtre et regroupement sur une ligne laissaient
+ * au champ la place de son icône, et un champ sans son mot n'est plus un champ.
+ * Large, tout tient et le vide serait pire.
  *
  * Les 20 px de côté sont mesurés : c'est là que tombent les avatars des rangées
  * (8 px de la liste + 12 de la rangée), donc sélecteur, recherche et tuiles
@@ -36,11 +45,14 @@ export function ListHeaderDesktop() {
   const folder = useMail(selectFolder);
   const threads = useVisibleThreads();
 
-  if (mode === "full") return null;
-
   return (
-    <div className="hidden shrink-0 flex-col gap-2.5 border-b border-black/[0.06] px-5 pt-3.5 pb-4 md:flex dark:border-white/10">
-      <div className="flex items-center gap-2">
+    <div
+      className={cn(
+        "hidden shrink-0 flex-col gap-2.5 border-b border-black/[0.06] px-5 pt-3.5 pb-4 md:flex dark:border-white/10",
+        "md:group-data-[large=true]/liste:flex-row md:group-data-[large=true]/liste:items-center md:group-data-[large=true]/liste:gap-3 md:group-data-[large=true]/liste:pb-3.5",
+      )}
+    >
+      <div className="flex items-center gap-2 md:group-data-[large=true]/liste:min-w-0 md:group-data-[large=true]/liste:flex-1">
         <div role="radiogroup" aria-label="Barre latérale" className="flex shrink-0 rounded-[9px] bg-muted p-0.5">
           {MODES.map(({ id, icon: Icon, label }) => (
             <Tooltip key={id}>
@@ -96,14 +108,14 @@ export function ListHeaderDesktop() {
         )}
       </div>
 
-      {/* **Deux rangées, pas une.** Mesuré à 360 px de colonne : le sélecteur,
-          la recherche, le filtre et le regroupement sur une seule ligne
-          laissaient au champ de recherche la place de son icône — le mot
-          « Rechercher » disparaissait, et un champ sans son mot n'est plus un
-          champ. */}
-      <div className="flex items-center gap-2">
+      {/* **Deux rangées en colonne étroite, une seule en pleine largeur.**
+          Mesuré à 360 px : le sélecteur, la recherche, le filtre et le
+          regroupement sur une ligne laissaient au champ la place de son icône —
+          le mot « Rechercher » disparaissait, et un champ sans son mot n'est
+          plus un champ. Large, tout tient largement. */}
+      <div className="flex items-center gap-2 md:group-data-[large=true]/liste:shrink-0">
         <Segmented tone="muted" />
-        <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
+        <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground md:group-data-[large=true]/liste:flex-none">
           {plural(threads.length, "conversation")}
         </span>
         <GroupByToggle />

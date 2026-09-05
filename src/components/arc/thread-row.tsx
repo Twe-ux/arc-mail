@@ -80,7 +80,15 @@ export function ThreadRow({
       data-side="none"
       data-armed="false"
       data-press="false"
-      className="group/swipe group relative overflow-hidden md:overflow-visible md:border-0"
+      /* **Le filet appartient à la piste, pas à la rangée qui glisse.**
+         Il vivait sous le bloc de texte : il commençait donc après l'avatar,
+         se terminait au padding de droite, et *partait avec la rangée* pendant
+         un balayage — trois encarts différents à l'écran au même moment, dont
+         aucun ne tombait sur la pastille de couleur. Posé ici en `::after` au
+         même `inset-x-2` que la pastille et le surlignage d'appui, il ne bouge
+         plus et tout s'aligne sur un seul bord. Pas de filet sous la dernière
+         rangée, ni sur bureau où les rangées sont des cartes espacées. */
+      className="group/swipe group relative overflow-hidden after:pointer-events-none after:absolute after:inset-x-2 after:bottom-0 after:h-px after:bg-black/[0.07] last:after:hidden md:overflow-visible md:border-0 md:after:hidden dark:after:bg-white/[0.10]"
     >
       {/* Ce qui se découvre sous la rangée. Encarté et arrondi comme le
           surlignage d'appui : la rangée glisse au-dessus d'une pastille de
@@ -118,7 +126,7 @@ export function ThreadRow({
         onPointerEnter={survole}
         onPointerLeave={quitte}
         className={cn(
-          "relative flex w-full cursor-pointer touch-pan-y items-start gap-3 bg-card px-4 py-3 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring/50 md:rounded-lg md:bg-transparent md:px-3 md:py-2.5 md:pr-10 md:transition-colors",
+          "relative flex w-full cursor-pointer touch-pan-y items-start gap-3 bg-card px-4 py-3.5 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring/50 md:rounded-lg md:bg-transparent md:px-3 md:py-2.5 md:pr-10 md:transition-colors",
           active ? "md:bg-accent" : "md:hover:bg-accent/60",
         )}
       >
@@ -132,7 +140,7 @@ export function ThreadRow({
         />
         <span className="relative flex w-full items-start gap-3 transition-transform duration-200 ease-out group-data-[press=true]/swipe:scale-[0.985] group-data-[press=true]/swipe:duration-100 md:transition-none">
           <ContactAvatar contact={last.from} className="mt-0.5 size-10 md:size-9" />
-          <span className="min-w-0 flex-1 border-b border-black/[0.06] pb-3 md:border-0 md:pb-0 dark:border-white/[0.10]">
+          <span className="min-w-0 flex-1">
             <span className="flex items-center gap-2">
               {thread.unread && (
                 <span className="size-2 shrink-0 rounded-full" style={{ backgroundColor: accent }}>

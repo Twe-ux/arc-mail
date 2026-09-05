@@ -132,6 +132,8 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   qui change d'espace part de l'**en-tête**, là où l'indicateur de pages l'annonce.
 - L'appui et le calque révélé se dessinent depuis `--swipe-progress` / `data-side` / `data-armed` /
   `data-press` publiés sur la rangée — pas de rendu React par frame, et pas de `:active`.
+- **Un seul bord pour les trois** : filet, surlignage d'appui et pastille d'action à `inset-x-2` ;
+  le filet est l'`::after` de la piste, jamais de la rangée qui glisse.
 - Les retours sont des ressorts (`animateSpring`), jamais une transition CSS ; distance **ou** élan.
 
 **Mail ouvert** → [docs/features/mail-ouvert.md](docs/features/mail-ouvert.md)

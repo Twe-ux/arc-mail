@@ -43,6 +43,14 @@ attend de savoir si c'est un défilement —, ne se déclenche pas du tout sous 
 donc invérifiable ici, et surtout elle reste allumée pendant un balayage, alors qu'un geste qui part
 n'est plus un appui. C'est `pointerdown` qui l'allume, et le premier vrai déplacement qui l'éteint.
 
+**Un seul bord pour les trois.** Le filet de séparation, le surlignage d'appui et la pastille
+d'action sont tous à `inset-x-2` (8 px), rayon 16 pour les deux derniers. Le filet vivait sous le
+bloc de texte : il commençait donc **après l'avatar**, s'arrêtait au padding de droite, et surtout
+**partait avec la rangée** pendant un balayage — trois encarts différents à l'écran au même moment,
+dont aucun ne tombait sur la couleur qui se découvrait. Il est maintenant l'`::after` de la piste :
+il ne bouge plus, il disparaît sous la dernière rangée, et il n'existe pas sur bureau, où les
+rangées sont des cartes espacées.
+
 **Balayage d'une rangée** ([`use-swipe-row.ts`](../../src/hooks/use-swipe-row.ts)) — à droite
 archiver (`#14b8a6`), à gauche supprimer (`#dc2626`). Les deux calques sont **sous** la rangée, pas
 révélés par un masque : c'est elle qui se déplace, et ce qu'elle laisse voir était déjà là. Ils sont
@@ -84,6 +92,8 @@ jamais un état React.
 - calque : à mi-course `data-side="left"`, `data-armed="false"`, `--swipe-progress: 0.587` ; passé le
   seuil `data-armed="true"`, `--swipe-progress: 1` — mesuré, puis lu sur les captures rognées ;
 - appui : `data-press="true"` sous le doigt, `false` dès le premier déplacement ;
+- les trois bords : filet à `left: 8px` sur 375 de large, pastille à 8 / 8 et rayon 16, surlignage
+  d'appui à 8 / 8 et rayon 16, `::after` de la dernière rangée en `display: none` ;
 - espace : depuis le titre, `thierry@icloud.com` → `thierry@coworkingcafe.fr`, l'indicateur de pages
   passant de `18px 6px 6px` à `6px 18px 6px` ;
 - zéro erreur de console sur les deux.

@@ -54,13 +54,18 @@ function Attente() {
   );
 }
 
+const MARGE = 12;
+
 const STYLE = `
   :root { color-scheme: light; }
   html, body { margin: 0; background: #fff; color: #111; }
+  /* Le cadre ne defile jamais : il est dimensionne sur son contenu et c'est la
+     page qui defile. Sans cela, le contenu mis a l'echelle laisserait derriere
+     lui la hauteur de sa mise en page, non reduite, en zone vide defilante. */
+  html, body { overflow: hidden; }
   body {
-    padding: 12px;
+    padding: ${MARGE}px;
     font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    overflow-x: auto;
     overflow-wrap: anywhere;
     /* L'horizontale appartient au geste de retour, pas au cadre. Le panorama
        vertical continue de remonter au défilant de la page ; ce qu'on perd est
@@ -72,25 +77,58 @@ const STYLE = `
   }
   img { max-width: 100%; height: auto; }
   img[data-src] { display: none; }
-  table { max-width: 100%; }
   a { color: #0b57d0; }
+  /* L'enveloppe que l'on met a l'echelle. En flow-root pour que les marges des
+     enfants ne s'echappent pas : c'est sa boite qui donne la hauteur.
+     (Pas d'accent grave ici : ce bloc vit dans un litteral gabarit.) */
+  #arc-fit { transform-origin: 0 0; display: flow-root; }
 `;
 
-/* Trois tâches, et rien d'autre : rapporter la hauteur (le cadre ne sait pas se
-   dimensionner), rendre les images quand on les demande, et **relayer les
-   touchers** — un cadre les garde pour lui, et le geste de retour n'existait
-   donc pas sur un message HTML. */
+/* Quatre tâches, et rien d'autre : **mettre le courrier à la largeur**,
+   rapporter la hauteur (le cadre ne sait pas se dimensionner), rendre les
+   images quand on les demande, et **relayer les touchers** — un cadre les garde
+   pour lui, et le geste de retour n'existait donc pas sur un message HTML. */
 const SCRIPT = `
   (function () {
+    var MARGE = ${MARGE};
+    var fit = document.getElementById("arc-fit");
+    var occupe = false;
+
+    /* **Un courrier a sa largeur, l'ecran a la sienne.** Une infolettre pose un
+       tableau de 600 px ; sur un telephone de 393 il debordait, et comme
+       l'horizontale appartient au geste de retour on ne pouvait meme pas aller
+       voir ce qui manquait — la moitie du message etait perdue. On le reduit
+       donc pour qu'il tienne, comme le fait Mail d'iOS. **Pas de plancher** :
+       un courrier rogne est le defaut qu'on corrige, et un courrier petit reste
+       un courrier entier. En pratique les infolettres font 600 a 800 px, le
+       texte long se replie deja (overflow-wrap) et les images sont bornees.
+       La transformation est visuelle : la boite de mise en page garde sa
+       hauteur entiere, donc c'est le rectangle **transforme** qu'on mesure. */
     var dire = function () {
-      var h = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight);
+      if (occupe) return;
+      occupe = true;
+      fit.style.width = "";
+      fit.style.transform = "";
+      var dispo = document.documentElement.clientWidth - MARGE * 2;
+      var naturel = Math.max(fit.scrollWidth, fit.offsetWidth);
+      var echelle = naturel > dispo + 1 ? dispo / naturel : 1;
+      var h;
+      if (echelle < 1) {
+        fit.style.width = naturel + "px";
+        fit.style.transform = "scale(" + echelle + ")";
+        h = Math.ceil(fit.getBoundingClientRect().height) + MARGE * 2;
+      } else {
+        h = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight);
+      }
+      occupe = false;
       parent.postMessage({ type: "arc-mail-height", height: h }, "*");
     };
+
     addEventListener("load", dire);
     addEventListener("resize", dire);
     addEventListener("message", function (e) {
       if (!e.data) return;
-      /* La page peut aussi redemander la hauteur quand elle est prête. */
+      /* La page peut aussi redemander la hauteur quand elle est prete. */
       if (e.data.type === "arc-mail-ping") return dire();
       if (e.data.type !== "arc-mail-images") return;
       var liste = document.querySelectorAll("img[data-src]");
@@ -100,9 +138,9 @@ const SCRIPT = `
       }
       dire();
     });
-    /* Les coordonnées sont celles du cadre ; la page y ajoute sa position.
-       On observe seulement : pas de preventDefault ici, touch-action a déjà
-       retiré l'horizontale au cadre. */
+    /* Les coordonnees sont celles du cadre ; la page y ajoute sa position.
+       On observe seulement : pas de preventDefault ici, touch-action a deja
+       retire l'horizontale au cadre. */
     var relais = function (phase) {
       return function (e) {
         var t = e.changedTouches[0];
@@ -117,11 +155,13 @@ const SCRIPT = `
     addEventListener("touchmove", relais("move"), { passive: true });
     addEventListener("touchend", relais("end"), { passive: true });
     addEventListener("touchcancel", relais("cancel"), { passive: true });
+    /* On observe le **document**, pas l'enveloppe : la mesurer pendant qu'on la
+       redimensionne ferait boucler l'observateur sur son propre effet. */
     if (window.ResizeObserver) new ResizeObserver(dire).observe(document.documentElement);
-    /* Le cadre est prêt avant que la page ne l'écoute : un effet React
-       n'attache son écouteur qu'après la peinture, et le premier envoi tombait
-       dans le vide — le message gardait sa hauteur par défaut (mesuré : 220 px
-       affichés pour 481 de contenu). On redit, deux fois, plutôt que de
+    /* Le cadre est pret avant que la page ne l'ecoute : un effet React
+       n'attache son ecouteur qu'apres la peinture, et le premier envoi tombait
+       dans le vide — le message gardait sa hauteur par defaut (mesure : 220 px
+       affiches pour 481 de contenu). On redit, deux fois, plutot que de
        supposer qui arrive en premier. */
     dire();
     setTimeout(dire, 120);
@@ -144,7 +184,8 @@ function CorpsHtml({ html, bloquees }: { html: string; bloquees: number }) {
     () =>
       `<!doctype html><html><head><meta charset="utf-8">` +
       `<meta name="viewport" content="width=device-width,initial-scale=1">` +
-      `<style>${STYLE}</style></head><body>${html}<script>${SCRIPT}<\/script></body></html>`,
+      `<style>${STYLE}</style></head><body><div id="arc-fit">${html}</div>` +
+      `<script>${SCRIPT}<\/script></body></html>`,
     [html],
   );
 

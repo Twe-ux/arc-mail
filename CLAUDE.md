@@ -230,6 +230,9 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - Un brouillon s'écrit avant que l'ancien ne parte ; le retirer, c'est la corbeille, pas `EXPUNGE`.
 - Le HTML d'un message est lavé **côté serveur** (`html.ts`) puis rendu dans une `iframe` **sans
   `allow-same-origin`** ; jamais injecté dans la page. Fond blanc, même en sombre.
+- Un courrier plus large que l'écran est **mis à la largeur** (`#arc-fit`, `scale`, pas de
+  plancher) : l'horizontale appartient au geste de retour, donc rogner c'est perdre la moitié du
+  message. On mesure le rectangle **transformé**, et le cadre ne défile jamais.
 - Les images distantes sont **retenues** (suivi à l'ouverture) et proposées par un bandeau ; les
   images `cid:` deviennent des `data:` et ne comptent pas comme pièces jointes.
 - Un fournisseur ne connaît pas les espaces : il rend `spaceId: ""`, le store tamponne (`stamp`).

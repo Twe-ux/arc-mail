@@ -40,3 +40,8 @@ bandeau des images retenues, et le relais des touchers qui rend son geste de ret
 
 Le HTML est écrit comme `html.ts` le rend : pas de script, images distantes en `data-src`, et
 `blockedImages: 2` pour que le bandeau ait quelque chose à annoncer.
+
+Il porte une **largeur fixe de 600 px**, comme les vraies. Le gabarit à `max-width` qu'il avait
+d'abord se repliait tout seul et ne testait donc rien : c'est le tableau de 600 px, celui qui
+déborde d'un téléphone de 393, qu'il fallait avoir sous la main pour vérifier la mise à la largeur
+(voir [IMAP](imap.md)).

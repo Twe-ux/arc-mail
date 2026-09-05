@@ -247,7 +247,11 @@ Suivez votre envoi depuis votre espace client.`,
         hoursAgo: 5,
         body: "Voir la version en ligne — Les bons plans du mois",
         blockedImages: 2,
-        html: `<div style="max-width:600px;margin:0 auto;font-family:Helvetica,Arial,sans-serif">
+        /* **Une largeur fixe, comme les vraies.** Le gabarit à `max-width` se
+           repliait tout seul et ne testait donc rien : les infolettres du monde
+           réel posent un tableau de 600 px qui déborde d'un téléphone, et c'est
+           ce cas-là qu'il faut avoir sous la main (voir `donnees-mock.md`). */
+        html: `<table role="presentation" width="600" style="width:600px;margin:0 auto;font-family:Helvetica,Arial,sans-serif"><tr><td>
   <p style="color:#888;font-size:12px">Voir la version en ligne</p>
   <img data-src="https://exemple.invalid/banniere.png" alt="Bannière" width="600" height="180">
   <h1 style="font-size:26px;color:#c0392b">Les bons plans du mois</h1>
@@ -259,7 +263,7 @@ Suivez votre envoi depuis votre espace client.`,
   <img data-src="https://exemple.invalid/produit.png" alt="Produit" width="280" height="180">
   <p style="text-align:center"><a href="https://exemple.invalid/offres" style="display:inline-block;padding:12px 24px;border:2px solid #2c2c6c;border-radius:24px;color:#2c2c6c;text-decoration:none">Découvrez nos offres</a></p>
   <p style="color:#888;font-size:12px">Vous recevez ce message car vous êtes client. Se désabonner.</p>
-</div>`,
+</td></tr></table>`,
       },
     ],
     { unread: true, labels: ["Achats"] },

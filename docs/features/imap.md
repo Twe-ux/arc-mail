@@ -213,9 +213,36 @@ cadre, sans script à lui, tous liens sortants — il n'y a rien à déguiser.
 ni aux cookies. L'injecter dans la page ferait dépendre toute l'app de la qualité d'un filtre ; et
 son CSS déborderait, une infolettre posant volontiers un `body{margin:0}`.
 
-Le seul script du cadre est le nôtre : dire sa hauteur, et révéler les images à la demande.
-Il la **redit deux fois** après le chargement — un effet React n'attache son écouteur qu'après la
-peinture, et le premier envoi tombait dans le vide : 220 px affichés pour 481 de contenu.
+Le seul script du cadre est le nôtre : **mettre le courrier à la largeur**, dire sa hauteur,
+révéler les images à la demande et relayer les touchers. Il redit sa hauteur **deux fois** après le
+chargement — un effet React n'attache son écouteur qu'après la peinture, et le premier envoi
+tombait dans le vide : 220 px affichés pour 481 de contenu.
+
+### À la largeur de l'écran
+
+Un courrier a sa largeur, l'écran a la sienne. Une infolettre pose un tableau de **600 px** ; sur un
+téléphone de 393 il débordait, et comme [l'horizontale appartient au geste de retour](gestes.md) on
+ne pouvait même pas aller voir ce qui manquait — la moitié du message était perdue. Le contenu est
+donc **réduit pour tenir**, comme le fait Mail d'iOS :
+
+```
+enveloppe   : <div id="arc-fit">, transform-origin 0 0, display flow-root
+échelle     : min(1, largeur disponible / largeur naturelle) — pas de plancher
+hauteur     : le rectangle **transformé** (la mise en page, elle, garde sa hauteur entière)
+le cadre    : html, body en overflow hidden — il ne défile jamais, c'est la page qui défile
+```
+
+**Pas de plancher à l'échelle** : un courrier rogné est le défaut qu'on corrige, et un courrier
+petit reste un courrier entier. En pratique les infolettres font 600 à 800 px, le texte long se
+replie déjà (`overflow-wrap: anywhere`) et les images sont bornées à 100 %.
+
+Mesuré : 600 px de tableau rendus à **0,61** sur un iPhone (367 px pour 367 disponibles) et à
+**0,95** dans un volet de 593 px, sans rien qui dépasse. La transformation étant visuelle, la boîte
+de mise en page garde sa hauteur entière — c'est pour cela qu'on mesure le rectangle transformé, et
+que le cadre est en `overflow: hidden` : sans quoi il resterait dessous une zone vide défilante.
+
+L'observateur de taille surveille le **document**, jamais l'enveloppe : la mesurer pendant qu'on la
+redimensionne le ferait boucler sur son propre effet.
 
 ### Les images
 

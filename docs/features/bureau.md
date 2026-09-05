@@ -99,12 +99,13 @@ ouvert, et c'est elle qui doit prendre la place.
 largeur. La croix n'était là qu'en vue pleine, où elle ramenait à la liste ; en vue partagée elle
 n'avait rien à ramener — maintenant si.
 
-**Un filet entre les rangées, et lu/non lu au fond.** Vingt rangées d'une ligne sans séparation
-forment un mur de texte : le filet leur donne du relief, et la liste large est justement celle qu'on
-balaie. Ce sont les rangées **lues** qui se teintent (2,8 % d'encre) et les non lues qui restent sur
-le fond plein — surligner le neuf allume vingt rangées sur une boîte en retard, alors que là ce qui
-ressort est ce qui reste à faire. La teinte va sur la **piste**, pas sur la rangée : le survol et
-l'état actif écrivent déjà ce fond-là.
+**Un filet entre les rangées, et rien d'autre.** Vingt rangées d'une ligne sans séparation forment
+un mur de texte : le filet leur donne du relief, et la liste large est justement celle qu'on balaie.
+
+**Lu / non lu ne se dit que par la graisse** — expéditeur et objet en 600 quand c'est neuf, en
+normal quand c'est lu. Les rangées lues ont porté un fond gris pendant une version : c'est le
+mécanisme de Gmail, et il raye la liste de bandes au lieu de la laisser respirer. Le filet sépare,
+la graisse hiérarchise ; un troisième signal était du bruit.
 
 L'expéditeur prend **224 px** (et non 176) : `support@services.ovhcloud.com` y était coupé, et
 c'est la colonne qui aligne les objets les uns sous les autres.

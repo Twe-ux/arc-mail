@@ -151,9 +151,9 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   survol ; densité et pleine largeur se publient en `data-densite` / `data-large` sur la colonne.
 - **Rien d'ouvert : la liste prend toute la fenêtre**, en rangées d'une ligne ; un message ouvert la
   ramène à 360 px à côté de la lecture, et la croix de la lecture (ou `Échap`) lui rend la place.
-- En pleine largeur : filet entre les rangées, expéditeur sur **224 px**, et ce sont les rangées
-  **lues** qui se teintent — pas les non lues. Le filet se cache par `data-large=false`, jamais par
-  un `md:` nu qui gagnerait la cascade.
+- En pleine largeur : filet entre les rangées, expéditeur sur **224 px**, et lu/non lu **par la
+  graisse seule** — pas de fond gris sur les lues, il raye la liste de bandes. Le filet se cache par
+  `data-large=false`, jamais par un `md:` nu qui gagnerait la cascade.
 - En-tête de conversation : Archiver et Supprimer **dehors**, pas de « Répondre » (le champ est en
   bas, hors du défilant) ; un bloc de message se clique pour le détacher, et c'est le bouton du
   survol qui vise la réponse.

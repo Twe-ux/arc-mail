@@ -93,17 +93,16 @@ export function ThreadRow({
          Il se cache par la variante inverse (`data-large=false`) et non par un
          `md:after:hidden` : à variantes concurrentes sur la même propriété,
          c'est l'ordre de la feuille qui tranche, et le `md:` nu gagnait — le
-         filet restait éteint en pleine largeur (mesuré : `display: none`). */
+         filet restait éteint en pleine largeur (mesuré : `display: none`).
+
+         **Lu / non lu ne se dit que par la graisse.** Les rangées lues ont porté
+         un fond gris pendant une version : c'est le mécanisme de Gmail, et il
+         raye la liste de bandes au lieu de la laisser respirer. Le filet sépare,
+         la graisse hiérarchise — deux signaux suffisent, un troisième était du
+         bruit. */
       className={cn(
         "group/swipe group relative overflow-hidden after:pointer-events-none after:absolute after:inset-x-2 after:bottom-0 after:h-px after:bg-black/[0.07] last:after:hidden md:border-0 dark:after:bg-white/[0.10]",
         "md:group-data-[large=false]/liste:after:hidden md:group-data-[large=true]/liste:after:inset-x-0",
-        /* **Lu / non lu se lit d'abord au fond.** Ce sont les rangées **lues**
-           qui se teintent, et les non lues qui restent sur le fond plein :
-           surligner le neuf allume vingt rangées sur une boîte en retard, alors
-           que là, ce qui ressort est ce qui reste à faire. La teinte va sur la
-           piste et non sur la rangée — le survol et l'état actif écrivent déjà
-           ce fond-là, et deux règles sur une même propriété se disputent. */
-        !thread.unread && "md:group-data-[large=true]/liste:bg-foreground/[0.028]",
       )}
     >
       {/* Ce qui se découvre sous la rangée. Encarté et arrondi comme le

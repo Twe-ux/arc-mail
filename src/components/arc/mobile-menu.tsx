@@ -196,6 +196,8 @@ export function MobileSettings() {
   const setSpaceHue = useMail((s) => s.setSpaceHue);
   const dark = useMail((s) => s.dark);
   const toggleDark = useMail((s) => s.toggleDark);
+  const density = useMail((s) => s.listDensity);
+  const setDensity = useMail((s) => s.setListDensity);
 
   return (
     <BottomSheet
@@ -239,6 +241,41 @@ export function MobileSettings() {
               />
             );
           })}
+        </div>
+
+        {/* **Deux lignes ou trois**, le même réglage que sur bureau (`listDensity`)
+            — mais ici il se voit tout de suite : une rangée de trois lignes sur
+            un écran de 852 px en montre huit, une de deux en montre onze. Les
+            mots sont ceux du panneau de bureau, c'est le même réglage. */}
+        <h3 className="mt-1 mb-2 text-[13px] font-medium tracking-wide text-muted-foreground uppercase dark:text-white/55">
+          Densité de la liste
+        </h3>
+        <div
+          role="radiogroup"
+          aria-label="Densité de la liste"
+          className="mb-4 flex rounded-xl bg-muted p-0.5 text-[15px]"
+        >
+          {(
+            [
+              ["confort", "Confort", "Trois lignes"],
+              ["compact", "Compact", "Deux lignes"],
+            ] as const
+          ).map(([cle, mot, sous]) => (
+            <button
+              key={cle}
+              type="button"
+              role="radio"
+              aria-checked={density === cle}
+              onClick={() => setDensity(cle)}
+              className={cn(
+                "flex-1 rounded-[10px] py-1.5 leading-tight font-medium transition-colors active:scale-[0.98] active:duration-0",
+                density === cle ? "bg-background text-foreground shadow-xs" : "text-muted-foreground",
+              )}
+            >
+              {mot}
+              <span className="block text-[11px] font-normal text-muted-foreground">{sous}</span>
+            </button>
+          ))}
         </div>
 
         <SheetGroup>

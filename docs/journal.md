@@ -40,6 +40,13 @@ tête tient sur **une seule ligne** — sélecteur, recherche, `Tous / Non lus`,
 regroupement, et les quatre tuiles quand la barre est masquée ; à 360 px elle garde ses deux
 rangées, où « Rechercher » n'aurait plus tenu.
 
+Puis les listes ont pris du relief là où il manquait : la rangée de fil **se règle à deux lignes**
+sur téléphone (le `listDensity` du bureau, remonté dans la feuille « Personnaliser » : 60 px au lieu
+de 72, onze rangées au lieu de huit), et la vue par correspondant a reçu **le filet qui lui
+manquait** — trois lignes sans trait se lisaient comme un seul bloc. En pleine largeur sa rangée
+passe sur une ligne, **l'adresse tombe** et l'objet du dernier fil prend sa place : les trois lignes
+empilées laissaient les deux tiers de la fenêtre vides à droite.
+
 ## 5 septembre 2026 — le lot mobile
 
 Le handoff `design_handoff_arc_mail_mobile` monté de bout en bout : la pill d'actions partagée, la

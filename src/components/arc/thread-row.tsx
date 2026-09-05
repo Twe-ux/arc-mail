@@ -149,6 +149,10 @@ export function ThreadRow({
              dessous. L'étoile se pose par-dessus, la date lui fait de la place
              au survol. */
           "relative flex w-full cursor-pointer touch-pan-y items-start gap-3 bg-card px-4 py-3.5 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring/50 md:rounded-[10px] md:bg-transparent md:py-2.5 md:pr-3.5 md:pl-3 md:transition-colors md:group-data-[densite=compact]/liste:py-1.5",
+          /* Deux lignes : la rangée reprend aussi 8 px de hauteur. 60 px en
+             tout, la pastille de 40 et ses marges — au-dessus du minimum
+             tactile, et onze rangées à l'écran au lieu de huit. */
+          "max-md:group-data-[lignes=2]/liste:py-2.5",
           /* **Pleine largeur : une seule ligne.** Trois lignes empilées sur
              1400 px de colonne, c'est une rangée de 76 px pour une phrase et
              deux tiers de vide à droite. La liste devient alors ce qu'une boîte
@@ -237,8 +241,18 @@ export function ThreadRow({
             </span>
             {/* En densité compacte la rangée perd son aperçu : c'est la ligne
                 qui coûte le plus de hauteur et la moins nécessaire quand on
-                balaie une longue liste. */}
-            <span className="mt-1 flex min-w-0 items-center gap-2 md:group-data-[densite=compact]/liste:hidden md:group-data-[large=true]/liste:mt-0 md:group-data-[large=true]/liste:flex-1">
+                balaie une longue liste. Deux lignes au lieu de trois, et
+                l'objet reste — c'est lui qu'on cherche.
+
+                **Le téléphone lit `data-lignes`, pas `data-densite`.** Sur
+                téléphone `data-large` vaut « vrai » dès qu'aucun message n'est
+                ouvert (les styles larges sont tous en `md:`, ils n'y arrivent
+                jamais), et la densité y est donc forcée à « confort » par la
+                colonne. Un attribut à part, lu derrière `max-md:`, plutôt
+                qu'une variante qui viendrait disputer la même propriété à une
+                règle de bureau — à spécificité égale c'est l'ordre de la
+                feuille qui tranche, et on ne le choisit pas. */}
+            <span className="mt-1 flex min-w-0 items-center gap-2 max-md:group-data-[lignes=2]/liste:hidden md:group-data-[densite=compact]/liste:hidden md:group-data-[large=true]/liste:mt-0 md:group-data-[large=true]/liste:flex-1">
               <span className="min-w-0 flex-1 truncate text-[13px] text-muted-foreground md:text-xs">
                 {thread.snippet}
               </span>
@@ -339,9 +353,17 @@ function Calque({
 /**
  * Une personne, et ce qu'on a d'elle.
  *
- * La même forme qu'une rangée de fil — avatar, deux lignes, date à droite —
+ * La même forme qu'une rangée de fil — avatar, date à droite, filet en bas —
  * pour que passer d'une vue à l'autre ne demande pas de réapprendre à lire.
  * Ce qui change est ce qu'elle compte : des conversations, pas des messages.
+ *
+ * **Elle suit les deux dispositions de la liste.** En colonne étroite elle
+ * s'empile (nom · adresse · le compte) ; en pleine largeur elle passe sur une
+ * ligne et **l'adresse tombe** : sur 1400 px, `nom / adresse / n conversations`
+ * empilés laissaient les deux tiers de la fenêtre vides à droite, et l'adresse
+ * est justement ce dont on n'a pas besoin pour reconnaître quelqu'un qu'on a
+ * déjà en face. Ce qui remplit la ligne à sa place est **l'objet du dernier
+ * fil** — déjà là dans ce que la liste a lu, aucune requête de plus.
  */
 export function RangeeCorrespondant({
   correspondant: c,
@@ -353,41 +375,90 @@ export function RangeeCorrespondant({
   onSelect: () => void;
 }) {
   const contact = { name: c.name, email: c.email };
+  /* Les fils arrivent déjà du plus récent au plus ancien (`sortByDate`). */
+  const dernier = c.threads[0];
+  const compte = `${c.threads.length} conversation${c.threads.length > 1 ? "s" : ""}`;
   return (
-    <li>
+    <li
+      /* Le même filet que les rangées de fil, au même bord : la vue par
+         correspondant n'avait rien pour séparer deux personnes, et trois
+         lignes sans trait se lisaient comme un seul bloc. Il se cache par la
+         variante inverse (`data-large=false`), jamais par un `md:` nu qui
+         gagnerait la cascade — en colonne étroite les rangées sont des cartes
+         espacées et n'ont rien à séparer. */
+      className={cn(
+        "relative after:pointer-events-none after:absolute after:inset-x-2 after:bottom-0 after:h-px after:bg-black/[0.07] last:after:hidden dark:after:bg-white/[0.10]",
+        "md:group-data-[large=false]/liste:after:hidden md:group-data-[large=true]/liste:after:inset-x-0",
+      )}
+    >
       <button
         type="button"
         onClick={onSelect}
-        className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-accent/50 active:bg-accent md:rounded-xl"
+        className={cn(
+          "flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-accent/50 active:bg-accent md:rounded-xl md:px-3 md:py-2.5",
+          "md:group-data-[large=true]/liste:gap-2.5 md:group-data-[large=true]/liste:rounded-[10px] md:group-data-[large=true]/liste:py-1.5",
+        )}
       >
-        <ContactAvatar contact={contact} />
-        <span className="min-w-0 flex-1">
-          <span className="flex items-baseline gap-2">
+        <ContactAvatar
+          contact={contact}
+          className="size-10 md:size-9 md:group-data-[large=true]/liste:size-6"
+        />
+        <span className="min-w-0 flex-1 md:group-data-[large=true]/liste:flex md:group-data-[large=true]/liste:items-center md:group-data-[large=true]/liste:gap-2.5">
+          {/* Le nom prend la même colonne fixe que l'expéditeur d'un fil : c'est
+              ce qui aligne les deux vues l'une sur l'autre. */}
+          <span className="flex items-center gap-2 md:group-data-[large=true]/liste:w-56 md:group-data-[large=true]/liste:shrink-0">
             <span className={cn("min-w-0 flex-1 truncate text-[15px] md:text-sm", c.unread > 0 && "font-semibold")}>
               {c.name}
             </span>
             <time
               dateTime={c.date}
               suppressHydrationWarning
-              className="shrink-0 text-xs text-muted-foreground tabular-nums"
+              className="ml-auto shrink-0 text-xs text-muted-foreground tabular-nums md:group-data-[large=true]/liste:hidden"
             >
               {formatShortDate(c.date)}
             </time>
           </span>
-          <span className="mt-0.5 flex items-center gap-2">
-            <span className="min-w-0 flex-1 truncate text-[13px] text-muted-foreground">{c.email}</span>
+          {/* L'adresse : la ligne du milieu, celle que la densité « compact »
+              retire sur téléphone — comme l'aperçu d'un fil, c'est la ligne qui
+              coûte le plus de hauteur et la moins nécessaire quand on balaie. */}
+          <span className="mt-0.5 block truncate text-[13px] text-muted-foreground max-md:group-data-[lignes=2]/liste:hidden md:group-data-[large=true]/liste:hidden">
+            {c.email}
+          </span>
+          {/* Pleine largeur seulement : l'objet du dernier fil, là où l'adresse
+              était. C'est lui qui dit où on en est avec la personne. */}
+          {dernier && (
+            <span className="hidden min-w-0 truncate text-xs text-muted-foreground md:group-data-[large=true]/liste:block md:group-data-[large=true]/liste:flex-1">
+              {dernier.subject}
+            </span>
+          )}
+          <span className="mt-0.5 flex items-center gap-2 md:group-data-[large=true]/liste:mt-0 md:group-data-[large=true]/liste:shrink-0">
+            {/* **Colonne fixe et alignée à droite en pleine largeur**, comme la
+                date : « 1 conversation » et « 12 conversations » n'ont pas la
+                même largeur, et le compte flottait d'une rangée à l'autre. La
+                pastille des non lus passe devant lui (`order-first`) plutôt que
+                derrière : posée après, c'est elle qui décalait le compte de sa
+                propre largeur une rangée sur trois. */}
+            <span className="min-w-0 flex-1 truncate text-[11px] text-muted-foreground tabular-nums md:group-data-[large=true]/liste:w-[104px] md:group-data-[large=true]/liste:flex-none md:group-data-[large=true]/liste:text-right md:group-data-[large=true]/liste:text-xs">
+              {compte}
+            </span>
             {c.unread > 0 && (
               <span
-                className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full px-1.5 text-[11px] font-semibold text-white tabular-nums"
+                className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full px-1.5 text-[11px] font-semibold text-white tabular-nums md:group-data-[large=true]/liste:order-first"
                 style={{ background: accent }}
               >
                 {c.unread}
               </span>
             )}
           </span>
-          <span className="mt-0.5 block text-[11px] text-muted-foreground tabular-nums">
-            {c.threads.length} conversation{c.threads.length > 1 ? "s" : ""}
-          </span>
+          {/* La date, au bout de la ligne : deux exemplaires, un par
+              disposition — comme dans la rangée de fil, et pour la même raison. */}
+          <time
+            dateTime={c.date}
+            suppressHydrationWarning
+            className="hidden w-[62px] shrink-0 text-right text-xs text-muted-foreground tabular-nums md:group-data-[large=true]/liste:block"
+          >
+            {formatShortDate(c.date)}
+          </time>
         </span>
       </button>
     </li>

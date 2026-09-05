@@ -29,6 +29,20 @@ posée sur un dégradé sans bord n'a pas de tranche, et le coin se perdait. Le 
 liseré intérieur en est le reflet. Classe `.list-card` dans `globals.css`, partagée avec le mail
 ouvert, et **valable en dessous de `md` seulement** : sur bureau il n'y a pas de carte.
 
+## Deux lignes ou trois
+
+La rangée en compte trois — expéditeur · objet · aperçu — et le réglage **Densité de la liste** de
+la feuille « Personnaliser » lui retire l'aperçu : deux lignes, 60 px au lieu de 72, onze rangées à
+l'écran au lieu de huit. C'est le `listDensity` du bureau, le même réglage, désormais atteignable
+là où il se voit le plus. Dans la vue par correspondant, la même densité retire l'adresse — la ligne
+du milieu dans les deux cas → [vue par correspondant](vue-correspondant.md).
+
+**Le téléphone lit `data-lignes`, pas `data-densite`.** La colonne force `data-densite` à
+« confort » dès qu'elle est en pleine largeur, et sur téléphone elle l'est en permanence (les styles
+larges sont tous en `md:`, ils n'y arrivent jamais). Un attribut à part, lu derrière `max-md:`,
+plutôt qu'une variante qui viendrait disputer la même propriété à une règle de bureau : à
+spécificité égale c'est l'ordre de la feuille qui tranche, et on ne le choisit pas.
+
 ## Les deux balayages, et comment ils se partagent l'horizontale
 
 C'est le point qu'il a fallu mesurer.

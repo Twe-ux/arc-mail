@@ -3,6 +3,7 @@
  * Captures d'un écran d'Arc Mail, aux deux tailles et aux deux thèmes, dans la même passe.
  *
  *   npm run capture -- --name composeur [--open menu|…|fil|rail|masquee|volet-message] [--space pro]
+ *                      [--densite compact]
  *                      [--url http://localhost:3000] [--out captures] [--dark-only|--light-only]
  *
  * Téléphone : 393×852 à ×3 avec les insets d'un iPhone à encoche (59 haut / 34 bas) posés en
@@ -31,6 +32,10 @@ const name = args.name ?? "ecran";
 const open = args.open; // menu | reglages | compose | search | fil | piece-jointe
 const space = args.space; // perso | pro | side
 const themes = args["dark-only"] ? ["dark"] : args["light-only"] ? ["light"] : ["light", "dark"];
+/* `--densite compact` pose la densité **avant la première peinture**, comme
+   l'app la persiste : c'est le seul moyen de photographier une rangée de deux
+   lignes, le réglage vivant dans une feuille qu'on aurait sinon à ouvrir. */
+const densite = args.densite === "compact" ? "compact" : "confort";
 
 function chromiumPath() {
   if (process.env.CHROMIUM_PATH) return process.env.CHROMIUM_PATH;
@@ -85,6 +90,15 @@ const OPENERS = {
     MASQUEE,
     CLICK_TEXT("Les bons plans du mois"),
   ],
+  /* La vue par correspondant, premier niveau : les gens. Le bouton vit dans la
+     tête de liste des deux côtés. */
+  correspondants: [`document.querySelector('button[aria-label="Ranger par correspondant"]')?.click()`],
+  /* La même vue, barre masquée : la liste prend toute la fenêtre. */
+  "correspondants-large": [
+    RAIL,
+    MASQUEE,
+    `document.querySelector('button[aria-label="Ranger par correspondant"]')?.click()`,
+  ],
   /* Bureau : la fenêtre du composeur, posée sur la boîte. */
   composeur: [`document.querySelector('button[aria-label="Nouveau message"]')?.click()`],
   /* Bureau : le troisième volet, sur un message détaché du fil. */
@@ -96,7 +110,7 @@ const OPENERS = {
 };
 
 /** Les écrans qui ne sont pas des cartes flottantes : rien à mesurer, mais à capturer partout. */
-const BOTH_SIZES = new Set(["fil", "piece-jointe", "rail", "masquee", "volet-message", "composeur", "html-large"]);
+const BOTH_SIZES = new Set(["fil", "piece-jointe", "rail", "masquee", "volet-message", "composeur", "html-large", "correspondants", "correspondants-large"]);
 
 const CARD = `(() => {
   const el = document.querySelector('[data-slot="sheet-content"], [data-slot="dialog-content"]');
@@ -140,7 +154,7 @@ async function main() {
       }
       /* Le thème est lu dans localStorage avant la première peinture (layout.tsx) : on le
          pose comme l'app le persisterait, pour capturer le vrai chemin et non une classe forcée. */
-      await page.addInitScript((dark) => {
+      await page.addInitScript(({ dark, densite }) => {
         /* `addInitScript` s'exécute dans **tous** les cadres, y compris l'iframe
            en bac à sable d'un message HTML — qui n'a pas d'origine, donc pas de
            `localStorage`, et l'accès y lève. C'était l'outil de mesure qui
@@ -148,9 +162,9 @@ async function main() {
         if (window.top !== window.self) return;
         const raw = localStorage.getItem("arc-mail");
         const state = raw ? JSON.parse(raw) : { state: {}, version: 0 };
-        state.state = { themes: {}, splitView: true, recent: { perso: [], pro: [], side: [] }, ...state.state, dark };
+        state.state = { themes: {}, splitView: true, recent: { perso: [], pro: [], side: [] }, ...state.state, dark, listDensity: densite };
         localStorage.setItem("arc-mail", JSON.stringify(state));
-      }, theme === "dark");
+      }, { dark: theme === "dark", densite });
       await page.goto(url, { waitUntil: "networkidle" });
       await page.waitForTimeout(500);
 

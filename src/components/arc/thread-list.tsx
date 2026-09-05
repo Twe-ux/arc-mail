@@ -86,6 +86,12 @@ export function ThreadList({ className, large }: { className?: string; large?: b
          tient déjà sur une ligne — et la laisser passer y aurait supprimé
          l'aperçu, qui est justement ce que la disposition large montre. */
       data-densite={large ? "confort" : listDensity}
+      /* Le nombre de lignes d'une rangée **sur téléphone**, publié à part.
+         `data-densite` y est toujours « confort » — `large` vaut vrai dès
+         qu'aucun message n'est ouvert, ce qui sur téléphone est l'état
+         normal — et une rangée du téléphone ne doit pas dépendre d'un
+         attribut que la disposition bureau pilote. */
+      data-lignes={listDensity === "compact" ? "2" : "3"}
       data-large={large ? "true" : "false"}
       aria-label={folder.name}
     >

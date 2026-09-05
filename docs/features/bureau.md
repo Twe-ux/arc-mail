@@ -145,7 +145,9 @@ même seuil que sur téléphone → [Gestes](gestes.md).
 
 **Densité** (`listDensity`, panneau d'apparence) : publiée en `data-densite` sur la colonne et lue
 par les rangées, un attribut plutôt qu'un prop passé à cinquante enfants. En `compact`, la rangée
-perd son aperçu — la ligne la plus coûteuse en hauteur et la moins nécessaire quand on balaie.
+perd son aperçu — la ligne la plus coûteuse en hauteur et la moins nécessaire quand on balaie. Le
+**même réglage vaut sur téléphone**, où il se lit par un attribut à part
+(`data-lignes`) → [liste sur téléphone](liste-telephone.md).
 
 ## La conversation
 

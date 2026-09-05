@@ -167,6 +167,8 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 **Liste sur téléphone** → [docs/features/liste-telephone.md](docs/features/liste-telephone.md)
 - Grand titre 30/1.15/-0.02em, ligne méta tronquée, **quatre** tuiles épinglées ; la carte porte le
   filet `.list-card` — sans lui son arrondi se perd dans le voile.
+- **Deux lignes ou trois** au choix (`listDensity`, feuille « Personnaliser ») : le téléphone lit
+  `data-lignes` derrière `max-md:`, jamais `data-densite` (forcé à « confort » par la pleine largeur).
 - Deux balayages sur le même axe : la **rangée** le prend partout et arrête la propagation ; celui
   qui change d'espace part de l'**en-tête**, là où l'indicateur de pages l'annonce.
 - L'appui et le calque révélé se dessinent depuis `--swipe-progress` / `data-side` / `data-armed` /
@@ -291,6 +293,8 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   fusionne deux échanges sans rapport (la dérive d'`arc-messenger`).
 - Deux niveaux (les gens, puis leurs fils) ; « en face » = l'expéditeur, ou le destinataire si c'est
   nous ; aucune lecture de plus, elle regroupe ce que la liste a déjà.
+- La rangée a la forme d'une rangée de fil, **filet compris** ; en pleine largeur elle passe sur une
+  ligne, l'adresse tombe et l'objet du dernier fil prend sa place, compte en colonne fixe.
 
 **Recherche** → [docs/features/recherche.md](docs/features/recherche.md)
 

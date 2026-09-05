@@ -122,8 +122,11 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   montre les destinataires réels et prend le focus.
 
 **Pièces jointes** → [docs/features/pieces-jointes.md](docs/features/pieces-jointes.md)
-- `url` absente = rien à montrer, l'aperçu le dit ; sur bureau le volet prend la place de la liste ;
-  un sélecteur qui construit un objet doit être memoïsé (`usePreview`).
+- Les octets viennent de `/api/mail/piece` (GET) : liste blanche de types, `nosniff`, et
+  `Content-Security-Policy: sandbox` — servir le fichier d'un inconnu depuis notre origine est un XSS.
+- Sur bureau l'aperçu est une **troisième colonne** au-delà de 1400 px ; en dessous la liste s'efface.
+- `url` absente = rien à montrer, l'aperçu le dit ; un sélecteur qui construit un objet doit être
+  memoïsé (`usePreview`).
 
 **Comptes et secrets** → [docs/features/comptes-et-secrets.md](docs/features/comptes-et-secrets.md)
 - Les secrets vivent dans `account_secrets`, une table RLS **sans politique** : serveur seulement.

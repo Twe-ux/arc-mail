@@ -8,7 +8,7 @@ import {
   type FetchQueryObject,
   type MessageAddressObject,
 } from "imapflow";
-import { simpleParser } from "mailparser";
+import { simpleParser, type ParsedMail } from "mailparser";
 
 import type { StoredAccount } from "@/lib/accounts/server";
 import type { Contact, FolderId, Message, Thread } from "@/lib/types";
@@ -506,15 +506,48 @@ async function complet(
 
   /* Les images du corps ne sont pas des pièces jointes : elles sont déjà dans
      le message, les lister ferait une rangée de fichiers fantômes. */
-  thread.messages[0].attachments = mime.attachments
-    .filter((a) => !a.cid || !a.contentType?.startsWith("image/"))
-    .map((a, i) => ({
-      id: `${id} ${i}`,
-      name: a.filename ?? `pièce jointe ${i + 1}`,
-      mime: a.contentType,
-      size: a.size,
-    }));
+  thread.messages[0].attachments = piecesDe(mime).map((a, i) => ({
+    id: `${id} ${i}`,
+    name: a.filename ?? `pièce jointe ${i + 1}`,
+    mime: a.contentType,
+    size: a.size,
+  }));
   return thread;
+}
+
+/**
+ * Les pièces d'un message, dans l'ordre où l'app les nomme.
+ *
+ * Écrit une fois : `complet` numérote les pièces jointes en les listant, et la
+ * lecture d'une pièce doit retrouver **exactement** la même liste, sinon le
+ * numéro désigne un autre fichier. Les images du corps (`cid:`) en sont
+ * exclues des deux côtés.
+ */
+const piecesDe = (mime: ParsedMail) =>
+  mime.attachments.filter((a) => !a.cid || !a.contentType?.startsWith("image/"));
+
+/** Une pièce jointe, lue à la demande pour être servie au navigateur. */
+export async function readAttachment(
+  client: ImapFlow,
+  threadIdent: string,
+  index: number,
+): Promise<{ name: string; mime: string; content: Buffer } | null> {
+  const parsed = parseThreadId(threadIdent);
+  if (!parsed) return null;
+  const lock = await client.getMailboxLock(parsed.path);
+  try {
+    const message = await client.fetchOne(String(parsed.uid), { source: true }, { uid: true });
+    if (!message || !message.source) return null;
+    const piece = piecesDe(await simpleParser(message.source))[index];
+    if (!piece) return null;
+    return {
+      name: piece.filename ?? `piece-${index + 1}`,
+      mime: piece.contentType || "application/octet-stream",
+      content: piece.content as Buffer,
+    };
+  } finally {
+    lock.release();
+  }
 }
 
 /** Un message entier, corps et pièces jointes : ce que `readFolder` ne rapporte pas. */

@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef, type CSSProperties } from "react";
+
+import { useMediaQuery } from "@/hooks/use-media-query";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
@@ -81,8 +83,11 @@ export function AppShell() {
      column into 1280px: sidebar · message · file, and the message stays
      readable while one looks at what came with it. */
   const previewOnDesktop = previewId !== null && hasSelection;
+  /* Assez large pour tenir barre, liste, message **et** pièce : au-dessous, la
+     liste s'efface le temps qu'on regarde. */
+  const troisColonnes = useMediaQuery("(min-width: 1400px)");
   // Desktop: split view shows both; full view shows one or the other.
-  const listOnDesktop = (splitView || !hasSelection) && !previewOnDesktop;
+  const listOnDesktop = (splitView || !hasSelection) && (!previewOnDesktop || troisColonnes);
   const viewOnDesktop = splitView || hasSelection;
 
   return (
@@ -115,7 +120,7 @@ export function AppShell() {
               splitView ? "md:w-[var(--list-width)] md:shrink-0 md:border-r" : "md:flex-1",
             )}
           />
-          {splitView && !previewOnDesktop && <SplitHandle coque={coque} />}
+          {splitView && listOnDesktop && <SplitHandle coque={coque} />}
           <BackSwipe
             enabled={hasSelection}
             onBack={() => selectThread(null)}

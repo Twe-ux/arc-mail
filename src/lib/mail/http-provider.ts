@@ -17,6 +17,30 @@ import type {
  * secret ne descend ici : le client envoie l'identifiant du compte, le
  * serveur retrouve le mot de passe et se connecte.
  */
+/**
+ * L'adresse où le navigateur ira chercher une pièce jointe.
+ *
+ * Elle se fabrique **ici** et pas côté serveur : l'identifiant de la pièce
+ * contient déjà tout ce qu'il faut (dossier, UID, rang), et le compte est ce
+ * que ce fournisseur sait par définition. Le serveur n'a donc rien à ajouter à
+ * ce qu'il rend, et la couche IMAP continue d'ignorer qu'il existe des URL.
+ */
+const avecPieces = (account: AccountRef, threads: Thread[]): Thread[] =>
+  threads.map((t) => ({
+    ...t,
+    messages: t.messages.map((m) =>
+      m.attachments?.length
+        ? {
+            ...m,
+            attachments: m.attachments.map((a) => ({
+              ...a,
+              url: `/api/mail/piece?compte=${encodeURIComponent(account.id)}&piece=${encodeURIComponent(a.id)}`,
+            })),
+          }
+        : m,
+    ),
+  }));
+
 export class HttpProvider implements MailProvider {
   private async call<T>(payload: Record<string, unknown>): Promise<T> {
     const response = await fetch("/api/mail", {
@@ -46,7 +70,7 @@ export class HttpProvider implements MailProvider {
       accountId: account.id,
       id,
     });
-    return thread;
+    return thread ? avecPieces(account, [thread])[0] : null;
   }
 
   async getThreads(account: AccountRef, ids: string[]): Promise<Thread[]> {
@@ -55,7 +79,7 @@ export class HttpProvider implements MailProvider {
       accountId: account.id,
       ids,
     });
-    return threads;
+    return avecPieces(account, threads);
   }
 
   async modify(account: AccountRef, id: string, patch: ThreadPatch): Promise<void> {

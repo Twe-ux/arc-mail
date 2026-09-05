@@ -47,6 +47,10 @@ Essais portés d'`arc-messenger` sur le bureau (5 sept.), poussés sur `preview`
 - [ ] La barre repliée revient **au survol du bord** au lieu de disparaître (bande de 14 px, panneau
       flottant qui emporte le fond du bureau avec lui).
 - [ ] La barre se range **à gauche ou à droite** (bouton à côté du repli, choix persisté).
+- [x] Les pièces jointes s'ouvrent **à côté** du message (troisième colonne) et leurs octets
+      arrivent vraiment (`/api/mail/piece`) — 5 sept.
+- [ ] Écrire un vrai message dans cette même troisième colonne, plutôt que dans la fenêtre posée
+      au-dessus (la réponse courte reste dans le corps du message).
 - [ ] La **séparation liste / message se déplace** en vue partagée : poignée de 11 px, largeur
       écrite sur le nœud pendant le geste, bornée 300–640, persistée, double-clic pour revenir à
       380, flèches au clavier.

@@ -50,3 +50,38 @@ l'ouverture du volet. Même règle que `useVisibleThreads`.
 
 Ajouter une pièce jointe depuis le composeur (la barre d'outils est grisée), les vraies vignettes
 et le vrai téléchargement, qui viendront avec le fournisseur IMAP.
+
+## Les octets arrivent vraiment (`/api/mail/piece`)
+
+`url` absente voulait dire « rien à montrer », et c'était le cas de **toutes** les pièces d'un vrai
+compte : la liste des fichiers venait d'IMAP, pas leur contenu. Une route les sert maintenant, en
+`GET` — parce que c'est une balise `<img>` ou `<iframe>` qui va les chercher, et qu'elles ne savent
+demander qu'ainsi. L'adresse se fabrique côté navigateur (`HttpProvider`) : l'identifiant d'une
+pièce contient déjà son dossier, son UID et son rang, et le compte est ce que ce fournisseur sait
+par définition.
+
+**Servir un fichier écrit par un inconnu depuis notre propre origine est dangereux** — une pièce
+jointe `text/html` rendue telle quelle s'exécuterait sur `arc-mail`, avec les cookies de session.
+Trois verrous, aucun suffisant seul :
+
+1. **une liste blanche** — images, PDF, texte brut s'affichent avec leur type ; tout le reste devient
+   `application/octet-stream` et se télécharge au lieu de s'ouvrir ;
+2. **`nosniff`** — sans lui, un navigateur qui trouve du HTML dans un fichier annoncé `text/plain`
+   peut décider de le traiter comme du HTML ;
+3. **`Content-Security-Policy: sandbox`** — le document est traité comme venant d'une origine
+   opaque, même si les deux premiers étaient contournés. Le cadre porte en plus son `sandbox=""` :
+   une protection qui dépend d'un en-tête distant est une protection qu'on peut perdre en déplaçant
+   un fichier.
+
+Le rang d'une pièce doit désigner le même fichier des deux côtés : `piecesDe()` est la seule liste,
+lue par ce qui numérote comme par ce qui sert.
+
+## Trois colonnes, pas deux
+
+L'aperçu prenait **la place de la liste**. Il prend maintenant une colonne de plus, à droite du
+message : on lit la pièce *à côté* de ce qu'on lit. Au-delà de 1400 px les trois tiennent ; en
+dessous c'est la liste qui s'efface, parce qu'un message serré à 300 px ne se lit plus et que la
+liste est à une touche de retour.
+
+Un PDF s'ouvre dans le lecteur du navigateur (`iframe`) : plusieurs pages se feuillettent, se
+cherchent, s'impriment — rien de tout cela ne vaut la peine d'être réécrit.

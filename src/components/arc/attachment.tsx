@@ -58,10 +58,16 @@ export function AttachmentRow({ attachments }: { attachments: Attachment[] }) {
 }
 
 /**
- * The file one clicked, shown whole. On desktop a third pane on the right of
- * the thread — it takes the list's place rather than squeezing a fourth
- * column into 1280px, so the message stays readable while one looks. On the
- * phone it is a floating card like the others, dismissed by the same pull.
+ * Le fichier qu'on a ouvert, en entier.
+ *
+ * Sur bureau, **une colonne de plus à droite du message** — c'est la demande :
+ * on lit la pièce *à côté* de ce qu'on lit, pas à la place. Au-dessus de
+ * 1400 px les trois tiennent (liste, message, pièce) ; en dessous c'est la
+ * liste qui s'efface, parce qu'un message serré à 300 px ne se lit plus et que
+ * la liste, elle, est à une touche de retour.
+ *
+ * Sur téléphone, c'est une carte flottante comme les autres, refermée par le
+ * même tirage.
  */
 export function AttachmentPreview() {
   const preview = usePreview();
@@ -139,7 +145,28 @@ function Header({
   );
 }
 
+/** Ce que le navigateur sait afficher lui-même, dans un cadre à part. */
+const isDocument = (a: Attachment) =>
+  a.mime === "application/pdf" || a.mime.startsWith("text/plain");
+
 function Body({ attachment }: { attachment: Attachment }) {
+  if (isDocument(attachment) && attachment.url) {
+    return (
+      /* Le lecteur du navigateur, dans une `iframe` : un PDF de plusieurs pages
+         se feuillette, se cherche, s'imprime — rien de tout cela ne vaut la
+         peine d'être réécrit. La route qui sert le fichier lui pose déjà
+         `Content-Security-Policy: sandbox`, donc l'origine est opaque même sans
+         l'attribut ; on le met quand même, parce qu'une protection qui dépend
+         d'un en-tête distant est une protection qu'on peut perdre en
+         déplaçant un fichier. */
+      <iframe
+        title={attachment.name}
+        src={attachment.url}
+        sandbox=""
+        className="min-h-0 w-full flex-1 border-0 bg-black/[0.03] dark:bg-white/[0.04]"
+      />
+    );
+  }
   if (isImage(attachment) && attachment.url) {
     return (
       /* A mat, not a second card: the photo is centred on the ground the card
@@ -155,8 +182,10 @@ function Body({ attachment }: { attachment: Attachment }) {
     );
   }
   return (
-    /* An honest empty state: with the mock there are no bytes to render, and
-       a fake page of a PDF would be a lie. The real provider will fill this. */
+    /* Un état vide honnête : la maquette n'a pas d'octets à rendre, et une
+       fausse page de PDF serait un mensonge. Les vrais comptes, eux, ont leur
+       route (`/api/mail/piece`) ; ce qui tombe ici est ce que le navigateur ne
+       sait pas ouvrir — un `.docx`, une archive — et qui se télécharge. */
     <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-2 bg-black/[0.03] px-6 text-center text-muted-foreground dark:bg-white/[0.04]">
       <FileText className="size-10 opacity-40" />
       <p className="text-sm">Aperçu indisponible pour ce format.</p>

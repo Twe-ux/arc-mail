@@ -149,7 +149,14 @@ export interface MailProvider {
    */
   listFolders(account: AccountRef, opts?: { inboxPath?: string }): Promise<FolderUnread>;
   /** One thread with all its messages — a list may carry less than that. */
-  getThread(account: AccountRef, id: string): Promise<Thread | null>;
+  /**
+   * Un fil entier, corps compris.
+   *
+   * `messageIds` dit **quels messages** le fil porte : son identifiant ne
+   * désigne que le dernier, et sans cette liste les précédents restaient sans
+   * corps. Le client les tient déjà — c'est lui qui a la liste.
+   */
+  getThread(account: AccountRef, id: string, messageIds?: string[]): Promise<Thread | null>;
   /**
    * Plusieurs d'un coup, pour précharger.
    *

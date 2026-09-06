@@ -597,13 +597,17 @@ const TETE = 3;
 async function remplir(id: string, bruyant: boolean): Promise<void> {
   const cible = useMail.getState().threads.find((t) => t.id === id);
   if (!cible || enVol.has(id)) return;
-  /* Déjà lu : le mock rend tout d'un coup, et un fil rouvert garde son corps. */
-  if (cible.messages.some((m) => m.body)) return;
+  /* **Tous les corps, pas un seul.** C'était `some` : un fil dont le dernier
+     message avait été préchargé ne repassait jamais ici, et ses messages
+     précédents gardaient leur squelette pour toujours. */
+  if (cible.messages.every((m) => m.body)) return;
 
   enVol.add(id);
   try {
     const account = accountOf(cible.spaceId);
-    const full = await providerFor(account).getThread(account, id);
+    /* Le fournisseur ne connaît que l'identifiant du fil, qui est celui de son
+       dernier message : on lui dit lesquels il porte. */
+    const full = await providerFor(account).getThread(account, id, cible.messages.map((m) => m.id));
     if (full) {
       useMail.setState((s) => ({ threads: patchThread(s.threads, id, (t) => hydrate(t, full)) }));
     }

@@ -400,6 +400,10 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   dossier). Un déplacement ajuste le compteur d'arrivée **s'il existe déjà** ; rien n'est persisté.
 - La liste ne rapporte que des enveloppes ; le corps arrive par `getThread` à l'ouverture, et
   l'hydratation complète le fil au lieu de le remplacer.
+- `getThread` reçoit les **identifiants des messages** et lit **tous** leurs UID en un `FETCH` :
+  l'identifiant d'un fil est celui de son **dernier** message, et sans cette liste les précédents
+  gardaient un squelette pour toujours. `remplir` attend que **tous** les corps soient là (`every`,
+  pas `some`) — sinon un fil dont le dernier message avait été préchargé ne repassait jamais.
 - Une lecture rend les **60 derniers messages** ; `deja` (`ThreadQuery`) va chercher les suivants,
   par **numéro de séquence** — un curseur d'UID demanderait un `SEARCH` qui rapporte toute la boîte.
   La page **s'ajoute** (`ajouterPage`, dédoublonné : la fenêtre glisse si du courrier arrive), une

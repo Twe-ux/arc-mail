@@ -34,7 +34,7 @@ export const dynamic = "force-dynamic";
 
 type Body =
   | { op: "listThreads"; accountId: string; folder: FolderId; inboxPath?: string; limit?: number; deja?: number }
-  | { op: "getThread"; accountId: string; id: string }
+  | { op: "getThread"; accountId: string; id: string; messageIds?: string[] }
   | { op: "getThreads"; accountId: string; ids: string[] }
   | {
       op: "modify";
@@ -200,7 +200,7 @@ export async function POST(request: NextRequest) {
       const folder =
         (Object.entries(await paths()).find(([, p]) => p === path)?.[0] as FolderId | undefined) ??
         "inbox";
-      return { thread: await readThread(client, body.id, folder) };
+      return { thread: await readThread(client, body.id, folder, body.messageIds) };
     });
 
     return NextResponse.json(result);

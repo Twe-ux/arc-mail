@@ -2,6 +2,23 @@
 
 Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérification.
 
+## 6 septembre 2026 — un fil rendait un seul de ses messages
+
+« Pourquoi je n'ai pas tous les messages de la conversation ? », capture à l'appui : le premier
+message restait un squelette, seul le dernier avait son corps.
+
+L'identifiant d'un fil est l'UID de son **dernier** message, et `readThread` ne lisait que celui-là.
+Les précédents gardaient un corps vide — donc un squelette qui ne se remplissait jamais. Le store
+aggravait : il sortait dès qu'**un** message avait un corps, donc un fil dont le dernier avait été
+préchargé ne repassait plus jamais.
+
+Les UID des autres messages viennent du client, qui tient déjà le fil : chaque identifiant de
+message porte le sien. Les redécouvrir côté serveur aurait demandé de relire et regrouper tout le
+dossier pour retrouver ce que le navigateur avait sous la main.
+
+Le correctif ne se prouve pas sur les données mock — elles rendent tous les corps d'un coup. C'est
+dans « à tester », et c'est encore une chose que seule une vraie boîte pouvait montrer.
+
 ## 6 septembre 2026 — le corps du message devient du HTML
 
 Le panneau de mise en forme avait six boutons gris et une phrase qui disait pourquoi : le corps

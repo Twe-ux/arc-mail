@@ -559,7 +559,7 @@ export async function readThreads(
       for await (const message of client.fetch(uids, { ...ENVELOPE_QUERY, source: true }, { uid: true })) {
         if (!message.source) continue;
         try {
-          const fil = await complet(message, path, folder);
+          const fil = await complet([message], path, folder);
           fils.push(fil);
           const lu = fil.messages[0];
           poids += (lu.html?.length ?? 0) + lu.body.length;
@@ -576,64 +576,80 @@ export async function readThreads(
 }
 
 /**
- * Un message lu de bout en bout : son corps, son HTML lavé, ses pièces.
+ * Un fil lu de bout en bout : les corps, le HTML lavé, les pièces.
  *
- * Écrit une fois et appelé par les deux lectures — celle d'un message ouvert
- * et celle d'un préchargement — pour qu'un fil arrive dans le même état quelle
+ * Écrit une fois et appelé par les trois lectures — un message ouvert, un
+ * préchargement, un fil entier — pour qu'un fil arrive dans le même état quelle
  * que soit la porte par laquelle il entre.
+ *
+ * **Il remplit tous les messages qu'on lui donne**, et c'est le correctif du
+ * 6 septembre : il n'en remplissait qu'un — celui dont l'UID nomme le fil,
+ * c'est-à-dire le dernier. Les précédents gardaient leur corps vide, donc leur
+ * squelette, **pour toujours** : « pourquoi je n'ai pas tous les messages de la
+ * conversation ? ». Un fil de trois messages n'en montrait qu'un.
  */
 async function complet(
-  message: FetchMessageObject,
+  messages: FetchMessageObject[],
   path: string,
   folder: FolderId,
 ): Promise<Thread> {
+  const thread = toThread(messages, path, folder);
+  await Promise.all(messages.map((m, i) => remplirMessage(thread, i, m, path)));
+
+  /* L'aperçu du fil vient du **dernier** message : c'est celui que la liste
+     résume, et c'est lui que le fil porte comme objet. */
+  const dernier = thread.messages[thread.messages.length - 1];
+  thread.snippet = dernier.body.split("\n").find((line) => line.trim())?.slice(0, 140) ?? thread.snippet;
+  return thread;
+}
+
+/** Un message du fil, rempli depuis sa source. */
+async function remplirMessage(
+  thread: Thread,
+  index: number,
+  message: FetchMessageObject,
+  path: string,
+): Promise<void> {
   const mime = await simpleParser(message.source!);
   const id = threadId(path, message.uid);
-
-  /* On hydrate le message lu, pas tout le fil : c'est celui qu'on regarde, et
-     chaque corps de plus est un aller-retour de plus. */
-  const thread = toThread([message], path, folder);
+  const cible = thread.messages[index];
   const body = (mime.text ?? "").trim();
-  thread.messages[0].body = body;
+  cible.body = body;
 
   /* La plupart des messages sont écrits en HTML, et une infolettre lue en
      texte n'est plus qu'une liste d'URL entre crochets. On la lave ici, une
      fois, côté serveur : le navigateur ne voit jamais le HTML d'origine. */
   if (mime.html) {
     const propre = nettoyer(mime.html, inlineImages(mime.attachments));
-    thread.messages[0].html = propre.html;
-    thread.messages[0].blockedImages = propre.bloquees;
+    cible.html = propre.html;
+    cible.blockedImages = propre.bloquees;
     /* L'aperçu vient du texte quand il existe, du HTML lavé sinon : un message
        en HTML seul n'aurait aucune ligne de résumé. */
-    if (!body) thread.messages[0].body = propre.texte.slice(0, 2000);
+    if (!body) cible.body = propre.texte.slice(0, 2000);
   }
 
   /* **Le désabonnement se lit dans l'en-tête, pas au fond du message.**
      `List-Unsubscribe` est déjà là dans presque toutes les infolettres ; le
      lire coûte zéro aller-retour de plus, la source est déjà en main. */
   const desabonnement = lireListUnsubscribe(entete(mime, "list-unsubscribe"));
-  if (desabonnement) thread.messages[0].desabonnement = desabonnement;
+  if (desabonnement) cible.desabonnement = desabonnement;
 
   /* Un corps vide et pas de HTML, c'est un message sans texte — une invitation,
      une pièce jointe seule. Le dire : sinon l'affichage ne peut pas distinguer
      « rien à lire » de « pas encore arrivé », et montrerait un squelette pour
      l'éternité. */
-  if (!thread.messages[0].body && !thread.messages[0].html) {
-    thread.messages[0].body = "(Message sans texte)";
+  if (!cible.body && !cible.html) {
+    cible.body = "(Message sans texte)";
   }
-
-  const apercu = thread.messages[0].body;
-  thread.snippet = apercu.split("\n").find((line) => line.trim())?.slice(0, 140) ?? thread.snippet;
 
   /* Les images du corps ne sont pas des pièces jointes : elles sont déjà dans
      le message, les lister ferait une rangée de fichiers fantômes. */
-  thread.messages[0].attachments = piecesDe(mime).map((a, i) => ({
+  cible.attachments = piecesDe(mime).map((a, i) => ({
     id: `${id} ${i}`,
     name: a.filename ?? `pièce jointe ${i + 1}`,
     mime: a.contentType,
     size: a.size,
   }));
-  return thread;
 }
 
 /**
@@ -671,27 +687,51 @@ export async function readAttachment(
   }
 }
 
-/** Un message entier, corps et pièces jointes : ce que `readFolder` ne rapporte pas. */
+/**
+ * Un fil entier, corps et pièces jointes : ce que `readFolder` ne rapporte pas.
+ *
+ * **Tous ses messages, pas seulement le dernier.** L'identifiant d'un fil est
+ * l'UID de son dernier message ; lire ce seul UID laissait les précédents avec
+ * un corps vide, donc un squelette qui ne se remplissait jamais — « pourquoi je
+ * n'ai pas tous les messages de la conversation ? ». Les autres UID viennent du
+ * client, qui tient déjà le fil : chaque identifiant de message porte le sien
+ * (`threadId(path, uid)`), et les redécouvrir côté serveur demanderait de
+ * relire et regrouper tout le dossier.
+ *
+ * **Un seul aller-retour** : les enveloppes et les sources dans le même
+ * `FETCH`. C'était `fetchOne` puis `download`, deux commandes là où le serveur
+ * sait tout donner d'un coup — et sur une connexion qui vit le temps d'une
+ * requête, chaque aller-retour se voit.
+ */
 export async function readThread(
   client: ImapFlow,
   id: string,
   folder: FolderId,
+  messageIds?: string[],
 ): Promise<Thread | null> {
   const parsed = parseThreadId(id);
   if (!parsed) return null;
+  /* Les UID du même dossier que le fil, l'ordre d'arrivée conservé, et celui du
+     fil toujours dedans — un client qui n'envoie rien retombe sur l'ancien
+     comportement plutôt que sur une liste vide. */
+  const uids = [
+    ...new Set(
+      (messageIds ?? [])
+        .map(parseThreadId)
+        .filter((x): x is { path: string; uid: number } => x !== null && x.path === parsed.path)
+        .map((x) => x.uid)
+        .concat(parsed.uid),
+    ),
+  ].sort((a, b) => a - b);
+
   const lock = await client.getMailboxLock(parsed.path);
   try {
-    /* **Un seul aller-retour** : l'enveloppe et la source dans le même `FETCH`.
-       C'était `fetchOne` puis `download`, deux commandes là où le serveur sait
-       tout donner d'un coup — et sur une connexion qui vit le temps d'une
-       requête, chaque aller-retour se voit. */
-    const message = await client.fetchOne(
-      String(parsed.uid),
-      { ...ENVELOPE_QUERY, source: true },
-      { uid: true },
-    );
-    if (!message || !message.source) return null;
-    return await complet(message, parsed.path, folder);
+    const messages: FetchMessageObject[] = [];
+    for await (const m of client.fetch(uids, { ...ENVELOPE_QUERY, source: true }, { uid: true })) {
+      if (m.source) messages.push(m);
+    }
+    if (messages.length === 0) return null;
+    return await complet(messages, parsed.path, folder);
   } finally {
     lock.release();
   }

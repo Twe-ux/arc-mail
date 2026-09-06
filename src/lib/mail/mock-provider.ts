@@ -78,6 +78,8 @@ export class MockProvider implements MailProvider {
       .slice(0, query.limit ?? 40);
   }
 
+  /* Le mock a les corps en mémoire : la liste des messages que le contrat
+     autorise ne lui apprend rien, il ne la prend donc pas. */
   async getThread(_account: AccountRef, id: string): Promise<Thread | null> {
     return this.threads.find((t) => t.id === id) ?? null;
   }

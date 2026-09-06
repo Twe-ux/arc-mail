@@ -530,3 +530,38 @@ coupée. Une page qui ne vient pas n'efface rien : un toast, et la liste garde c
 Vérifié en abaissant la page à cinq le temps du test : 15 conversations, puis 19, puis « C'est tout »
 et le bouton disparaît ; la clé de pagination est par **espace et par dossier** ; zéro erreur de
 console, téléphone et bureau.
+
+---
+
+## Un fil, tous ses messages (6 sept. 2026)
+
+Signalé sur une vraie boîte, capture à l'appui : **« pourquoi je n'ai pas tous les messages de la
+conversation ? »** — le premier message d'un fil de deux restait un squelette, seul le dernier avait
+son corps.
+
+**L'identifiant d'un fil est l'UID de son dernier message** (`threadId(path, last.uid)`), et
+`readThread` ne lisait que celui-là. `complet()` remplissait donc `messages[0]` — le seul message
+qu'il avait — et les précédents gardaient `body: ""`, c'est-à-dire un squelette **qui ne se
+remplissait jamais**. Le store aggravait : `remplir` sortait dès qu'**un** message avait un corps
+(`some`), donc un fil dont le dernier message avait été préchargé ne repassait plus jamais.
+
+Trois corrections, et elles vont ensemble :
+
+- `complet()` remplit **tous** les messages qu'on lui donne, chacun avec son corps, son HTML lavé,
+  son `List-Unsubscribe` et ses pièces ; l'aperçu du fil vient du **dernier**, c'est lui que la
+  liste résume ;
+- `readThread` prend les **identifiants des messages** et lit tous leurs UID en **un seul `FETCH`**.
+  Ils viennent du client, qui tient déjà le fil : chaque identifiant de message porte son UID
+  (`threadId(path, uid)`), et les redécouvrir côté serveur demanderait de relire et regrouper tout
+  le dossier. Un client qui n'envoie rien retombe sur l'ancien comportement plutôt que sur une liste
+  vide ;
+- `remplir` garde le fil tant que **tous** les corps ne sont pas là (`every`).
+
+Le préchargement, lui, continue de lire un message par fil (`readThreads`) : il sert à ce que
+l'ouverture soit instantanée, pas à tout descendre. À l'ouverture, `remplir` complète le reste —
+c'est précisément ce que le `every` rend possible.
+
+**Vérifié ici** : types, lint, build, et aucune régression sur les données mock (un fil de trois
+messages s'ouvre sans un seul squelette, zéro erreur de console). **Le correctif lui-même ne se
+prouve que sur une vraie boîte** — le mock rend tous les corps d'un coup et ne peut pas reproduire
+le défaut. C'est dans « à tester ».

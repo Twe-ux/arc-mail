@@ -92,6 +92,9 @@ correctif.
 - [ ] **Les pièces jointes en émission** — 10 Mo, plusieurs fichiers, un nom accentué.
 - [ ] **Le corps HTML** — le `multipart/alternative` tel qu'il arrive chez le destinataire (les deux
       parties, la partie texte lisible seule), et la copie dans « Envoyés » qui doit garder le HTML.
+- [ ] **Un fil à plusieurs messages** — le correctif du 6 sept. (`getThread` lit tous les UID du
+      fil) ne se prouve que sur une vraie boîte : le mock rend tous les corps d'un coup. À voir sur
+      une conversation de trois messages ou plus, y compris après un préchargement.
 - [ ] **Une vraie infolettre** — la mise à la largeur, les images retenues, le bandeau, sur un
       courrier qui n'est pas notre mock.
 - [ ] **Deux comptes en même temps** — le cache par empreinte d'identifiants, le changement

@@ -129,9 +129,13 @@ qui suivent.
 
 - [x] **Annulation à la demande** (6 sept.) — le toast « Annuler » sur toutes les actions qui
       touchent un fil, posé par le store et non par ses neuf appelants ; bascule et instantané comme
-      deux formes d'inverse → [fiche](features/annulation.md). **Restent** les deux fonctions que la
-      même mécanique portera : la **file hors ligne** (garder et rejouer les écritures) et l'**envoi
-      différé** (une tâche qui porte son heure), celui-ci derrière la décision d'hébergement.
+      deux formes d'inverse → [fiche](features/annulation.md).
+- [x] **File hors ligne** (6 sept.) — hors ligne, l'écriture entre en file au lieu d'être défaite,
+      et le retour du réseau la rejoue → [fiche](features/annulation.md). Elle tient en une fonction
+      parce que `commit` est le seul entonnoir, comme « Annuler » avant elle. **Reste** l'**envoi
+      différé**, derrière la décision d'hébergement ; et la file **ne survit pas à un
+      rechargement** — la persister demande de décrire chaque écriture par une structure
+      sérialisable.
 - [x] **Arbre de recherche** (6 sept.) — l'analyseur et **les deux** compilateurs, mémoire et
       `SEARCH` IMAP, branchés sur ⌘K → [fiche](features/recherche.md).
 - [x] **Vues enregistrées** (6 sept.) — une requête nommée à côté des dossiers, gardée depuis ⌘K,

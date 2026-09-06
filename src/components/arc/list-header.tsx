@@ -43,6 +43,7 @@ export function ListHeader() {
   const setFolder = useMail((s) => s.setFolder);
   const space = useSpace();
   const threads = useVisibleThreads();
+  const enAttente = useMail((s) => s.enAttente);
   const groupBy = useMail((s) => s.groupBy);
   const setGroupBy = useMail((s) => s.setGroupBy);
 
@@ -87,6 +88,10 @@ export function ListHeader() {
             className="min-w-0 flex-1 truncate text-[13px] text-muted-foreground"
           >
             {space.email} · {plural(threads.length, "conversation")}
+            {/* Ce qui attend le réseau se dit **là où l'on compte déjà** : un
+                geste qui n'est pas parti et que rien n'annonce est un geste
+                qu'on croit fait. */}
+            {enAttente > 0 && <> · {enAttente} en attente</>}
           </p>
           {/* 30 px, la hauteur exacte du segmenté qui vivait ici avant lui. */}
           <button

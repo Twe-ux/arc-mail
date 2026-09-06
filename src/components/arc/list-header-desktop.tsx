@@ -68,6 +68,8 @@ export function ListHeaderDesktop() {
   const folder = useMail(selectFolder);
   const vue = useMail(selectVue);
   const threads = useVisibleThreads();
+  /* Ce qui attend le réseau se dit là où l'on compte déjà. */
+  const enAttente = useMail((s) => s.enAttente);
 
   return (
     <div
@@ -162,6 +164,7 @@ export function ListHeaderDesktop() {
         </span>
         <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground md:group-data-[large=true]/liste:order-5 md:group-data-[large=true]/liste:flex-none">
           {plural(threads.length, "conversation")}
+          {enAttente > 0 && <> · {enAttente} en attente</>}
         </span>
         <span className="md:group-data-[large=true]/liste:order-6">
           <GroupByToggle />

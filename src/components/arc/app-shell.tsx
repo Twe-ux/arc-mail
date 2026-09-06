@@ -65,6 +65,17 @@ export function AppShell() {
     void loadSpace(spaceId, folderId);
   }, [spaceId, folderId, loadSpace]);
 
+  /* **Le retour du réseau rejoue ce qui n'est pas parti.** L'événement `online`
+     est le seul signal que le navigateur donne sans qu'on l'interroge ; on
+     vide aussi au montage, pour l'onglet rouvert alors que la connexion était
+     déjà revenue. */
+  useEffect(() => {
+    const vider = () => void useMail.getState().viderFile();
+    vider();
+    window.addEventListener("online", vider);
+    return () => window.removeEventListener("online", vider);
+  }, []);
+
   useEffect(() => {
     document.documentElement.classList.toggle("dark", dark);
     /* La barre de titre de la fenêtre suit le thème. Le script du layout a

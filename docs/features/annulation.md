@@ -69,3 +69,55 @@ les autres n'en ont pas et nomment donc leur dossier (`FOLDER_DONE`, dans
   ([décision d'hébergement](../a-faire.md#la-décision-dhébergement--elle-en-commande-quatre)).
 - **Plusieurs pas en arrière.** Un seul niveau aujourd'hui, celui du toast à l'écran. Une pile
   demanderait un ⌘Z, donc un endroit où le dire.
+
+---
+
+## La file hors ligne (6 sept. 2026)
+
+C'est l'autre moitié de la mécanique. `commit` était le seul entonnoir de toutes les écritures
+optimistes — c'est ce qui a permis d'y poser « Annuler » une fois pour neuf appelants ; c'est ce qui
+permet d'y poser la file de la même façon, **en une fonction**.
+
+**Deux échecs, deux réponses.** Un refus du serveur — un dossier absent, un droit manquant — est
+définitif : le fil revient et le toast dit pourquoi. Une coupure de réseau ne l'est pas : le geste
+était bon, il n'a simplement pas pu partir. Le défaire, c'est punir quelqu'un d'être entré dans un
+tunnel et lui faire refaire à la main les cinq archivages qu'il vient de faire. Hors ligne,
+l'écriture entre donc dans la file et **l'optimiste tient** ; `commit` rend `true`, ce que
+« Annuler » attend pour savoir que l'état affiché est celui qui compte.
+
+**`navigator.onLine` ne sert que par la négative.** Il est optimiste — il vaut `true` derrière un
+portail captif qui n'ouvre rien —, mais `false` veut vraiment dire « aucune interface réseau ». Une
+requête qui rate alors que le navigateur se dit en ligne est un vrai refus, et se traite comme tel.
+
+**La file est hors du store**, comme les jetons de lecture : ce sont des fonctions, elles ne se
+sérialisent pas et n'ont rien à faire dans un état persisté. Le store n'en garde que le **nombre**,
+qui est ce que la tête de liste annonce — « 19 conversations · 2 en attente », là où l'on compte
+déjà. Un geste qui n'est pas parti et que rien n'annonce est un geste qu'on croit fait.
+
+**Elle ne survit pas à un rechargement, et c'est assumé** : au rechargement la boîte est relue
+depuis le serveur, donc ce qui n'était pas parti réapparaît tel qu'il est là-bas. Perdre la file,
+c'est revenir à la vérité — pas mentir. La persister demanderait de décrire chaque écriture par une
+structure sérialisable, et de rejouer après coup des identifiants qu'un déplacement a pu changer.
+
+**Le retour du réseau rejoue dans l'ordre, une par une** : archiver puis annuler n'est pas annuler
+puis archiver, et la suivante peut viser un fil que la précédente vient de renommer. Une écriture
+qui rate encore hors ligne est remise en file par `commit` lui-même — on s'arrête là, le réseau
+n'est pas vraiment revenu. `AppShell` écoute `online`, et vide aussi au montage : l'onglet peut
+avoir été rouvert alors que la connexion était déjà de retour.
+
+**Un seul toast « Hors ligne », à la première.** Chaque geste porte déjà le sien (« Archivé ») ; en
+empiler un second à chaque archivage du tunnel ferait une colonne d'avertissements pour une seule
+nouvelle.
+
+### Vérifié
+
+Le fournisseur mock rendu défaillant le temps du test, en trois états :
+
+- **panne, en ligne** — le fil revient (19 conversations), deux toasts d'échec, un par écriture ;
+- **hors ligne** — le fil reste archivé, la tête dit « 18 conversations · 2 en attente » puis « 17 ·
+  4 en attente » (un archivage vaut deux écritures : le non-lu et le déplacement), et un seul toast
+  « Hors ligne » pour les deux gestes ;
+- **retour du réseau** — « 4 actions en attente sont parties », le compte perd son suffixe, la liste
+  reste à 17.
+
+Zéro erreur de console.

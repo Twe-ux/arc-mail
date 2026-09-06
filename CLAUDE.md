@@ -341,6 +341,11 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - Un déplacement **retire** le non-lu du dossier de départ autant qu'il l'ajoute à l'arrivée : sans
   ça une annulation laissait le `+1` d'Archive pour toujours.
 - Le libellé se lit **au passé** — « Archivé », pas « Déplacé vers Archive » (`FOLDER_DONE`).
+- **Hors ligne, l'écriture entre en file au lieu d'être défaite** (`commit`, une fonction) : un refus
+  du serveur est définitif, une coupure ne l'est pas. `navigator.onLine` ne sert que **par la
+  négative** ; la file vit hors du store (des fonctions ne se persistent pas), le store en garde le
+  **nombre**, annoncé dans la tête de liste ; `AppShell` la vide sur `online` et au montage, dans
+  l'ordre et une par une. Elle ne survit pas à un rechargement — la relecture serveur est la vérité.
 
 **Répondre** → [docs/features/reponse.md](docs/features/reponse.md)
 - Par défaut **l'expéditeur seul** ; « Répondre à tous » n'apparaît que s'il reste quelqu'un d'autre

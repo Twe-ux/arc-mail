@@ -117,6 +117,15 @@ export type MailState = {
   folderCounts: Partial<Record<SpaceId, FolderUnread>>;
   /** The last failed read of a space, for the list to show with a retry; cleared by the next successful read. */
   error: string | null;
+  /**
+   * Combien d'écritures attendent le retour du réseau.
+   *
+   * Le compte seul : la file elle-même est faite de fonctions, qui n'ont rien
+   * à faire dans un état persisté. C'est ce nombre que la tête de liste
+   * annonce — un geste qui n'est pas parti et que rien ne dit est un geste
+   * qu'on croit fait.
+   */
+  enAttente: number;
   /** Why the last send failed, shown in the composer next to « Réessayer »; the message itself is back in `compose`. */
   sendError: string | null;
   /** Threads opened recently, per space — the "Today" tabs of Arc. */
@@ -172,6 +181,8 @@ export type MailState = {
   cycleSpace: (direction?: 1 | -1) => void;
   /** Posé une fois par `SpacesInit`, avec ce que le serveur a lu. */
   setSpaces: (spaces: Space[]) => void;
+  /** Rejoue la file au retour du réseau. Posé par `AppShell` sur l'événement. */
+  viderFile: () => Promise<void>;
   setGroupBy: (mode: MailState["groupBy"]) => void;
   setCorrespondent: (email: string | null) => void;
   /** Garde une requête. Rend la vue créée — ou celle qui portait déjà la même. */
@@ -284,6 +295,30 @@ const restoreThread = (threads: Thread[], before: Thread) =>
 
 /** Reads in flight, one counter per space: a response that is not the latest is dropped. */
 const loadTokens = new Map<SpaceId, number>();
+
+/**
+ * **Les écritures que le réseau n'a pas laissées partir**, dans l'ordre.
+ *
+ * Hors du store exprès, comme les jetons de lecture : ce sont des fonctions,
+ * elles ne se sérialisent pas et n'ont rien à faire dans un état persisté. Le
+ * store n'en garde que le **nombre**, qui est ce que l'interface montre.
+ *
+ * Elle ne survit pas à un rechargement, et c'est assumé : au rechargement la
+ * boîte est relue depuis le serveur, donc ce qui n'était pas parti réapparaît
+ * tel qu'il est là-bas. Perdre la file, c'est revenir à la vérité — pas mentir.
+ */
+const file: { rejouer: () => Promise<boolean> }[] = [];
+
+/**
+ * Pas de réseau — la seule chose que le navigateur sache dire de sûr.
+ *
+ * `navigator.onLine` est optimiste : il vaut `true` derrière un portail captif
+ * qui n'ouvre rien. C'est pour ça qu'on ne s'en sert que **par la négative** —
+ * `false` veut vraiment dire « aucune interface réseau ». Une requête qui rate
+ * alors que le navigateur se dit en ligne est un vrai refus, et se traite comme
+ * tel.
+ */
+const horsLigne = () => typeof navigator !== "undefined" && navigator.onLine === false;
 
 /** Une adresse se compare **lavée** : les en-têtes portent volontiers la casse
  *  d'origine (« T.Milone@CoworkingCafe.fr »), et c'est la même boîte. */
@@ -650,6 +685,20 @@ export const useMail = create<MailState>()(
      n'a pas eu lieu, c'est en faire une nouvelle — le fil est déjà revenu tout
      seul par le retour arrière ci-dessous, et le « déplacer en sens inverse »
      l'enverrait cette fois pour de bon. */
+  /**
+   * Une écriture optimiste, et ce qu'on fait quand elle rate.
+   *
+   * **Deux échecs, deux réponses.** Un refus du serveur — un dossier absent,
+   * un droit manquant — est définitif : le fil revient et le toast dit
+   * pourquoi. Une coupure de réseau ne l'est pas : le geste était bon, il n'a
+   * simplement pas pu partir. Le défaire serait punir l'utilisateur d'être
+   * entré dans un tunnel, et lui faire refaire à la main les cinq archivages
+   * qu'il vient de faire.
+   *
+   * Hors ligne, l'écriture entre donc dans la **file** et l'optimiste tient.
+   * `commit` rend `true` — c'est ce que « Annuler » attend pour savoir que
+   * l'état affiché est celui qui compte.
+   */
   const commit = <T>(
     before: Thread,
     run: () => Promise<T>,
@@ -662,6 +711,18 @@ export const useMail = create<MailState>()(
         return true;
       },
       (err: unknown) => {
+        if (horsLigne()) {
+          file.push({ rejouer: () => commit(before, run, undone, apres) });
+          set({ enAttente: file.length });
+          /* **Une fois, à la première.** Chaque geste porte déjà son toast
+             (« Archivé ») ; en empiler un second à chaque archivage du tunnel
+             ferait une colonne d'avertissements pour une seule nouvelle. Le
+             compte de la tête de liste, lui, reste à l'écran. */
+          if (file.length === 1) {
+            toast("Hors ligne", { description: "Ce qui est fait ici partira au retour du réseau." });
+          }
+          return true;
+        }
         set((s) => ({ threads: restoreThread(s.threads, before) }));
         toast.error(undone, { description: describe(err) });
         return false;
@@ -721,6 +782,7 @@ export const useMail = create<MailState>()(
   searching: false,
   searchError: null,
   error: null,
+  enAttente: 0,
   sendError: null,
   recent: { perso: [], pro: [], side: [] },
   compose: null,
@@ -992,6 +1054,39 @@ export const useMail = create<MailState>()(
     const suivant = spaces[(((i < 0 ? 0 : i) + direction) % spaces.length + spaces.length) % spaces.length];
     if (suivant.id === spaceId) return;
     get().setSpace(suivant.id);
+  },
+
+  /**
+   * Le réseau est revenu : on rejoue, **dans l'ordre et une par une**.
+   *
+   * L'ordre compte — archiver puis annuler n'est pas annuler puis archiver — et
+   * une seule à la fois, parce que la suivante peut viser un fil que la
+   * précédente vient de renommer. Une écriture qui rate encore hors ligne est
+   * remise en file par `commit` lui-même : on s'arrête là, le réseau n'est pas
+   * vraiment revenu.
+   */
+  viderFile: async () => {
+    if (file.length === 0) return;
+    const nombre = file.length;
+    let parties = 0;
+    while (file.length > 0) {
+      const suivante = file.shift()!;
+      set({ enAttente: file.length });
+      const avant = file.length;
+      await suivante.rejouer();
+      /* `commit` a remis la sienne au bout : le réseau est reparti, on laisse
+         le reste pour la prochaine fois. */
+      if (file.length > avant) break;
+      parties++;
+    }
+    set({ enAttente: file.length });
+    if (parties > 0) {
+      toast.success(
+        parties === nombre
+          ? `${parties} action${parties > 1 ? "s" : ""} en attente ${parties > 1 ? "sont parties" : "est partie"}`
+          : `${parties} action${parties > 1 ? "s" : ""} sur ${nombre} ${parties > 1 ? "sont parties" : "est partie"}`,
+      );
+    }
   },
 
   setSpaces: (spaces) =>

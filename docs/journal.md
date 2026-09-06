@@ -2,6 +2,22 @@
 
 Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérification.
 
+## 6 septembre 2026 — la file hors ligne, l'autre moitié d'« Annuler »
+
+Une écriture ratée défaisait le geste. C'est juste quand le serveur refuse ; c'est faux quand le
+réseau coupe — le geste était bon, il n'a pas pu partir, et le défaire punit quelqu'un d'être entré
+dans un tunnel.
+
+Hors ligne, l'écriture entre donc dans une file et l'optimiste tient. Comme « Annuler » avant elle,
+la fonction tient **en un seul endroit** : `commit` est l'entonnoir de toutes les écritures
+optimistes, et c'est là que tout se décide. `navigator.onLine` ne sert que par la négative — il est
+optimiste, mais `false` veut vraiment dire « aucune interface réseau ».
+
+La file vit hors du store : ce sont des fonctions, elles ne se sérialisent pas. Le store en garde le
+nombre, que la tête de liste annonce — « 19 conversations · 2 en attente » —, parce qu'un geste qui
+n'est pas parti et que rien n'annonce est un geste qu'on croit fait. Elle ne survit pas à un
+rechargement, et c'est assumé : la relecture depuis le serveur est la vérité.
+
 ## 6 septembre 2026 — se désabonner sans descendre au fond du message
 
 `List-Unsubscribe` est déjà dans presque toutes les infolettres : le geste existait dans le message,

@@ -5,7 +5,7 @@ import { useState } from "react";
 
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useMediaQuery } from "@/hooks/use-media-query";
-import { formatFullDate } from "@/lib/format";
+import { formatFullDate, formatShortDate } from "@/lib/format";
 import { useMail, useSpace } from "@/lib/store";
 import type { Contact, Message } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -66,9 +66,15 @@ export function MessageCard({
           : cn("md:px-4 md:py-3.5", detache ? "md:bg-foreground/[0.07]" : "md:hover:bg-foreground/[0.04]"),
       )}
     >
+      {/* **L'en-tête du message est un bloc, et le corps commence après un
+          filet.** Tout vivait sur la même dalle blanche — objet, expéditeur,
+          message — sans rien pour dire où l'un finissait ; c'est ce que Mail
+          d'iOS sépare d'un trait, et c'est ce qui manquait ici. Le filet est
+          rendu par le bloc lui-même (`border-b`) et disparaît sur bureau, où
+          l'en-tête est déjà une pastille teintée au survol. */}
       <div
         className={cn(
-          "flex items-center gap-3 px-5 pt-3.5 md:gap-2.5 md:pt-0",
+          "flex items-center gap-3 border-b border-black/[0.06] px-5 py-4 md:gap-2.5 md:border-0 md:py-0 dark:border-white/[0.08]",
           estHtml
             ? cn(
                 "md:rounded-lg md:px-2 md:py-1.5 md:transition-colors",
@@ -101,14 +107,31 @@ export function MessageCard({
           }
           className="flex min-w-0 flex-1 items-center gap-3 rounded-xl text-left outline-none focus-visible:ring-2 focus-visible:ring-ring/50 md:gap-2.5"
         >
-          <ContactAvatar contact={message.from} className="size-10 md:size-7" />
+          <ContactAvatar contact={message.from} className="size-11 md:size-7" />
           <span className="min-w-0 flex-1 leading-tight">
-            <span className="block truncate text-[15px] font-semibold md:text-sm">{message.from.name}</span>
-            <span className="block truncate text-[13px] text-muted-foreground">
-              à {aQui} ·{" "}
-              <time dateTime={message.date} suppressHydrationWarning>
-                {formatFullDate(message.date)}
+            {/* **La date passe à droite du nom sur téléphone**, en court. Elle
+                terminait la ligne « à moi · dimanche 6 septembre à 01:49 », qui
+                prenait toute la largeur pour dire deux choses dont une seule se
+                lit d'un coup d'œil ; la date longue reste, dépliée avec les
+                destinataires. */}
+            <span className="flex items-baseline gap-2">
+              <span className="min-w-0 flex-1 truncate text-[16px] font-semibold md:text-sm">{message.from.name}</span>
+              <time
+                dateTime={message.date}
+                suppressHydrationWarning
+                className="shrink-0 text-[13px] font-normal text-muted-foreground tabular-nums md:hidden"
+              >
+                {formatShortDate(message.date)}
               </time>
+            </span>
+            <span className="mt-0.5 block truncate text-[13px] text-muted-foreground">
+              à {aQui}
+              <span className="hidden md:inline">
+                {" · "}
+                <time dateTime={message.date} suppressHydrationWarning>
+                  {formatFullDate(message.date)}
+                </time>
+              </span>
             </span>
           </span>
         </button>
@@ -140,9 +163,12 @@ export function MessageCard({
       </div>
 
       {deplie && (
-        <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 px-5 pt-3 text-[13px] md:hidden">
+        <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 border-b border-black/[0.06] px-5 py-3.5 text-[13px] md:hidden dark:border-white/[0.08]">
           <Ligne label="De" value={`${message.from.name} <${message.from.email}>`} />
           <Ligne label="À" value={message.to.map((c) => `${c.name} <${c.email}>`).join(", ")} />
+          {/* La date longue vit ici depuis qu'elle a quitté la ligne d'en-tête :
+              elle n'est pas perdue, elle est rangée là où on la cherche. */}
+          <Ligne label="Date" value={formatFullDate(message.date)} />
           {message.cc && message.cc.length > 0 && (
             <Ligne label="Cc" value={message.cc.map((c) => `${c.name} <${c.email}>`).join(", ")} />
           )}
@@ -154,7 +180,11 @@ export function MessageCard({
         /* Sur bureau le texte s'aligne sous le nom, pas sous l'avatar : 28 px
            de tuile plus 10 de gouttière. */
         className={cn(
-          "block px-5 py-[18px] text-[15px] leading-[1.6] whitespace-pre-wrap md:mt-2.5 md:px-0 md:py-0 md:text-sm md:leading-[1.65]",
+          /* Téléphone : le texte respire — 20 px de côté comme tout l'écran,
+             22 de haut et de bas, et un interligne de 1,7. Il était à 18 px et
+             1,6, collé sous l'expéditeur ; c'est le « trop compact » qu'on
+             corrige. */
+          "block px-5 py-[22px] text-[15px] leading-[1.7] whitespace-pre-wrap md:mt-2.5 md:px-0 md:py-0 md:text-sm md:leading-[1.65]",
           /* Le texte simple borne **sa propre longueur de ligne** : la colonne
              ne le fait plus, et 200 caractères par ligne ne se lisent pas. Le
              HTML, lui, garde toute la largeur — il porte la sienne. */

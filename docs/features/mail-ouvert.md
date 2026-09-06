@@ -20,10 +20,28 @@ Il y avait **trois cadres emboîtés** — la carte arrondie de l'écran, une ca
 puis le bloc blanc du HTML — et le texte finissait à quarante pixels des deux bords sur un écran
 qui en fait trois cent quatre-vingt-dix.
 
-Sur téléphone : objet `22px / 1.25 / -0.015em / 700` en `px-5 pt-[22px]`, ligne expéditeur avec son
-retrait, puis le corps **pleine largeur** (`px-5 py-[18px]`, 15/1.6). Les messages d'un fil se
+Sur téléphone : objet `26px / 1.18 / -0.02em / 700` en `px-5 pt-6 pb-[18px]`, ligne expéditeur avec
+son retrait, puis le corps **pleine largeur** (`px-5 py-[22px]`, 15/1.7). Les messages d'un fil se
 séparent par un filet, pas par des cartes. Sur bureau la carte grise reste : la colonne y est large,
 et c'est elle qui distingue cinq messages les uns des autres.
+
+## Trois blocs, pas une dalle
+
+Comparé à Mail d'iOS sur le même courrier, l'écran était **compact au point d'être plat** : objet,
+expéditeur et message se suivaient sur la même surface blanche, sans rien pour dire où l'un finissait,
+et le message commençait donc par répéter son propre titre juste sous le nôtre. Trois corrections,
+mesurées sur la capture :
+
+1. **L'objet a sa zone.** 26 px au lieu de 22, 24 px d'air au-dessus et 18 en dessous. Il est le titre
+   de la page, pas une ligne de plus.
+2. **L'en-tête du message est un bloc**, clos par un filet : avatar 44, nom en 16 semi-gras, et
+   **la date courte passe à droite du nom**. Elle terminait « à moi · dimanche 6 septembre à 01:49 »,
+   une ligne qui prenait toute la largeur pour dire deux choses dont une seule se lit d'un coup
+   d'œil ; la date longue est rangée avec les destinataires dépliés, où on la cherche.
+3. **La feuille du courrier remplit la carte** : plus de marge ni d'anneau autour d'elle sur
+   téléphone — c'était le troisième cadre — et sa marge intérieure passe de 12 à **16 px**, plus près
+   des 20 px où se tient tout le reste de l'écran. Sur bureau elle garde anneau et rayon : elle y
+   flotte sur le fond sombre du volet, et sans bord elle n'aurait plus de tranche.
 
 **Ouvrir un mail ne lève pas le clavier.** Sur téléphone, l'en-tête d'un message **déplie les
 destinataires** — ce que son chevron annonce — au lieu de viser la réponse. Viser d'ici l'ouvrait :

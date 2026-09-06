@@ -90,6 +90,9 @@ const OPENERS = {
     MASQUEE,
     CLICK_TEXT("Les bons plans du mois"),
   ],
+  /* Le mail ouvert sur une infolettre : le cas qui met la mise en page a
+     l'epreuve — HTML large, mis a la largeur, avec ses images retenues. */
+  infolettre: [CLICK_TEXT("Les bons plans du mois")],
   /* La vue par correspondant, premier niveau : les gens. Le bouton vit dans la
      tête de liste des deux côtés. */
   correspondants: [`document.querySelector('button[aria-label="Ranger par correspondant"]')?.click()`],
@@ -110,7 +113,7 @@ const OPENERS = {
 };
 
 /** Les écrans qui ne sont pas des cartes flottantes : rien à mesurer, mais à capturer partout. */
-const BOTH_SIZES = new Set(["fil", "piece-jointe", "rail", "masquee", "volet-message", "composeur", "html-large", "correspondants", "correspondants-large"]);
+const BOTH_SIZES = new Set(["fil", "infolettre", "piece-jointe", "rail", "masquee", "volet-message", "composeur", "html-large", "correspondants", "correspondants-large"]);
 
 const CARD = `(() => {
   const el = document.querySelector('[data-slot="sheet-content"], [data-slot="dialog-content"]');

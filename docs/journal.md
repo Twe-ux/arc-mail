@@ -56,6 +56,12 @@ message » est venu se ranger contre le filtre — dans les trois états, et non
 masquée — et les tuiles de dossiers ont gagné, au bout, **la case de la boîte courante** : un clic
 passe à la suivante, comme la case d'espace de la barre du bas sur téléphone.
 
+Et le mail ouvert, comparé à Mail d'iOS sur le même courrier, a cessé d'être une dalle : **trois
+blocs** au lieu d'un — l'objet a sa zone (26 px, de l'air au-dessus et en dessous), l'en-tête du
+message est clos par un filet et rend sa ligne à « à moi » en poussant la date courte à droite du
+nom, et la feuille du courrier remplit la carte, sans anneau ni marge autour d'elle sur téléphone,
+avec 16 px de marge dedans au lieu de 12.
+
 ## 5 septembre 2026 — le lot mobile
 
 Le handoff `design_handoff_arc_mail_mobile` monté de bout en bout : la pill d'actions partagée, la

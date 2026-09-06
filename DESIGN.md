@@ -134,6 +134,7 @@ typography:
     s18: "18px"
     s19: "19px"
     s20: "20px"
+    s26: "26px"
     s30: "30px"
 rounded:
   hairline: "2px"
@@ -529,7 +530,7 @@ md:text-sm`.
 
 - **Display** (700, 30px, 1.15, `-0.02em`) : le grand titre de dossier sur téléphone, sur le voile
   (`list-header.tsx`).
-- **Objet en lecture** (700, 22px, 1.25, `-0.015em`, `text-pretty`) : le titre de la carte du mail
+- **Objet en lecture** (700, 26px, 1.18, `-0.02em`, `text-pretty`) : le titre de la carte du mail
   ouvert (`thread-view.tsx`). Il a remplacé le 19px de l'ancien en-tête : l'objet est descendu dans
   la carte, où il est le titre de ce qu'on lit plutôt qu'une étiquette au-dessus.
 - **Headline** (700, 19px, 1.25, `-0.025em`) : l'objet du fil sur téléphone, deux lignes max, calé

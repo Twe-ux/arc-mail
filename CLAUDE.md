@@ -189,6 +189,9 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 **Mail ouvert** → [docs/features/mail-ouvert.md](docs/features/mail-ouvert.md)
 - En-tête à trois éléments (retour · dossier·espace / n sur N · favori) ; l'objet vit dans la carte.
 - Corps **à bord perdu** : un seul cadre sur téléphone, pas trois ; « à moi », pas notre nom.
+- Trois blocs, pas une dalle : objet 26/1.18 avec son air, en-tête du message clos par un **filet**
+  (date courte à droite du nom, date longue dans les destinataires dépliés), puis la feuille du
+  courrier qui **remplit la carte** — marge intérieure 16, anneau et rayon sur bureau seulement.
 - **Ouvrir un mail ne lève pas le clavier** : sur téléphone l'en-tête d'un message déplie les
   destinataires (il vise la réponse sur bureau seulement), et la rangée de la liste avale le clic
   fantôme d'iOS qui retombait sur « Répondre ».

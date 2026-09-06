@@ -54,7 +54,16 @@ function Attente() {
   );
 }
 
-const MARGE = 12;
+/**
+ * La marge du cadre, sur les quatre cotes.
+ *
+ * **16 px, et non 12.** C'est ce qui manquait a la lecture : le courrier
+ * commençait a douze pixels du bord quand tout le reste de l'ecran — objet,
+ * expediteur, texte simple — se tient a vingt. Quatre pixels de plus le
+ * rapprochent de cette verticale sans lui coûter d'echelle qui se voie (une
+ * infolettre de 600 px passe de 0,615 a 0,602 sur un telephone de 393).
+ */
+const MARGE = 16;
 
 const STYLE = `
   :root { color-scheme: light; }
@@ -260,7 +269,13 @@ function CorpsHtml({ html, bloquees }: { html: string; bloquees: number }) {
   };
 
   return (
-    <div className="mt-4 overflow-hidden rounded-xl bg-white ring-1 ring-black/[0.08]">
+    /* **Un seul cadre sur telephone.** La feuille blanche du courrier y est la
+       surface : elle remplit la carte, sans marge ni anneau — un rectangle
+       arrondi de plus a l'interieur d'un autre etait le troisieme cadre que la
+       fiche interdit. Sur bureau elle garde son anneau et son rayon : elle y
+       flotte sur le fond sombre du volet, et sans bord elle n'aurait plus de
+       tranche. */
+    <div className="overflow-hidden bg-white md:mt-4 md:rounded-xl md:ring-1 md:ring-black/[0.08]">
       {bloquees > 0 && !montrees && (
         /* Dire ce qui est retenu, et pourquoi, plutôt que d'afficher un
            message troué sans explication. */

@@ -18,6 +18,14 @@ import { SpaceIcon } from "./space-icon";
  * du téléphone (441 px clavier sorti) les deux défilaient l'un dans l'autre et
  * le curseur pouvait passer sous le bord visible en cours de frappe. Les
  * lignes ne bougent plus, le corps prend ce qui reste et défile seul.
+ *
+ * **Et les deux sont des enfants directs de la carte** (un fragment, pas une
+ * boîte à eux). Enfermés dans un `flex-1 min-h-0`, ils disparaissaient sous un
+ * panneau : la boîte tombait à quelques pixels, les lignes en `shrink-0`
+ * débordaient sans être rognées, et « Mise en forme » se dessinait par-dessus
+ * « À » et l'objet — vu sur iPhone, clavier resté ouvert. Enfants directs, la
+ * carte répartit elle-même : lignes intouchables, corps avec un **plancher**
+ * (`min-h-24`), panneau qui se comprime et défile.
  */
 export function ComposeFields({
   draft,
@@ -56,10 +64,11 @@ export function ComposeFields({
   }, [viseCorps]);
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
+    <>
       <div className="shrink-0">
         <RecipientField
           label="À"
+          compact={compact}
           value={draft.to}
           onChange={(to) => update({ to })}
           suggestions={contacts}
@@ -67,62 +76,56 @@ export function ComposeFields({
              et « nom@exemple.fr » y dit un format, pas le nom de la ligne. */
           placeholder="nom@exemple.fr"
           autoFocus={!viseCorps}
-          trailing={
-            !details && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setDetails(true);
-                }}
-                aria-label="Afficher Cc et Cci"
-                className="ml-auto shrink-0 rounded-full px-1 py-1 text-muted-foreground hover:bg-muted hover:text-foreground"
-              >
-                {compact ? <span className="text-[15px]">Cc/Cci</span> : <ChevronDown className="size-4" />}
-              </button>
-            )
-          }
         />
         {details && (
           <>
             <RecipientField
               label="Cc"
+              compact={compact}
               value={draft.cc}
               onChange={(cc) => update({ cc })}
               suggestions={contacts}
             />
             <RecipientField
               label="Cci"
+              compact={compact}
               value={draft.bcc}
               onChange={(bcc) => update({ bcc })}
               suggestions={contacts}
             />
-            {!compact && (
-              <Row label="De">
-                <FromSelect
-                  value={draft.spaceId}
-                  onChange={(spaceId) => update({ spaceId })}
-                />
-              </Row>
-            )}
+            <Row label="De" compact={compact}>
+              <FromSelect
+                value={draft.spaceId}
+                onChange={(spaceId) => update({ spaceId })}
+              />
+            </Row>
           </>
         )}
-        {!compact && !details && (
-          /* Apple Mail's folded line: one tap opens the three rows. */
+        {!details && (
+          /* **La ligne repliée de Mail d'iOS**, la même sur les deux tailles :
+             un appui ouvre Cc, Cci et l'expéditeur. Elle porte l'adresse d'où
+             part le message — c'est ce qu'on vérifie en premier quand on tient
+             trois boîtes, et ça ne coûte pas une ligne de plus. */
           <button
             type="button"
             onClick={() => setDetails(true)}
-            className="flex h-11 w-full shrink-0 items-center gap-3 border-b border-black/[0.07] dark:border-white/[0.12] px-4 text-left text-[15px] sm:text-sm"
+            className={cn(
+              "flex h-11 w-full shrink-0 items-center gap-1.5 px-4 text-left",
+              "relative after:pointer-events-none after:absolute after:inset-x-4 after:bottom-0 after:h-px after:bg-black/[0.07] dark:after:bg-white/[0.12]",
+              compact ? "text-[15px]" : "gap-3 text-[15px] sm:text-sm",
+            )}
           >
-            <span className="w-14 shrink-0 whitespace-nowrap text-muted-foreground">
-              Cc/Cci
+            <span className="shrink-0 whitespace-nowrap text-muted-foreground">
+              {compact ? "Cc/Cci, De :" : "Cc/Cci"}
             </span>
             <span className="truncate text-muted-foreground">
-              De : <span className="text-foreground">{space.email}</span>
+              {!compact && "De : "}
+              <span className="text-foreground">{space.email}</span>
             </span>
+            {!compact && <ChevronDown className="ml-auto size-4 shrink-0 text-muted-foreground" />}
           </button>
         )}
-        <Row label="Objet">
+        <Row label="Objet" compact={compact}>
           {/* Pas d'invite ici : « Objet » était écrit deux fois, une fois en
               label et une fois dans le champ. */}
           <input
@@ -147,72 +150,36 @@ export function ComposeFields({
         placeholder="Écris ton message…"
         style={bodyStyle}
         className={cn(
-          "min-h-0 flex-1 resize-none overflow-y-auto overscroll-contain bg-transparent px-4 py-3.5 outline-none placeholder:text-muted-foreground",
+          /* Un plancher, pas `min-h-0` : un panneau ouvert pendant que le
+             clavier tient bon ne doit pas réduire le message à rien. */
+          "min-h-24 flex-1 resize-none overflow-y-auto overscroll-contain bg-transparent px-4 py-3.5 outline-none placeholder:text-muted-foreground",
           compact
             ? "text-[17px] leading-[1.5]"
             : "text-[15px] leading-relaxed sm:text-sm",
         )}
       />
-    </div>
+    </>
   );
 }
 
 export function Row({
   label,
+  compact,
   children,
 }: {
   label: string;
+  /** Téléphone : « Objet : » suit son texte, il ne tient pas une colonne. */
+  compact?: boolean;
   children: React.ReactNode;
 }) {
   return (
-    <label className="flex h-11 shrink-0 items-center gap-3 border-b border-black/[0.07] dark:border-white/[0.12] px-4 text-[15px] sm:text-sm">
-      <span className="w-14 shrink-0 text-muted-foreground">{label}</span>
+    <label className="flex h-11 shrink-0 items-center gap-1.5 px-4 text-[15px] sm:gap-3 sm:text-sm relative after:pointer-events-none after:absolute after:inset-x-4 after:bottom-0 after:h-px after:bg-black/[0.07] dark:after:bg-white/[0.12]">
+      <span className={cn("shrink-0 text-muted-foreground", !compact && "w-14")}>
+        {label}
+        {compact && " :"}
+      </span>
       {children}
     </label>
-  );
-}
-
-/**
- * L'expéditeur en pastille : la tuile de l'espace, l'adresse, un chevron.
- *
- * Le `select` natif est posé transparent par-dessus — c'est ce qui donne à
- * l'appui la roue d'iOS plutôt qu'une liste à nous, et un composant de moins
- * à tenir juste.
- */
-export function FromChip({
-  value,
-  onChange,
-  className,
-}: {
-  value: ComposeDraft["spaceId"];
-  onChange: (v: ComposeDraft["spaceId"]) => void;
-  className?: string;
-}) {
-  const spaces = useSpaces();
-  const space = spaces.find((sp) => sp.id === value) ?? spaces[0];
-  return (
-    <span
-      className={cn(
-        "relative flex min-w-0 items-center gap-1.5 rounded-full bg-black/[0.06] py-1 pr-2.5 pl-1 dark:bg-white/[0.10]",
-        className,
-      )}
-    >
-      <SpaceIcon space={space} size="sm" />
-      <span className="truncate text-[13px] font-medium">{space.email}</span>
-      <ChevronDown className="size-3.5 shrink-0 text-muted-foreground" />
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value as ComposeDraft["spaceId"])}
-        aria-label="Expéditeur"
-        className="absolute inset-0 cursor-pointer opacity-0"
-      >
-        {spaces.map((sp) => (
-          <option key={sp.id} value={sp.id}>
-            {sp.name} · {sp.email}
-          </option>
-        ))}
-      </select>
-    </span>
   );
 }
 

@@ -1,8 +1,14 @@
-# Cartes flottantes — menu, composeur, recherche
+# Cartes flottantes — menu et recherche
 
-Sur téléphone, les trois fenêtres (`MobileMenu`, `ComposeSheet` dans `compose-dialog.tsx`,
-`CommandPalette`) sont des **cartes flottantes** : détachées des bords, arrondies, sans poignée.
-La référence visuelle est la seconde photo envoyée pendant la refonte (commit `1618d97`).
+Sur téléphone, `MobileMenu` et `CommandPalette` sont des **cartes flottantes** : détachées des
+bords, arrondies, sans poignée. La référence visuelle est la seconde photo envoyée pendant la
+refonte (commit `1618d97`).
+
+> **Le composeur est sorti de cette fiche le 6 septembre.** Il est devenu une **feuille plein
+> écran** — bord haut sûr, trois autres bords touchés, coins hauts seuls arrondis, poignée. Ces deux
+> cartes-ci se posent *par-dessus* la boîte et leurs marges disent « fenêtre » ; écrire un message
+> est le seul moment où l'app n'est plus une boîte mais un éditeur, et sur 457 px de haut les 8 px
+> des quatre côtés étaient payés deux fois → [composeur](composeur-panneaux.md).
 
 ## Géométrie
 
@@ -12,7 +18,7 @@ haut ajoute `--safe-top`, parce que l'encoche est un obstacle réel et pas une m
 
 Dériver le bas de la safe area (34 px, ou même `safe-area − 18px` comme la barre du bas) donnait
 trois écarts différents sur une même carte, et elle se lisait comme flottant au lieu de reposer.
-Mesuré (393×852, insets 59/34) : menu, composeur et recherche à 8 / 8 / 8.
+Mesuré (393×852, insets 59/34) : menu et recherche à 8 / 8 / 8.
 
 **Arrondies à 36 px tout autour**, y compris la recherche, qui gardait les 16 px de la
 primitive : à marges égales, trois cartes qui s'arrondissent différemment se lisent comme trois
@@ -156,7 +162,6 @@ Ce qui va avec : `SheetScroller`, `SheetGroup` (le groupe encarté d'iOS, avec s
 dans le store ; sur le mail ouvert, un seul état `sheet`. Deux cartes de 36 px empilées sur 390 px
 ne se lisent plus.
 
-Le **composeur** garde sa carte plein écran (`--vv-top` / `--vv-height`) et ses deux panneaux
-internes, qui s'excluent aussi. Il est le seul à ne pas poser de pill : ses outils sont à plat
-contre le bord de la carte, et l'envoi vit dans le bandeau du haut →
-[fiche](composeur-panneaux.md).
+Le **composeur** garde le rectangle visible (`--vv-top` / `--vv-height`) et ses deux panneaux
+internes, qui s'excluent aussi, mais plus rien d'autre de cette fiche : feuille plein écran, poignée,
+outils à plat, envoi dans le bandeau du haut → [fiche](composeur-panneaux.md).

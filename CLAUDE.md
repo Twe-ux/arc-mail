@@ -76,7 +76,7 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   l'app ; bumper `VERSION` de `sw.js` ne suffit jamais seul.
 - On **mesure** en émulation (393×852, insets 59/34 en CDP) avant et après chaque correctif visuel.
 
-**Cartes flottantes** (menu, composeur, recherche) →
+**Cartes flottantes** (menu, recherche) →
 [docs/features/cartes-flottantes.md](docs/features/cartes-flottantes.md)
 - Une seule marge de **8 px** à gauche, à droite et en bas ; seul le haut ajoute `--safe-top`.
 - **36 px** de coin partout sur téléphone ; `w-auto` obligatoire sur une carte posée par ses
@@ -85,9 +85,10 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   en bas (`mask-image`) avec `pb-6` dedans.
 - Une seule surface par carte (`Command` en `bg-transparent`).
 - Le composeur occupe le **rectangle visible** (`--vv-top`, `--vv-height`), il ne compense pas le
-  clavier : c'est le défilement du navigateur qu'on annule, pas un décalage qu'on ajoute.
-- Le composeur est en cinq fichiers (aiguillage, carte, fenêtre, lignes, panneaux), aucun au-dessus
-  de 300 lignes.
+  clavier : c'est le défilement du navigateur qu'on annule, pas un décalage qu'on ajoute. Mais il
+  n'est **plus une carte flottante** : feuille plein écran → fiche composeur.
+- Le composeur est en cinq fichiers (aiguillage, feuille, fenêtre, lignes, panneaux), aucun
+  au-dessus de 300 lignes.
 - Sur bureau le composeur est **une fenêtre de 760 × 560 posée sur la boîte** (rayon 16, voile à
   35 %), pas une colonne : il ne prend aucune piste de la grille. En-tête discret — un filet et un
   titre, pas le dégradé ; la couleur de l'espace reste sur le bouton d'envoi. Le voile ne ferme pas.
@@ -215,12 +216,20 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   geste de retour se fasse du milieu, et il pose `touch-action: pan-y` sans rien empêcher.
 
 **Composeur** → [docs/features/composeur-panneaux.md](docs/features/composeur-panneaux.md)
-- Sur téléphone, **un seul bandeau** : Fermer · la boîte d'envoi en pastille · Envoyer. Les outils
-  sont **à plat** contre le bord de la carte, pas en pill — le composeur est sorti de
-  [pill-actions](docs/features/pill-actions.md), qui n'a plus que deux emplois. 245 px de message
+- Sur téléphone c'est une **feuille plein écran** (bord haut sûr, trois bords touchés, coins hauts
+  à 36, poignée) : la carte flottante payait 8 px de marge quatre fois sur l'écran le plus
+  contraint. Bandeau à deux cases rondes de 44 — fermer en verre, **envoyer** au dégradé —, grand
+  titre 30/700 qui **s'efface sous `html.keyboard-open`**, expéditeur sur la ligne repliée
+  `Cc/Cci, De :`, outils **à plat** en bas (le composeur est sorti de
+  [pill-actions](docs/features/pill-actions.md), qui n'a plus que deux emplois). 202 px de message
   clavier sorti, contre 192.
-- **Un seul défilant, et c'est le corps** ; les lignes ne bougent pas. Le focus va à « À » pour un
-  message neuf, au **corps (curseur au début)** dès que le destinataire est déjà là.
+- Les filets des lignes sont **en retrait** (`inset-x-4`), et les labels suivent leur texte sur
+  téléphone (`À :`) — la colonne de 56 px reste une mise en page de fenêtre.
+- **Lignes et corps sont enfants directs de la feuille** : enfermés dans un `flex-1 min-h-0` ils se
+  recouvraient dès qu'un panneau s'ouvrait sans que le clavier se ferme. Lignes `shrink-0`, corps
+  `flex-1` avec plancher `min-h-24`, panneau qui se comprime, défile et s'efface en bas.
+- Le focus va à « À » pour un message neuf, au **corps (curseur au début)** dès que le destinataire
+  est déjà là.
 - Les trois panneaux s'excluent et referment le clavier ; le menu du brouillon (`⋯`) a sa **clé
   d'état à part** — il se superpose au composeur, le partager le démontait.
 - Les pièces jointes voyagent en **base64** (`OutgoingAttachment`), 10 Mo par message, refusés à la

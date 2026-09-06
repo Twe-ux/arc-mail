@@ -9,60 +9,91 @@ message ([`compose-fields.tsx`](../../src/components/arc/compose-fields.tsx)) et
 [`compose-panels.tsx`](../../src/components/arc/compose-panels.tsx)) — les outils communs aux deux
 habillages vivant dans [`use-compose-tools.ts`](../../src/components/arc/use-compose-tools.ts).
 
-## Téléphone : un seul bandeau, et 245 px de message
+## Téléphone : une feuille plein écran
 
-Clavier sorti, la carte ne fait que **441 px**. Elle en dépensait 128 en **deux barres** — un
-en-tête (Fermer · un titre · un vide de 68 px pour le garder centré) et la pill flottante avec son
-bouton rond de 56 — plus 44 pour une ligne « De » qu'on ne change presque jamais. Il restait
-**192 px de message : six lignes**.
+Refonte du 6 septembre, en deux temps et sur pièces — deux captures d'iPhone, puis celle de Mail
+d'iOS comme référence.
+
+**Le point de départ.** Clavier sorti, la feuille ne fait que 457 px. Elle en dépensait 128 en
+**deux barres** — un en-tête (Fermer · un titre · un vide de 68 px pour le garder centré) et la pill
+flottante avec son bouton rond de 56 — plus 44 pour une ligne « De » qu'on ne change presque
+jamais. Il restait **192 px de message : six lignes**.
+
+**Elle n'est plus une carte flottante.** Les 8 px des quatre côtés coûtaient 16 px de large et 16 de
+haut pour dire « fenêtre », sur l'écran le plus contraint de l'app et au seul moment où celle-ci
+n'est plus une boîte mais un éditeur. La feuille part du bord haut sûr, touche les trois autres
+bords, et n'arrondit que ses coins hauts — 36 px, la mesure du dépôt. La règle des 8 px de
+[cartes flottantes](cartes-flottantes.md) vaut toujours pour le menu et la recherche, qui se posent
+*par-dessus* la boîte ; celle-ci la remplace.
 
 ```
-┌───────────────────────────────────────┐
-│ Fermer     ⌂ thierry@icloud.com ⌄  ↑  │  52  bandeau
-├───────────────────────────────────────┤
-│ À      nom@exemple.fr        Cc/Cci   │  45
-│ Objet                                 │  44
-├───────────────────────────────────────┤
-│                                       │
-│ le message                            │ 245  seul défilant
-│                                       │
-├───────────────────────────────────────┤
-│ 📎   Aa                          ⋯    │  55  outils, à plat
-└───────────────────────────────────────┘
+────  poignée : le glisser-fermer existait, rien ne le disait
+(✕)                                       (↑)   56
+Nouveau message                                 41   caché clavier ouvert
+À :  …                                          44
+Cc/Cci, De : thierry@icloud.com                 44
+Objet :                                         44
+le message                                     202   seul défilant
+📎  Aa                                    ⋯     55   outils, à plat
 ```
 
-| | Rendu au message |
+| | |
 |---|---|
-| « De » devient la **pastille centrale du bandeau**, là où était un titre qui ne disait rien que la carte ne disait déjà | 44 |
-| L'envoi monte dans ce bandeau, à droite ; la barre du bas n'a plus à porter un disque de 56 | 18 |
-| La pill flottante devient une **rangée d'outils à plat** contre le bord de la carte | 6 |
-| **Total** — 245 px, huit lignes | **+53** |
+| Feuille clavier sorti | **457** (441 en carte flottante) |
+| Message | **202** px, huit lignes — 192 avant |
+| Message au repos | 471 px |
 
-**L'expéditeur reste la première chose qu'on vérifie** quand on tient trois boîtes dans la même
-app : il n'a pas disparu, il a changé de place. En pastille au centre du bandeau — tuile de
-l'espace, adresse, chevron, et le `select` natif posé transparent par-dessus pour que l'appui donne
-la roue d'iOS. Sur bureau il reste sous Cc/Cci, où la colonne a la place.
+**Le grand titre s'efface quand on écrit.** 30/1.1/-0.02em, il donne à l'écran sa tête d'éditeur au
+repos ; clavier sorti il retiendrait 41 px que le message réclame, et il disparaît par
+`html.keyboard-open` — la classe existe exactement pour ça (« abandonner ce dont une carte n'a pas
+besoin pendant qu'on écrit »).
 
-**L'envoi remonte, et c'est un arbitrage** contre la version du 5 septembre, qui l'avait descendu
-« là où le pouce est ». Clavier sorti, le pouce est **sur les touches**, pas sous elles, et le
-bouton rond coûtait une barre entière pour une seule action. En haut à droite il est là où Mail
-d'iOS le met, et la barre du bas devient ce qu'iOS en fait : les outils d'écriture, juste au-dessus
-du clavier. 40 px de disque et une cible de 48 (`after:-inset-1`) : la cible minimale d'Apple est
-tenue sans le disque de 56.
+**L'expéditeur est sur la ligne repliée**, comme chez Apple : `Cc/Cci, De : adresse`. Il a été une
+ligne à lui (5 sept.), puis une pastille au centre du bandeau (6 sept. au matin) ; les deux
+coûtaient une place que la ligne de Cc/Cci offrait gratuitement. Un appui l'ouvre avec Cc et Cci, et
+c'est la **même ligne sur les deux tailles** — une branche de moins.
 
-**La rangée d'outils est à plat, pas en pill** — l'autre écart à la fiche
-[pill d'actions](pill-actions.md), qui n'a donc plus que deux emplois. Le verre de la pill dit
-« posé par-dessus ce qui défile » ; ici rien ne défile dessous, c'est le bord de la carte. Cases de
-40 px, 8 px sous elles : à cette hauteur le coin de 36 px ne mord pas sur la case de gauche — son
-cercle reste à 30 px du centre du congé, pour un rayon de 36. Mesuré : trombone à `x = 10, y = 8`
-du coin, envoi à 12 px du bord droit, marges de carte 8/8/8.
+**L'envoi est en haut à droite**, où Mail d'iOS le met. C'est un arbitrage contre la version du
+5 septembre, qui l'avait descendu « là où le pouce est » : clavier sorti, le pouce est **sur** les
+touches, pas sous elles, et le disque de 56 coûtait une barre entière pour une seule action. Deux
+cases rondes de 44 encadrent le bandeau — fermer en verre, envoyer au dégradé de l'espace, la règle
+du thème.
 
-## Un seul défilant, et c'est le corps
+**La rangée d'outils est à plat, pas en pill** : le composeur est sorti de
+[pill-actions](pill-actions.md), qui n'a donc plus que deux emplois. Le verre d'une pill dit « posé
+par-dessus ce qui défile » ; ici rien ne défile dessous, c'est le bord de la feuille. Son coussin du
+bas est l'encoche **moins le clavier** — `max(8px, safe-area-bottom − var(--keyboard-inset))` :
+clavier sorti la feuille s'arrête sur les touches et 34 px de vide y seraient un trou ; clavier
+rangé elle descend au bord, et l'indicateur d'accueil passerait sur les cases.
+
+**Les filets des lignes sont en retrait** (`after` à `inset-x-4`), pas d'un bord à l'autre : sur une
+feuille pleine largeur, un trait qui traverse découpe l'écran en bandes, alors qu'un trait qui
+commence où commence le texte range des lignes. Et les labels suivent leur texte (`À :`, `Objet :`)
+au lieu de tenir une colonne de 56 px — la colonne est une mise en page de fenêtre, elle reste sur
+bureau.
+
+## Un seul défilant, et rien qui se recouvre
 
 Les lignes et le champ vivaient dans le même conteneur défilant, et le champ portait `min-h-48` :
-sur 441 px, les deux défilaient l'un dans l'autre et le curseur pouvait passer sous le bord visible
-en cours de frappe. Les lignes ne bougent plus (`shrink-0`), le corps prend ce qui reste
-(`min-h-0 flex-1`) et défile seul.
+sur 457 px, les deux défilaient l'un dans l'autre et le curseur pouvait passer sous le bord visible
+en cours de frappe.
+
+Le premier remède — un `flex-1 min-h-0` autour des deux — a produit **un défaut pire, vu sur
+iPhone** : le clavier n'étant pas toujours refermé par le `blur()` qui accompagne l'ouverture d'un
+panneau, la boîte tombait à quelques pixels, ses lignes en `shrink-0` débordaient sans être rognées,
+et « Mise en forme » se dessinait **par-dessus** « À » et l'objet.
+
+Les lignes et le corps sont donc des **enfants directs de la feuille** (un fragment, pas une boîte à
+eux) : la feuille répartit elle-même, et personne ne peut déborder de personne.
+
+- **Lignes** : `shrink-0`, intouchables.
+- **Corps** : `flex-1` avec un **plancher** de `min-h-24` — un panneau ouvert pendant que le clavier
+  tient bon ne doit pas réduire le message à rien.
+- **Panneau** : il se comprime le premier, défile, et **s'efface en bas** (`mask-image`, `pb-6`)
+  plutôt que d'être tranché au milieu d'une case.
+
+Mesuré, clavier simulé à 516 px de rectangle visible et panneau ouvert : bandeau 56, lignes 132,
+corps 96 (le plancher), panneau 106, outils 55 — 457 en tout, aucun recouvrement.
 
 ## Le clavier s'ouvre sur ce qu'on vient écrire
 
@@ -70,6 +101,9 @@ Un message neuf commence par son destinataire, et c'est « À » qui prend le fo
 transfert ou un brouillon rouvert l'ont déjà : c'est le **corps** qui le prend, curseur **au
 début** — avant la signature et le message cité. Sans ça il fallait un appui de plus pour lever le
 clavier à chaque réponse.
+
+**La barre grise d'iOS** (⌃ ⌄ ✓) qui apparaît entre la feuille et les touches est celle du système,
+posée sur les champs d'un formulaire : aucune API web ne la retire, et elle n'est pas de nous.
 
 ## Un nom par ligne, pas deux
 

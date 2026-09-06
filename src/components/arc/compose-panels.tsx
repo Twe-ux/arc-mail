@@ -114,8 +114,17 @@ export function Panneau({
   children: React.ReactNode;
 }) {
   return (
-    <section aria-label={label} className="shrink-0 px-3 pb-2">
-      <div className="mb-2 flex items-center gap-3 px-1">
+    /* **Il se comprime, il n'écrase pas.** En `shrink-0` il prenait toute sa
+       hauteur et ne laissait rien aux lignes ni au message quand le clavier
+       restait ouvert. Il cède maintenant le premier, et défile s'il le faut. */
+    <section
+      aria-label={label}
+      /* Le masque du dépôt : quand la place manque — clavier resté ouvert —,
+         le panneau défile et s'efface en bas au lieu d'être tranché au milieu
+         d'une case. Le `pb-6` le fait tomber sur du vide en fin de liste. */
+      className="flex min-h-0 shrink flex-col overflow-y-auto overscroll-contain px-3 pb-6 [mask-image:linear-gradient(to_bottom,#000_calc(100%-1.5rem),transparent)]"
+    >
+      <div className="mb-2 flex shrink-0 items-center gap-3 px-1">
         <p className="min-w-0 flex-1 truncate text-[15px] font-semibold">{label}</p>
         <SheetCloseButton onClose={onClose} />
       </div>

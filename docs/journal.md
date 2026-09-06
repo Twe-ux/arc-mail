@@ -2,6 +2,22 @@
 
 Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérification.
 
+## 6 septembre 2026 — le composeur passe en plein écran
+
+Deux captures d'iPhone ont montré ce que l'émulation ne disait pas : le clavier ne se ferme pas
+toujours quand un panneau s'ouvre, et la boîte qui tenait les lignes et le message tombait alors à
+quelques pixels — « Mise en forme » se dessinait **par-dessus** « À » et l'objet. Les lignes et le
+corps sont maintenant des **enfants directs de la feuille** : lignes intouchables, corps avec un
+plancher de 96 px, panneau qui se comprime, défile et s'efface en bas au lieu d'être tranché au
+milieu d'une case.
+
+Puis la capture de Mail d'iOS comme référence, et la carte flottante est devenue **une feuille
+plein écran** : poignée, deux cases rondes de 44 (fermer en verre, envoyer au dégradé), grand titre
+30/700 qui s'efface dès que le clavier prend l'écran, expéditeur revenu sur la ligne repliée
+`Cc/Cci, De :` comme chez Apple, filets en retrait et labels qui suivent leur texte. Les 8 px des
+quatre côtés étaient payés deux fois sur l'écran le plus contraint de l'app : la feuille fait
+457 px au lieu de 441, et le message 202 au lieu de 192.
+
 ## 6 septembre 2026 — le composeur, refondu
 
 Clavier sorti, la carte du composeur ne fait que **441 px** — et elle en dépensait 128 en deux

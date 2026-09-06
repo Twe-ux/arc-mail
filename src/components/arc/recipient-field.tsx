@@ -21,6 +21,7 @@ export function RecipientField({
   suggestions,
   autoFocus,
   trailing,
+  compact,
 }: {
   label: string;
   /**
@@ -34,6 +35,8 @@ export function RecipientField({
   suggestions: Contact[];
   autoFocus?: boolean;
   trailing?: React.ReactNode;
+  /** Téléphone : « À : » suit son texte au lieu de tenir une colonne de 56. */
+  compact?: boolean;
 }) {
   const [text, setText] = useState("");
   const [invalid, setInvalid] = useState(false);
@@ -94,10 +97,16 @@ export function RecipientField({
 
   return (
     <div
-      className="relative flex min-h-11 cursor-text flex-wrap items-center gap-1.5 border-b border-black/[0.07] dark:border-white/[0.12] px-4 py-1.5"
+      /* **Le filet est en retrait**, comme sur la feuille d'iOS : un trait qui
+         va d'un bord à l'autre découpe la feuille en bandes, alors qu'un trait
+         qui commence où commence le texte range des lignes. */
+      className="flex min-h-11 cursor-text flex-wrap items-center gap-1.5 px-4 py-1.5 relative after:pointer-events-none after:absolute after:inset-x-4 after:bottom-0 after:h-px after:bg-black/[0.07] dark:after:bg-white/[0.12]"
       onClick={() => inputRef.current?.focus()}
     >
-      <span className="w-14 shrink-0 text-[15px] text-muted-foreground sm:text-sm">{label}</span>
+      <span className={cn("shrink-0 text-[15px] text-muted-foreground sm:w-14 sm:text-sm", !compact && "w-14")}>
+        {label}
+        {compact && " :"}
+      </span>
       {value.map((email) => {
         const contact = byEmail.get(email);
         return (

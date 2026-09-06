@@ -1,10 +1,9 @@
 "use client";
 
-import { ArrowUp, MoreHorizontal, Paperclip, Type } from "lucide-react";
+import { ArrowUp, MoreHorizontal, Paperclip, Type, X } from "lucide-react";
 import type { ReactNode } from "react";
 import { toast } from "sonner";
 
-import { Button } from "@/components/ui/button";
 import {
   Sheet,
   SheetContent,
@@ -16,33 +15,44 @@ import { useMail } from "@/lib/store";
 import type { ComposeDraft } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { AttachmentChips, AttachPanel } from "./compose-attach";
-import { ComposeFields, FromChip, SendFailed } from "./compose-fields";
+import { ComposeFields, SendFailed } from "./compose-fields";
 import { DraftMenu, FormatPanel } from "./compose-panels";
 import { useComposeTools } from "./use-compose-tools";
 
 /**
- * Le composeur sur téléphone : une carte flottante, et **un seul bandeau**.
+ * Le composeur sur téléphone : **une feuille plein écran**, celle de Mail
+ * d'iOS.
  *
- * Refonte du 6 septembre. Clavier sorti, la carte ne fait que 441 px : elle en
- * dépensait 128 en deux barres — l'en-tête (Fermer · un titre · un vide de
- * 68 px pour le garder centré) et la pill flottante avec son bouton rond de
- * 56 —, plus 44 pour une ligne « De » qu'on ne change presque jamais. Il
- * restait **192 px de message**, six lignes.
+ * Elle a été une carte flottante à 8 px des quatre côtés pendant deux
+ * versions. Sur l'écran le plus contraint de l'app — 441 px de haut clavier
+ * sorti — ces marges coûtaient 16 px de large et 16 de haut pour dire
+ * « fenêtre », alors qu'écrire un message est le seul moment où l'app n'est
+ * plus une boîte mais un éditeur. La feuille part donc du bord haut sûr,
+ * touche les trois autres bords, et n'arrondit que ses coins hauts. La règle
+ * des 8 px de [cartes flottantes](../../../docs/features/cartes-flottantes.md)
+ * vaut toujours pour le menu et la recherche, qui se posent *par-dessus* la
+ * boîte ; celle-ci la remplace.
  *
- * Trois gestes, mesurés :
+ * ```
+ * ────  poignée : le glisser-fermer existait, rien ne le disait
+ * (✕)                                    (↑)   56
+ * Nouveau message                              44  caché clavier ouvert
+ * À :  …                                       45
+ * Cc/Cci, De : thierry@icloud.com              44
+ * Objet :                                      44
+ * le message                                   ↕   seul défilant
+ * 📎  Aa                                  ⋯    55  outils, à plat
+ * ```
  *
- * | | Rendu au message |
- * |---|---|
- * | « De » devient la pastille **centrale du bandeau** (là où était un titre qui ne disait rien de plus que la carte) | 44 |
- * | L'envoi monte dans ce bandeau, à droite : la barre du bas n'a plus à porter un bouton de 56 | 18 |
- * | La pill flottante devient une **rangée d'outils à plat** contre le bord de la carte | 6 |
- * | **Total** — 247 px de message, huit lignes | **55** |
+ * **Le grand titre s'efface quand on écrit** (`html.keyboard-open`) : au repos
+ * il donne à l'écran sa tête d'éditeur, clavier sorti il rendrait 44 px que le
+ * message réclame. C'est exactement ce pour quoi la classe existe.
  *
- * **L'envoi remonte, et c'est un arbitrage.** La fiche le disait « en bas,
- * là où le pouce est » ; clavier sorti le pouce est sur les touches, pas
- * sous elles, et le bouton rond y coûtait une barre entière pour une action.
- * En haut à droite il est là où Mail d'iOS le met, et la barre du bas devient
- * ce qu'iOS en fait : les outils d'écriture, juste au-dessus du clavier.
+ * **L'envoi est en haut à droite**, où Mail d'iOS le met — arbitrage contre la
+ * version du 5 septembre qui l'avait descendu « là où le pouce est » : clavier
+ * sorti, le pouce est sur les touches, et un disque de 56 px coûtait une barre
+ * entière pour une seule action. La barre du bas devient ce qu'iOS en fait :
+ * les outils d'écriture, juste au-dessus du clavier, à plat contre le bord.
  */
 export function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
   const closeCompose = useMail((s) => s.closeCompose);
@@ -92,47 +102,44 @@ export function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
            sont ce rectangle ; sans eux — premier rendu, pas de
            `visualViewport` — les valeurs de repli redonnent exactement la
            carte d'avant. */
-        /* One margin, not three: 8px left, right and bottom (`inset-x-2`).
-           Only the top still adds `--safe-top`, qui reste l'encoche même quand
-           le viewport visuel a défilé : elle obstrue l'écran, pas la page. */
-        className="inset-x-2 top-[calc(var(--vv-top,0px)+var(--safe-top)+0.5rem)] h-[calc(var(--vv-height,100dvh)-var(--safe-top)-1rem)] flex w-auto max-w-none flex-col gap-0 rounded-[36px] border-0 p-0 shadow-2xl transition-none dark:bg-[#26262a] dark:ring-1 dark:ring-white/12"
+        /* Plein écran : la feuille touche les côtés et le bas du rectangle
+           visible, et ne s'arrête en haut qu'à l'encoche — qui obstrue
+           l'écran, pas la page, même quand le viewport visuel a défilé. Ses
+           coins hauts gardent les 36 px du dépôt ; les bas n'existent plus. */
+        className="inset-x-0 top-[calc(var(--vv-top,0px)+var(--safe-top))] h-[calc(var(--vv-height,100dvh)-var(--safe-top))] flex w-auto max-w-none flex-col gap-0 rounded-t-[36px] border-0 p-0 shadow-[0_-8px_40px_rgb(0_0_0/0.28)] transition-none dark:bg-[#26262a] dark:ring-1 dark:ring-white/12"
       >
-        {/* **Un bandeau, pas deux barres.** Fermer · la boîte d'envoi ·
-            Envoyer. La pastille prend la place du titre : « Nouveau message »
-            ne disait rien que la carte ne disait déjà, alors que la boîte
-            d'où part le message est la première chose qu'on vérifie quand on
-            en tient trois dans la même app. */}
-        <header className="flex h-13 shrink-0 items-center gap-2 border-b border-black/[0.06] px-3 dark:border-white/[0.08]">
-          {/* « Fermer », not « Annuler »: closing keeps the text as a draft,
-              and in French as on iOS « Annuler » promises to throw it away.
-              The desktop window already said so; the two now agree. */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={closeCompose}
-            className="h-9 shrink-0 px-2 text-[15px] font-normal"
-          >
-            Fermer
-          </Button>
+        {/* La poignée : le glisser-fermer existe depuis le lot mobile, et rien
+            ne le disait. Sur une feuille qui touche les bords, c'est elle qui
+            annonce qu'on peut la faire redescendre. */}
+        <span
+          aria-hidden
+          className="mx-auto mt-2 h-1 w-9 shrink-0 rounded-full bg-foreground/15 dark:bg-white/20"
+        />
+        <header className="flex h-14 shrink-0 items-center justify-between px-4">
+          {/* « Fermer », pas « Annuler » : fermer garde le texte en brouillon,
+              et en français comme sur iOS « Annuler » promet de le jeter. */}
+          <RoundCase label="Fermer (brouillon conservé)" onClick={closeCompose}>
+            <X strokeWidth={2} />
+          </RoundCase>
           <SheetTitle className="sr-only">
             {draft?.draftId ? "Brouillon" : "Nouveau message"}
           </SheetTitle>
           <SheetDescription className="sr-only">Rédiger un e-mail</SheetDescription>
-          <div className="flex min-w-0 flex-1 justify-center">
-            {draft && (
-              <FromChip
-                value={draft.spaceId}
-                onChange={(spaceId) => update({ spaceId })}
-                className="max-w-full"
-              />
-            )}
-          </div>
-          <SendButton
+          <RoundCase
             label={sendError ? "Réessayer l’envoi" : "Envoyer"}
             disabled={!canSend}
+            envoi
             onClick={sendMail}
-          />
+          >
+            <ArrowUp strokeWidth={2.5} />
+          </RoundCase>
         </header>
+        {/* Le grand titre s'efface dès que le clavier prend l'écran : au repos
+            il donne sa tête d'éditeur, en écrivant il rendrait 44 px au
+            message. */}
+        <h2 className="shrink-0 truncate px-4 pb-2 text-[30px] leading-[1.1] font-bold tracking-[-0.02em] [html.keyboard-open_&]:hidden">
+          {draft?.draftId ? "Brouillon" : "Nouveau message"}
+        </h2>
 
         {sendError && <SendFailed detail={sendError} />}
         {draft && (
@@ -169,11 +176,15 @@ export function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
 
         {/* **À plat contre le bord**, pas une pill qui flotte. Le verre de la
             pill dit « posé par-dessus ce qui défile » ; ici rien ne défile
-            dessous — c'est le bord de la carte, et juste au-dessus du clavier.
-            8 px sous les cases : à cette hauteur le coin de 36 px ne mord pas
-            sur la case de gauche (son cercle reste à 30 px du centre du
-            congé, pour un rayon de 36). */}
-        <footer className="flex shrink-0 items-center gap-1 border-t border-black/[0.06] px-2.5 pt-1.5 pb-2 dark:border-white/[0.08]">
+            dessous — c'est le bord de la feuille, et juste au-dessus du
+            clavier.
+
+            Le coussin du bas est l'encoche **moins le clavier** : clavier
+            sorti, la feuille s'arrête sur les touches et 34 px de vide y
+            seraient un trou ; clavier rangé, elle descend jusqu'au bord et
+            l'indicateur d'accueil passerait sur les cases. Une seule
+            expression pour les deux, plutôt qu'une classe conditionnelle. */}
+        <footer className="flex shrink-0 items-center gap-1 border-t border-black/[0.06] px-2.5 pt-1.5 pb-[max(0.5rem,calc(env(safe-area-inset-bottom)-var(--keyboard-inset,0px)))] dark:border-white/[0.08]">
           <ToolCase
             label="Pièce jointe"
             active={t.panneau === "pieces"}
@@ -228,19 +239,24 @@ export function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
 }
 
 /**
- * L'envoi, dans le bandeau.
+ * Les deux cases rondes du bandeau : fermer à gauche, envoyer à droite.
  *
- * 40 px de verre coloré et une cible de 48 (`after:-inset-1`) : la cible
- * minimale d'Apple est tenue sans qu'un disque de 56 px mange le bandeau.
+ * 44 px — la cible d'Apple, sans le disque de 56 qui coûtait une barre. Seul
+ * l'envoi porte le dégradé de l'espace : c'est l'action, et c'est la règle du
+ * thème. Fermer reste une case de verre, comme sur la feuille d'iOS.
  */
-function SendButton({
+function RoundCase({
   label,
+  envoi,
   disabled,
   onClick,
+  children,
 }: {
   label: string;
-  disabled: boolean;
+  envoi?: boolean;
+  disabled?: boolean;
   onClick: () => void;
+  children: ReactNode;
 }) {
   return (
     <button
@@ -248,9 +264,14 @@ function SendButton({
       onClick={onClick}
       disabled={disabled}
       aria-label={label}
-      className="relative grid size-10 shrink-0 place-items-center rounded-full text-white shadow-[0_4px_14px_rgb(0_0_0/0.22)] transition-[transform,opacity] after:absolute after:-inset-1 active:scale-90 active:duration-0 disabled:opacity-35 disabled:shadow-none [background:var(--space-gradient)] [&_svg]:size-[19px]"
+      className={cn(
+        "grid size-11 shrink-0 place-items-center rounded-full transition-[transform,opacity] active:scale-90 active:duration-0 disabled:opacity-35 [&_svg]:size-[21px]",
+        envoi
+          ? "text-white shadow-[0_4px_14px_rgb(0_0_0/0.22)] disabled:shadow-none [background:var(--space-gradient)]"
+          : "bg-black/[0.06] text-foreground dark:bg-white/[0.10]",
+      )}
     >
-      <ArrowUp strokeWidth={2.5} />
+      {children}
     </button>
   );
 }

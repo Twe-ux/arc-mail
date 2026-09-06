@@ -170,7 +170,7 @@ qui suivent.
 
 ### Code
 
-- [ ] Un seul `createTouchDrag` pour les trois hooks de geste ; `compose-dialog` en quatre fichiers.
+- [ ] Un seul `createTouchDrag` pour les trois hooks de geste.
 - [ ] Icônes de dossiers dans `src/lib/folders.ts` ; `replyDraft` dans le store.
 - [ ] `@property --space-accent` pour que le changement d'espace s'interpole vraiment.
 - [ ] Cache avec péremption pour ne pas relire un espace à chaque retour.

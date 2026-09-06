@@ -1,9 +1,15 @@
-# La pill d'actions — une définition, quatre emplois
+# La pill d'actions — une définition, deux emplois
 
-Le composant partagé du lot mobile (`design_handoff_arc_mail_mobile`, 5 sept. 2026). Liste,
-lecture, composeur et feuilles posent toutes la même barre en bas de l'écran. C'était l'élément le
-plus itéré du handoff, et le seul moyen de ne pas le voir diverger écran par écran est qu'il
-n'existe qu'à un endroit : [`src/components/arc/action-pill.tsx`](../../src/components/arc/action-pill.tsx).
+Le composant partagé du lot mobile (`design_handoff_arc_mail_mobile`, 5 sept. 2026). La liste et la
+lecture posent la même barre en bas de l'écran. C'était l'élément le plus itéré du handoff, et le
+seul moyen de ne pas le voir diverger écran par écran est qu'il n'existe qu'à un endroit :
+[`src/components/arc/action-pill.tsx`](../../src/components/arc/action-pill.tsx).
+
+**Le composeur en est sorti le 6 septembre.** Sa carte flottante ne fait que 441 px clavier sorti,
+et la pill y coûtait 72 px pour une action — le verre d'une pill dit « posé par-dessus ce qui
+défile », et dans le composeur rien ne défile dessous. Sa barre d'outils est maintenant à plat
+contre le bord de la carte, l'envoi est monté dans le bandeau du haut →
+[composeur](composeur-panneaux.md).
 
 ## Les mesures, et pourquoi elles ne bougent pas
 
@@ -30,10 +36,9 @@ règles pour la même chose, et c'est la barre qui finit dépareillée.
   la pill de lecture cesse d'être identique aux autres.
 - **`p-[6px_8px]` et `gap-0` ne sont pas négociables** : cinq éléments (un primaire et quatre
   icônes) ne tiennent dans 390 px qu'à ce prix.
-- **`inset` est pour une carte qui flotte, et pour elle seule.** La variante rend les 8 px que la
-  carte prend déjà (`padding: 8px 6px`) pour retomber sur les mêmes 14 px de l'écran : c'est le cas
-  du composeur, dont la feuille est encartée. Le mail ouvert, lui, va d'un bord à l'autre — l'y
-  mettre collait sa barre aux trois côtés. Dans le doute, marges pleines.
+- **La variante `inset` est partie avec le composeur** : elle rendait les 8 px qu'une carte
+  flottante prend déjà, et c'était son seul emploi. Les deux barres qui restent vont d'un bord à
+  l'autre de l'écran, à 14 px des côtés et 16 px du bas.
 - **L'état actif se remplit** — `color-mix(in oklch, var(--space-accent) 22%, transparent)` en fond,
   `--space-ink` par-dessus. Jamais une encre en accent : c'est la règle du thème, et la seule qui
   tienne quand la teinte de l'espace change sous le doigt.

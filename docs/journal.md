@@ -2,6 +2,26 @@
 
 Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérification.
 
+## 6 septembre 2026 — le composeur, refondu
+
+Clavier sorti, la carte du composeur ne fait que **441 px** — et elle en dépensait 128 en deux
+barres, plus 44 pour une ligne « De » qu'on ne change presque jamais. Il restait 192 px de message :
+six lignes. Elle n'a plus qu'**un bandeau** : Fermer, la boîte d'envoi en pastille (là où était un
+titre qui ne disait rien que la carte ne disait déjà), et l'envoi en haut à droite, comme Mail
+d'iOS. La pill flottante devient une **rangée d'outils à plat** contre le bord de la carte, ce
+qu'iOS met au-dessus du clavier. **245 px de message, huit lignes** — et le composeur sort de la
+fiche pill d'actions, qui n'a plus que deux emplois.
+
+Deux défauts d'usage avec : les lignes et le champ défilaient l'un dans l'autre (`min-h-48` dans un
+conteneur défilant), le curseur pouvait passer sous le bord visible — un seul défilant désormais, et
+c'est le corps ; et le clavier ne se levait pas sur une réponse — le focus va au corps, curseur au
+début, dès que le destinataire est déjà là.
+
+Sur bureau, la barre du bas **fait enfin quelque chose** : le trombone est vivant, la signature
+aussi, le glisser-déposer entre par la fenêtre entière. Les trois icônes éteintes à demeure (image,
+émoji, lien) sont parties. Et les 718 lignes de `compose-dialog.tsx` sont en cinq fichiers, aucun
+au-dessus de 300.
+
 ## 6 septembre 2026 — la tête maigrit, l'objet passe sous le nom
 
 Quatre maquettes rendues sur l'app réelle avant d'écrire une ligne, et c'est la troisième qui a été

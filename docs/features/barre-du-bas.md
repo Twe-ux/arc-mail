@@ -11,8 +11,9 @@ la barre. Elle a disparu d'elle-même.
 
 Sous `md` seulement. Depuis le lot mobile du 5 septembre 2026, elle est un cas de la
 [pill d'actions](pill-actions.md) partagée : le verre, les cases de 44 px et le bouton rond de
-56 px n'existent qu'à un endroit, `action-pill.tsx`, et les quatre écrans qui posent une barre en
-bas s'en servent.
+56 px n'existent qu'à un endroit, `action-pill.tsx`, et les deux écrans qui posent une barre en bas
+s'en servent — la liste et le mail ouvert. Le composeur en est sorti le 6 septembre : sa carte ne
+fait que 441 px clavier sorti → [composeur](composeur-panneaux.md).
 
 ## Ses quatre cases
 

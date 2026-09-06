@@ -86,6 +86,8 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - Une seule surface par carte (`Command` en `bg-transparent`).
 - Le composeur occupe le **rectangle visible** (`--vv-top`, `--vv-height`), il ne compense pas le
   clavier : c'est le défilement du navigateur qu'on annule, pas un décalage qu'on ajoute.
+- Le composeur est en cinq fichiers (aiguillage, carte, fenêtre, lignes, panneaux), aucun au-dessus
+  de 300 lignes.
 - Sur bureau le composeur est **une fenêtre de 760 × 560 posée sur la boîte** (rayon 16, voile à
   35 %), pas une colonne : il ne prend aucune piste de la grille. En-tête discret — un filet et un
   titre, pas le dégradé ; la couleur de l'espace reste sur le bouton d'envoi. Le voile ne ferme pas.
@@ -131,7 +133,7 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   d'où du `padding` dedans pour tout ring.
 
 **Pill d'actions** → [docs/features/pill-actions.md](docs/features/pill-actions.md)
-- Une seule définition (`action-pill.tsx`) pour les quatre barres du bas : case **44**, bouton rond
+- Une seule définition (`action-pill.tsx`) pour les deux barres du bas (liste et lecture) : case **44**, bouton rond
   **56**, verre en `p-[6px_8px] gap-0`, barre à **14 px** des bords et **16 px** du bas — 80 px en
   tout, et la taille des icônes appartient à la pill, pas au point d'appel.
 - Les cases sont `shrink-0` et l'état actif se **remplit** (accent à 22 %, encre `--space-ink`).
@@ -203,8 +205,8 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   destinataires (il vise la réponse sur bureau seulement), et la rangée de la liste avale le clic
   fantôme d'iOS qui retombait sur « Répondre ».
 - Archiver et Supprimer **renvoient à la liste** avec un toast ; répondre remplace la pill, jamais
-  par-dessus — et il prend ses marges (14 / 16), pas la variante `inset` : le mail ouvert n'est pas
-  une carte qui flotte. L'en-tête est en `px-5`, boutons débordant de 10 px pour aligner le glyphe.
+  par-dessus — et il prend les marges pleines (14 / 16) : le mail ouvert n'est pas une carte qui
+  flotte. L'en-tête est en `px-5`, boutons débordant de 10 px pour aligner le glyphe.
 - Le message **passe sous la pill** (réserve `--nav-height`), il ne se dissout pas.
 - L'en-tête **ne se replie pas** : essayé, retiré — le repli suit le sens du défilement, et
   l'élastique du bas d'un message le faisait sauter en fin de course.
@@ -213,11 +215,17 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   geste de retour se fasse du milieu, et il pose `touch-action: pan-y` sans rien empêcher.
 
 **Composeur** → [docs/features/composeur-panneaux.md](docs/features/composeur-panneaux.md)
-- « De » est une pastille en haut sur téléphone ; l'envoi est le bouton rond de la barre.
+- Sur téléphone, **un seul bandeau** : Fermer · la boîte d'envoi en pastille · Envoyer. Les outils
+  sont **à plat** contre le bord de la carte, pas en pill — le composeur est sorti de
+  [pill-actions](docs/features/pill-actions.md), qui n'a plus que deux emplois. 245 px de message
+  clavier sorti, contre 192.
+- **Un seul défilant, et c'est le corps** ; les lignes ne bougent pas. Le focus va à « À » pour un
+  message neuf, au **corps (curseur au début)** dès que le destinataire est déjà là.
 - Les trois panneaux s'excluent et referment le clavier ; le menu du brouillon (`⋯`) a sa **clé
   d'état à part** — il se superpose au composeur, le partager le démontait.
 - Les pièces jointes voyagent en **base64** (`OutgoingAttachment`), 10 Mo par message, refusés à la
-  sélection ; la mise en forme est **désactivée et le dit** tant que le corps est du texte simple.
+  sélection ; sur bureau elles entrent par le trombone **ou par la fenêtre** (glisser-déposer). La
+  mise en forme est **désactivée et le dit** tant que le corps est du texte simple.
 
 **Barre du bas** → [docs/features/barre-du-bas.md](docs/features/barre-du-bas.md)
 - La barre est posée par-dessus la liste ; le défilant lui laisse `--nav-height` en bas, sinon le

@@ -5,12 +5,12 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 /**
- * La pill d'actions : une définition, quatre emplois.
+ * La pill d'actions : une définition, deux emplois.
  *
- * Liste, lecture, composeur et feuilles posent toutes la même barre en bas de
- * l'écran — même verre, mêmes proportions, même position. C'est l'élément le
- * plus itéré du lot de design, et le seul moyen de ne pas le voir diverger
- * écran par écran est qu'il n'existe qu'ici.
+ * La liste et la lecture posent la même barre en bas de l'écran — même verre,
+ * mêmes proportions, même position. C'est l'élément le plus itéré du lot de
+ * design, et le seul moyen de ne pas le voir diverger écran par écran est
+ * qu'il n'existe qu'ici.
  *
  * Ce qu'on ne change pas, et pourquoi :
  *
@@ -18,8 +18,7 @@ import { cn } from "@/lib/utils";
  *   en porte le plus, et la pill de lecture cesse d'être identique aux autres.
  * - **`p-[6px_8px]`, `gap-0`.** Cinq éléments (un primaire et quatre icônes)
  *   ne tiennent dans 390 px qu'à ce prix.
- * - **Toutes les barres sont à 14 px des bords et 16 px du bas.** Une carte
- *   déjà encartée de 8 px compense son propre encart pour retomber dessus.
+ * - **Les deux barres sont à 14 px des bords et 16 px du bas.**
  *
  * **Les mesures ont maigri le 5 septembre au soir** : case 52 → 44, bouton rond
  * 68 → 56, barre 96 px → 80. Les premières venaient du handoff ; sur une vraie
@@ -32,30 +31,25 @@ import { cn } from "@/lib/utils";
 export const PILL_HEIGHT = 56;
 
 /**
- * La barre elle-même, posée par-dessus le contenu.
+ * La barre elle-même, posée par-dessus le contenu : le défilant lui laisse
+ * `--nav-height` en bas, sinon le verre n'a rien à flouter.
  *
- * Sur l'écran principal le défilant lui laisse `--nav-height` ; dans une carte
- * déjà encartée de 8 px elle rend ces 8 px pour retomber sur les mêmes 14 px
- * de l'écran.
+ * La variante `inset` — 8 px rendus par une carte déjà encartée — est partie
+ * avec le composeur du 6 septembre : c'était son seul emploi, et sa barre
+ * d'outils est maintenant à plat contre le bord de la carte.
  */
 export function ActionBar({
-  inset = false,
   className,
   children,
   ...rest
 }: {
-  /** Dans une carte flottante : la barre compense l'encart de 8 px de la carte. */
-  inset?: boolean;
   className?: string;
   children: ReactNode;
 } & Omit<React.HTMLAttributes<HTMLDivElement>, "children">) {
   return (
     <div
       className={cn(
-        "flex shrink-0 items-center justify-between gap-2 pt-2",
-        inset
-          ? "px-[6px] pb-2"
-          : "px-[14px] pb-[max(16px,calc(env(safe-area-inset-bottom)-18px))]",
+        "flex shrink-0 items-center justify-between gap-2 px-[14px] pt-2 pb-[max(16px,calc(env(safe-area-inset-bottom)-18px))]",
         className,
       )}
       {...rest}

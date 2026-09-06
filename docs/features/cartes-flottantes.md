@@ -157,4 +157,6 @@ dans le store ; sur le mail ouvert, un seul état `sheet`. Deux cartes de 36 px 
 ne se lisent plus.
 
 Le **composeur** garde sa carte plein écran (`--vv-top` / `--vv-height`) et ses deux panneaux
-internes, qui s'excluent aussi → [fiche](composeur-panneaux.md).
+internes, qui s'excluent aussi. Il est le seul à ne pas poser de pill : ses outils sont à plat
+contre le bord de la carte, et l'envoi vit dans le bandeau du haut →
+[fiche](composeur-panneaux.md).

@@ -1,18 +1,75 @@
-# Le composeur : pièces jointes et mise en forme
+# Le composeur
 
-Ajouté le 5 septembre 2026 avec le lot mobile.
-[`compose-panels.tsx`](../../src/components/arc/compose-panels.tsx),
-[`compose-dialog.tsx`](../../src/components/arc/compose-dialog.tsx).
+Ajouté le 5 septembre 2026 avec le lot mobile, **refondu le 6**. Cinq fichiers, aucun au-dessus de
+300 lignes : l'aiguillage ([`compose-dialog.tsx`](../../src/components/arc/compose-dialog.tsx)), la
+carte du téléphone ([`compose-sheet.tsx`](../../src/components/arc/compose-sheet.tsx)), la fenêtre
+du bureau ([`compose-window.tsx`](../../src/components/arc/compose-window.tsx)), les lignes du
+message ([`compose-fields.tsx`](../../src/components/arc/compose-fields.tsx)) et les panneaux
+([`compose-attach.tsx`](../../src/components/arc/compose-attach.tsx),
+[`compose-panels.tsx`](../../src/components/arc/compose-panels.tsx)) — les outils communs aux deux
+habillages vivant dans [`use-compose-tools.ts`](../../src/components/arc/use-compose-tools.ts).
 
-## L'expéditeur est une pastille, en haut
+## Téléphone : un seul bandeau, et 245 px de message
 
-Sur téléphone, « De » est **sa propre ligne**, avec la tuile de l'espace, l'adresse et un chevron ;
-un appui ouvre la roue native. C'est la première chose qu'on vérifie quand on tient trois boîtes
-dans la même app, et elle était repliée sous « Cc/Cci ». Sur bureau elle reste sous Cc/Cci, où la
-colonne a la place.
+Clavier sorti, la carte ne fait que **441 px**. Elle en dépensait 128 en **deux barres** — un
+en-tête (Fermer · un titre · un vide de 68 px pour le garder centré) et la pill flottante avec son
+bouton rond de 56 — plus 44 pour une ligne « De » qu'on ne change presque jamais. Il restait
+**192 px de message : six lignes**.
 
-L'envoi est descendu de l'en-tête vers le **bouton rond de 68 px** de la barre : c'est là que le
-pouce est, et c'est la même géométrie que sur l'écran principal.
+```
+┌───────────────────────────────────────┐
+│ Fermer     ⌂ thierry@icloud.com ⌄  ↑  │  52  bandeau
+├───────────────────────────────────────┤
+│ À      nom@exemple.fr        Cc/Cci   │  45
+│ Objet                                 │  44
+├───────────────────────────────────────┤
+│                                       │
+│ le message                            │ 245  seul défilant
+│                                       │
+├───────────────────────────────────────┤
+│ 📎   Aa                          ⋯    │  55  outils, à plat
+└───────────────────────────────────────┘
+```
+
+| | Rendu au message |
+|---|---|
+| « De » devient la **pastille centrale du bandeau**, là où était un titre qui ne disait rien que la carte ne disait déjà | 44 |
+| L'envoi monte dans ce bandeau, à droite ; la barre du bas n'a plus à porter un disque de 56 | 18 |
+| La pill flottante devient une **rangée d'outils à plat** contre le bord de la carte | 6 |
+| **Total** — 245 px, huit lignes | **+53** |
+
+**L'expéditeur reste la première chose qu'on vérifie** quand on tient trois boîtes dans la même
+app : il n'a pas disparu, il a changé de place. En pastille au centre du bandeau — tuile de
+l'espace, adresse, chevron, et le `select` natif posé transparent par-dessus pour que l'appui donne
+la roue d'iOS. Sur bureau il reste sous Cc/Cci, où la colonne a la place.
+
+**L'envoi remonte, et c'est un arbitrage** contre la version du 5 septembre, qui l'avait descendu
+« là où le pouce est ». Clavier sorti, le pouce est **sur les touches**, pas sous elles, et le
+bouton rond coûtait une barre entière pour une seule action. En haut à droite il est là où Mail
+d'iOS le met, et la barre du bas devient ce qu'iOS en fait : les outils d'écriture, juste au-dessus
+du clavier. 40 px de disque et une cible de 48 (`after:-inset-1`) : la cible minimale d'Apple est
+tenue sans le disque de 56.
+
+**La rangée d'outils est à plat, pas en pill** — l'autre écart à la fiche
+[pill d'actions](pill-actions.md), qui n'a donc plus que deux emplois. Le verre de la pill dit
+« posé par-dessus ce qui défile » ; ici rien ne défile dessous, c'est le bord de la carte. Cases de
+40 px, 8 px sous elles : à cette hauteur le coin de 36 px ne mord pas sur la case de gauche — son
+cercle reste à 30 px du centre du congé, pour un rayon de 36. Mesuré : trombone à `x = 10, y = 8`
+du coin, envoi à 12 px du bord droit, marges de carte 8/8/8.
+
+## Un seul défilant, et c'est le corps
+
+Les lignes et le champ vivaient dans le même conteneur défilant, et le champ portait `min-h-48` :
+sur 441 px, les deux défilaient l'un dans l'autre et le curseur pouvait passer sous le bord visible
+en cours de frappe. Les lignes ne bougent plus (`shrink-0`), le corps prend ce qui reste
+(`min-h-0 flex-1`) et défile seul.
+
+## Le clavier s'ouvre sur ce qu'on vient écrire
+
+Un message neuf commence par son destinataire, et c'est « À » qui prend le focus. Une réponse, un
+transfert ou un brouillon rouvert l'ont déjà : c'est le **corps** qui le prend, curseur **au
+début** — avant la signature et le message cité. Sans ça il fallait un appui de plus pour lever le
+clavier à chaque réponse.
 
 ## Un nom par ligne, pas deux
 
@@ -40,6 +97,14 @@ signature de l'espace dans le message.
 
 Les fichiers joints s'affichent en vignettes (tuile 30, nom 13/500 tronqué, poids en 11 px, croix
 ronde de 24) au-dessus de la barre.
+
+**Sur bureau, ils entrent par le trombone ou par la fenêtre.** La barre du bas portait quatre icônes
+grises — trombone, image, émoji, lien — désactivées « en attendant le dos » ; le trombone, lui,
+avait un dos depuis le 5 septembre, sur téléphone. On pouvait joindre un fichier avec le pouce et
+pas avec une souris. Il est vivant, la signature aussi, et le **glisser-déposer** entre par la
+fenêtre entière (compteur d'entrées, pas un booléen : `dragleave` part aussi quand le pointeur passe
+d'un enfant à un autre). Les trois autres icônes sont parties : trois boutons éteints à demeure ne
+sont pas une promesse, c'est du bruit.
 
 **Ils voyagent vraiment.** `OutgoingAttachment` (`provider.ts`) porte `{ name, mime, size, data }`,
 le contenu en **base64** — le message part en JSON vers `/api/mail`, et un `File` ne survit pas à

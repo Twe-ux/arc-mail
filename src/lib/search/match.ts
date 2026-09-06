@@ -1,4 +1,4 @@
-import { threadMatchesFolder } from "@/lib/store";
+import { cestNous, threadMatchesFolder } from "@/lib/store";
 import type { Contact, Message, Thread } from "@/lib/types";
 import type { Noeud } from "./ast";
 import { laver } from "./parse";
@@ -53,19 +53,48 @@ export function correspond(n: Noeud, t: Thread): boolean {
 /** Tout ce qu'un fil offre à un mot nu, lavé une fois et gardé. */
 const cache = new WeakMap<Thread, string>();
 
+/**
+ * Les morceaux d'un fil qu'un mot nu peut atteindre, dans l'ordre où on les
+ * montrerait — c'est aussi celui où `extrait` les fouille pour dire *pourquoi*
+ * un fil est là.
+ *
+ * **Notre propre identité n'en est pas.** Elle est dans les destinataires de
+ * tout le courrier reçu et dans l'expéditeur de tout celui qu'on écrit :
+ * chercher son propre prénom rendait la boîte entière, et sur une ligne qui ne
+ * montre ni destinataire ni corps, rien n'expliquait ces résultats. Signalé sur
+ * « Thierry », qui remontait toute la réception. Les autres correspondants
+ * restent cherchables — un mot nu les trouve, et `à:` les vise —, y compris
+ * dans Envoyés où l'expéditeur est toujours nous. Le corps, lui, reste entier :
+ * « Bonjour Thierry » est une vraie mention, et l'extrait la montre.
+ */
+function morceauxDe(t: Thread): string[] {
+  const morceaux = [t.subject, t.snippet];
+  for (const m of t.messages) {
+    if (!cestNous(m.from.email)) morceaux.push(entier(m.from));
+    morceaux.push(m.body);
+    for (const c of [...m.to, ...(m.cc ?? [])]) {
+      if (!cestNous(c.email)) morceaux.push(entier(c));
+    }
+    for (const p of m.attachments ?? []) morceaux.push(p.name);
+  }
+  morceaux.push(...t.labels);
+  return morceaux.filter(Boolean);
+}
+
+/** Un correspondant d'un seul tenant : trouvé dans la copie, l'extrait montre
+ *  qui c'est, pas seulement l'adresse qui a répondu. */
+function entier(c: Contact): string {
+  return c.name ? `${c.name} <${c.email}>` : c.email;
+}
+
 function partout(t: Thread): string {
   const connu = cache.get(t);
   if (connu !== undefined) return connu;
-  const morceaux = [t.subject, t.snippet, ...t.labels];
-  for (const m of t.messages) {
-    morceaux.push(m.from.name, m.from.email, m.body);
-    for (const c of [...m.to, ...(m.cc ?? [])]) morceaux.push(c.name, c.email);
-    for (const p of m.attachments ?? []) morceaux.push(p.name);
-  }
-  const lave = laver(morceaux.filter(Boolean).join(" "));
+  const lave = laver(morceauxDe(t).join(" "));
   /* Le fil est **remplacé** à chaque écriture du store, jamais muté : une
      entrée périmée n'existe pas, et la clé faible laisse partir les fils que la
-     liste a oubliés. */
+     liste a oubliés. Brancher un compte de plus change ce que `cestNous`
+     répond sans toucher aux fils — mais un compte de plus recharge la liste. */
   cache.set(t, lave);
   return lave;
 }
@@ -80,4 +109,62 @@ function dateDuFil(t: Thread): number | null {
   if (!dernier) return null;
   const d = Date.parse(dernier.date);
   return Number.isNaN(d) ? null : d;
+}
+
+/**
+ * **Pourquoi ce fil est là**, quand la rangée ne le montre pas.
+ *
+ * Une rangée de résultat porte l'objet et l'expéditeur. Un mot nu, lui, cherche
+ * aussi dans l'aperçu, le corps, les correspondants et les pièces jointes : le
+ * fil remonte alors sans que rien ne s'y surligne, et la liste a l'air fausse
+ * — c'est exactement ce que la règle de la fiche interdit, « un résultat qui ne
+ * montre pas pourquoi il est là oblige à relire la ligne entière ».
+ *
+ * On rend donc le morceau qui a répondu, taillé autour du mot. `null` quand
+ * l'objet ou l'expéditeur portent déjà tous les mots : la ligne se suffit, et
+ * une troisième ligne de plus la surchargerait pour rien.
+ */
+export function extrait(t: Thread, mots: string): string | null {
+  const cherches = mots.split(" ").filter((m) => m.length >= 2);
+  if (cherches.length === 0) return null;
+  const dernier = t.messages[t.messages.length - 1];
+  const visible = laver(`${t.subject} ${dernier?.from.name ?? ""}`);
+  const manquant = cherches.find((m) => !visible.includes(m));
+  if (manquant === undefined) return null;
+  /* **La source la plus riche l'emporte**, pas la première venue : l'aperçu est
+     la première ligne du corps, donc « Salut Thierry, » gagnait contre la phrase
+     entière qui suit. On garde la fenêtre la plus large — et l'aperçu reprend la
+     main quand le corps n'est pas encore descendu, ce qui est le cas de tout fil
+     qu'on n'a pas ouvert. */
+  let meilleur: string | null = null;
+  for (const source of morceauxDe(t)) {
+    const propre = source.replace(/\s+/g, " ").trim();
+    const i = laver(propre).indexOf(manquant);
+    if (i < 0) continue;
+    const coupe = fenetre(propre, i, manquant.length);
+    if (meilleur === null || coupe.length > meilleur.length) meilleur = coupe;
+  }
+  return meilleur;
+}
+
+/**
+ * Une fenêtre autour du mot trouvé, coupée aux espaces.
+ *
+ * Plus court devant que derrière : ce qui suit le mot dit de quoi il retourne,
+ * ce qui le précède sert seulement à ne pas commencer au milieu d'une syllabe.
+ */
+function fenetre(texte: string, i: number, n: number): string {
+  const AVANT = 24;
+  const APRES = 64;
+  let debut = Math.max(0, i - AVANT);
+  let fin = Math.min(texte.length, i + n + APRES);
+  if (debut > 0) {
+    const espace = texte.indexOf(" ", debut);
+    if (espace >= 0 && espace < i) debut = espace + 1;
+  }
+  if (fin < texte.length) {
+    const espace = texte.lastIndexOf(" ", fin);
+    if (espace > i + n) fin = espace;
+  }
+  return `${debut > 0 ? "…" : ""}${texte.slice(debut, fin)}${fin < texte.length ? "…" : ""}`;
 }

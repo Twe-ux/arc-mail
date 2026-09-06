@@ -180,3 +180,47 @@ troisième, jeté, sur le serveur. Zéro erreur de console.
   l'arbre, elles ne demandent rien de plus.
 - **À voir sur une vraie boîte** : les `SEARCH` d'iCloud, leur temps de réponse, et ce que
   `multipart/mixed` attrape vraiment.
+
+---
+
+## Un mot nu, et ce qu'il a le droit de trouver (6 sept. 2026)
+
+Signalé : **« si je mets Thierry il y a des mails proposés mais sans Thierry »**. La liste rendait
+presque toute la réception, et aucune rangée ne montrait le mot.
+
+**Notre propre identité n'est pas un critère.** Elle est dans les destinataires de tout le courrier
+reçu et dans l'expéditeur de tout celui qu'on écrit : chercher son propre prénom rendait la boîte
+entière. `morceauxDe()` écarte donc, à l'expéditeur comme à la copie, tout contact dont l'adresse
+est une des nôtres (`cestNous`, la même liste que « Répondre à tous » — **tous les espaces**, pas
+seulement celui qu'on regarde). Sur les données mock, « thierry » passe de toute la réception à
+**deux** fils. Les autres correspondants restent cherchables, y compris dans Envoyés où
+l'expéditeur est toujours nous. Le corps, lui, reste entier : « Bonjour Thierry » est une vraie
+mention.
+
+**Une rangée dit pourquoi elle est là — troisième ligne s'il le faut.** Une rangée porte l'objet et
+l'expéditeur ; un mot nu, lui, cherche aussi l'aperçu, le corps, les correspondants et le nom des
+pièces jointes. `extrait()` rend le morceau qui a répondu, taillé autour du mot (24 caractères
+devant, 64 derrière, coupé aux espaces), et la rangée l'ajoute **sous** l'expéditeur — jamais à sa
+place, et jamais quand l'objet ou l'expéditeur portent déjà tous les mots : une ligne de plus qui
+ne dirait rien vaut moins que rien.
+
+**La source la plus riche l'emporte.** L'aperçu est la première ligne du corps : « Salut Thierry, »
+gagnait contre la phrase entière qui suit. On garde la fenêtre la plus large — et l'aperçu reprend
+la main quand le corps n'est pas descendu, ce qui est le cas de tout fil qu'on n'a pas ouvert. Un
+correspondant voyage d'un seul tenant (`Claire Dubois <claire.dubois@gmail.com>`) : trouvée dans la
+copie, l'extrait dit **qui** c'est, pas seulement l'adresse.
+
+**Le surlignage prend le premier mot trouvé, pas le premier mot tapé.** Sur « facture annecy »,
+l'objet ne porte souvent que l'un des deux et l'extrait que l'autre : s'en tenir au premier laissait
+l'une des deux lignes muette.
+
+**Un intitulé de groupe ne se montre pas au-dessus de rien.** « Actions » et « Aller à » restaient
+posés sur du vide dès que la requête ne les concernait pas, ce qui donne l'air d'une liste qui n'a
+pas fini de charger : le contenu se calcule avant l'en-tête, et la barre de séparation avec lui. Le
+raccourci d'un espace garde au passage son rang dans la liste **entière** — ⌘2 reste ⌘2 quand le
+filtre ne garde que le second.
+
+**Ce que le serveur ne sait pas faire.** `SEARCH TEXT` d'IMAP fouille les en-têtes avec le corps :
+il ne peut pas ignorer notre propre adresse, et un mot nu qui est notre prénom lui fera rendre toute
+la boîte. Les résultats serveur ne repassent pas par `correspond()` — ils n'ont pas de corps, on les
+rejetterait à tort. À vérifier sur une vraie boîte ; la mémoire, elle, est juste.

@@ -453,7 +453,13 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   parenthèses ; français d'abord, anglais admis.
 - L'analyseur **ne refuse jamais rien** — ce qu'il ne comprend pas redevient du texte —, et un champ
   connu **sans valeur ne contraint rien** : on tape `de:` avant `de:claire`.
-- Seuls les **mots nus** filtrent ce qui n'est pas du courrier (actions, dossiers, espaces).
+- Seuls les **mots nus** filtrent ce qui n'est pas du courrier (actions, dossiers, espaces), et un
+  intitulé de groupe ne se pose jamais au-dessus de rien.
+- Un mot nu **n'atteint pas notre propre identité** (`cestNous`, tous les espaces) : elle est dans
+  les destinataires de tout le reçu et l'expéditeur de tout l'envoyé — chercher son prénom rendait
+  la boîte entière. Le corps garde la mention.
+- Une rangée **dit pourquoi elle est là** : quand le mot n'est ni dans l'objet ni dans l'expéditeur,
+  `extrait()` ajoute une troisième ligne autour de lui, la source la plus riche l'emportant.
 - La corbeille est écartée **sauf si la requête la nomme**.
 
 ## Où on en est, où on va

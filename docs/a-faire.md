@@ -73,7 +73,9 @@ correctif.
       ouvre Archive, et une action dessus juste après le déplacement aboutit.
 - [ ] **La recherche serveur** — les `SEARCH` d'iCloud : leur temps de réponse sur une vraie boîte,
       ce que `multipart/mixed` attrape vraiment pour `avec:piece`, et le comportement de `dans:` sur
-      un espace-vue (sa « Réception » est un autre dossier).
+      un espace-vue (sa « Réception » est un autre dossier). Et surtout : `SEARCH TEXT` fouille les
+      en-têtes avec le corps, donc il ne peut pas ignorer notre adresse — un mot nu qui est notre
+      prénom lui fera rendre toute la boîte, là où la mémoire n'en rend que les vraies mentions.
 - [ ] **Les compteurs de non-lus** — `listFolders` rend les chiffres du serveur pour les dossiers
       qu'on ne regarde pas. À vérifier sur iCloud : les chemins SPECIAL-USE tombent juste (Archive,
       Corbeille, Envoyés), le compte d'un espace-vue est celui de **son** dossier de réception et

@@ -16,7 +16,7 @@ import {
 import { FOLDERS } from "@/lib/mock-data";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { nommeUnDossier, texteLibre } from "@/lib/search/ast";
-import { correspond } from "@/lib/search/match";
+import { correspond, extrait } from "@/lib/search/match";
 import { laver, parse } from "@/lib/search/parse";
 import { sortByDate, useMail, useSpace, useSpaces, type SidebarMode } from "@/lib/store";
 import type { FolderId } from "@/lib/types";
@@ -99,6 +99,24 @@ export function CommandPalette() {
     const cible = laver(libelle);
     return libre.split(" ").every((mot) => cible.includes(mot));
   };
+
+  /* **Un intitulé de groupe ne se montre pas au-dessus de rien.** Sur « thierry »
+     la palette gardait « Actions » et « Aller à » vides, ce qui donne l'air
+     d'une liste qui n'a pas fini de charger. On calcule donc le contenu avant
+     de poser l'en-tête, et la barre de séparation avec lui. */
+  const actions = {
+    neuf: garde("Nouveau message"),
+    partage: desktop && garde("Basculer la vue partagée"),
+    barre: desktop && garde("Barre latérale"),
+    theme: garde("Basculer le thème"),
+  };
+  const desActions = Object.values(actions).some(Boolean);
+  const dossiers = FOLDERS.filter((f) => garde(f.name));
+  /* Le rang vient de la liste **entière** : ⌘2 reste ⌘2 quand le filtre ne
+     garde que le second espace. */
+  const espaces = spaces
+    .map((sp, rang) => ({ sp, rang }))
+    .filter(({ sp }) => garde(`${sp.name} ${sp.email}`));
 
   const run = (fn: () => void) => {
     setCommandOpen(false);
@@ -196,6 +214,10 @@ export function CommandPalette() {
         <CommandGroup heading={requete ? "Conversations" : "Conversations récentes"}>
           {spaceThreads.map((t) => {
             const last = t.messages[t.messages.length - 1];
+            /* Une troisième ligne **seulement quand elle a quelque chose à
+               dire** : le mot est dans le corps, un correspondant ou un
+               fichier, et sans elle la rangée aurait l'air d'un faux positif. */
+            const pourquoi = extrait(t, libre);
             return (
               <CommandItem
                 key={t.id}
@@ -215,6 +237,11 @@ export function CommandPalette() {
                   <span className="text-muted-foreground block truncate text-xs">
                     <Surligne texte={last.from.name} requete={libre} />
                   </span>
+                  {pourquoi && (
+                    <span className="text-muted-foreground/75 mt-0.5 block truncate text-xs">
+                      <Surligne texte={pourquoi} requete={libre} />
+                    </span>
+                  )}
                 </span>
               </CommandItem>
             );
@@ -252,6 +279,7 @@ export function CommandPalette() {
             )}
             {nouveaux.map((t) => {
               const last = t.messages[t.messages.length - 1];
+              const pourquoi = extrait(t, libre);
               return (
                 <CommandItem
                   key={`serveur-${t.id}`}
@@ -271,6 +299,11 @@ export function CommandPalette() {
                     <span className="text-muted-foreground block truncate text-xs">
                       <Surligne texte={last.from.name} requete={libre} />
                     </span>
+                    {pourquoi && (
+                      <span className="text-muted-foreground/75 mt-0.5 block truncate text-xs">
+                        <Surligne texte={pourquoi} requete={libre} />
+                      </span>
+                    )}
                   </span>
                 </CommandItem>
               );
@@ -278,65 +311,71 @@ export function CommandPalette() {
           </CommandGroup>
         )}
 
-        <CommandSeparator />
+        {desActions && <CommandSeparator />}
 
-        <CommandGroup heading="Actions">
-          {garde("Nouveau message") && (
-            <CommandItem onSelect={() => run(() => openCompose())}>
-              <PenSquare /> Nouveau message
-              <CommandShortcut className="max-sm:hidden">⌘N</CommandShortcut>
-            </CommandItem>
-          )}
-          {/* Not merely hidden on a phone: cmdk still matches a CSS-hidden item,
-              which left an "Actions" heading standing over nothing. */}
-          {desktop && garde("Basculer la vue partagée") && (
-            <CommandItem onSelect={() => run(toggleSplit)}>
-              <Columns2 /> Basculer la vue partagée
-              <CommandShortcut>⌘⇧D</CommandShortcut>
-            </CommandItem>
-          )}
-          {/* Attachée, la barre latérale efface la tête de liste — donc le
-              sélecteur de ses trois états. Sans cette entrée, ⌘B serait le seul
-              chemin du retour, et un raccourci ne s'annonce pas. */}
-          {desktop && garde("Barre latérale") && (
-            <CommandItem onSelect={() => run(cycleSidebarMode)}>
-              <PanelLeft /> Barre latérale : {MODE_SUIVANT[sidebarMode]}
-              <CommandShortcut>⌘B</CommandShortcut>
-            </CommandItem>
-          )}
-          {garde("Basculer le thème") && (
-            <CommandItem onSelect={() => run(toggleDark)}>
-              <Moon /> Basculer le thème
-            </CommandItem>
-          )}
-        </CommandGroup>
-
-        <CommandSeparator />
-
-        <CommandGroup heading="Aller à">
-          {FOLDERS.filter((f) => garde(f.name)).map((f) => {
-            const Icon = FOLDER_ICONS[f.id];
-            return (
-              <CommandItem key={f.id} value={`dossier ${f.name}`} onSelect={() => run(() => setFolder(f.id))}>
-                <Icon /> {f.name}
+        {desActions && (
+          <CommandGroup heading="Actions">
+            {actions.neuf && (
+              <CommandItem onSelect={() => run(() => openCompose())}>
+                <PenSquare /> Nouveau message
+                <CommandShortcut className="max-sm:hidden">⌘N</CommandShortcut>
               </CommandItem>
-            );
-          })}
-        </CommandGroup>
+            )}
+            {/* Not merely hidden on a phone: cmdk still matches a CSS-hidden item,
+                which left an "Actions" heading standing over nothing. */}
+            {actions.partage && (
+              <CommandItem onSelect={() => run(toggleSplit)}>
+                <Columns2 /> Basculer la vue partagée
+                <CommandShortcut>⌘⇧D</CommandShortcut>
+              </CommandItem>
+            )}
+            {/* Attachée, la barre latérale efface la tête de liste — donc le
+                sélecteur de ses trois états. Sans cette entrée, ⌘B serait le seul
+                chemin du retour, et un raccourci ne s'annonce pas. */}
+            {actions.barre && (
+              <CommandItem onSelect={() => run(cycleSidebarMode)}>
+                <PanelLeft /> Barre latérale : {MODE_SUIVANT[sidebarMode]}
+                <CommandShortcut>⌘B</CommandShortcut>
+              </CommandItem>
+            )}
+            {actions.theme && (
+              <CommandItem onSelect={() => run(toggleDark)}>
+                <Moon /> Basculer le thème
+              </CommandItem>
+            )}
+          </CommandGroup>
+        )}
 
+        {dossiers.length > 0 && <CommandSeparator />}
+
+        {dossiers.length > 0 && (
+          <CommandGroup heading="Aller à">
+            {dossiers.map((f) => {
+              const Icon = FOLDER_ICONS[f.id];
+              return (
+                <CommandItem key={f.id} value={`dossier ${f.name}`} onSelect={() => run(() => setFolder(f.id))}>
+                  <Icon /> {f.name}
+                </CommandItem>
+              );
+            })}
+          </CommandGroup>
+        )}
+
+        {espaces.length > 0 && (
         <CommandGroup heading="Espaces">
-          {spaces.filter((sp) => garde(`${sp.name} ${sp.email}`)).map((space, i) => (
+          {espaces.map(({ sp, rang }) => (
             <CommandItem
-              key={space.id}
-              value={`espace ${space.name} ${space.email}`}
-              onSelect={() => run(() => setSpace(space.id))}
+              key={sp.id}
+              value={`espace ${sp.name} ${sp.email}`}
+              onSelect={() => run(() => setSpace(sp.id))}
             >
-              <SpaceIcon space={space} size="sm" /> {space.name}
-              <span className="text-muted-foreground text-xs">{space.email}</span>
-              <CommandShortcut className="max-sm:hidden">⌘{i + 1}</CommandShortcut>
+              <SpaceIcon space={sp} size="sm" /> {sp.name}
+              <span className="text-muted-foreground text-xs">{sp.email}</span>
+              <CommandShortcut className="max-sm:hidden">⌘{rang + 1}</CommandShortcut>
             </CommandItem>
           ))}
         </CommandGroup>
+        )}
 
       </CommandList>
     </CommandDialog>
@@ -352,8 +391,6 @@ export function CommandPalette() {
  * thème, et le seul choix lisible sur un fond clair comme sur un fond sombre.
  */
 function Surligne({ texte, requete }: { texte: string; requete: string }) {
-  const terme = requete.trim().split(" ")[0] ?? "";
-  if (terme.length < 2) return <>{texte}</>;
   /* On cherche sur le texte **lavé** — sans accents ni casse, comme le fait le
      filtre — mais on découpe l'original : « Élodie » doit se surligner quand on
      tape « elodie ». Retirer un accent garde la longueur pour les lettres
@@ -361,7 +398,20 @@ function Surligne({ texte, requete }: { texte: string; requete: string }) {
      surligner à surligner de travers. */
   const cible = laver(texte);
   if (cible.length !== texte.length) return <>{texte}</>;
-  const i = cible.indexOf(terme);
+  /* **Le premier mot trouvé, pas le premier mot tapé.** Sur « facture annecy »,
+     l'objet ne porte souvent que l'un des deux, et l'extrait que l'autre :
+     s'en tenir au premier laissait l'une des deux lignes muette. */
+  let i = -1;
+  let terme = "";
+  for (const mot of requete.trim().split(" ")) {
+    if (mot.length < 2) continue;
+    const trouve = cible.indexOf(mot);
+    if (trouve >= 0) {
+      i = trouve;
+      terme = mot;
+      break;
+    }
+  }
   if (i < 0) return <>{texte}</>;
   return (
     <>

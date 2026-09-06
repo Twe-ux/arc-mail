@@ -274,7 +274,9 @@ function nosAdresses(): string[] {
   return useMail.getState().spaces.map((sp) => sp.identity.email);
 }
 
-const cestNous = (email: string) => nosAdresses().some((mien) => memeAdresse(mien, email));
+/** Est-ce **notre** adresse ? Exporté : la recherche s'en sert pour ne pas
+ *  rendre toute la boîte quand on tape son propre prénom. */
+export const cestNous = (email: string) => nosAdresses().some((mien) => memeAdresse(mien, email));
 
 /**
  * **La cible par défaut d'une réponse : l'expéditeur, seul.**

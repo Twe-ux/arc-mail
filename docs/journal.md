@@ -2,6 +2,31 @@
 
 Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérification.
 
+## 6 septembre 2026 — un mot nu ne cherche plus notre propre nom
+
+« Si je mets Thierry il y a des mails proposés mais sans Thierry. » La palette rendait presque toute
+la réception, et aucune rangée ne montrait le mot.
+
+Deux causes, et la mesure les sépare : sur les données mock, **70 messages** portent notre adresse
+dans leurs destinataires, et nos deux identités s'appellent « Thierry » et « Thierry Milone ».
+Chercher son propre prénom, c'était donc chercher « tout ». Et là où la correspondance était vraie
+— quatre corps qui commencent par « Bonjour Thierry, » —, la rangée ne montre que l'objet et
+l'expéditeur : rien ne s'y surlignait.
+
+Le foin d'un mot nu écarte maintenant tout contact dont l'adresse est une des nôtres, expéditeur
+comme copie, avec la liste que « Répondre à tous » utilise déjà (`cestNous`, tous les espaces). Les
+autres correspondants restent cherchables, sans quoi Envoyés — où l'expéditeur est toujours nous —
+deviendrait aveugle. Le corps garde ses mentions.
+
+Et une rangée dont l'objet et l'expéditeur ne portent pas le mot gagne une **troisième ligne** :
+`extrait()` taille une fenêtre autour de lui dans l'aperçu, le corps, un correspondant ou le nom
+d'un fichier — la source la plus riche l'emportant, parce que l'aperçu est la première ligne du
+corps et que « Salut Thierry, » gagnait contre la phrase entière qui suit.
+
+« thierry » rend deux fils, tous deux surlignés. « claire » en rend cinq, dont trois par la copie,
+qui le disent. Au passage : le surlignage prend le premier mot **trouvé** et non le premier tapé, et
+les intitulés « Actions » et « Aller à » ne se posent plus au-dessus du vide.
+
 ## 6 septembre 2026 — l'expéditeur se coupe au bord du bouton
 
 En pleine largeur, un nom long courait jusqu'à 347 quand le bouton « Nouveau message » de la tête

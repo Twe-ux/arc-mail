@@ -2,6 +2,7 @@ import type { Thread } from "../types";
 import type {
   AccountRef,
   DraftInput,
+  FolderUnread,
   MailProvider,
   OutgoingMessage,
   ThreadPatch,
@@ -62,6 +63,15 @@ export class HttpProvider implements MailProvider {
       limit: query.limit,
     });
     return threads;
+  }
+
+  async listFolders(account: AccountRef, opts?: { inboxPath?: string }): Promise<FolderUnread> {
+    const { counts } = await this.call<{ counts: FolderUnread }>({
+      op: "folderCounts",
+      accountId: account.id,
+      inboxPath: opts?.inboxPath,
+    });
+    return counts;
   }
 
   async getThread(account: AccountRef, id: string): Promise<Thread | null> {

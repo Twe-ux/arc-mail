@@ -1,7 +1,15 @@
 import { firstLine } from "../format";
 import { THREADS } from "../mock-data";
 import type { Thread } from "../types";
-import type { AccountRef, DraftInput, MailProvider, OutgoingMessage, ThreadPatch, ThreadQuery } from "./provider";
+import type {
+  AccountRef,
+  DraftInput,
+  FolderUnread,
+  MailProvider,
+  OutgoingMessage,
+  ThreadPatch,
+  ThreadQuery,
+} from "./provider";
 
 const NO_SUBJECT = "(sans objet)";
 
@@ -28,6 +36,19 @@ export class MockProvider implements MailProvider {
       query.folder === "starred" ? t.starred && t.folder !== "trash" : t.folder === query.folder;
     const list = this.threads.filter((t) => t.spaceId === spaceId && inFolder(t));
     return query.limit ? list.slice(0, query.limit) : list;
+  }
+
+  /* Le mock a tout en mémoire : il compte ce que le vrai serveur compterait,
+     Favoris compris — ce qui, chez lui, ne coûte rien. */
+  async listFolders(account: AccountRef): Promise<FolderUnread> {
+    const spaceId = spaceOf(account);
+    const comptes: FolderUnread = {};
+    for (const t of this.threads) {
+      if (t.spaceId !== spaceId || !t.unread) continue;
+      comptes[t.folder] = (comptes[t.folder] ?? 0) + 1;
+      if (t.starred && t.folder !== "trash") comptes.starred = (comptes.starred ?? 0) + 1;
+    }
+    return comptes;
   }
 
   async getThread(_account: AccountRef, id: string): Promise<Thread | null> {

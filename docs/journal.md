@@ -2,6 +2,23 @@
 
 Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérification.
 
+## 6 septembre 2026 — les compteurs de non-lus disent enfin la vérité
+
+Une lecture ne rapporte qu'un dossier, et on comptait ce qu'on avait en mémoire : Archive et
+Corbeille annonçaient zéro tant qu'on n'y était pas allé. Ce n'était pas un compte manquant, c'était
+un compte faux. `listFolders` les demande tous en **un** aller-retour — `LIST` avec `statusQuery`,
+pas un `STATUS` par dossier — lancé en parallèle de la liste, qui est déjà à l'écran quand il
+revient.
+
+Le partage est net : le **dossier ouvert** garde le compte local, parce que c'est le seul dont on
+ait tous les fils et le seul où l'écriture optimiste doit se voir tout de suite ; les **autres**
+lisent le serveur. Favoris et « En pause » n'y sont pas et ne peuvent pas y être — un drapeau
+réparti sur la boîte, un dossier qui n'existe pas — et retombent sur le local.
+
+Vérifié en câblant un faux compte serveur dans le mock, qui a tout en mémoire et où les deux
+comptes se confondent sinon : Archive à 42 et Corbeille à 13 s'affichent, la réception reste à son
+compte local 7 même quand le faux serveur dit 99, et archiver un fil non lu porte Archive à 43.
+
 ## 6 septembre 2026 — les lignes ne s'effacent que si le clavier tient bon
 
 Ouvrir un panneau effaçait les destinataires quoi qu'il arrive. C'était juste quand le clavier

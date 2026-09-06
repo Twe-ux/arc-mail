@@ -80,6 +80,38 @@ passe**.
 
 iCloud dit « Sent Messages », Gmail « [Gmail]/Messages envoyés », et cela change avec la langue du
 compte. Le serveur les annonce lui-même par les attributs **SPECIAL-USE** (`\Sent`, `\Drafts`,
+
+## Les non-lus des dossiers qu'on ne regarde pas
+
+Une lecture ne rapporte qu'**un** dossier. Compter ce qu'on a en mémoire donnait donc zéro partout
+ailleurs : la réception affichait son chiffre, Archive et Corbeille annonçaient zéro tant qu'on n'y
+était pas allé. Ce n'est pas un compte manquant, c'est un compte **faux**.
+
+`unreadByFolder` les demande tous en **un aller-retour** : `LIST` avec `statusQuery: { unseen }`,
+le serveur rend les dossiers et leur `UNSEEN` ensemble au lieu d'un `STATUS` par dossier. La
+correspondance chemin → dossier sort de la même liste que `folderPaths` (`cheminsDepuis`, extrait
+pour n'écrire les attributs SPECIAL-USE qu'une fois), avec l'`inboxPath` de l'espace en surcharge :
+la « Réception » d'un espace-vue est un autre dossier, c'est son compte qu'il faut.
+
+**Favoris et « En pause » n'y sont pas, et ne peuvent pas y être** : le premier est un drapeau
+réparti sur toute la boîte, le second n'a aucun dossier derrière lui. Un dossier absent de la
+réponse garde le compte local.
+
+L'appel part **en parallèle de la liste**, pas devant : la liste est déjà à l'écran quand il
+revient. Un échec ne se voit pas — un compteur qui ne bouge pas vaut mieux qu'un bandeau d'erreur
+pour un chiffre.
+
+### Qui compte quoi
+
+- **Le dossier ouvert** : le compte **local**. C'est le seul dont on ait tous les fils, et le seul
+  où une écriture optimiste doit se voir tout de suite — ouvrir un message y décrémente le compteur
+  avant que le serveur l'ait appris.
+- **Les autres** : le compte du serveur, ou le local s'il n'en a pas parlé.
+- **Un déplacement** ajuste le compteur d'arrivée d'un cran, et seulement s'il existe déjà : y
+  inventer un 1 écraserait un compte local qui, lui, est juste. Le dossier de départ n'a rien à
+  faire — c'est celui qu'on regarde, donc le local, et le fil vient d'en sortir.
+- Rien n'est **persisté** : un compte d'hier serait pire que pas de compte, et `loadSpace` le
+  refait à chaque changement d'espace ou de dossier.
 `\Trash`, `\Archive`) ; `INBOX` est la seule constante du protocole.
 
 Un dossier absent est une **liste vide, pas une erreur** : une boîte iCloud n'a pas d'« En pause ».

@@ -7,6 +7,7 @@ import {
   readFolder,
   readThread,
   readThreads,
+  unreadByFolder,
   withImap,
   writeThread,
 } from "@/lib/mail/imap";
@@ -41,7 +42,8 @@ type Body =
   | { op: "send"; accountId: string; message: OutgoingMessage }
   | { op: "saveDraft"; accountId: string; draft: DraftInput }
   | { op: "deleteDraft"; accountId: string; id: string }
-  | { op: "folders"; accountId: string };
+  | { op: "folders"; accountId: string }
+  | { op: "folderCounts"; accountId: string; inboxPath?: string };
 
 export async function POST(request: NextRequest) {
   const user = await currentUser();
@@ -69,6 +71,12 @@ export async function POST(request: NextRequest) {
       const paths = async () => (cache ??= await folderPaths(client));
 
       if (body.op === "folders") return { paths: await paths() };
+
+      /* Les non-lus de tous les dossiers, en un `LIST` avec `STATUS`. C'est
+         le seul appel qui parle de dossiers qu'on ne regarde pas, et il ne
+         sert qu'à ça : la lecture d'une liste, elle, n'en a pas besoin. */
+      if (body.op === "folderCounts")
+        return { counts: await unreadByFolder(client, body.inboxPath) };
 
       if (body.op === "listThreads") {
         /* La « Réception » d'un espace n'est pas forcément `INBOX` : pour un

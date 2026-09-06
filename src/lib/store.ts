@@ -5,6 +5,7 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import { renommerEspace } from "./accounts/actions";
 import { firstLine } from "./format";
 import { providerFor } from "./mail";
+import type { FolderUnread } from "./mail/provider";
 import { FOLDERS, SPACES } from "./mock-data";
 import { resolveSpace } from "./theme";
 import type { Attachment, ComposeDraft, Contact, FolderId, Message, Space, SpaceId, Thread } from "./types";
@@ -85,6 +86,15 @@ export type MailState = {
   threads: Thread[];
   /** Spaces being read for the first time — nothing to show yet. Per space: a switch mid-read must not lie about the other one. */
   loading: Partial<Record<SpaceId, boolean>>;
+  /**
+   * Les non-lus **du serveur**, par espace puis par dossier.
+   *
+   * Une lecture ne rapporte qu'un dossier : compter ce qu'on a en mémoire
+   * donnait zéro pour tous les autres, ce qui n'est pas un compte manquant
+   * mais un compte faux. `listFolders` les demande tous d'un coup, et
+   * `selectUnreadCount` s'en sert pour ceux qu'on ne regarde pas.
+   */
+  folderCounts: Partial<Record<SpaceId, FolderUnread>>;
   /** The last failed read of a space, for the list to show with a retry; cleared by the next successful read. */
   error: string | null;
   /** Why the last send failed, shown in the composer next to « Réessayer »; the message itself is back in `compose`. */
@@ -386,6 +396,27 @@ const MEMOIRE = 150;
  * Ce sont des objets et des expéditeurs rangés en clair sur l'appareil : la
  * déconnexion les efface (`SignOut`), comme la session.
  */
+/**
+ * Décale d'un cran le compteur d'un dossier, s'il en a un.
+ *
+ * `undefined` reste `undefined` : un dossier dont le serveur n'a pas parlé
+ * retombe sur le compte local, et celui-là est déjà juste — lui écrire un 1
+ * par-dessus le fausserait.
+ */
+const bouger = (
+  counts: Partial<Record<SpaceId, FolderUnread>>,
+  spaceId: SpaceId,
+  folder: FolderId,
+  delta: number,
+): Partial<Record<SpaceId, FolderUnread>> => {
+  const actuel = counts[spaceId]?.[folder];
+  if (actuel === undefined) return counts;
+  return {
+    ...counts,
+    [spaceId]: { ...counts[spaceId], [folder]: Math.max(0, actuel + delta) },
+  };
+};
+
 const enMemoire = (threads: Thread[]): Thread[] =>
   threads.slice(0, MEMOIRE).map((t) => ({
     ...t,
@@ -596,6 +627,7 @@ export const useMail = create<MailState>()(
   dark: false,
   threads: [],
   loading: {},
+  folderCounts: {},
   error: null,
   sendError: null,
   recent: { perso: [], pro: [], side: [] },
@@ -618,8 +650,9 @@ export const useMail = create<MailState>()(
     try {
       /* Un seul dossier, celui qu'on regarde. Les six en parallèle, c'étaient
          six connexions IMAP et six ouvertures de session pour afficher une
-         seule liste ; le reste arrive quand on y va. Le prix : les compteurs
-         de non-lus des autres dossiers attendent `listFolders`. */
+         seule liste ; le reste arrive quand on y va. Les compteurs des autres
+         dossiers, eux, viennent de `listFolders` juste en dessous — un `LIST`
+         avec `STATUS`, pas six lectures. */
       const fresh = await providerFor(account).listThreads(account, {
         folder,
         /* Quel dossier tient lieu de « Réception » **pour cet espace** : un
@@ -633,6 +666,18 @@ export const useMail = create<MailState>()(
         loading: { ...s.loading, [spaceId]: false },
         error: null,
       }));
+      /* **Les compteurs des autres dossiers, en parallèle.** Un `LIST` avec
+         `STATUS` chez le fournisseur, et il ne retarde pas la liste : elle est
+         déjà à l'écran. Un échec ne se voit pas — un compteur qui ne bouge pas
+         vaut mieux qu'un bandeau d'erreur pour un chiffre. */
+      void providerFor(account)
+        .listFolders(account, { inboxPath: spaceOf(spaceId).inboxPath })
+        .then((counts) => {
+          if (loadTokens.get(spaceId) !== token) return;
+          set((s) => ({ folderCounts: { ...s.folderCounts, [spaceId]: counts } }));
+        })
+        .catch(() => {});
+
       /* **La tête d'abord, le reste ensuite.** Dix messages mettent plusieurs
          secondes à revenir — plus longtemps qu'il n'en faut pour toucher le
          premier de la liste, qui est celui qu'on ouvre. On demande donc les
@@ -731,6 +776,12 @@ export const useMail = create<MailState>()(
     set((s) => ({
       threads: patchThread(before, id, (x) => ({ ...x, folder })),
       selectedThreadId: s.selectedThreadId === id ? null : s.selectedThreadId,
+      /* Le compteur du dossier d'arrivée suit tout de suite. Celui du départ
+         n'a rien à faire : c'est le dossier ouvert, donc le compte local, et
+         le fil vient d'en sortir. On ne touche qu'un compte **déjà connu** —
+         inventer un 1 là où le serveur n'a rien dit écraserait le compte local,
+         qui est juste. */
+      folderCounts: t.unread ? bouger(s.folderCounts, t.spaceId, folder, +1) : s.folderCounts,
     }));
     const account = accountOf(t.spaceId);
     const undone = { archive: "Archivage impossible, la conversation est de retour", trash: "Suppression impossible, la conversation est de retour" }[folder as string]
@@ -1283,8 +1334,26 @@ export function selectVisibleThreads(s: MailState): Thread[] {
   );
 }
 
+/**
+ * Les non-lus d'un dossier — **le compte local pour celui qu'on regarde, celui
+ * du serveur pour les autres**.
+ *
+ * Le dossier ouvert est le seul dont on ait tous les fils, et le seul où une
+ * écriture optimiste doit se voir tout de suite : ouvrir un message y décrémente
+ * le compteur avant même que le serveur l'ait appris. Les autres n'ont en
+ * mémoire que ce qu'une visite précédente y a laissé — souvent rien — et c'est
+ * le compte de `listFolders` qui vaut.
+ *
+ * Un dossier absent de la réponse retombe sur le local : Favoris est un drapeau
+ * réparti sur la boîte, « En pause » n'a pas de dossier derrière lui, et aucun
+ * `STATUS` ne sait les compter.
+ */
 export function selectUnreadCount(s: MailState, spaceId: SpaceId, folderId: FolderId): number {
-  return s.threads.filter((t) => t.spaceId === spaceId && t.unread && threadMatchesFolder(t, folderId)).length;
+  const local = s.threads.filter(
+    (t) => t.spaceId === spaceId && t.unread && threadMatchesFolder(t, folderId),
+  ).length;
+  if (spaceId === s.spaceId && folderId === s.folderId) return local;
+  return s.folderCounts[spaceId]?.[folderId] ?? local;
 }
 
 /** Everyone we have exchanged with, for recipient suggestions. */

@@ -20,8 +20,10 @@ est argumenté dans l'[audit du 6 septembre](audits/2026-09-06-clients-mail.md).
       l'identifiant du fil. Le store renomme le fil, ses messages et ses pièces jointes, ou le
       retire quand le serveur n'a pas dit où le message a atterri. **Reste à voir sur une vraie
       boîte** : c'est dans « à tester ».
-- [ ] **`listFolders`** — les compteurs de non-lus ne valent que pour le dossier ouvert ; les
-      autres affichent zéro tant qu'on n'y est pas allé.
+- [x] **`listFolders`** (6 sept.) — les compteurs de non-lus valaient zéro pour tout dossier non
+      visité. `LIST` + `STATUS` en un aller-retour, lancé en parallèle de la liste ; le dossier
+      ouvert garde le compte local (l'optimiste doit se voir), les autres lisent le serveur.
+      **Reste à voir sur une vraie boîte** : c'est dans « à tester ».
 - [ ] Appliquer `supabase/migrations/20260904140000_espaces.sql` à la base (les précédentes le
       sont ; sans elle, `/comptes` n'affiche pas la section Espaces).
 - [ ] Mode `filter` des espaces : `INBOX` filtrée par destinataire, pour se passer d'une règle
@@ -67,6 +69,10 @@ correctif.
       **le renommage du fil** que `modify()` rend depuis le 6 sept. À vérifier : le fil archivé
       porte bien son nouvel identifiant (iCloud annonce `UIDPLUS`), il ne se dédouble pas quand on
       ouvre Archive, et une action dessus juste après le déplacement aboutit.
+- [ ] **Les compteurs de non-lus** — `listFolders` rend les chiffres du serveur pour les dossiers
+      qu'on ne regarde pas. À vérifier sur iCloud : les chemins SPECIAL-USE tombent juste (Archive,
+      Corbeille, Envoyés), le compte d'un espace-vue est celui de **son** dossier de réception et
+      non d'`INBOX`, et le chiffre suit après un archivage.
 - [ ] **Les brouillons** — écrire, fermer, rouvrir, envoyer ; le retrait passe par la corbeille,
       pas par `EXPUNGE`.
 - [ ] **Les pièces jointes en émission** — 10 Mo, plusieurs fichiers, un nom accentué.

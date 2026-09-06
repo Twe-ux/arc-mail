@@ -27,6 +27,21 @@ export type ThreadQuery = {
 };
 
 /** What the interface can change on a thread, in its own words — the provider translates. */
+/**
+ * Combien de non-lus dans chacun de nos dossiers.
+ *
+ * Une lecture ne rapporte qu'**un** dossier — celui qu'on regarde —, et
+ * compter ce qu'on a en mémoire donnait donc zéro partout ailleurs : la
+ * réception affichait son chiffre, Archive et Corbeille annonçaient zéro tant
+ * qu'on n'y était pas allé. Ce n'est pas un compte manquant, c'est un compte
+ * **faux**.
+ *
+ * Partiel, et c'est voulu : Favoris est un drapeau et « En pause » n'existe
+ * pas encore côté serveur. Un dossier absent de la réponse garde le compte
+ * local, qui est juste pour celui qu'on a chargé.
+ */
+export type FolderUnread = Partial<Record<FolderId, number>>;
+
 export type ThreadPatch = {
   unread?: boolean;
   starred?: boolean;
@@ -80,6 +95,13 @@ export type DraftInput = Omit<OutgoingMessage, "replyTo"> & {
 export interface MailProvider {
   /** Threads of one folder, newest first. */
   listThreads(account: AccountRef, query: ThreadQuery): Promise<Thread[]>;
+  /**
+   * Les non-lus de **tous** les dossiers, en un appel.
+   *
+   * `inboxPath` pour la même raison que dans `ThreadQuery` : la « Réception »
+   * d'un espace-vue est un autre dossier, et c'est son compte qu'il faut.
+   */
+  listFolders(account: AccountRef, opts?: { inboxPath?: string }): Promise<FolderUnread>;
   /** One thread with all its messages — a list may carry less than that. */
   getThread(account: AccountRef, id: string): Promise<Thread | null>;
   /**

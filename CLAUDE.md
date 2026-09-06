@@ -310,6 +310,10 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - IMAP ne tourne que côté serveur (`runtime = "nodejs"`) ; le navigateur passe par `/api/mail`.
 - Les chemins de dossiers viennent des attributs SPECIAL-USE, jamais d'un nom deviné ; un dossier
   absent est une liste vide.
+- Les **non-lus des autres dossiers** viennent de `listFolders` (`LIST` + `STATUS`, **un** aller-
+  retour), lancé en parallèle de la liste : le dossier ouvert compte en local — l'optimiste doit se
+  voir —, les autres lisent le serveur, Favoris et « En pause » n'y sont pas (un drapeau, pas de
+  dossier). Un déplacement ajuste le compteur d'arrivée **s'il existe déjà** ; rien n'est persisté.
 - La liste ne rapporte que des enveloppes ; le corps arrive par `getThread` à l'ouverture, et
   l'hydratation complète le fil au lieu de le remplacer.
 - Il part avant le geste : **la tête (3) d'abord** puis le reste du lot de dix, en un seul appel

@@ -6,6 +6,7 @@ import {
   ImapFlow,
   type FetchMessageObject,
   type FetchQueryObject,
+  type ListResponse,
   type MessageAddressObject,
 } from "imapflow";
 import { simpleParser, type ParsedMail } from "mailparser";
@@ -168,7 +169,17 @@ export async function withImap<T>(
  * la seule constante du protocole.
  */
 export async function folderPaths(client: ImapFlow): Promise<Partial<Record<FolderId, string>>> {
-  const list = await client.list();
+  return cheminsDepuis(await client.list());
+}
+
+/**
+ * La correspondance elle-même, à partir d'une liste déjà lue.
+ *
+ * Séparée de l'appel pour que le comptage des non-lus, qui demande la même
+ * liste avec les `STATUS` en plus, n'ait pas à la redemander — ni à recopier
+ * les attributs SPECIAL-USE, qui sont la seule chose à ne pas se tromper ici.
+ */
+function cheminsDepuis(list: ListResponse[]): Partial<Record<FolderId, string>> {
   const bySpecial = (use: string) => list.find((f) => f.specialUse === use)?.path;
   return {
     inbox: "INBOX",
@@ -180,6 +191,36 @@ export async function folderPaths(client: ImapFlow): Promise<Partial<Record<Fold
        repli le rend équivalent sans que le reste de l'app ait à le savoir. */
     archive: bySpecial("\\Archive") ?? bySpecial("\\All"),
   };
+}
+
+/**
+ * Combien de non-lus dans chacun de nos dossiers, en **un** aller-retour.
+ *
+ * `LIST` avec `statusQuery` : le serveur rend les dossiers et leur `UNSEEN`
+ * ensemble, au lieu d'un `STATUS` par dossier. Le compte est celui du serveur,
+ * pas le nôtre : c'est justement ce qu'on n'a pas en mémoire.
+ *
+ * **Favoris et « En pause » n'y sont pas**, et ne peuvent pas y être : le
+ * premier est un drapeau réparti sur toute la boîte, le second n'a aucun
+ * dossier derrière lui. Ils gardent le compte local.
+ */
+export async function unreadByFolder(
+  client: ImapFlow,
+  inboxPath?: string,
+): Promise<Partial<Record<FolderId, number>>> {
+  const list = await client.list({ statusQuery: { unseen: true } });
+  const unseen = new Map(list.map((f) => [f.path, f.status?.unseen ?? 0]));
+  /* La « Réception » d'un espace-vue est un autre dossier : c'est son compte
+     qu'il faut, pas celui d'`INBOX`. */
+  const chemins = { ...cheminsDepuis(list), inbox: inboxPath || "INBOX" };
+
+  const comptes: Partial<Record<FolderId, number>> = {};
+  for (const [id, chemin] of Object.entries(chemins)) {
+    /* Un dossier que le serveur n'a pas annoncé n'est pas un zéro : c'est une
+       absence, et le compte local vaut mieux qu'un chiffre inventé. */
+    if (chemin && unseen.has(chemin)) comptes[id as FolderId] = unseen.get(chemin)!;
+  }
+  return comptes;
 }
 
 /** Tous les dossiers de la boîte, pour choisir celui qui fera office de réception. */

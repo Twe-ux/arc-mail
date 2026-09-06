@@ -210,3 +210,47 @@ sans le fond coloré, la tuile seule ne dit plus quelle boîte elle est.
 La **densité de la liste** (`listDensity`) se règle dans le même panneau. Elle se publie en
 `data-densite` sur la colonne et se lit par `group-data-[densite=compact]` sur les rangées : un
 attribut, pas un prop passé à cinquante enfants.
+
+---
+
+## La pastille de teinte montre l'accent, pas le dégradé (6 sept. 2026)
+
+Signalé sur iPhone : la teinte choisie était bleue, l'interrupteur juste en dessous turquoise.
+Mesuré sur la capture (1179 × 2556) — pastille `rgb(67,151,222)`, interrupteur `rgb(86,189,181)`.
+
+Ce n'était pas l'accent qui déviait, c'était la **pastille qui mentait**. `themeFromHue` balaie
+80° : premier arrêt à `h`, milieu à `h+35`, fin à `h+75`, et l'accent est à `h` — la convention des
+thèmes faits main de `mock-data`, où l'accent est toujours le premier arrêt éclairci. Mais un rond
+de 34 px traversé par un dégradé à 135° ne montre que son **milieu** : la pastille annonçait donc
+`h+35`, une couleur que l'espace ne prend nulle part.
+
+**La pastille porte l'accent, à plat.** C'est ce qu'on obtient : l'interrupteur, l'état actif, les
+tuiles de dossiers, l'encre. Le dégradé reste le **visage** de l'espace — sa tuile en tête de
+feuille, le bouton d'envoi, le toast —, il n'a jamais été ce qu'on choisit dans une palette.
+
+## Un curseur de segmenté est plus clair que sa piste, aussi en sombre
+
+`bg-background` vaut presque noir en thème sombre : sur la feuille (`#1c1c1e`, mesuré
+`rgb(28,28,30)`) et une piste `bg-muted` (`rgb(38,38,38)`), l'option choisie sortait à
+`rgb(15,15,15)` — **plus sombre que sa piste et que la feuille**, elle se lisait comme un trou. Le
+curseur prend `dark:bg-white/20`, la piste `bg-black/[0.06] dark:bg-white/[0.07]` : une teinte, pas
+`bg-muted`, qui sur un groupe à `rgb(38,38,42)` ne se distinguait pas du fond.
+
+## La feuille « Personnaliser » : un seul groupe, quatre lignes (6 sept. 2026)
+
+Deux titres de section en capitales, un segmenté pleine largeur et un groupe iOS à tuiles
+arc-en-ciel — trois grammaires pour quatre réglages. Elle en a une : **un groupe, quatre lignes, le
+contrôle à droite de son nom**, comme Réglages. La couleur est la seule qui prenne toute la
+largeur (huit pastilles ne tiennent pas à côté d'un libellé) ; densité, thème et comptes tiennent
+sur 50 px.
+
+Les tuiles colorées d'iOS sont parties le même jour que celles de la feuille Dossiers : deux
+feuilles voisines ne parlent pas deux langues. Elles restent dans « Déplacer vers » et dans le
+sélecteur de pièces jointes, à revoir.
+
+Le filet d'une ligne se pose **après** le `pl-4`, comme celui de `SheetRow` : sur le même élément
+que le retrait il repart du bord du groupe, et deux lignes sur quatre étaient soulignées plus à
+gauche (mesuré : x = 24 au lieu de 40).
+
+Mesuré à 393 × 852 (insets 59/34) : feuille de 366 px, groupe de 242 (92 · 50 · 50 · 50), marges
+8 / 8 / 8, rayon 36, zéro erreur de console.

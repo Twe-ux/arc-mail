@@ -2,6 +2,28 @@
 
 Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérification.
 
+## 6 septembre 2026 — la feuille « Personnaliser » dit enfin la vérité
+
+Trois défauts, tous mesurés sur une capture d'iPhone plutôt que devinés.
+
+La **pastille de teinte mentait** : elle portait le dégradé, et un rond de 34 px traversé à 135° ne
+montre que son milieu — soit la teinte plus 35°. Teinte 190 : pastille bleue `rgb(67,151,222)`,
+interrupteur turquoise `rgb(86,189,181)` juste en dessous. On choisissait du bleu, on avait du
+turquoise. La pastille porte l'accent, à plat : ce qu'on obtient. Le dégradé reste le visage de
+l'espace, sur sa tuile.
+
+Le **segmenté était à l'envers en sombre** : piste `rgb(38,38,38)`, option choisie `rgb(15,15,15)`,
+feuille `rgb(28,28,30)` — le curseur plus sombre que sa piste et que la feuille, un trou plutôt
+qu'un relief. Et une fois remis à l'endroit, `bg-muted` ne se distinguait plus du groupe : la piste
+est une teinte.
+
+Enfin la **structure** : deux titres en capitales, un segmenté pleine largeur et un groupe à tuiles
+arc-en-ciel pour quatre réglages. Un seul groupe, quatre lignes, le contrôle à droite de son nom.
+Les tuiles d'iOS sont parties le même jour que celles de la feuille Dossiers.
+
+Mesuré à 393 × 852 (insets 59/34) : feuille de 366 px, groupe de 242, filets tous alignés à x = 40
+— ils partaient à 24 sur deux lignes sur quatre —, zéro erreur de console aux quatre captures.
+
 ## 6 septembre 2026 — la feuille Dossiers passe en grille
 
 Sept rangées d'iOS et un rail de comptes au-dessus : 562 px de carte pour sept cibles, et

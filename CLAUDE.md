@@ -135,6 +135,12 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   (`--normal-bg`…) : sa feuille est injectée après Tailwind et gagne la cascade.
 - Les espaces de la barre du bas sont des pastilles nues : le nom est dans l'infobulle, pas écrit à
   côté — tronqué il ne dit plus rien. Même règle pour l'adresse du compte connecté.
+- La **pastille de teinte porte l'accent à plat**, pas le dégradé : un rond de 34 px lit le milieu
+  d'un dégradé à 135° et annonçait donc `h+35`, une couleur que l'espace ne prend nulle part.
+- Un **curseur de segmenté est plus clair que sa piste**, en sombre aussi (`dark:bg-white/20` sur
+  une piste `bg-black/[0.06] dark:bg-white/[0.07]`) : `bg-background` y vaut presque noir.
+- La feuille **Personnaliser** est **un seul groupe de quatre lignes**, sans titre en capitales ni
+  tuile arc-en-ciel, le contrôle à droite de son nom ; le filet d'une ligne se pose après le `pl-4`.
 - Les préférences ne s'enregistrent qu'**après** avoir été relues (stockage `preferences` du
   store) : un `set` pendant le rendu écrasait sinon la teinte et le thème sombre.
 - Un groupe blanc a un bord (`shadow 0 0 0 1px`) ; un rail horizontal rogne aussi verticalement,

@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronRight, Moon, UserRound, X } from "lucide-react";
+import { ChevronRight, X } from "lucide-react";
 import Link from "next/link";
 
 import { SignOut } from "@/components/auth/sign-out";
@@ -10,7 +10,7 @@ import { selectUnreadCount, useMail, useRecentThreads, useSpace } from "@/lib/st
 import { PRESET_HUES, themeFromHue } from "@/lib/theme";
 import type { FolderId } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { BottomSheet, SheetCloseButton, SheetGroup, SheetRow, SheetScroller, SheetTile } from "./bottom-sheet";
+import { BottomSheet, SheetCloseButton, SheetGroup, SheetRow, SheetScroller } from "./bottom-sheet";
 import { ContactAvatar } from "./contact-avatar";
 import { InstallHint } from "./install-hint";
 import { SpaceIcon } from "./space-icon";
@@ -128,11 +128,18 @@ export function MobileMenu() {
 /**
  * La feuille de personnalisation, sous le `⋯` de la barre du bas.
  *
- * Ce que l'utilisateur vient y chercher tient en trois lignes : la couleur de
- * l'espace, le thème, et le chemin vers ses comptes. Les huit teintes sont
- * celles du dépôt (`PRESET_HUES`), pas huit valeurs écrites à la main : c'est
- * la même liste que le sélecteur du bureau, et un espace change de couleur au
- * même endroit qu'on le regarde.
+ * Ce que l'utilisateur vient y chercher tient en quatre réglages : la couleur
+ * de l'espace, la densité de la liste, le thème, et le chemin vers ses
+ * comptes. Les huit teintes sont celles du dépôt (`PRESET_HUES`), pas huit
+ * valeurs écrites à la main : c'est la même liste que le sélecteur du bureau,
+ * et un espace change de couleur au même endroit qu'on le regarde.
+ *
+ * **Un seul groupe, quatre lignes, aucun titre en capitales.** Il y en avait
+ * trois — deux titres de section et un groupe — pour quatre réglages : le
+ * libellé de la ligne dit déjà ce que la capitale répétait, et le contrôle
+ * vit à droite de son nom, comme dans Réglages. Les tuiles colorées d'iOS
+ * sont parties avec : la feuille Dossiers les a perdues le même jour, et deux
+ * feuilles voisines ne parlent pas deux langues.
  */
 export function MobileSettings() {
   const open = useMail((s) => s.settingsOpen);
@@ -163,75 +170,108 @@ export function MobileSettings() {
       }
     >
       <SheetScroller>
-        <h3 className="mt-1 mb-2 text-[13px] font-medium tracking-wide text-muted-foreground uppercase dark:text-white/55">
-          Couleur de l&apos;espace
-        </h3>
-        <div className="mb-4 flex items-center justify-between gap-2" role="radiogroup" aria-label="Couleur de l'espace">
-          {PRESET_HUES.map((h) => {
-            const choisi = hue === h;
-            return (
-              <button
-                key={h}
-                type="button"
-                role="radio"
-                aria-checked={choisi}
-                aria-label={`Teinte ${h}`}
-                onClick={() => setSpaceHue(space.id, h)}
-                /* La sélection est un bord blanc plus un anneau : sur huit
-                   pastilles rondes, un simple grossissement ne se voyait pas. */
-                className={cn(
-                  "size-[34px] shrink-0 rounded-full transition-transform active:scale-90 active:duration-0",
-                  choisi && "border-2 border-white ring-2 ring-white/25",
-                )}
-                style={{ background: themeFromHue(h).gradient }}
-              />
-            );
-          })}
-        </div>
+        <SheetGroup className="mt-1">
+          {/* La teinte a besoin de toute la largeur : son libellé est au-dessus
+              de ses huit pastilles, pas à côté. Les trois autres réglages
+              tiennent leur contrôle à droite de leur nom.
 
-        {/* **Deux lignes ou trois**, le même réglage que sur bureau (`listDensity`)
-            — mais ici il se voit tout de suite : une rangée de trois lignes sur
-            un écran de 852 px en montre huit, une de deux en montre onze. Les
-            mots sont ceux du panneau de bureau, c'est le même réglage. */}
-        <h3 className="mt-1 mb-2 text-[13px] font-medium tracking-wide text-muted-foreground uppercase dark:text-white/55">
-          Densité de la liste
-        </h3>
-        <div
-          role="radiogroup"
-          aria-label="Densité de la liste"
-          className="mb-4 flex rounded-xl bg-muted p-0.5 text-[15px]"
-        >
-          {(
-            [
-              ["confort", "Confort", "Trois lignes"],
-              ["compact", "Compact", "Deux lignes"],
-            ] as const
-          ).map(([cle, mot, sous]) => (
-            <button
-              key={cle}
-              type="button"
-              role="radio"
-              aria-checked={density === cle}
-              onClick={() => setDensity(cle)}
-              className={cn(
-                "flex-1 rounded-[10px] py-1.5 leading-tight font-medium transition-colors active:scale-[0.98] active:duration-0",
-                density === cle ? "bg-background text-foreground shadow-xs" : "text-muted-foreground",
-              )}
-            >
-              {mot}
-              <span className="block text-[11px] font-normal text-muted-foreground">{sous}</span>
-            </button>
-          ))}
-        </div>
+              Le filet part **après** le `pl-4`, comme celui de `SheetRow` :
+              posé sur le même élément que le retrait, il repartait du bord du
+              groupe et deux lignes sur quatre étaient soulignées plus à gauche
+              que les autres. */}
+          <li className="group/row">
+            <div className="pl-4">
+              <div className="border-b border-black/[0.07] py-3 pr-4 group-last/row:border-0 dark:border-white/[0.09]">
+                <p className="mb-2.5 text-[15px]">Couleur de l&apos;espace</p>
+                <div
+                  className="flex items-center justify-between gap-2"
+                  role="radiogroup"
+                  aria-label="Couleur de l'espace"
+                >
+                  {PRESET_HUES.map((h) => {
+                    const choisi = hue === h;
+                    return (
+                      <button
+                        key={h}
+                        type="button"
+                        role="radio"
+                        aria-checked={choisi}
+                        aria-label={`Teinte ${h}`}
+                        onClick={() => setSpaceHue(space.id, h)}
+                        /* La sélection est un bord blanc plus un anneau : sur huit
+                           pastilles rondes, un simple grossissement ne se voyait pas. */
+                        className={cn(
+                          "size-[34px] shrink-0 rounded-full transition-transform active:scale-90 active:duration-0",
+                          choisi && "border-2 border-white ring-2 ring-white/25",
+                        )}
+                        /* **L'accent, pas le dégradé.** Un rond de 34 px lit le
+                           milieu d'un dégradé à 135° — la teinte plus 35° —, donc
+                           il annonçait une couleur que l'espace ne prend nulle
+                           part : teinte 190, pastille bleue, interrupteur
+                           turquoise juste en dessous. La pastille montre ce qu'on
+                           obtient ; le dégradé reste le visage de l'espace, sur
+                           sa tuile en tête de feuille. */
+                        style={{ background: themeFromHue(h).accent }}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </li>
 
-        <SheetGroup>
+          <li className="group/row">
+            <div className="pl-4">
+              <div className="flex min-h-[50px] items-center gap-3 border-b border-black/[0.07] py-1.5 pr-4 group-last/row:border-0 dark:border-white/[0.09]">
+                <span className="min-w-0 flex-1 text-[15px]">Densité de la liste</span>
+                {/* **Deux lignes ou trois**, le même réglage que sur bureau
+                    (`listDensity`) — mais ici il se voit tout de suite : une
+                    rangée de trois lignes sur un écran de 852 px en montre huit,
+                    une de deux en montre onze. Les mots sont ceux du panneau de
+                    bureau, c'est le même réglage. */}
+                <div
+                  role="radiogroup"
+                  aria-label="Densité de la liste"
+                  /* Une teinte, pas `bg-muted` : en sombre il vaut rgb(38,38,38)
+                     et le groupe rgb(38,38,42) — la piste disparaissait sous le
+                     curseur, qui se lisait comme une pastille flottante. */
+                  className="flex shrink-0 rounded-[9px] bg-black/[0.06] p-0.5 text-[13px] dark:bg-white/[0.07]"
+                >
+                  {(
+                    [
+                      ["confort", "Confort"],
+                      ["compact", "Compact"],
+                    ] as const
+                  ).map(([cle, mot]) => (
+                    <button
+                      key={cle}
+                      type="button"
+                      role="radio"
+                      aria-checked={density === cle}
+                      onClick={() => setDensity(cle)}
+                      /* En sombre le curseur est **plus clair** que sa piste :
+                         `bg-background` y vaut presque noir, et l'option choisie
+                         se lisait comme un trou creusé sous la feuille. */
+                      className={cn(
+                        "rounded-[7px] px-3 py-1 font-medium transition-colors active:scale-[0.97] active:duration-0",
+                        density === cle
+                          ? "bg-background text-foreground shadow-xs dark:bg-white/20"
+                          : "text-muted-foreground",
+                      )}
+                    >
+                      {mot}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </li>
+
           <SheetRow onClick={toggleDark} checked={dark}>
-            <SheetTile tint="bg-indigo-500">
-              <Moon />
-            </SheetTile>
             <span className="min-w-0 flex-1 text-[15px]">Thème sombre</span>
             <Switch on={dark} />
           </SheetRow>
+
           <li className="group/row">
             <Link
               href="/comptes"
@@ -239,9 +279,6 @@ export function MobileSettings() {
               className="flex w-full items-center gap-3 pl-4 text-left transition-colors active:bg-muted"
             >
               <span className="flex min-h-[50px] min-w-0 flex-1 items-center gap-3 py-1.5 pr-4">
-                <SheetTile tint="bg-neutral-500">
-                  <UserRound />
-                </SheetTile>
                 <span className="min-w-0 flex-1 text-[15px]">Comptes et signatures</span>
                 <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
               </span>

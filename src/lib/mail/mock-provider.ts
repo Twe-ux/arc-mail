@@ -108,6 +108,10 @@ export class MockProvider implements MailProvider {
       bcc: message.bcc,
       date: new Date().toISOString(),
       body: message.body,
+      /* Le fil rendu à l'interface porte les deux parties : sans le HTML,
+         un message qu'on vient d'envoyer se relisait en texte brut dans
+         « Envoyés », alors qu'il est parti mis en forme. */
+      html: message.html,
     };
     if (message.replyTo) {
       const existing = this.threads.find((t) => t.id === message.replyTo);
@@ -144,6 +148,7 @@ export class MockProvider implements MailProvider {
       bcc: draft.bcc,
       date: new Date().toISOString(),
       body: draft.body,
+      html: draft.html,
     };
     if (existing) {
       const next = { ...existing, subject, snippet: firstLine(draft.body), messages: [msg] };

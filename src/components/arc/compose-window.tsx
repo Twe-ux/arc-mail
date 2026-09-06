@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Maximize2, Minimize2, Paperclip, PenLine, Send, Trash2, X } from "lucide-react";
+import { Bold, Italic, Link as LinkIcon, List, Maximize2, Minimize2, Paperclip, PenLine, Send, Trash2, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/kbd";
@@ -16,6 +16,13 @@ import { cn } from "@/lib/utils";
 import { AttachmentChips } from "./compose-attach";
 import { ComposeFields, SendFailed } from "./compose-fields";
 import { useComposeTools } from "./use-compose-tools";
+
+/** Les commandes de mise en forme du pied de fenêtre — les quatre qui servent. */
+const FORMES = [
+  { icon: Bold, label: "Gras · ⌘B", commande: "bold" },
+  { icon: Italic, label: "Italique · ⌘I", commande: "italic" },
+  { icon: List, label: "Liste à puces", commande: "insertUnorderedList" },
+] as const;
 
 /**
  * **760 × 560, au centre.** Elle a été une colonne à droite du message pendant
@@ -118,7 +125,7 @@ export function ComposeWindow({ draft }: { draft: ComposeDraft }) {
           </HeaderButton>
         </header>
 
-        <ComposeFields draft={draft} />
+        <ComposeFields draft={draft} corps={t.poserCorps} />
         {sendError && <SendFailed detail={sendError} />}
         <AttachmentChips attachments={t.pieces} onRemove={t.retirer} />
 
@@ -133,6 +140,21 @@ export function ComposeWindow({ draft }: { draft: ComposeDraft }) {
             {sendError ? "Réessayer" : "Envoyer"}
             <Kbd className="bg-white/20 text-white/90">⌘⏎</Kbd>
           </button>
+          {/* **La mise en forme est là aussi.** Le panneau du téléphone la
+              portait seul, et la fenêtre du bureau n'avait rien — un message
+              écrit d'un côté ne se met pas en forme de l'autre. Trois commandes
+              et le lien, celles qu'on emploie ; ⌘B, ⌘I et ⌘U marchent en plus
+              nativement dans un champ riche. */}
+          <span className="mx-1 flex items-center gap-0.5 border-l border-black/[0.07] pl-2 dark:border-white/[0.12]">
+            {FORMES.map(({ icon: Icon, label, commande }) => (
+              <FooterButton key={label} label={label} onClick={() => t.mettreEnForme(commande)}>
+                <Icon />
+              </FooterButton>
+            ))}
+            <FooterButton label="Lien" onClick={t.lier}>
+              <LinkIcon />
+            </FooterButton>
+          </span>
           <FooterButton
             label="Joindre un fichier"
             onClick={() => {

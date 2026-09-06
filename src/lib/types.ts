@@ -193,7 +193,17 @@ export type ComposeDraft = {
   cc: string[];
   bcc: string[];
   subject: string;
+  /** Le message en texte simple — toujours à jour, même quand `html` existe. */
   body: string;
+  /**
+   * Le message mis en forme, quand on s'en est servi.
+   *
+   * Le champ d'écriture est riche et rend toujours du HTML ; `html` n'est
+   * gardé que **s'il apporte quelque chose de plus que le texte**. Un message
+   * tapé sans mise en forme part donc en texte simple, comme avant — le HTML
+   * ne doit pas s'inviter dans un courrier qui n'en demandait pas.
+   */
+  html?: string;
   /** Les fichiers joints, déjà lus et encodés — voir `OutgoingAttachment`. */
   attachments?: import("./mail/provider").OutgoingAttachment[];
 };

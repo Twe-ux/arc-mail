@@ -93,6 +93,10 @@ async function composer(message: OutgoingMessage, fil: Fil, brouillon = false): 
     bcc: message.bcc?.length ? adresses(message.bcc) : undefined,
     subject: message.subject || "(sans objet)",
     text: message.body,
+    /* **Les deux parties, jamais le HTML seul.** `MailComposer` en fait un
+       `multipart/alternative` dès qu'il a les deux, et c'est ce qu'attend un
+       client qui n'affiche pas le HTML — ou un serveur qui indexe le texte. */
+    html: message.html || undefined,
     /* `MailComposer` sait lire du base64 : les octets ne repassent pas par un
        Buffer intermédiaire, et le même message compilé sert à SMTP et à
        l'`APPEND` dans « Envoyés ». */
@@ -137,6 +141,10 @@ function filEcrit(
         bcc: message.bcc?.length ? message.bcc : undefined,
         date: new Date().toISOString(),
         body: message.body,
+      /* Le fil rendu à l'interface porte les deux parties : sans le HTML,
+         un message qu'on vient d'envoyer se relisait en texte brut dans
+         « Envoyés », alors qu'il est parti mis en forme. */
+      html: message.html,
       },
     ],
   };

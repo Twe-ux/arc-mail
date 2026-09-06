@@ -22,18 +22,38 @@ import {
 import { cn } from "@/lib/utils";
 import { SheetCloseButton } from "./bottom-sheet";
 
+/** Ce que chaque case commande, et ce qu'elle dit à un lecteur d'écran. */
+const STYLES = [
+  { icon: Bold, label: "Gras", commande: "bold" },
+  { icon: Italic, label: "Italique", commande: "italic" },
+  { icon: Underline, label: "Souligné", commande: "underline" },
+  { icon: Strikethrough, label: "Barré", commande: "strikeThrough" },
+] as const;
+
+const BLOCS = [
+  { icon: AlignLeft, label: "Aligner à gauche", commande: "justifyLeft" },
+  { icon: AlignCenter, label: "Centrer", commande: "justifyCenter" },
+  { icon: AlignRight, label: "Aligner à droite", commande: "justifyRight" },
+] as const;
+
+const LISTES = [
+  { icon: List, label: "Liste à puces", commande: "insertUnorderedList" },
+  { icon: ListOrdered, label: "Liste numérotée", commande: "insertOrderedList" },
+  { icon: Quote, label: "Citation", commande: "formatBlock", valeur: "blockquote" },
+] as const;
+
 /**
  * Le panneau de mise en forme.
  *
- * **Il ne ment pas sur ce qu'il fait.** Le corps du message part en texte
- * simple, du store jusqu'à `MailComposer` : gras, listes, citation et lien
- * n'auraient nulle part où aller, et des boutons qui s'allument sans rien
- * changer au message envoyé sont pires que des boutons éteints. Ne restent
- * actifs que la police et la taille, qui sont de vraies préférences
- * d'écriture — elles changent le champ sous les doigts, et rien de plus.
+ * **Il ne ment pas sur ce qu'il fait.** Il a passé deux versions avec six
+ * boutons gris et une phrase qui disait pourquoi : le corps partait en texte
+ * simple, du store jusqu'à `MailComposer`, et des boutons qui s'allument sans
+ * rien changer au message envoyé sont pires que des boutons éteints.
  *
- * Le reste s'allumera le jour où le corps sera du HTML ; d'ici là il dit
- * pourquoi il est gris.
+ * Le corps est maintenant un champ riche (`ComposeBody`) et le message emporte
+ * ses deux parties : les cases commandent enfin quelque chose. La police et la
+ * taille restent ce qu'elles ont toujours été — des préférences d'écriture, qui
+ * changent le champ sous les doigts et ne partent pas avec le message.
  */
 export function FormatPanel({
   onClose,
@@ -41,35 +61,44 @@ export function FormatPanel({
   onSize,
   serif,
   onSerif,
+  onCommande,
+  onLien,
 }: {
   onClose: () => void;
   size: number;
   onSize: (px: number) => void;
   serif: boolean;
   onSerif: (v: boolean) => void;
+  /** Applique une commande d'édition à la sélection — voir `useComposeTools`. */
+  onCommande: (commande: string, valeur?: string) => void;
+  /** Le lien, qui demande son adresse — une seule définition, dans le hook. */
+  onLien: () => void;
 }) {
   return (
     <Panneau label="Mise en forme" onClose={onClose}>
       <div className="rounded-3xl bg-white p-2 dark:bg-[#26262a]">
         <Rangee>
-          {[Bold, Italic, Underline, Strikethrough].map((Icon, i) => (
-            <Case key={i} disabled>
+          {STYLES.map(({ icon: Icon, label, commande }) => (
+            <Case key={label} label={label} onClick={() => onCommande(commande)}>
               <Icon className="size-5" />
             </Case>
           ))}
         </Rangee>
         <Rangee>
-          {[AlignLeft, AlignCenter, AlignRight].map((Icon, i) => (
-            <Case key={i} disabled>
+          {BLOCS.map(({ icon: Icon, label, commande }) => (
+            <Case key={label} label={label} onClick={() => onCommande(commande)}>
               <Icon className="size-5" />
             </Case>
           ))}
           <span className="w-2" />
-          {[List, ListOrdered, Quote, LinkIcon].map((Icon, i) => (
-            <Case key={i} disabled>
-              <Icon className="size-5" />
+          {LISTES.map((b) => (
+            <Case key={b.label} label={b.label} onClick={() => onCommande(b.commande, "valeur" in b ? b.valeur : undefined)}>
+              <b.icon className="size-5" />
             </Case>
           ))}
+          <Case label="Lien" onClick={onLien}>
+            <LinkIcon className="size-5" />
+          </Case>
         </Rangee>
         <Rangee>
           <button
@@ -97,7 +126,7 @@ export function FormatPanel({
         </Rangee>
       </div>
       <p className="px-2 pt-2 text-[13px] text-muted-foreground">
-        Le message part en texte simple : gras, listes et liens arriveront avec le corps HTML.
+        La police et la taille ne changent que le champ. Le reste part avec le message.
       </p>
     </Panneau>
   );
@@ -137,12 +166,28 @@ function Rangee({ children }: { children: React.ReactNode }) {
   return <div className="flex items-center gap-1 p-1">{children}</div>;
 }
 
-function Case({ disabled, children }: { disabled?: boolean; children: React.ReactNode }) {
+function Case({
+  disabled,
+  label,
+  onClick,
+  children,
+}: {
+  disabled?: boolean;
+  label?: string;
+  onClick?: () => void;
+  children: React.ReactNode;
+}) {
   return (
     <button
       type="button"
       disabled={disabled}
-      className="grid h-11 flex-1 place-items-center rounded-2xl bg-black/[0.05] text-muted-foreground disabled:opacity-40 dark:bg-white/[0.06]"
+      aria-label={label}
+      /* **`mousedown` et non `click`.** Appuyer sur un bouton retire le focus du
+         champ, et avec lui la sélection : la commande s'appliquerait à rien.
+         On l'empêche avant qu'il ne parte. */
+      onMouseDown={(e) => e.preventDefault()}
+      onClick={onClick}
+      className="grid h-11 flex-1 place-items-center rounded-2xl bg-black/[0.05] text-muted-foreground transition-colors hover:bg-black/[0.09] active:scale-95 disabled:opacity-40 dark:bg-white/[0.06] dark:hover:bg-white/[0.10]"
     >
       {children}
     </button>

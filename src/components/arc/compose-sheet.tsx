@@ -91,7 +91,13 @@ export function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
         side="bottom"
         showCloseButton={false}
         onFocusCapture={(e) =>
-          setChampVise(e.target instanceof HTMLElement && /^(INPUT|TEXTAREA)$/.test(e.target.tagName))
+          /* Le corps du message est un `contenteditable` depuis qu'il porte la
+             mise en forme : ce n'est ni un `input` ni un `textarea`, et sans
+             cette ligne il levait le clavier sans que la feuille le sache. */
+          setChampVise(
+            e.target instanceof HTMLElement &&
+              (/^(INPUT|TEXTAREA)$/.test(e.target.tagName) || e.target.isContentEditable),
+          )
         }
         onBlurCapture={() => setChampVise(false)}
         /* This sheet already has three explicit ways to close: Fermer, the
@@ -173,7 +179,8 @@ export function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
            restait en bas.
 
            **Et le coussin ne s'applique que si un champ a le focus**
-           (`:has(:is(input,textarea):focus)`) : sans cette garde, les 50 px
+           (`:has(:is(input,textarea,[contenteditable]):focus)`) : sans cette
+           garde, les 50 px
            fantômes de la re-résolution poussaient la tête de la feuille puis
            la lâchaient. Pas de champ visé, pas de clavier, pas de coussin.
 
@@ -182,7 +189,7 @@ export function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
            lecteurs de la même mesure, une seule condition — sinon la barre
            rendait ses 34 px pendant le fantôme et sautait de 26 px à
            l'ouverture. */
-        className="inset-x-0 top-0 bottom-0 mt-[calc(var(--safe-top)+var(--vv-top,0px))] mb-[calc(0px-var(--vv-top,0px))] flex h-auto max-h-[100svh] w-auto max-w-none flex-col gap-0 rounded-t-[36px] border-0 p-0 pb-[var(--clavier)] shadow-[0_-8px_40px_rgb(0_0_0/0.28)] transition-none data-[state=open]:slide-in-from-bottom-8 data-[state=open]:duration-300 [--bas:max(0.5rem,calc(env(safe-area-inset-bottom)-12px))] [--clavier:0px] [&:has(:is(input,textarea):focus)]:[--bas:0.375rem] [&:has(:is(input,textarea):focus)]:[--clavier:var(--keyboard-inset,0px)] dark:bg-[#26262a] dark:ring-1 dark:ring-white/12"
+        className="inset-x-0 top-0 bottom-0 mt-[calc(var(--safe-top)+var(--vv-top,0px))] mb-[calc(0px-var(--vv-top,0px))] flex h-auto max-h-[100svh] w-auto max-w-none flex-col gap-0 rounded-t-[36px] border-0 p-0 pb-[var(--clavier)] shadow-[0_-8px_40px_rgb(0_0_0/0.28)] transition-none data-[state=open]:slide-in-from-bottom-8 data-[state=open]:duration-300 [--bas:max(0.5rem,calc(env(safe-area-inset-bottom)-12px))] [--clavier:0px] [&:has(:is(input,textarea,[contenteditable]):focus)]:[--bas:0.375rem] [&:has(:is(input,textarea,[contenteditable]):focus)]:[--clavier:var(--keyboard-inset,0px)] dark:bg-[#26262a] dark:ring-1 dark:ring-white/12"
       >
         {/* Le voile de l'espace, en haut de la feuille et lui seul : c'est ce
             qui la rattache à Arc Mail plutôt qu'à la feuille grise d'iOS.
@@ -237,6 +244,7 @@ export function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
         {sendError && <SendFailed detail={sendError} />}
         {draft && (
           <ComposeFields
+            corps={t.poserCorps}
             key={draft.draftId ?? "new"}
             draft={draft}
             compact
@@ -265,6 +273,8 @@ export function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
             onSize={t.setTaille}
             serif={t.serif}
             onSerif={t.setSerif}
+            onCommande={t.mettreEnForme}
+            onLien={t.lier}
           />
         )}
 

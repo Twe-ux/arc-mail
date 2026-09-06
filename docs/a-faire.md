@@ -50,9 +50,11 @@ est argumenté dans l'[audit du 6 septembre](audits/2026-09-06-clients-mail.md).
 ### Interface
 
 - [ ] Créer un espace (renommer et choisir son icône se font des deux côtés depuis le 6 sept.).
-- [ ] **Corps HTML du message** : c'est ce qui manque au panneau de mise en forme, dont tous les
-      boutons de style sont désactivés faute de destination (`composeur-panneaux.md`). Il faut un
-      champ riche, `html` dans `OutgoingMessage`, et `MailComposer` qui envoie les deux parties.
+- [x] **Corps HTML du message** (6 sept.) — champ riche (`contenteditable`), `html` dans
+      `OutgoingMessage` et le brouillon, `MailComposer` qui envoie les deux parties, et les onze
+      cases du panneau enfin actives → [fiche](features/composeur-panneaux.md). **Reste à voir sur
+      une vraie boîte** : le `multipart/alternative` chez le destinataire et la copie dans
+      « Envoyés » — c'est dans « à tester ».
 - [ ] États vides par dossier (le squelette de chargement existe).
 - [ ] Documenter dans `DESIGN.md` les valeurs que le détecteur signale encore : les trois dégradés
       d'espace, le voile `rgb(16 14 24 / 0.45)`, le bleu de lien des messages HTML — des valeurs
@@ -88,6 +90,8 @@ correctif.
 - [ ] **Les brouillons** — écrire, fermer, rouvrir, envoyer ; le retrait passe par la corbeille,
       pas par `EXPUNGE`.
 - [ ] **Les pièces jointes en émission** — 10 Mo, plusieurs fichiers, un nom accentué.
+- [ ] **Le corps HTML** — le `multipart/alternative` tel qu'il arrive chez le destinataire (les deux
+      parties, la partie texte lisible seule), et la copie dans « Envoyés » qui doit garder le HTML.
 - [ ] **Une vraie infolettre** — la mise à la largeur, les images retenues, le bandeau, sur un
       courrier qui n'est pas notre mock.
 - [ ] **Deux comptes en même temps** — le cache par empreinte d'identifiants, le changement

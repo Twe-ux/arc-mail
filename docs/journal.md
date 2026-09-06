@@ -2,6 +2,25 @@
 
 Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérification.
 
+## 6 septembre 2026 — le corps du message devient du HTML
+
+Le panneau de mise en forme avait six boutons gris et une phrase qui disait pourquoi : le corps
+partait en texte simple, du store jusqu'à `MailComposer`. Il est maintenant un `contenteditable`, et
+les onze cases commandent quelque chose.
+
+La règle qui tient le tout : **le texte fait foi, le HTML accompagne**. L'éditeur produit toujours du
+HTML ; on ne le joint que s'il apporte quelque chose de plus que le texte, et quand les deux partent
+ils partent ensemble en `multipart/alternative`. Un message tapé sans mise en forme part comme
+avant — le HTML ne s'invite pas dans un courrier qui n'en demandait pas.
+
+Deux choses valaient la mesure. La première : `dernier` gardait le HTML du DOM et l'effet comparait
+le HTML reconstruit ; comme un message sans mise en forme ne garde pas de `html`, les deux ne
+coïncidaient jamais, le champ se récrivait à chaque lettre et le curseur repartait au début — la
+première lettre de « Bonjour » finissait à la fin du message. La seconde, invisible au clavier d'un
+ordinateur : la feuille du téléphone reconnaît le clavier à `:has(:is(input,textarea):focus)`, et le
+corps n'est plus ni l'un ni l'autre. Sans le `[contenteditable]` ajouté aux deux endroits, écrire
+levait le clavier sans que la feuille le sache.
+
 ## 6 septembre 2026 — la boîte ne s'arrête plus à soixante
 
 « Pourquoi je n'ai pas tous mes messages dans la réception ? » Parce que la lecture rendait les

@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { ChevronDown } from "lucide-react";
 
 import { selectContacts, useMail, useSpaces } from "@/lib/store";
 import type { ComposeDraft } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { ComposeBody } from "./compose-body";
 import { RecipientField } from "./recipient-field";
 import { SpaceIcon } from "./space-icon";
 
@@ -32,6 +33,7 @@ export function ComposeFields({
   compact,
   lignesCachees,
   bodyStyle,
+  corps,
 }: {
   draft: ComposeDraft;
   /** Téléphone : la mise en page suit celle d'une feuille, pas d'une fenêtre. */
@@ -51,31 +53,22 @@ export function ComposeFields({
   lignesCachees?: boolean;
   /** Le confort d'écriture réglé dans le panneau : police et taille du champ. */
   bodyStyle?: React.CSSProperties;
+  /** Le champ du message, rendu à `useComposeTools` : le panneau le commande. */
+  corps: (el: HTMLDivElement | null) => void;
 }) {
   const threads = useMail((s) => s.threads);
   const update = useMail((s) => s.updateCompose);
   const sendMail = useMail((s) => s.sendMail);
   const contacts = useMemo(() => selectContacts(threads), [threads]);
+  /* Le champ « À » prend le focus pour un message neuf ; dès qu'il y a un
+     destinataire, c'est le corps qui l'a (voir `ComposeBody`). */
+  const viseCorps = draft.to.length > 0;
   const [details, setDetails] = useState(
     draft.cc.length > 0 || draft.bcc.length > 0,
   );
   const spaces = useSpaces();
   const space = spaces.find((sp) => sp.id === draft.spaceId) ?? spaces[0];
 
-  /* **Le clavier s'ouvre sur ce qu'on vient écrire.** Un message neuf commence
-     par son destinataire ; une réponse, un transfert ou un brouillon rouvert
-     l'ont déjà, et c'est le corps qu'on vient remplir — sans ça il fallait un
-     appui de plus pour lever le clavier à chaque réponse. Le curseur se pose
-     **au début**, avant la signature et le message cité. */
-  const corps = useRef<HTMLTextAreaElement>(null);
-  const viseCorps = draft.to.length > 0;
-  useEffect(() => {
-    if (!viseCorps) return;
-    const el = corps.current;
-    if (!el) return;
-    el.focus();
-    el.setSelectionRange(0, 0);
-  }, [viseCorps]);
 
   return (
     <>
@@ -149,32 +142,13 @@ export function ComposeFields({
           />
         </Row>
       </div>
-      <textarea
-        ref={corps}
-        value={draft.body}
-        onChange={(e) => update({ body: e.target.value })}
-        onKeyDown={(e) => {
-          if (
-            (e.metaKey || e.ctrlKey) &&
-            e.key === "Enter" &&
-            draft.to.length > 0
-          )
-            sendMail();
-        }}
-        placeholder="Écris ton message…"
+      <ComposeBody
+        draft={draft}
+        update={update}
+        onSend={sendMail}
+        ancre={corps}
         style={bodyStyle}
-        className={cn(
-          /* Un plancher, pas `min-h-0` : même sous un panneau, on garde une
-             ligne ou deux de ce qu'on est en train d'écrire. */
-          /* `none`, pas `contain` : `contain` arrête la page derrière mais laisse
-             au champ son propre élastique, et cet élastique court contre la
-             transformation du glisser-fermer au moment précis où les deux se
-             passent la main — c'est le tremblement (mesuré sur Kairos). */
-          "min-h-16 flex-1 resize-none overflow-y-auto overscroll-none bg-transparent px-4 py-3.5 outline-none placeholder:text-muted-foreground",
-          compact
-            ? "text-[17px] leading-[1.5]"
-            : "text-[15px] leading-relaxed sm:text-sm",
-        )}
+        className={compact ? "text-[17px] leading-[1.5]" : "text-[15px] leading-relaxed sm:text-sm"}
       />
     </>
   );

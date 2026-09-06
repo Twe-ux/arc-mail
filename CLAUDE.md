@@ -324,8 +324,16 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - Les trois panneaux s'excluent et referment le clavier ; le menu du brouillon (`⋯`) a sa **clé
   d'état à part** — il se superpose au composeur, le partager le démontait.
 - Les pièces jointes voyagent en **base64** (`OutgoingAttachment`), 10 Mo par message, refusés à la
-  sélection ; sur bureau elles entrent par le trombone **ou par la fenêtre** (glisser-déposer). La
-  mise en forme est **désactivée et le dit** tant que le corps est du texte simple.
+  sélection ; sur bureau elles entrent par le trombone **ou par la fenêtre** (glisser-déposer).
+- Le corps est un **`contenteditable`** (`compose-body.tsx`) : le texte fait foi, le HTML accompagne
+  (`riche.ts`) et n'est joint **que s'il apporte quelque chose** (`enrichi()`) ; les deux partent
+  ensemble en `multipart/alternative`. Le champ n'est **contrôlé qu'à l'amorce** — les deux côtés
+  calculent la **même chaîne**, sinon il se récrit à chaque frappe et le curseur repart au début. Le
+  collage entre en **texte simple** (laver appartient au serveur), `execCommand` est assumé, une case
+  de panneau empêche son `mousedown` (sinon la sélection part), le lien n'accepte que `https` et
+  `mailto`, et l'invite s'écrit en CSS. La feuille reconnaît le clavier par
+  `:has(:is(input,textarea,[contenteditable]):focus)` — **sans `[contenteditable]`, écrire levait le
+  clavier sans que la feuille le sache**.
 
 **Barre du bas** → [docs/features/barre-du-bas.md](docs/features/barre-du-bas.md)
 - La barre est posée par-dessus la liste ; le défilant lui laisse `--nav-height` en bas, sinon le

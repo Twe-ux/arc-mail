@@ -373,3 +373,82 @@ glyphes tombent donc à **38 px** du bord ; la barre d'outils était en `px-2.5`
 
 `px-[18px]` : 18 + 20 = 38. Le trombone est sur la verticale du ✕, le `⋯` sur celle du bouton
 d'envoi (355 des deux côtés) — vérifié au `getBoundingClientRect`, pas à l'œil.
+
+---
+
+## Le corps devient du HTML (6 sept. 2026)
+
+Le panneau de mise en forme a passé deux versions avec six boutons gris et une phrase qui disait
+pourquoi. Le corps partait en texte simple, du store jusqu'à `MailComposer` : gras, listes, citation
+et lien n'avaient nulle part où aller, et des boutons qui s'allument sans rien changer au message
+envoyé sont pires que des boutons éteints. Ils s'allument.
+
+### Le texte fait foi, le HTML accompagne
+
+`riche.ts` tient les trois fonctions du va-et-vient, et une règle. Le champ est riche : il rend
+**toujours** du HTML, même pour trois lignes tapées d'affilée. Or un courrier n'a aucune raison de
+partir en HTML parce que l'éditeur en produit — c'est ce qui fait qu'un message de deux phrases pèse
+trois kilo-octets et s'affiche de travers chez qui ne lit que le texte.
+
+Le brouillon garde donc les deux versions à jour, et **le HTML n'est joint que s'il apporte quelque
+chose** (`enrichi()` : une balise qui ne soit pas de la structure, ou un style posé à la main). Un
+message tapé sans mise en forme part comme avant. Quand les deux partent, ils partent **ensemble** —
+`MailComposer` en fait un `multipart/alternative` dès qu'il a les deux ; envoyer le HTML seul, c'est
+un message vide pour qui ne l'affiche pas.
+
+`texteDe()` refait le texte depuis le HTML : les blocs et les `<br>` deviennent des retours à la
+ligne, une puce garde son tiret et une citation son chevron — ce que fait tout client qui rend la
+partie texte, et ce qu'un lecteur qui n'a que celle-là doit retrouver.
+
+### Le champ n'est contrôlé qu'à l'amorce
+
+Un `contenteditable` ne se pilote pas comme un `textarea`. Récrire son `innerHTML` à chaque frappe
+replace le curseur au début : le champ est la **source**, et le store le suit.
+
+**Le défaut à ne pas refaire**, trouvé à la première mesure : `dernier` gardait le HTML **du DOM** et
+l'effet comparait le HTML **reconstruit** ; comme un message sans mise en forme ne garde pas de
+`html`, les deux ne coïncidaient jamais, le champ se récrivait à chaque lettre et le curseur
+repartait au début — la première lettre de « Bonjour » finissait à la fin du message. Les deux côtés
+calculent maintenant la même chaîne.
+
+### Le reste des règles
+
+- **Le collage entre en texte simple.** Coller du HTML apporterait ses balises, ses styles et ses
+  images distantes dans un message qu'on signe ; il faudrait le laver, et laver appartient au serveur
+  (`html.ts`), pas au champ de saisie.
+- **`execCommand` est obsolète et reste le seul chemin praticable** : le refaire à la main, c'est
+  réécrire la manipulation de plages pour six commandes, dans quatre navigateurs, avec l'annulation.
+  Le jour où un moteur l'abandonnera, c'est une bibliothèque d'édition qu'il faudra, pas quinze
+  lignes de plus.
+- **Une case de panneau empêche son `mousedown`** : appuyer retire le focus du champ, et avec lui la
+  sélection — la commande s'appliquerait à rien.
+- **Le lien n'accepte que `https` et `mailto`.** Un `javascript:` collé là partirait dans un message
+  signé de notre adresse. Une seule définition (`useComposeTools.lier`), pour la feuille et pour la
+  fenêtre.
+- **L'invite s'écrit en CSS** (`data-vide` + `content: attr(...)`) : un champ riche n'a pas de
+  `placeholder`, et un `<span>` posé dedans deviendrait du message.
+- La **fenêtre du bureau a les mêmes commandes**, dans son pied : gras, italique, liste et lien. Le
+  panneau du téléphone les portait seul, et un message écrit d'un côté ne se met pas en forme de
+  l'autre. ⌘B, ⌘I et ⌘U marchent en plus nativement dans un champ riche.
+
+### La régression qu'il fallait voir
+
+La feuille du téléphone reconnaît le clavier à `:has(:is(input,textarea):focus)` — et le corps n'est
+plus ni l'un ni l'autre. Sans le `[contenteditable]` ajouté aux deux endroits (le sélecteur CSS et
+`onFocusCapture`), écrire levait le clavier **sans que la feuille le sache** : pas de coussin, pas
+d'encoche rendue, le message sous les touches.
+
+### Vérifié
+
+Bureau : le champ existe, la saisie tient dans l'ordre (« Bonjour Claire, » / « Voici le devis. »),
+le gras s'applique à la sélection (`<b>le</b>`), la liste enveloppe la ligne (`<ul><li>`), un
+brouillon fermé puis rouvert revient **au HTML près**, le collage d'un `<b onclick=…>` entre en
+texte nu, et l'invite apparaît sur un corps vidé.
+
+Téléphone (393×852, insets 59/34) : feuille à 793 px, message à **540 px au repos et 204 px champ
+visé**, `--clavier` qui résout bien à la hauteur du clavier quand le corps a le focus — la mesure qui
+prouve que la garde tient. Panneau ouvert : onze cases actives. Zéro erreur de console dans les deux
+cas ; le détecteur ne signale que les quatre couleurs déjà connues.
+
+**Reste à voir sur une vraie boîte** : le `multipart/alternative` tel qu'il arrive chez le
+destinataire, et la copie dans « Envoyés ».

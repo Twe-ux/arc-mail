@@ -86,7 +86,20 @@ export type OutgoingMessage = {
   cc?: Contact[];
   bcc?: Contact[];
   subject: string;
+  /**
+   * Le message en **texte simple**. Toujours écrit, même quand `html` l'est
+   * aussi : c'est la partie que lit un client qui refuse le HTML, un lecteur
+   * d'écran en mode texte, ou la recherche du serveur.
+   */
   body: string;
+  /**
+   * Le même message **mis en forme**, quand il l'est.
+   *
+   * Les deux voyagent ensemble (`multipart/alternative`) et disent la même
+   * chose : `MailComposer` s'en charge dès qu'on lui donne les deux. Envoyer le
+   * HTML seul, c'est un message vide pour qui ne l'affiche pas.
+   */
+  html?: string;
   attachments?: OutgoingAttachment[];
   /** Thread this answers; the message joins it instead of opening a new one. */
   replyTo?: string;

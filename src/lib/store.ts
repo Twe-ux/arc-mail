@@ -1389,6 +1389,10 @@ export const useMail = create<MailState>()(
         bcc: (m.bcc ?? []).map((c) => c.email),
         subject: t.subject === NO_SUBJECT ? "" : t.subject,
         body: m.body,
+        /* Rouvrir un brouillon rend le message **tel qu'on l'a laissé**, mise
+           en forme comprise : sans cette ligne, un message écrit en gras
+           revenait en texte simple et repartait ainsi. */
+        html: m.html,
       },
       sidebarOpen: false,
     });
@@ -1421,6 +1425,10 @@ export const useMail = create<MailState>()(
         bcc: d.bcc.length ? toContacts(d.bcc, book) : undefined,
         subject: d.subject,
         body: d.body,
+        /* Les deux parties suivent le brouillon comme elles suivent l'envoi :
+           un message mis en forme, refermé puis rouvert, doit revenir tel
+           qu'on l'a laissé. */
+        html: d.html,
         attachments: d.attachments?.length ? d.attachments : undefined,
       })
       .then((saved) => {
@@ -1508,6 +1516,10 @@ export const useMail = create<MailState>()(
         bcc: d.bcc.length ? toContacts(d.bcc, book) : undefined,
         subject: d.subject,
         body: d.body,
+        /* Les deux parties suivent le brouillon comme elles suivent l'envoi :
+           un message mis en forme, refermé puis rouvert, doit revenir tel
+           qu'on l'a laissé. */
+        html: d.html,
         attachments: d.attachments?.length ? d.attachments : undefined,
       })
       .then(

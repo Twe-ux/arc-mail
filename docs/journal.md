@@ -2,6 +2,20 @@
 
 Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérification.
 
+## 6 septembre 2026 — la grille Dossiers repart, une forme de moins
+
+Montée le matin, retirée le soir. « Il faut tout uniformiser, même menu Dossiers, sinon trop de
+différence entre les fenêtres » : elle était la dernière forme de l'app à ne pas parler la
+grammaire des feuilles — rangée, icône en trait, nom, valeur à droite. Les sept dossiers
+redeviennent des rangées, exactement celles de « Déplacer vers » et de « Plus », et l'état ouvert
+est celui de `SheetRow` plutôt qu'une couleur de plus.
+
+Ça rend les deux cents pixels qu'elle avait gagnés — carte de 572 px au lieu de 362 — et c'est le
+prix assumé : une feuille qui ne ressemble à aucune autre coûte plus cher à lire que du
+défilement. Ce qui lui survit : le compte des non-lus, et `FOLDER_SHORT`, qui sert toujours aux
+épinglés de la tête de liste, où il n'y a que 84 px. Ici le nom long a toute la largeur — c'est
+« Boîte de réception », pas « Réception ».
+
 ## 6 septembre 2026 — plus de tuile du tout, et un groupe qui se borne
 
 Le carré coloré était passé à la teinte de l'espace le matin ; l'après-midi il disparaît. « J'aime

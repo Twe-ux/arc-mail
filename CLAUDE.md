@@ -89,9 +89,10 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   en bas (`mask-image`) avec `pb-6` dedans.
 - Une seule surface par carte (`Command` en `bg-transparent`).
 - La feuille **Dossiers** ne choisit plus le compte (les espaces sont dans la barre du bas) et pose
-  les sept boîtes en **grille de quatre colonnes** : tuile de 70, teinte de l'espace (7 %, 20 % si
-  ouvert), non-lus en pastille au coin. Le nom court vit dans `src/lib/folders.ts`, lu aussi par
-  les épinglés de la tête de liste.
+  les sept boîtes en **rangées**, la grammaire des autres feuilles : icône en trait, nom long,
+  non-lus à droite. La grille de quatre colonnes a été essayée puis retirée le même jour — une
+  forme de moins vaut mieux que 200 px. `FOLDER_SHORT` (`src/lib/folders.ts`) ne sert plus qu'aux
+  épinglés de la tête de liste, où il n'y a que 84 px.
 - Le composeur n'est **plus une carte flottante** : feuille plein écran **ancrée**, le clavier ne
   lui prend qu'un `padding-bottom` → fiche composeur.
 - Le composeur est en cinq fichiers (aiguillage, feuille, fenêtre, lignes, panneaux), aucun

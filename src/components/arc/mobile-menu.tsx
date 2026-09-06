@@ -4,7 +4,7 @@ import { ChevronRight, X } from "lucide-react";
 import Link from "next/link";
 
 import { SignOut } from "@/components/auth/sign-out";
-import { FOLDER_ICON, FOLDER_SHORT } from "@/lib/folders";
+import { FOLDER_ICON } from "@/lib/folders";
 import { FOLDERS } from "@/lib/mock-data";
 import { selectUnreadCount, useMail, useRecentThreads, useSpace } from "@/lib/store";
 import { PRESET_HUES, themeFromHue } from "@/lib/theme";
@@ -27,10 +27,12 @@ import { SpaceIcon } from "./space-icon";
  * bas, à demeure, sous le pouce. Le rail de pastilles qui les répétait ici
  * coûtait 52 px de tête pour un chemin qu'on ne prenait jamais.
  *
- * Les dossiers sont une **grille de quatre colonnes**, pas sept rangées
- * d'iOS : c'est la forme des épinglés de la tête de liste (icône, nom court,
- * la teinte de l'espace pour dire lequel est ouvert), et elle rend 200 px —
- * « Aujourd'hui » remonte au-dessus de la ligne de flottaison.
+ * Les dossiers sont **des rangées**, comme « Déplacer vers » et « Plus » :
+ * icône en trait, nom long, compte à droite. La grille de quatre colonnes a
+ * tenu une journée — elle rendait 200 px — puis elle est partie : c'était la
+ * dernière forme de l'app à ne pas parler la grammaire des autres feuilles,
+ * et « trop de différence entre les fenêtres » coûte plus cher que deux cents
+ * pixels de défilement.
  */
 export function MobileMenu() {
   const open = useMail((s) => s.sidebarOpen);
@@ -63,11 +65,12 @@ export function MobileMenu() {
       }
     >
       <SheetScroller>
-        <div className="mt-1 grid grid-cols-4 gap-2">
+        <SheetGroup className="mt-1">
           {FOLDERS.map((f) => (
-            <FolderTile
+            <FolderRow
               key={f.id}
               id={f.id}
+              name={f.name}
               active={f.id === folderId}
               onClick={go(() => {
                 setFolder(f.id);
@@ -75,7 +78,7 @@ export function MobileMenu() {
               })}
             />
           ))}
-        </div>
+        </SheetGroup>
 
         <Section
           title="Aujourd'hui"
@@ -321,40 +324,38 @@ function Section({
 }
 
 /**
- * Une boîte dans la grille : icône, nom court, non-lus en pastille au coin.
+ * Une boîte : l'icône en trait, le nom, les non-lus à droite.
  *
- * Ce qui est ouvert **se remplit** — la règle de la pill d'actions et du
- * regroupement du bureau : l'accent à 20 %, l'encre `--space-ink`. Un anneau
- * seul ne se voyait pas sur 70 px de haut au milieu de six voisines. Et le
- * compte va au coin, pas dans une colonne à droite : dans une grille il n'y a
- * pas de bord droit commun où l'aligner.
+ * Rien d'autre — c'est la rangée de « Déplacer vers » et de « Plus », et
+ * l'état ouvert est celui de `SheetRow` (accent à 12 %) plutôt qu'une couleur
+ * de plus. Le nom **long** revient avec la rangée : « Boîte de réception » a
+ * toute la largeur pour se lire ici, et `FOLDER_SHORT` reste pour les
+ * épinglés de la tête de liste, où il n'y a que 84 px.
  */
-function FolderTile({ id, active, onClick }: { id: FolderId; active: boolean; onClick: () => void }) {
+function FolderRow({
+  id,
+  name,
+  active,
+  onClick,
+}: {
+  id: FolderId;
+  name: string;
+  active: boolean;
+  onClick: () => void;
+}) {
   const count = useMail((s) => selectUnreadCount(s, s.spaceId, id));
   const Icon = FOLDER_ICON[id];
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-current={active ? "page" : undefined}
-      className={cn(
-        "relative flex h-[70px] flex-col items-center justify-center gap-1.5 rounded-2xl px-1 transition-transform active:scale-95 active:duration-0",
-        active
-          ? "bg-[color-mix(in_oklch,var(--space-accent)_20%,transparent)] text-[var(--space-ink)]"
-          : "bg-[color-mix(in_oklch,var(--space-accent)_7%,transparent)] text-foreground",
-      )}
-    >
-      <Icon className={cn("size-5", !active && "text-muted-foreground")} strokeWidth={1.75} />
-      <span className={cn("max-w-full truncate text-[11.5px] leading-none", active ? "font-semibold" : "font-medium")}>
-        {FOLDER_SHORT[id]}
-      </span>
+    <SheetRow active={active} onClick={onClick}>
+      <Icon className="size-5 shrink-0" strokeWidth={1.75} />
+      <span className={cn("min-w-0 flex-1 truncate text-[15px]", active && "font-medium")}>{name}</span>
       {count > 0 && (
-        <span className="absolute top-[7px] right-2 rounded-full px-1.5 text-[10.5px] leading-[1.5] font-bold text-white tabular-nums [background:var(--space-gradient)]">
+        <span className="shrink-0 text-[15px] text-muted-foreground tabular-nums">
           {count}
           <span className="sr-only"> non lus</span>
         </span>
       )}
-    </button>
+    </SheetRow>
   );
 }
 

@@ -198,6 +198,15 @@ l'en-tête d'écran, là où il y a la largeur pour le lire.
 Mesuré à 393 × 852 (insets 59/34) : carte de 362 px au lieu de 562, marges 8 / 8 / 8, rayon 36.
 Environ 200 px rendus, et « Aujourd'hui » remonte au-dessus de la ligne de flottaison.
 
+**La grille a tenu une journée.** Elle est repartie le soir même, avec la même phrase que le reste
+du lot : « il faut tout uniformiser, même menu Dossiers, sinon trop de différence entre les
+fenêtres ». Elle était la dernière forme de l'app à ne pas parler la grammaire des feuilles —
+rangée, icône en trait, nom, valeur à droite —, et deux cents pixels de défilement coûtent moins
+cher qu'une feuille qui ne ressemble à aucune autre. Ce qui reste d'elle : le compte des non-lus à
+droite plutôt qu'en pastille, et `FOLDER_SHORT`, qui sert toujours aux épinglés de la tête de
+liste — là, il n'y a que 84 px. Ici le nom long a toute la largeur : c'est « Boîte de réception »,
+pas « Réception ». Carte de 572 px.
+
 ---
 
 ## Une seule grammaire de rangée, et un groupe qui se borne (6 sept. 2026)

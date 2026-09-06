@@ -22,6 +22,7 @@ import { laver, parse } from "@/lib/search/parse";
 import { sortByDate, useMail, useSpace, useSpaces, type SidebarMode } from "@/lib/store";
 import type { FolderId } from "@/lib/types";
 import { ContactAvatar } from "./contact-avatar";
+import { Surligne } from "./surligne";
 import { SpaceIcon } from "./space-icon";
 
 const FOLDER_ICONS: Record<FolderId, LucideIcon> = {
@@ -230,6 +231,34 @@ export function CommandPalette() {
         )}
 
 
+        {/* **Garder la question, là où elle est écrite — et tout en haut.**
+            Une vue ne se fabrique pas dans un écran de réglages : elle se
+            fabrique au moment où la requête vient d'être tapée et qu'elle rend
+            ce qu'on voulait. Encore faut-il la voir. Elle a passé une journée
+            **sous** les conversations, la boîte entière et les actions :
+            signalé sur une vraie boîte, « c'est tout en bas, pas très visible
+            si on ne descend pas ». Elle est donc la première ligne, comme
+            l'aide de syntaxe qu'elle remplace dès qu'on tape — une seule ligne
+            en tête, jamais deux. */}
+        {aGarder && (
+          <CommandGroup>
+            <CommandItem
+              value="__garder"
+              onSelect={() =>
+                run(() => {
+                  const vue = enregistrerVue(requete.trim(), requete);
+                  ouvrirVue(vue.id);
+                })
+              }
+            >
+              <BookmarkPlus className="text-[var(--space-ink)]" />
+              <span className="min-w-0 flex-1 truncate">
+                Garder « {requete.trim()} » comme vue
+              </span>
+            </CommandItem>
+          </CommandGroup>
+        )}
+
         <CommandGroup heading={requete ? "Conversations" : "Conversations récentes"}>
           {spaceThreads.map((t) => {
             const last = t.messages[t.messages.length - 1];
@@ -365,30 +394,6 @@ export function CommandPalette() {
           </CommandGroup>
         )}
 
-        {/* **Garder la question, là où elle est écrite.** Une vue ne se
-            fabrique pas dans un écran de réglages : elle se fabrique au moment
-            où la requête vient d'être tapée et qu'elle rend ce qu'on voulait.
-            Son nom est la requête elle-même — c'est ce qu'on reconnaîtra. */}
-        {aGarder && (
-          <>
-            <CommandSeparator />
-            <CommandGroup heading="Vue">
-              <CommandItem
-                value="__garder"
-                onSelect={() =>
-                  run(() => {
-                    const vue = enregistrerVue(requete.trim(), requete);
-                    ouvrirVue(vue.id);
-                  })
-                }
-              >
-                <BookmarkPlus />
-                <span className="min-w-0 flex-1">Garder « {requete.trim()} » comme vue</span>
-              </CommandItem>
-            </CommandGroup>
-          </>
-        )}
-
         {vuesTrouvees.length > 0 && (
           <>
             <CommandSeparator />
@@ -438,47 +443,5 @@ export function CommandPalette() {
 
       </CommandList>
     </CommandDialog>
-  );
-}
-
-/**
- * Le morceau trouvé, en couleur.
- *
- * Sans lui, une recherche sur « annecy » rend trois lignes qui se ressemblent
- * et il faut les relire pour savoir laquelle contenait le mot. Le surlignage
- * est un **fond** en teinte d'espace, jamais une encre colorée : la règle du
- * thème, et le seul choix lisible sur un fond clair comme sur un fond sombre.
- */
-function Surligne({ texte, requete }: { texte: string; requete: string }) {
-  /* On cherche sur le texte **lavé** — sans accents ni casse, comme le fait le
-     filtre — mais on découpe l'original : « Élodie » doit se surligner quand on
-     tape « elodie ». Retirer un accent garde la longueur pour les lettres
-     latines ; si une écriture décompose autrement, on préfère ne rien
-     surligner à surligner de travers. */
-  const cible = laver(texte);
-  if (cible.length !== texte.length) return <>{texte}</>;
-  /* **Le premier mot trouvé, pas le premier mot tapé.** Sur « facture annecy »,
-     l'objet ne porte souvent que l'un des deux, et l'extrait que l'autre :
-     s'en tenir au premier laissait l'une des deux lignes muette. */
-  let i = -1;
-  let terme = "";
-  for (const mot of requete.trim().split(" ")) {
-    if (mot.length < 2) continue;
-    const trouve = cible.indexOf(mot);
-    if (trouve >= 0) {
-      i = trouve;
-      terme = mot;
-      break;
-    }
-  }
-  if (i < 0) return <>{texte}</>;
-  return (
-    <>
-      {texte.slice(0, i)}
-      <mark className="rounded-[3px] bg-[color-mix(in_oklch,var(--space-accent)_30%,transparent)] text-inherit">
-        {texte.slice(i, i + terme.length)}
-      </mark>
-      {texte.slice(i + terme.length)}
-    </>
   );
 }

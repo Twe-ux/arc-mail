@@ -302,3 +302,35 @@ Largeurs, barre masquée, vue ouverte, sur une requête longue (« est:non-lu OU
 768, 820, 900, 1000, 1100, 1280, 1440 et 1800 px — la puce reste à 207 px, aucun nom de dossier
 coupé, aucun débordement. Captures téléphone (393×852, insets 59/34) et bureau (1280×800), clair et
 sombre, dans les quatre états ; **zéro erreur de console** partout.
+
+---
+
+## Trois défauts trouvés sur une vraie boîte (6 sept. 2026)
+
+Les vues à peine posées, trois choses ont manqué. Toutes signalées en usage réel, aucune visible
+sur les données mock.
+
+**`de: Thierry` ne cherchait pas l'expéditeur.** L'espace après le deux-points faisait de `de:` un
+champ sans valeur — qui ne contraint rien, à raison — et de « Thierry » un mot nu : la requête
+cherchait partout en ayant l'air de viser l'expéditeur, et remontait des messages de Google et
+d'OVHcloud. Or c'est **exactement ce que la palette montre** sous le champ, la clé en gras puis sa
+valeur. La valeur peut donc être le jeton d'après, phrase (`de:"Claire Dubois"`) comme mot
+(`de: claire`). Un connecteur ne se laisse pas avaler (`de: OU x`), ni un autre champ.
+
+**« Garder … comme vue » était tout en bas.** Elle vivait après les conversations, la boîte entière
+et les actions : sur une vraie boîte à quarante résultats, « c'est tout en bas, pas très visible si
+on ne descend pas ». Elle est maintenant la **première ligne** de la palette, à la place qu'occupe
+l'aide de syntaxe tant qu'on n'a rien tapé — une seule ligne en tête, jamais deux.
+
+**Une rangée de liste ne disait pas pourquoi elle était là.** Le défaut du matin, dans l'autre
+surface : la palette avait gagné `extrait()`, la liste non. Une vue est une recherche qui a quitté
+⌘K ; sur « icloud » elle rendait des messages dont le mot n'est ni dans l'objet ni dans
+l'expéditeur mais dans une adresse en copie ou un corps, et il fallait le deviner. La rangée
+surligne donc les mots nus de la vue dans l'objet, l'expéditeur et l'aperçu — et **remplace
+l'aperçu par le morceau qui a répondu** quand le mot est ailleurs. `Surligne` a quitté la palette
+pour `surligne.tsx` : deux surfaces, une définition.
+
+Vérifié : `de: claire` et `de:claire` rendent les deux mêmes fils ; « Garder » est en position 1
+sur six requêtes de contrôle ; la vue « chalet » (le mot n'est que dans un corps) rend une rangée
+qui affiche « …les dispos pour le **chalet**, il… », et « annecy » deux rangées surlignées sur
+l'objet et sur l'expéditeur. Zéro erreur de console.

@@ -171,8 +171,18 @@ export function parse(requete: string): Noeud {
     if (sep > 0) {
       const cle = laver(j.v.slice(0, sep));
       let valeur = j.v.slice(sep + 1);
-      /* `de:"Claire Dubois"` — la valeur peut être la phrase qui suit. */
+      /* **La valeur peut être le jeton d'après.** `de:"Claire Dubois"` pour une
+         phrase ; et surtout `de: claire`, **avec l'espace**, qui est ce qu'on
+         tape — c'est même ce que la palette montre sous le champ, la clé en gras
+         puis sa valeur. Sans cette tolérance, `de:` ne contraignait rien et
+         « claire » redevenait un mot nu : la recherche cherchait partout en
+         ayant l'air de viser l'expéditeur. Signalé sur `de: Thierry`, qui
+         remontait des messages de Google et d'OVHcloud.
+
+         Un connecteur ne se laisse pas avaler (`de: OU x`), ni un autre champ
+         (`de: objet:devis`) : ce sont des termes à part entière. */
       if (!valeur && !fini() && voir().k === "phrase") valeur = jetons[p++].v;
+      else if (!valeur && !fini() && voir().k === "mot" && valeurPossible(voir().v)) valeur = jetons[p++].v;
       const noeud = champ(cle, valeur);
       if (noeud) return noeud;
     }
@@ -180,6 +190,15 @@ export function parse(requete: string): Noeud {
   };
 
   return lireOu();
+}
+
+/** Un mot qui peut servir de valeur à la clé qui précède : ni connecteur, ni champ. */
+function valeurPossible(v: string): boolean {
+  const lave = laver(v);
+  if (OU.has(lave) || ET.has(lave) || SAUF.has(lave)) return false;
+  if (v.startsWith("-")) return false;
+  const sep = v.indexOf(":");
+  return sep <= 0 || !CONNUES.has(laver(v.slice(0, sep)));
 }
 
 /** Un `cle:valeur` reconnu, ou `null` — auquel cas il redevient du texte. */

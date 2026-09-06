@@ -1,16 +1,18 @@
 "use client";
 
 import { Archive, Inbox, Star, Trash2, type LucideIcon } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 
 import { useSwipeRow } from "@/hooks/use-swipe-row";
 import { swallowNextClick } from "@/lib/gesture";
 import { formatShortDate } from "@/lib/format";
-import type { Correspondant } from "@/lib/store";
+import { extrait } from "@/lib/search/match";
+import { selectVueLibre, useMail, type Correspondant } from "@/lib/store";
 import type { Thread } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { ContactAvatar } from "./contact-avatar";
 import { LabelChip } from "./label-chip";
+import { Surligne } from "./surligne";
 
 /**
  * Une conversation dans la liste.
@@ -64,6 +66,13 @@ export function ThreadRow({
   });
 
   const last = thread.messages[thread.messages.length - 1];
+  /* **Une vue ouverte, la rangée dit pourquoi elle est là.** C'est la règle de
+     la palette, portée ici : une vue est une recherche qui a quitté ⌘K, et la
+     liste montrait des lignes dont rien n'expliquait la présence — signalé sur
+     la vue « icloud », qui remonte des messages dont le mot n'est ni dans
+     l'objet ni dans l'expéditeur, mais dans une adresse ou un corps. */
+  const motsVue = useMail(selectVueLibre);
+  const raison = useMemo(() => (motsVue ? extrait(thread, motsVue) : null), [thread, motsVue]);
   const isDraft = thread.folder === "drafts";
   const outgoing = isDraft || thread.folder === "sent";
   const who = outgoing
@@ -215,7 +224,7 @@ export function ThreadRow({
                     : "font-medium md:group-data-[large=true]/liste:font-normal md:group-data-[large=true]/liste:text-foreground/70",
                 )}
               >
-                {who}
+                <Surligne texte={who} requete={motsVue} />
               </span>
               {isDraft && <span className="shrink-0 text-xs font-medium text-destructive">Brouillon</span>}
               {thread.messages.length > 1 && (
@@ -247,7 +256,7 @@ export function ThreadRow({
                 thread.unread && "md:group-data-[large=true]/liste:font-semibold",
               )}
             >
-              {thread.subject}
+              <Surligne texte={thread.subject} requete={motsVue} />
             </span>
             {/* En densité compacte la rangée perd son aperçu : c'est la ligne
                 qui coûte le plus de hauteur et la moins nécessaire quand on
@@ -263,8 +272,12 @@ export function ThreadRow({
                 règle de bureau — à spécificité égale c'est l'ordre de la
                 feuille qui tranche, et on ne le choisit pas. */}
             <span className="mt-1 flex min-w-0 items-center gap-2 max-md:group-data-[lignes=2]/liste:hidden md:group-data-[densite=compact]/liste:hidden md:group-data-[large=true]/liste:mt-0 md:group-data-[large=true]/liste:flex-1">
+              {/* L'aperçu, **ou le morceau qui a répondu** quand la vue a
+                  trouvé son mot ailleurs : une adresse en copie, un corps, le
+                  nom d'un fichier. L'aperçu ne le montrerait pas, et la rangée
+                  aurait l'air d'un faux positif. */}
               <span className="min-w-0 flex-1 truncate text-[13px] text-muted-foreground md:text-xs">
-                {thread.snippet}
+                <Surligne texte={raison ?? thread.snippet} requete={motsVue} />
               </span>
               {thread.labels.map((label) => (
                 <LabelChip key={label} label={label} />

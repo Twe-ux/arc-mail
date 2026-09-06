@@ -461,6 +461,13 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - Une rangée **dit pourquoi elle est là** : quand le mot n'est ni dans l'objet ni dans l'expéditeur,
   `extrait()` ajoute une troisième ligne autour de lui, la source la plus riche l'emportant.
 - La corbeille est écartée **sauf si la requête la nomme**.
+- Un champ accepte **l'espace après le deux-points** (`de: claire`) : c'est ce que la palette
+  montre sous le champ, et sans ça la requête cherchait partout en ayant l'air de viser
+  l'expéditeur. Ni un connecteur ni un autre champ ne se laissent avaler.
+- « Garder … comme vue » est la **première ligne** de la palette, jamais sous les conversations.
+- Vue ouverte, **la rangée de la liste dit pourquoi elle est là** comme la palette : mots nus
+  surlignés (`surligne.tsx`, une seule définition pour les deux surfaces) et l'aperçu remplacé par
+  `extrait()` quand le mot est dans une adresse ou un corps.
 - Une **vue enregistrée** est une requête nommée, gardée depuis ⌘K (« Garder « … » comme vue »,
   nommée par la requête) : elle vit dans le store (`vues` persisté, `vueId` non), pose **une
   question à un dossier** — celui que `dans:` nomme, la réception sinon — et se retrouve dans la

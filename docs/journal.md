@@ -2,6 +2,27 @@
 
 Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérification.
 
+## 6 septembre 2026 — trois défauts que seule une vraie boîte pouvait montrer
+
+Les vues à peine posées, trois retours en usage réel. Aucun ne se voyait sur les données mock.
+
+**`de: Thierry` ne cherchait pas l'expéditeur.** L'espace après le deux-points faisait de `de:` un
+champ sans valeur et de « Thierry » un mot nu : la requête cherchait partout en ayant l'air de
+viser l'expéditeur, et remontait des messages de Google et d'OVHcloud. Le pire est que c'est
+exactement la forme que la palette affiche sous le champ — la clé en gras, puis sa valeur. On
+tolère donc l'espace, sans avaler un connecteur ni un autre champ.
+
+**« Garder … comme vue » était sous tout le reste** — conversations, boîte entière, actions. Sur
+une boîte à quarante résultats : « c'est tout en bas, pas très visible si on ne descend pas. »
+C'est maintenant la première ligne de la palette, à la place de l'aide de syntaxe.
+
+**Et la liste ne disait pas pourquoi une rangée était là** : le défaut du matin, dans l'autre
+surface. La palette avait gagné son extrait, la liste non — or une vue est une recherche qui a
+quitté ⌘K. La vue « icloud » rendait des messages dont le mot vit dans une adresse en copie ou un
+corps, et il a fallu le deviner. La rangée surligne désormais les mots nus de la vue, et remplace
+l'aperçu par le morceau qui a répondu quand le mot est ailleurs. `Surligne` a quitté la palette
+pour son propre fichier : deux surfaces, une définition.
+
 ## 6 septembre 2026 — les vues enregistrées, sans rien ajouter à la recherche
 
 C'est la preuve de ce que l'audit appelait « une mécanique qui porte le reste ». Une requête nommée

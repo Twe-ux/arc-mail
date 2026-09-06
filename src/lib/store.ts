@@ -9,6 +9,7 @@ import { providerFor } from "./mail";
 import type { FolderUnread } from "./mail/provider";
 import { FOLDERS, SPACES } from "./mock-data";
 import { resolveSpace } from "./theme";
+import { texteLibre } from "./search/ast";
 import { dossiersDe } from "./search/imap";
 import { correspond } from "./search/match";
 import { parse } from "./search/parse";
@@ -1532,6 +1533,19 @@ export const selectVue = (s: MailState) => s.vues.find((v) => v.id === s.vueId);
  * ouverte sous le titre « Boîte de réception » serait une liste qui ment.
  */
 export const selectListTitle = (s: MailState) => selectVue(s)?.nom ?? selectFolder(s).name;
+
+/**
+ * Les **mots nus** de la vue ouverte, `""` quand on regarde un dossier.
+ *
+ * C'est ce que la rangée de la liste surligne, et ce sur quoi elle cherche sa
+ * raison d'être là. Les mots nus seuls : `de:claire` n'a rien à surligner —
+ * l'expéditeur est déjà écrit sur la rangée —, alors qu'un mot comme « icloud »
+ * peut être trouvé dans une adresse ou un corps que la rangée ne montre pas.
+ */
+export const selectVueLibre = (s: MailState) => {
+  const vue = selectVue(s);
+  return vue ? texteLibre(arbreDe(vue.q)) : "";
+};
 
 /**
  * L'arbre d'une vue, analysé une fois par requête.

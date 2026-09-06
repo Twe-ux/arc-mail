@@ -105,7 +105,6 @@ export function RecipientField({
     >
       <span className={cn("shrink-0 text-[15px] text-muted-foreground sm:w-14 sm:text-sm", !compact && "w-14")}>
         {label}
-        {compact && " :"}
       </span>
       {value.map((email) => {
         const contact = byEmail.get(email);

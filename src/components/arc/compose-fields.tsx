@@ -30,11 +30,19 @@ import { SpaceIcon } from "./space-icon";
 export function ComposeFields({
   draft,
   compact,
+  lignesCachees,
   bodyStyle,
 }: {
   draft: ComposeDraft;
-  /** Téléphone : « De » vit dans le bandeau, pas dans une ligne à lui. */
+  /** Téléphone : la mise en page suit celle d'une feuille, pas d'une fenêtre. */
   compact?: boolean;
+  /**
+   * Un panneau prend l'écran : les destinataires s'effacent le temps qu'il
+   * dure. Clavier sorti, la feuille n'a que 457 px — l'adresse n'est pas ce
+   * qu'on est venu régler, et sans ça le panneau se réduisait à son titre.
+   * `hidden` et non un démontage : le champ garde son texte et son état.
+   */
+  lignesCachees?: boolean;
   /** Le confort d'écriture réglé dans le panneau : police et taille du champ. */
   bodyStyle?: React.CSSProperties;
 }) {
@@ -65,7 +73,7 @@ export function ComposeFields({
 
   return (
     <>
-      <div className="shrink-0">
+      <div className={cn("shrink-0", lignesCachees && "hidden")}>
         <RecipientField
           label="À"
           compact={compact}
@@ -116,7 +124,7 @@ export function ComposeFields({
             )}
           >
             <span className="shrink-0 whitespace-nowrap text-muted-foreground">
-              {compact ? "Cc/Cci, De :" : "Cc/Cci"}
+              {compact ? "Cc/Cci · De" : "Cc/Cci"}
             </span>
             <span className="truncate text-muted-foreground">
               {!compact && "De : "}
@@ -150,9 +158,9 @@ export function ComposeFields({
         placeholder="Écris ton message…"
         style={bodyStyle}
         className={cn(
-          /* Un plancher, pas `min-h-0` : un panneau ouvert pendant que le
-             clavier tient bon ne doit pas réduire le message à rien. */
-          "min-h-24 flex-1 resize-none overflow-y-auto overscroll-contain bg-transparent px-4 py-3.5 outline-none placeholder:text-muted-foreground",
+          /* Un plancher, pas `min-h-0` : même sous un panneau, on garde une
+             ligne ou deux de ce qu'on est en train d'écrire. */
+          "min-h-16 flex-1 resize-none overflow-y-auto overscroll-contain bg-transparent px-4 py-3.5 outline-none placeholder:text-muted-foreground",
           compact
             ? "text-[17px] leading-[1.5]"
             : "text-[15px] leading-relaxed sm:text-sm",
@@ -174,10 +182,7 @@ export function Row({
 }) {
   return (
     <label className="flex h-11 shrink-0 items-center gap-1.5 px-4 text-[15px] sm:gap-3 sm:text-sm relative after:pointer-events-none after:absolute after:inset-x-4 after:bottom-0 after:h-px after:bg-black/[0.07] dark:after:bg-white/[0.12]">
-      <span className={cn("shrink-0 text-muted-foreground", !compact && "w-14")}>
-        {label}
-        {compact && " :"}
-      </span>
+      <span className={cn("shrink-0 text-muted-foreground", !compact && "w-14")}>{label}</span>
       {children}
     </label>
   );

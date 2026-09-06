@@ -10,6 +10,7 @@ import {
   SheetDescription,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { useFrozenPage } from "@/hooks/use-frozen-page";
 import { useSheetDismiss } from "@/hooks/use-sheet-dismiss";
 import { useMail } from "@/lib/store";
 import type { ComposeDraft } from "@/lib/types";
@@ -17,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { AttachmentChips, AttachPanel } from "./compose-attach";
 import { ComposeFields, SendFailed } from "./compose-fields";
 import { DraftMenu, FormatPanel } from "./compose-panels";
+import { SpaceIcon } from "./space-icon";
 import { useComposeTools } from "./use-compose-tools";
 
 /**
@@ -63,6 +65,10 @@ export function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
   const canSend = (draft?.to.length ?? 0) > 0;
   const sheetRef = useSheetDismiss(closeCompose);
   const t = useComposeTools(draft);
+  /* La page derrière ne suit pas le clavier : iOS fait défiler le document
+     pour révéler le champ visé, et l'app entière montait puis redescendait
+     sous le voile. */
+  useFrozenPage(draft !== null);
 
   return (
     <Sheet
@@ -108,14 +114,22 @@ export function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
            coins hauts gardent les 36 px du dépôt ; les bas n'existent plus. */
         className="inset-x-0 top-[calc(var(--vv-top,0px)+var(--safe-top))] h-[calc(var(--vv-height,100dvh)-var(--safe-top))] flex w-auto max-w-none flex-col gap-0 rounded-t-[36px] border-0 p-0 shadow-[0_-8px_40px_rgb(0_0_0/0.28)] transition-none dark:bg-[#26262a] dark:ring-1 dark:ring-white/12"
       >
+        {/* Le voile de l'espace, en haut de la feuille et lui seul : c'est ce
+            qui la rattache à Arc Mail plutôt qu'à la feuille grise d'iOS. Une
+            base teintée très basse et un halo, la recette du dépôt, mais à
+            dose de bandeau — la couleur franche reste sur l'action. */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 h-44 rounded-t-[36px] opacity-[0.16] [background:radial-gradient(120%_100%_at_18%_0%,var(--space-accent),transparent_68%)]"
+        />
         {/* La poignée : le glisser-fermer existe depuis le lot mobile, et rien
             ne le disait. Sur une feuille qui touche les bords, c'est elle qui
             annonce qu'on peut la faire redescendre. */}
         <span
           aria-hidden
-          className="mx-auto mt-2 h-1 w-9 shrink-0 rounded-full bg-foreground/15 dark:bg-white/20"
+          className="relative mx-auto mt-2 h-1 w-9 shrink-0 rounded-full bg-foreground/15 dark:bg-white/20"
         />
-        <header className="flex h-14 shrink-0 items-center justify-between px-4">
+        <header className="relative flex h-14 shrink-0 items-center justify-between px-4">
           {/* « Fermer », pas « Annuler » : fermer garde le texte en brouillon,
               et en français comme sur iOS « Annuler » promet de le jeter. */}
           <RoundCase label="Fermer (brouillon conservé)" onClick={closeCompose}>
@@ -134,12 +148,18 @@ export function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
             <ArrowUp strokeWidth={2.5} />
           </RoundCase>
         </header>
-        {/* Le grand titre s'efface dès que le clavier prend l'écran : au repos
-            il donne sa tête d'éditeur, en écrivant il rendrait 44 px au
-            message. */}
-        <h2 className="shrink-0 truncate px-4 pb-2 text-[30px] leading-[1.1] font-bold tracking-[-0.02em] [html.keyboard-open_&]:hidden">
-          {draft?.draftId ? "Brouillon" : "Nouveau message"}
-        </h2>
+        {/* **La tuile de l'espace tient le titre.** Un grand titre noir seul,
+            c'est la feuille d'iOS ; la tuile colorée est la façon dont Arc dit
+            « c'est cette boîte-là », et elle le dit avant qu'on lise
+            l'adresse. Le tout s'efface dès que le clavier prend l'écran : au
+            repos il donne sa tête d'éditeur, en écrivant il retiendrait 44 px
+            que le message réclame. */}
+        <div className="relative flex shrink-0 items-center gap-2.5 px-4 pb-3 [html.keyboard-open_&]:hidden">
+          {t.espace && <SpaceIcon space={t.espace} size="lg" />}
+          <h2 className="min-w-0 truncate text-[26px] leading-[1.1] font-bold tracking-[-0.02em]">
+            {draft?.draftId ? "Brouillon" : "Nouveau message"}
+          </h2>
+        </div>
 
         {sendError && <SendFailed detail={sendError} />}
         {draft && (
@@ -147,6 +167,7 @@ export function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
             key={draft.draftId ?? "new"}
             draft={draft}
             compact
+            lignesCachees={t.panneau !== null}
             bodyStyle={{
               fontSize: t.taille,
               fontFamily: t.serif ? "ui-serif, Georgia, serif" : undefined,
@@ -184,53 +205,69 @@ export function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
             seraient un trou ; clavier rangé, elle descend jusqu'au bord et
             l'indicateur d'accueil passerait sur les cases. Une seule
             expression pour les deux, plutôt qu'une classe conditionnelle. */}
-        <footer className="flex shrink-0 items-center gap-1 border-t border-black/[0.06] px-2.5 pt-1.5 pb-[max(0.5rem,calc(env(safe-area-inset-bottom)-var(--keyboard-inset,0px)))] dark:border-white/[0.08]">
-          <ToolCase
-            label="Pièce jointe"
-            active={t.panneau === "pieces"}
-            onClick={() => t.basculer("pieces")}
-          >
-            <Paperclip strokeWidth={1.75} />
-          </ToolCase>
-          <ToolCase
-            label="Mise en forme"
-            active={t.panneau === "forme"}
-            onClick={() => t.basculer("forme")}
-          >
-            <Type strokeWidth={1.75} />
-          </ToolCase>
-          <span className="flex-1" />
-          <ToolCase label="Options du brouillon" active={t.menu} onClick={t.ouvrirMenu}>
-            <MoreHorizontal strokeWidth={1.75} />
-          </ToolCase>
-        </footer>
-
-        {t.menu && draft && (
-          <DraftMenu
-            onClose={() => t.setMenu(false)}
-            hasSignature={Boolean(t.espace?.signature)}
-            onSignature={t.signer}
-            /* « Enregistrer » **est** la fermeture : `closeCompose` range déjà le
-               brouillon par le fournisseur. Deux chemins pour la même écriture
-               auraient fini par diverger. */
-            onSave={() => {
-              t.setMenu(false);
-              closeCompose();
-              toast("Brouillon enregistré");
-            }}
-            /* Supprimer un brouillon déjà rangé passe par le fournisseur ; un
-               message jamais enregistré se jette en le vidant — `closeCompose`
-               ne range alors rien (`isBlank`). */
-            onDelete={() => {
-              t.setMenu(false);
-              if (draft.draftId) {
-                deleteDraft(draft.draftId);
-              } else {
-                update({ to: [], cc: [], bcc: [], subject: "", body: "", attachments: [] });
+        <div className="relative shrink-0">
+          {t.menu && draft && (
+            <DraftMenu
+              hasSignature={Boolean(t.espace?.signature)}
+              onSignature={t.signer}
+              /* Ancré sur la case qui l'ouvre, et non posé à 8 px des trois
+                 bords : sur une feuille qui touche déjà l'écran, son coin bas
+                 s'y faisait couper. */
+              className="absolute right-2 bottom-full mb-2 w-[min(19rem,calc(100%-1rem))]"
+              /* « Enregistrer » **est** la fermeture : `closeCompose` range déjà
+                 le brouillon par le fournisseur. Deux chemins pour la même
+                 écriture auraient fini par diverger. */
+              onSave={() => {
+                t.setMenu(false);
                 closeCompose();
-              }
-              toast("Brouillon supprimé");
-            }}
+                toast("Brouillon enregistré");
+              }}
+              /* Supprimer un brouillon déjà rangé passe par le fournisseur ; un
+                 message jamais enregistré se jette en le vidant — `closeCompose`
+                 ne range alors rien (`isBlank`). */
+              onDelete={() => {
+                t.setMenu(false);
+                if (draft.draftId) {
+                  deleteDraft(draft.draftId);
+                } else {
+                  update({ to: [], cc: [], bcc: [], subject: "", body: "", attachments: [] });
+                  closeCompose();
+                }
+                toast("Brouillon supprimé");
+              }}
+            />
+          )}
+          <footer className="relative z-20 flex items-center gap-1 border-t border-black/[0.06] bg-background px-2.5 pt-1.5 pb-[max(0.5rem,calc(env(safe-area-inset-bottom)-var(--keyboard-inset,0px)))] dark:border-white/[0.08] dark:bg-[#26262a]">
+            <ToolCase
+              label="Pièce jointe"
+              active={t.panneau === "pieces"}
+              onClick={() => t.basculer("pieces")}
+            >
+              <Paperclip strokeWidth={1.75} />
+            </ToolCase>
+            <ToolCase
+              label="Mise en forme"
+              active={t.panneau === "forme"}
+              onClick={() => t.basculer("forme")}
+            >
+              <Type strokeWidth={1.75} />
+            </ToolCase>
+            <span className="flex-1" />
+            <ToolCase label="Options du brouillon" active={t.menu} onClick={t.ouvrirMenu}>
+              <MoreHorizontal strokeWidth={1.75} />
+            </ToolCase>
+          </footer>
+        </div>
+
+        {/* Le voile du menu appartient à la feuille, pas au menu : c'est elle
+            qu'il doit couvrir en entier, et c'est la sortie la plus large
+            qu'un menu posé par-dessus puisse offrir. */}
+        {t.menu && (
+          <button
+            type="button"
+            aria-label="Fermer le menu"
+            onClick={() => t.setMenu(false)}
+            className="absolute inset-0 z-10 rounded-t-[36px] bg-black/40 animate-in fade-in-0 duration-200"
           />
         )}
       </SheetContent>

@@ -227,7 +227,14 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   téléphone (`À :`) — la colonne de 56 px reste une mise en page de fenêtre.
 - **Lignes et corps sont enfants directs de la feuille** : enfermés dans un `flex-1 min-h-0` ils se
   recouvraient dès qu'un panneau s'ouvrait sans que le clavier se ferme. Lignes `shrink-0`, corps
-  `flex-1` avec plancher `min-h-24`, panneau qui se comprime, défile et s'efface en bas.
+  `flex-1` avec plancher `min-h-16`, panneau `min-h-28` qui défile et s'efface en bas.
+- **Un panneau ouvert efface les lignes** (`hidden`, l'état est gardé) : sinon il se réduisait à son
+  titre, et « le fond blanc n'est plus là ».
+- **La page derrière est figée** tant que la feuille est ouverte (`useFrozenPage`) : iOS fait
+  défiler le document pour révéler le champ visé, et l'app montait puis redescendait sous le voile.
+  Jamais d'`overflow: hidden` sur `html`/`body` pour ça.
+- Le menu du `⋯` est **ancré sur sa case**, au-dessus de la barre d'outils : posé à 8 px des trois
+  bords, son coin bas se faisait couper par l'écran.
 - Le focus va à « À » pour un message neuf, au **corps (curseur au début)** dès que le destinataire
   est déjà là.
 - Les trois panneaux s'excluent et referment le clavier ; le menu du brouillon (`⋯`) a sa **clé

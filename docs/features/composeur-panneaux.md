@@ -72,6 +72,29 @@ commence où commence le texte range des lignes. Et les labels suivent leur text
 au lieu de tenir une colonne de 56 px — la colonne est une mise en page de fenêtre, elle reste sur
 bureau.
 
+## Ce que le vrai iPhone a corrigé
+
+Trois défauts que l'émulation ne montrait pas.
+
+**La page derrière suivait le clavier.** Elle montait à l'ouverture, redescendait au repli. Ce n'est
+pas la feuille qui bougeait — elle se cale sur `--vv-top` — c'est le **document** : iOS le fait
+défiler pour révéler le champ visé, et l'app entière glissait sous le voile.
+[`useFrozenPage`](../../src/hooks/use-frozen-page.ts) note la position à l'ouverture et y ramène la
+page à chaque défilement qu'on n'a pas demandé — sans `overflow: hidden` sur `html` ni `body`, la
+règle du dépôt.
+
+**Un panneau rouvert n'avait plus de fond.** Il se réduisait à sa ligne de titre : les lignes de
+destinataires gardaient leurs 132 px, le message son plancher, et il ne restait rien au panneau —
+ce qu'on voyait comme « le fond blanc a disparu » était le panneau réduit à son en-tête. La
+priorité s'inverse : **un panneau ouvert efface les lignes** (`hidden`, l'état des champs est
+gardé), le message tombe à son plancher de 64 px, et le panneau prend 270 — sa hauteur entière.
+L'adresse n'est pas ce qu'on est venu régler en ouvrant la mise en forme.
+
+**Le menu du `⋯` se faisait couper.** C'était une feuille d'action d'iOS posée à 8 px des trois
+bords ; sur une feuille qui touche déjà l'écran, son coin bas passait dessous. Il est maintenant
+**ancré sur la case qui l'ouvre** — au-dessus de la barre d'outils, aligné à droite, 19 rem au
+plus. Le voile qui le referme appartient à la feuille, pas au menu : c'est elle qu'il doit couvrir.
+
 ## Un seul défilant, et rien qui se recouvre
 
 Les lignes et le champ vivaient dans le même conteneur défilant, et le champ portait `min-h-48` :
@@ -87,13 +110,14 @@ Les lignes et le corps sont donc des **enfants directs de la feuille** (un fragm
 eux) : la feuille répartit elle-même, et personne ne peut déborder de personne.
 
 - **Lignes** : `shrink-0`, intouchables.
-- **Corps** : `flex-1` avec un **plancher** de `min-h-24` — un panneau ouvert pendant que le clavier
-  tient bon ne doit pas réduire le message à rien.
-- **Panneau** : il se comprime le premier, défile, et **s'efface en bas** (`mask-image`, `pb-6`)
-  plutôt que d'être tranché au milieu d'une case.
+- **Corps** : `flex-1` avec un **plancher** de `min-h-16` — même sous un panneau, on garde une ligne
+  ou deux de ce qu'on écrit.
+- **Panneau** : `min-h-28` au moins, il défile, et **s'efface en bas** (`mask-image`, `pb-6`) plutôt
+  que d'être tranché au milieu d'une case.
 
-Mesuré, clavier simulé à 516 px de rectangle visible et panneau ouvert : bandeau 56, lignes 132,
-corps 96 (le plancher), panneau 106, outils 55 — 457 en tout, aucun recouvrement.
+Mesuré, clavier simulé à 516 px de rectangle visible : sans panneau, lignes 132 et corps 202 ;
+panneau ouvert, lignes masquées, corps 64 (le plancher) et panneau **270** — 457 en tout dans les
+deux cas, aucun recouvrement.
 
 ## Le clavier s'ouvre sur ce qu'on vient écrire
 

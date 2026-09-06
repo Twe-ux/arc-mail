@@ -122,7 +122,7 @@ export function Panneau({
       /* Le masque du dépôt : quand la place manque — clavier resté ouvert —,
          le panneau défile et s'efface en bas au lieu d'être tranché au milieu
          d'une case. Le `pb-6` le fait tomber sur du vide en fin de liste. */
-      className="flex min-h-0 shrink flex-col overflow-y-auto overscroll-contain px-3 pb-6 [mask-image:linear-gradient(to_bottom,#000_calc(100%-1.5rem),transparent)]"
+      className="flex min-h-28 shrink flex-col overflow-y-auto overscroll-contain px-3 pb-6 [mask-image:linear-gradient(to_bottom,#000_calc(100%-1.5rem),transparent)]"
     >
       <div className="mb-2 flex shrink-0 items-center gap-3 px-1">
         <p className="min-w-0 flex-1 truncate text-[15px] font-semibold">{label}</p>
@@ -174,43 +174,44 @@ function Pas({
 }
 
 /**
- * Le menu du brouillon, sous le `⋯` de la barre du composeur.
+ * Le menu du brouillon, **ancré sous le `⋯`** de la barre du composeur.
  *
  * **Il se superpose, il ne remplace pas.** Il vit donc sur une clé d'état à
  * part : tant qu'il partageait celle des deux panneaux, l'ouvrir démontait le
- * composeur sous lui — le piège que le handoff signale nommément.
+ * composeur sous lui — le piège que le handoff signale nommément. Le voile qui
+ * le referme est posé par l'appelant, à qui appartient la feuille entière.
  *
  * Ses quatre entrées sont celles d'un brouillon, jamais celles d'une lecture :
  * « Répondre à tous » et « Transférer » n'ont aucun sens ici.
  */
 export function DraftMenu({
-  onClose,
   onSave,
   onSignature,
   onDelete,
   hasSignature,
+  className,
 }: {
-  onClose: () => void;
   onSave: () => void;
   onSignature: () => void;
   onDelete: () => void;
   hasSignature: boolean;
+  className?: string;
 }) {
   return (
     <>
-      {/* Le voile referme au toucher : c'est la seule sortie qu'un menu posé
-          par-dessus doive offrir, et elle est plus large que n'importe quelle
-          croix. */}
-      <button
-        type="button"
-        aria-label="Fermer le menu"
-        onClick={onClose}
-        className="absolute inset-0 z-10 bg-black/40 animate-in fade-in-0 duration-200"
-      />
       <div
         role="menu"
         aria-label="Options du brouillon"
-        className="absolute inset-x-2 bottom-2 z-20 overflow-hidden rounded-3xl bg-[#f2f2f7] shadow-2xl animate-in slide-in-from-bottom-4 fade-in-0 duration-200 dark:bg-[#1c1c1e] dark:ring-1 dark:ring-white/12"
+        /* **Il appartient au `⋯`**, il ne remplace pas la feuille. Il était
+           une feuille d'action d'iOS posée à 8 px des trois bords : sur une
+           feuille qui touche déjà les bords, son coin bas se faisait couper
+           par l'écran, et il disait « système » là où c'est un menu de
+           brouillon. Il se pose maintenant juste au-dessus de la case qui
+           l'ouvre, aligné à droite comme elle. */
+        className={cn(
+          "z-20 overflow-hidden rounded-2xl bg-[#f2f2f7] shadow-[0_18px_50px_-8px_rgb(0_0_0/0.45)] ring-1 ring-black/[0.06] animate-in slide-in-from-bottom-2 fade-in-0 duration-200 dark:bg-[#1c1c1e] dark:ring-white/12",
+          className,
+        )}
       >
         <Entree label="Enregistrer le brouillon" icon={FileText} onClick={onSave} />
         <Entree

@@ -310,7 +310,11 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 ## Où on en est, où on va
 
 - [État des lieux](docs/etat-des-lieux.md) — interface complète, données mock, aucun vrai mail.
-- [Journal](docs/journal.md) · [À faire](docs/a-faire.md).
+- [Journal](docs/journal.md) · [À faire](docs/a-faire.md) — rangé en **à faire · à tester · à
+  prévoir · à améliorer**.
+- [Ce que les autres clients savent faire](docs/audits/2026-09-06-clients-mail.md) — Mailspring
+  (lu, **jamais copié** : il est sous GPL) et le reste ; les deux mécaniques qui portent le reste
+  des fonctions, et la décision d'hébergement qui en commande quatre.
 - Prochain chantier : [Fournisseurs de mail](docs/roadmap/fournisseurs-mail.md) — `MailProvider`,
   iCloud en IMAP avec mot de passe d'application, espaces-vues (un dossier comme boîte de
   réception, une identité par domaine), authentification de l'app, puis Gmail.

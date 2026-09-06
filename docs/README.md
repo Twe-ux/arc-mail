@@ -33,6 +33,10 @@ l'état du projet et ce qui reste à faire.
 
 ## Audits
 
+- [6 septembre 2026](audits/2026-09-06-clients-mail.md) — ce que Mailspring et les autres clients
+  savent faire : l'inventaire des fonctions, les deux mécaniques qui portent le reste (file de
+  tâches annulables, arbre de recherche), et pourquoi la moitié de leur architecture ne se
+  transpose pas au serverless. Lu, jamais copié — Mailspring est sous GPL.
 - [4 septembre 2026](audits/2026-09-04/README.md) — état des lieux avant l'étape 2 : synthèse,
   ce qui a été corrigé, les arbitrages ouverts ; rapports bruts [code](audits/2026-09-04/code.md),
   [UX](audits/2026-09-04/ux.md), [mouvement](audits/2026-09-04/mouvement.md). `DESIGN.md` à la

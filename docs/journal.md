@@ -2,6 +2,21 @@
 
 Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérification.
 
+## 6 septembre 2026 — regarder ailleurs, puis ranger l'à-faire
+
+Mailspring cloné en lecture seule et lu pour ce qu'il sait faire, pas pour son code — il est sous
+**GPL**, aucune ligne n'entre ici. Ce qu'il en reste tient en deux mécaniques : une **file de tâches
+annulables** (chaque action sait fabriquer son inverse, d'où le toast « Annuler » sur tout, la file
+hors ligne et l'envoi différé) et un **arbre de recherche** compilé vers deux dos (mémoire et
+`SEARCH` IMAP). Le reste de son architecture — moteur C++, SQLite locale, `IDLE` — ne se transpose
+pas au serverless, et c'est ce constat qui a fait remonter **la décision d'hébergement** au rang de
+chantier : push, notifications, mise en pause et envoi différé en dépendent tous.
+[L'audit](audits/2026-09-06-clients-mail.md) compare aussi Apple Mail, Gmail, Superhuman, HEY,
+Fastmail et Thunderbird, filtrés par ce que notre architecture permet.
+
+`a-faire.md` s'est rangé en quatre paquets — **à faire · à tester · à prévoir · à améliorer** — et
+la liste « à tester » a gagné sa première coche : **l'envoi marche depuis les boîtes iCloud**.
+
 ## 5 septembre 2026 — le lot bureau
 
 Le handoff `design_handoff_arc_mail_desktop` (planche `3a`) monté : la fenêtre en grille à pistes

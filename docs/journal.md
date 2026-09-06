@@ -2,6 +2,20 @@
 
 Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérification.
 
+## 6 septembre 2026 — la mesure du clavier va avec l'ancrage
+
+L'ancrage porté de Kairos ne suffisait pas : il fallait aussi sa **mesure**. `--keyboard-inset`
+était calculé contre la plus grande hauteur visuelle observée, pour répondre à « le clavier est-il
+sorti ? ». La bonne question, pour une feuille ancrée, est « de combien reculer » — et la réponse
+est **zéro en app installée**, où iOS rétrécit *aussi* le viewport de mise en page : `bottom: 0` s'y
+arrête déjà au-dessus des touches. Le coussin comptait donc le clavier deux fois, la tête de la
+feuille sortait par le haut de l'écran et une bande blanche restait en bas.
+
+Retour à `innerHeight − visualViewport.height`, et la feuille se pose au pixel près **de la même
+façon dans les deux mondes** : navigateur ordinaire (852 px, coussin 336) et app installée (516 px,
+coussin 0) donnent le même bandeau à 71, les mêmes lignes à 127, le même corps de 202 et le même bas
+d'outils à 516.
+
 ## 6 septembre 2026 — la feuille du composeur est ancrée, comme sur Kairos
 
 « Toujours le flash, regarde le projet Kairos car on n'a pas ça. » Kairos avait raison et la réponse

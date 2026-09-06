@@ -112,9 +112,30 @@ ne se déplace : le navigateur n'a jamais à faire défiler le document pour le 
 
 **Le coussin ne s'applique que si un champ a le focus** — `:has(:is(input, textarea):focus)`, la
 garde de Kairos mot pour mot. Sans elle, les 50 px fantômes de la re-résolution poussaient la tête
-de la feuille puis la lâchaient. La garde est posée **une fois**, sur une variable `--clavier` que
-la feuille lit pour son coussin et la barre du bas pour retirer l'encoche : deux lecteurs, une
-condition — sinon la barre rendait ses 34 px pendant le fantôme et sautait de 26 px à l'ouverture.
+de la feuille puis la lâchaient. Deux variables sont gardées par cette condition : `--clavier`, le
+coussin de la feuille, et `--bas`, l'encoche que la barre du bas rend quand la feuille s'arrête sur
+les touches.
+
+**Et la mesure va avec l'ancrage — c'est la moitié qu'on avait manquée.** `--keyboard-inset` est
+revenu à la formule de Kairos, `innerHeight − visualViewport.height` : elle vaut **zéro en app
+installée**, parce qu'iOS y rétrécit *aussi* le viewport de mise en page. C'est exactement ce qu'il
+faut savoir — une feuille ancrée à `bottom: 0` s'arrête alors d'elle-même au-dessus des touches, et
+lui ajouter un coussin **compte le clavier deux fois** : la tête sortait par le haut de l'écran, une
+bande blanche restait en bas. Dans un navigateur ordinaire, où ce viewport ne bouge pas, la même
+formule rend la hauteur du clavier et le coussin est nécessaire.
+
+La version intermédiaire mesurait contre la plus grande hauteur visuelle observée, pour répondre à
+« le clavier est-il sorti ? ». Plus personne ne pose cette question : ce qu'on veut savoir, c'est
+**de combien reculer**, et la réponse est zéro quand le navigateur a déjà reculé. La mesure et
+l'ancrage sont les deux moitiés d'une même mécanique ; changer l'une sans l'autre, c'est le défaut
+qu'on vient de corriger.
+
+Vérifié dans les **deux mondes**, la feuille devant s'y poser identiquement :
+
+| | Feuille | Coussin | Bandeau | Lignes | Corps | Bas des outils |
+|---|---|---|---|---|---|---|
+| Navigateur (852 px, inset 336) | 59 → 852 | 336 | 71 | 127 | 202 | **516** |
+| App installée (516 px, inset 0) | 59 → 516 | 0 | 71 | 127 | 202 | **516** |
 
 Un `useFrozenPage` avait été écrit entre-temps pour ramener la page en place à chaque défilement
 qu'on n'avait pas demandé. Il est **retiré** : se battre avec le navigateur pendant qu'il anime

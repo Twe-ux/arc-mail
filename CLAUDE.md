@@ -66,10 +66,12 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - Jamais d'`overflow: hidden` sur `html`/`body`.
 - Le thème sombre est posé par le **script inline bloquant** de `layout.tsx`, avant la première
   peinture ; `color-scheme` est déclaré dans `globals.css`.
-- `--keyboard-inset` se mesure contre la **plus grande hauteur visuelle vue**, jamais contre
-  `innerHeight` (qui rétrécit aussi en app installée) ; seuil 200 px, remis à zéro à la rotation.
-  **`offsetTop` n'est pas publié** : une feuille se cale sur lui au prix d'un redessin à chaque
-  frame où le navigateur bouge son viewport. On ancre, on ne suit pas.
+- `--keyboard-inset` = **`innerHeight − visualViewport.height`** (seuil 200), la mesure de Kairos :
+  ce que le viewport de mise en page **ne compense pas**. Elle vaut zéro en app installée, où iOS
+  rétrécit ce viewport — et c'est voulu : une feuille ancrée à `bottom: 0` s'y arrête déjà sur les
+  touches, un coussin en plus compterait le clavier deux fois. **`offsetTop` n'est pas publié** :
+  une feuille calée dessus se redessine à chaque frame où le navigateur bouge son viewport. On
+  ancre, on ne suit pas — la mesure et l'ancrage sont deux moitiés d'une même mécanique.
 - Les icônes de l'app sont des fichiers choisis ; seul `scripts/favicon.py` en dérive le `.ico`.
 - Sur bureau la fenêtre n'a **pas de bandeau** (`window-controls-overlay`) : c'est nous qui
   réservons la place des pastilles (`--titlebar`) et rendons la bande déplaçable ; changer
@@ -240,8 +242,8 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   `--vv-top`/`--vv-height` la faisait se redessiner quand WebKit re-résout le viewport à
   l'ouverture d'un dialogue — l'écran qui monte derrière, puis les flashs.
 - **Le coussin du clavier n'existe que si un champ a le focus** (`:has(:is(input,textarea):focus)`,
-  gardé une fois sur `--clavier`) : sinon 50 px fantômes poussent la tête de la feuille puis la
-  lâchent.
+  qui garde `--clavier` pour la feuille et `--bas` pour l'encoche de la barre) : sinon 50 px
+  fantômes poussent la tête de la feuille puis la lâchent.
 - Le bandeau porte **l'objet dès qu'on l'écrit**, le nom sinon — comme la fenêtre du bureau.
 - Le menu du `⋯` est **ancré sur sa case**, au-dessus de la barre d'outils : posé à 8 px des trois
   bords, son coin bas se faisait couper par l'écran.

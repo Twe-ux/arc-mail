@@ -115,6 +115,15 @@ export function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
            le navigateur n'a jamais à faire défiler le document pour le
            révéler : c'est aussi ce qui règle « l'écran derrière se lève ».
 
+           **Le coussin vaut zéro en app installée, et c'est voulu** : iOS y
+           rétrécit *aussi* le viewport de mise en page, donc `bottom: 0`
+           s'arrête déjà au-dessus des touches. `--keyboard-inset` mesure ce
+           que ce viewport ne compense pas (`innerHeight − visualViewport`, la
+           mesure de Kairos) : zéro ici, la hauteur du clavier dans un
+           navigateur ordinaire. L'ajouter quand même comptait le clavier deux
+           fois — la tête de la feuille sortait par le haut, une bande blanche
+           restait en bas.
+
            **Et le coussin ne s'applique que si un champ a le focus**
            (`:has(:is(input,textarea):focus)`) : sans cette garde, les 50 px
            fantômes de la re-résolution poussaient la tête de la feuille puis
@@ -125,7 +134,7 @@ export function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
            lecteurs de la même mesure, une seule condition — sinon la barre
            rendait ses 34 px pendant le fantôme et sautait de 26 px à
            l'ouverture. */
-        className="inset-x-0 top-[var(--safe-top)] bottom-0 flex h-auto w-auto max-w-none flex-col gap-0 rounded-t-[36px] border-0 p-0 pb-[var(--clavier)] shadow-[0_-8px_40px_rgb(0_0_0/0.28)] transition-none [--clavier:0px] [&:has(:is(input,textarea):focus)]:[--clavier:var(--keyboard-inset,0px)] dark:bg-[#26262a] dark:ring-1 dark:ring-white/12"
+        className="inset-x-0 top-[var(--safe-top)] bottom-0 flex h-auto w-auto max-w-none flex-col gap-0 rounded-t-[36px] border-0 p-0 pb-[var(--clavier)] shadow-[0_-8px_40px_rgb(0_0_0/0.28)] transition-none [--bas:max(0.5rem,env(safe-area-inset-bottom))] [--clavier:0px] [&:has(:is(input,textarea):focus)]:[--bas:0.5rem] [&:has(:is(input,textarea):focus)]:[--clavier:var(--keyboard-inset,0px)] dark:bg-[#26262a] dark:ring-1 dark:ring-white/12"
       >
         {/* Le voile de l'espace, en haut de la feuille et lui seul : c'est ce
             qui la rattache à Arc Mail plutôt qu'à la feuille grise d'iOS. Une
@@ -210,11 +219,10 @@ export function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
             dessous — c'est le bord de la feuille, et juste au-dessus du
             clavier.
 
-            Le coussin du bas est l'encoche **moins le clavier** (`--clavier`,
-            la mesure gardée par le focus) : clavier sorti, la feuille s'arrête
-            sur les touches et 34 px de vide y seraient un trou ; clavier
-            rangé, elle descend jusqu'au bord et l'indicateur d'accueil
-            passerait sur les cases. Une seule expression pour les deux. */}
+            Le coussin du bas (`--bas`) est l'encoche, **sauf quand un champ a
+            le focus** : la feuille s'arrête alors sur les touches, et 34 px de
+            vide y seraient un trou. Il se décide sur le focus et non sur
+            `--keyboard-inset`, qui vaut zéro en app installée. */}
         <div className="relative shrink-0">
           {t.menu && draft && (
             <DraftMenu
@@ -247,7 +255,7 @@ export function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
               }}
             />
           )}
-          <footer className="relative z-20 flex items-center gap-1 border-t border-black/[0.06] bg-background px-2.5 pt-1.5 pb-[max(0.5rem,calc(env(safe-area-inset-bottom)-var(--clavier)))] dark:border-white/[0.08] dark:bg-[#26262a]">
+          <footer className="relative z-20 flex items-center gap-1 border-t border-black/[0.06] bg-background px-2.5 pt-1.5 pb-[var(--bas)] dark:border-white/[0.08] dark:bg-[#26262a]">
             <ToolCase
               label="Pièce jointe"
               active={t.panneau === "pieces"}

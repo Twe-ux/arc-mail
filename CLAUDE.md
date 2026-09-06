@@ -139,7 +139,15 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - La **pastille de teinte porte l'accent à plat**, pas le dégradé : un rond de 34 px lit le milieu
   d'un dégradé à 135° et annonçait donc `h+35`, une couleur que l'espace ne prend nulle part.
 - Un **curseur de segmenté est plus clair que sa piste**, en sombre aussi (`dark:bg-white/20` sur
-  une piste `bg-black/[0.06] dark:bg-white/[0.07]`) : `bg-background` y vaut presque noir.
+  une piste `bg-black/[0.06] dark:bg-white/[0.07]`) : `bg-background` y vaut presque noir. Une seule
+  définition, `segmented.tsx`, en deux tailles pour la feuille et le panneau.
+- Le thème est **« Thème » et deux cases Clair · Sombre**, jamais un interrupteur « Thème sombre » :
+  l'état se lit au lieu de se déduire. L'icône suit le thème **courant** (soleil, lune) — elle
+  décrit, elle ne promet pas.
+- Le **panneau d'apparence du bureau dit la même chose que la feuille**, avec les mêmes mots : une
+  ligne, son icône, son contrôle à droite ; pas de titre en capitales ; 268 px.
+- L'accent **remplit à 22 %, il n'est pas l'aplat** : en `bg-[var(--space-accent)]` sous une encre
+  `--space-ink`, qui vaut l'accent en sombre, le glyphe disparaît dans son propre fond.
 - La feuille **Personnaliser** est **un seul groupe de quatre lignes**, sans titre en capitales,
   chacune avec son icône en trait et son contrôle à droite ; le filet se pose après le `pl-4`. Les
   pastilles de teinte prennent **toute** la largeur sous leur titre — indentées de l'icône, il ne

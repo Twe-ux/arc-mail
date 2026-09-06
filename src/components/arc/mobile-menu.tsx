@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronRight, Moon, Palette, Rows3, UserRound, X } from "lucide-react";
+import { ChevronRight, Moon, Palette, Rows3, Sun, UserRound, X } from "lucide-react";
 import Link from "next/link";
 
 import { SignOut } from "@/components/auth/sign-out";
@@ -12,6 +12,7 @@ import type { FolderId } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { BottomSheet, SheetCloseButton, SheetGroup, SheetRow, SheetScroller } from "./bottom-sheet";
 import { ContactAvatar } from "./contact-avatar";
+import { Segmented } from "./segmented";
 import { InstallHint } from "./install-hint";
 import { SpaceIcon } from "./space-icon";
 
@@ -230,6 +231,38 @@ export function MobileSettings() {
             </div>
           </li>
 
+          {/* **« Thème », et deux mots qui disent l'état.** C'était un
+              interrupteur « Thème sombre » : le libellé nommait une moitié du
+              réglage et laissait deviner si l'autre existait, et sur bureau il
+              vivait sous un titre « THÈME SOMBRE » qui le répétait. Deux cases
+              disent l'état sans ambiguïté, comme la densité juste en dessous.
+              L'icône suit le thème **courant** — elle décrit, elle ne promet
+              pas : une lune qui voudrait dire « passer en sombre » sur un fond
+              clair et « tu es en sombre » sur un fond noir ne dit plus rien. */}
+          <li className="group/row">
+            <div className="pl-4">
+              <div className="flex min-h-[50px] items-center gap-3 border-b border-black/[0.07] py-1.5 pr-4 group-last/row:border-0 dark:border-white/[0.09]">
+                {dark ? (
+                  <Moon className="size-5 shrink-0" strokeWidth={1.75} />
+                ) : (
+                  <Sun className="size-5 shrink-0" strokeWidth={1.75} />
+                )}
+                <span className="min-w-0 flex-1 truncate text-[15px]">Thème</span>
+                <Segmented
+                  label="Thème"
+                  options={[
+                    ["clair", "Clair"],
+                    ["sombre", "Sombre"],
+                  ]}
+                  value={dark ? "sombre" : "clair"}
+                  onChange={(v) => {
+                    if ((v === "sombre") !== dark) toggleDark();
+                  }}
+                />
+              </div>
+            </div>
+          </li>
+
           <li className="group/row">
             <div className="pl-4">
               <div className="flex min-h-[50px] items-center gap-3 border-b border-black/[0.07] py-1.5 pr-4 group-last/row:border-0 dark:border-white/[0.09]">
@@ -240,49 +273,18 @@ export function MobileSettings() {
                     rangée de trois lignes sur un écran de 852 px en montre huit,
                     une de deux en montre onze. Les mots sont ceux du panneau de
                     bureau, c'est le même réglage. */}
-                <div
-                  role="radiogroup"
-                  aria-label="Densité de la liste"
-                  /* Une teinte, pas `bg-muted` : en sombre il vaut rgb(38,38,38)
-                     et le groupe rgb(38,38,42) — la piste disparaissait sous le
-                     curseur, qui se lisait comme une pastille flottante. */
-                  className="flex shrink-0 rounded-[9px] bg-black/[0.06] p-0.5 text-[13px] dark:bg-white/[0.07]"
-                >
-                  {(
-                    [
-                      ["confort", "Confort"],
-                      ["compact", "Compact"],
-                    ] as const
-                  ).map(([cle, mot]) => (
-                    <button
-                      key={cle}
-                      type="button"
-                      role="radio"
-                      aria-checked={density === cle}
-                      onClick={() => setDensity(cle)}
-                      /* En sombre le curseur est **plus clair** que sa piste :
-                         `bg-background` y vaut presque noir, et l'option choisie
-                         se lisait comme un trou creusé sous la feuille. */
-                      className={cn(
-                        "rounded-[7px] px-3 py-1 font-medium transition-colors active:scale-[0.97] active:duration-0",
-                        density === cle
-                          ? "bg-background text-foreground shadow-xs dark:bg-white/20"
-                          : "text-muted-foreground",
-                      )}
-                    >
-                      {mot}
-                    </button>
-                  ))}
-                </div>
+                <Segmented
+                  label="Densité de la liste"
+                  options={[
+                    ["confort", "Confort"],
+                    ["compact", "Compact"],
+                  ]}
+                  value={density}
+                  onChange={setDensity}
+                />
               </div>
             </div>
           </li>
-
-          <SheetRow onClick={toggleDark} checked={dark}>
-            <Moon className="size-5 shrink-0" strokeWidth={1.75} />
-            <span className="min-w-0 flex-1 text-[15px]">Thème sombre</span>
-            <Switch on={dark} />
-          </SheetRow>
 
           <li className="group/row">
             <Link
@@ -366,25 +368,5 @@ function FolderRow({
         </span>
       )}
     </SheetRow>
-  );
-}
-
-/** A faithful little iOS switch, drawing only: the row it sits in is the switch. */
-function Switch({ on }: { on: boolean }) {
-  return (
-    <span
-      aria-hidden
-      className={cn(
-        "relative inline-block h-[31px] w-[51px] shrink-0 rounded-full transition-colors",
-        on ? "bg-[var(--space-accent)]" : "bg-neutral-300 dark:bg-neutral-700",
-      )}
-    >
-      <span
-        className={cn(
-          "absolute top-[2px] left-[2px] size-[27px] rounded-full bg-white shadow-[0_3px_8px_rgb(0_0_0/0.15),0_1px_1px_rgb(0_0_0/0.16)] transition-transform",
-          on && "translate-x-5",
-        )}
-      />
-    </span>
   );
 }

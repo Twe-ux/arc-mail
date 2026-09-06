@@ -2,6 +2,29 @@
 
 Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérification.
 
+## 6 septembre 2026 — le bureau rattrape le téléphone, et le thème se dit en deux mots
+
+« Il faut aligner sur desktop » : le panneau d'apparence traînait tout ce que la feuille venait de
+perdre — cinq titres en capitales, les pastilles qui portent le dégradé et annoncent donc une
+couleur que l'espace ne prend pas, le curseur de segmenté plus sombre que sa piste. Il prend la
+grammaire des feuilles : une ligne, son icône à gauche, son contrôle à droite, et deux blocs pleine
+largeur pour ce qui est une grille. 268 px au lieu de 244 — un libellé plus son segmenté ne tenaient
+pas dans 220 px utiles.
+
+Et le **thème** change de forme des deux côtés. C'était « Thème sombre » sur un interrupteur, et sur
+bureau le mot « Sombre » sous un titre « THÈME SOMBRE » qui le répétait : le libellé ne nommait
+qu'une moitié du réglage, et rien ne disait si le mot décrivait l'état ou l'action. « Thème », puis
+deux cases — Clair · Sombre. L'icône suit le thème **courant**, soleil ou lune : elle décrit, elle
+ne promet pas.
+
+`Segmented` est désormais écrit une fois pour les deux surfaces, en deux tailles ; il porte la règle
+du curseur plus clair que sa piste, corrigée sur téléphone le matin et que le bureau attendait
+encore.
+
+Un défaut trouvé à la capture, invisible en clair : la tuile de l'icône choisie était en accent
+plein sous une encre `--space-ink` qui *vaut* l'accent en sombre — une pastille violette et rien
+dedans. Elle passe à 22 %, la dose de la pill. L'accent remplit, il n'est pas l'aplat.
+
 ## 6 septembre 2026 — « Personnaliser » prend ses icônes, et l'uniformisation est complète
 
 Dernière pièce du lot : les quatre lignes de la feuille portaient chacune un contrôle mais aucune

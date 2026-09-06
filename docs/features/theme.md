@@ -286,3 +286,35 @@ Signalé : « la couleur en haut de la card nouveau message, utilise la même qu
 Le bandeau portait `--space-gradient`, qui balaie trois teintes sur 80° : il donnait du rose là où
 la réception donne de la lavande. Il prend maintenant l'accent à plat, à une dose posée avec les
 autres (`--wash-compose` : **28 % en clair, 8 % en sombre**) → [fiche composeur](composeur-panneaux.md).
+
+---
+
+## Le thème se dit en deux mots, pas en un interrupteur (6 sept. 2026)
+
+« Thème sombre » sur un interrupteur, et sur bureau le mot « Sombre » **sous un titre**
+« THÈME SOMBRE » qui le répétait. Deux défauts dans la même ligne : le libellé ne nommait qu'une
+moitié du réglage, et rien ne disait si le mot décrivait ce qu'on a ou ce qu'on obtient.
+
+**« Thème », puis deux cases : Clair · Sombre.** L'état se lit sans le déduire, et la ligne prend la
+forme des deux autres réglages du panneau, qui étaient déjà des segmentés. L'**icône suit le thème
+courant** — soleil en clair, lune en sombre : elle décrit, elle ne promet pas. Une lune qui voudrait
+dire « passer en sombre » sur fond clair et « tu es en sombre » sur fond noir ne dit plus rien.
+
+`Segmented` (`src/components/arc/segmented.tsx`) est écrit **une fois** pour les deux surfaces, en
+deux tailles — 15 px de rangée sur téléphone, 13 sur bureau. Il porte la règle du curseur plus clair
+que sa piste ; elle avait été corrigée sur téléphone le matin et le bureau l'attendait encore.
+
+## Le panneau du bureau dit la même chose que la feuille (6 sept. 2026)
+
+Signalé : « il faut aligner sur desktop ». Le panneau d'apparence traînait tout ce que la feuille
+venait de perdre — cinq titres en capitales, les pastilles qui portent le dégradé et mentent donc
+sur la couleur obtenue, le curseur de segmenté plus sombre que sa piste. Il prend la grammaire des
+feuilles : **une ligne, son icône à gauche, son contrôle à droite**, et deux blocs pleine largeur
+pour ce qui est une grille (l'icône de l'espace, les huit teintes). 268 px au lieu de 244 — un
+libellé plus son segmenté ne tenaient pas dans 220 px utiles.
+
+Un défaut trouvé à la capture, et il ne se voyait qu'en sombre : la tuile de l'**icône choisie**
+était en `bg-[var(--space-accent)]` avec une encre `--space-ink`, qui *vaut* l'accent en thème
+sombre — glyphe invisible dans son propre fond. Elle passe à la dose de la pill : accent à 22 %,
+encre `--space-ink`. La règle « l'accent se remplit, il ne s'écrit pas » vaut aussi pour le fond :
+**il remplit à 22 %, il n'est pas l'aplat.**

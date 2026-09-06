@@ -34,8 +34,15 @@ const SEUIL = 200;
  * pose cette question-là : ce qu'on veut savoir, c'est de combien il faut
  * reculer, et la réponse est zéro quand le navigateur a déjà reculé.
  *
- * `offsetTop` reste dehors, et le rectangle visible avec lui : une feuille
- * calée dessus se redessine à chaque frame où le navigateur bouge le sien →
+ * **`--vv-top` est publié, et lui seul du rectangle visible.** Une feuille
+ * dont la *hauteur* suit le viewport visuel se redessine à chaque frame où le
+ * navigateur bouge le sien — c'est ce qui provoquait les flashs, et
+ * `--vv-height` ne revient pas. Mais `offsetTop` est autre chose : c'est le
+ * défilement que le navigateur s'accorde pour révéler un champ, et un élément
+ * `fixed` — posé dans le viewport de *mise en page* — apparaît décalé
+ * d'autant. Le composeur s'en sert pour une **marge**, jamais pour une
+ * hauteur : on rend à la feuille ce que le navigateur lui a pris, sans que
+ * rien ne se recalcule →
  * [composeur](../../../docs/features/composeur-panneaux.md).
  */
 export function KeyboardInset() {
@@ -47,13 +54,17 @@ export function KeyboardInset() {
     const measure = () => {
       const cache = window.innerHeight - visual.height;
       root.style.setProperty("--keyboard-inset", `${cache > SEUIL ? Math.round(cache) : 0}px`);
+      root.style.setProperty("--vv-top", `${Math.round(visual.offsetTop)}px`);
     };
 
     measure();
     visual.addEventListener("resize", measure);
+    visual.addEventListener("scroll", measure);
     return () => {
       visual.removeEventListener("resize", measure);
+      visual.removeEventListener("scroll", measure);
       root.style.removeProperty("--keyboard-inset");
+      root.style.removeProperty("--vv-top");
     };
   }, []);
   return null;

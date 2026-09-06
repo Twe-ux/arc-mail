@@ -2,6 +2,17 @@
 
 Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérification.
 
+## 6 septembre 2026 — la feuille ne remonte plus, la barre d'outils maigrit
+
+Poser le curseur dans le message faisait glisser le viewport visuel de quelques pixels — iOS révèle
+le champ visé, dont le bas passe sous les touches le temps que le coussin arrive — et la feuille,
+qui est `fixed` donc posée dans le viewport de mise en page, apparaissait décalée d'autant vers le
+haut. `--vv-top` est republié, et lui seul du rectangle visible : la feuille l'ajoute à sa **marge
+du haut**, jamais à une hauteur. `--vv-height` ne revient pas, c'est lui qui faisait les flashs.
+
+Et la barre d'outils rend 12 px : son coussin était l'encoche entière alors qu'elle est déjà une
+cible de 40. 69 px au repos contre 81, 53 clavier sorti contre 55.
+
 ## 6 septembre 2026 — la feuille n'entre plus de tout en bas
 
 « À la première ouverture la page est trop grande, du coup on ne voit pas le haut. » Le glissement

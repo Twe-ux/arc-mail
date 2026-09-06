@@ -115,6 +115,15 @@ export function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
            le navigateur n'a jamais à faire défiler le document pour le
            révéler : c'est aussi ce qui règle « l'écran derrière se lève ».
 
+           **La marge du haut rattrape le décalage du navigateur.** Poser le
+           curseur dans le message fait glisser le viewport **visuel** de
+           quelques pixels — iOS révèle le champ visé, dont le bas passe sous
+           les touches le temps que le coussin arrive — et une feuille `fixed`,
+           posée dans le viewport de *mise en page*, apparaît décalée d'autant
+           vers le haut : la carte « remontait un peu ». `--vv-top` lui rend
+           ces pixels. C'est une **marge**, jamais une hauteur : `--vv-height`
+           ne revient pas, c'est lui qui faisait les flashs.
+
            **Le haut est un `top: 0` et une marge**, pas un `top: var(…)`.
            Signalé : « à la première ouverture la page est trop grande, du coup
            on ne voit pas le haut ». Une position qui dépend d'une variable
@@ -154,7 +163,7 @@ export function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
            lecteurs de la même mesure, une seule condition — sinon la barre
            rendait ses 34 px pendant le fantôme et sautait de 26 px à
            l'ouverture. */
-        className="inset-x-0 top-0 bottom-0 mt-[var(--safe-top)] flex h-auto max-h-[100svh] w-auto max-w-none flex-col gap-0 rounded-t-[36px] border-0 p-0 pb-[var(--clavier)] shadow-[0_-8px_40px_rgb(0_0_0/0.28)] transition-none data-[state=open]:slide-in-from-bottom-8 data-[state=open]:duration-300 [--bas:max(0.5rem,env(safe-area-inset-bottom))] [--clavier:0px] [&:has(:is(input,textarea):focus)]:[--bas:0.5rem] [&:has(:is(input,textarea):focus)]:[--clavier:var(--keyboard-inset,0px)] dark:bg-[#26262a] dark:ring-1 dark:ring-white/12"
+        className="inset-x-0 top-0 bottom-0 mt-[calc(var(--safe-top)+var(--vv-top,0px))] flex h-auto max-h-[100svh] w-auto max-w-none flex-col gap-0 rounded-t-[36px] border-0 p-0 pb-[var(--clavier)] shadow-[0_-8px_40px_rgb(0_0_0/0.28)] transition-none data-[state=open]:slide-in-from-bottom-8 data-[state=open]:duration-300 [--bas:max(0.5rem,calc(env(safe-area-inset-bottom)-12px))] [--clavier:0px] [&:has(:is(input,textarea):focus)]:[--bas:0.375rem] [&:has(:is(input,textarea):focus)]:[--clavier:var(--keyboard-inset,0px)] dark:bg-[#26262a] dark:ring-1 dark:ring-white/12"
       >
         {/* Le voile de l'espace, en haut de la feuille et lui seul : c'est ce
             qui la rattache à Arc Mail plutôt qu'à la feuille grise d'iOS.
@@ -243,9 +252,11 @@ export function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
             dessous — c'est le bord de la feuille, et juste au-dessus du
             clavier.
 
-            Le coussin du bas (`--bas`) est l'encoche, **sauf quand un champ a
-            le focus** : la feuille s'arrête alors sur les touches, et 34 px de
-            vide y seraient un trou. Il se décide sur le focus et non sur
+            Le coussin du bas (`--bas`) est l'encoche **moins 12 px** — la
+            barre est déjà une cible de 40, l'indicateur d'accueil n'a pas
+            besoin des 34 en entier — et **6 px quand un champ a le focus** :
+            la feuille s'arrête alors sur les touches, où le moindre vide se
+            lit comme un trou. Il se décide sur le focus et non sur
             `--keyboard-inset`, qui vaut zéro en app installée. */}
         <div className="relative shrink-0">
           {t.menu && draft && (

@@ -162,6 +162,32 @@ bords ; sur une feuille qui touche déjà l'écran, son coin bas passait dessous
 **ancré sur la case qui l'ouvre** — au-dessus de la barre d'outils, aligné à droite, 19 rem au
 plus. Le voile qui le referme appartient à la feuille, pas au menu : c'est elle qu'il doit couvrir.
 
+### La feuille ne remonte plus quand on pose le curseur
+
+« Quand je place le curseur pour écrire, la carte remonte un peu ; il faudrait la figer. »
+
+Poser le curseur dans le message fait glisser le viewport **visuel** de quelques pixels : iOS révèle
+le champ visé, dont le bas passe sous les touches le temps que le coussin arrive. Une feuille
+`fixed` est posée dans le viewport de **mise en page** ; quand le visuel glisse, elle apparaît
+décalée d'autant vers le haut, tête au ras de l'encoche.
+
+`--vv-top` est donc republié — et **lui seul** du rectangle visible. La feuille l'ajoute à sa
+**marge du haut** : on lui rend ce que le navigateur lui a pris. C'est une marge, jamais une
+hauteur : `--vv-height` ne revient pas, c'est lui qui faisait se redessiner la feuille à chaque
+frame, et les flashs avec.
+
+Mesuré : décalage de 21 px simulé, feuille posée à 80 dans les coordonnées de mise en page — soit
+**59 à l'écran**, exactement l'encoche.
+
+### La barre d'outils rend 12 px
+
+« Réduire la marge sous les boutons pièce jointe et style de texte, cela prend trop de place. » Le
+coussin du bas était l'encoche entière (34 px) : la barre est déjà une cible de 40, l'indicateur
+d'accueil n'a pas besoin de tout ça. Il passe à **l'encoche moins 12** (22 px), et à **6 px** quand
+un champ a le focus — la feuille s'arrête alors sur les touches, où le moindre vide se lit comme un
+trou. Barre : **69 px** au repos contre 81, **53** clavier sorti contre 55, et le message gagne
+d'autant.
+
 ### Le haut ne peut plus passer au-dessus de l'encoche
 
 « À la première ouverture la page est trop grande, du coup on ne voit pas le haut. »

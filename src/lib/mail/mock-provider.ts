@@ -39,7 +39,12 @@ export class MockProvider implements MailProvider {
     const inFolder = (t: Thread) =>
       query.folder === "starred" ? t.starred && t.folder !== "trash" : t.folder === query.folder;
     const list = this.threads.filter((t) => t.spaceId === spaceId && inFolder(t));
-    return query.limit ? list.slice(0, query.limit) : list;
+    /* **Le mock pagine aussi**, sinon la page suivante ne se teste nulle part :
+       il compte en fils là où IMAP compte en messages, ce qui suffit à
+       éprouver le chemin — la borne vient du store, pas d'ici. */
+    const deja = query.deja ?? 0;
+    const limit = query.limit ?? list.length;
+    return list.slice(deja, deja + limit);
   }
 
   /* Le mock a tout en mémoire : il compte ce que le vrai serveur compterait,

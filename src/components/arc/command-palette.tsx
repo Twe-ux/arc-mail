@@ -66,6 +66,7 @@ export function CommandPalette() {
   const vues = useMail((s) => s.vues);
   const enregistrerVue = useMail((s) => s.enregistrerVue);
   const ouvrirVue = useMail((s) => s.ouvrirVue);
+  const ouvrirResultat = useMail((s) => s.ouvrirResultat);
   const searchOnServer = useMail((s) => s.searchOnServer);
   const serverResults = useMail((s) => s.serverResults);
   const serverQuery = useMail((s) => s.serverQuery);
@@ -385,12 +386,11 @@ export function CommandPalette() {
                 <CommandItem
                   key={`serveur-${t.id}`}
                   value={`serveur-${t.id}`}
-                  onSelect={() =>
-                    run(() => {
-                      setFolder(t.folder);
-                      selectThread(t.id);
-                    })
-                  }
+                  /* Un résultat du serveur n'est pas dans la liste : le
+                     choisir demandait à `selectThread` un fil qu'il ne
+                     trouvait pas, et rien ne s'ouvrait. `ouvrirResultat` le
+                     verse d'abord. */
+                  onSelect={() => run(() => ouvrirResultat(t))}
                 >
                   <ContactAvatar contact={last.from} className="size-6 [&_[data-slot=avatar-fallback]]:text-[10px]" />
                   <span className="min-w-0 flex-1 leading-tight">

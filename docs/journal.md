@@ -2,6 +2,28 @@
 
 Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérification.
 
+## 6 septembre 2026 — la boîte ne s'arrête plus à soixante
+
+« Pourquoi je n'ai pas tous mes messages dans la réception ? » Parce que la lecture rendait les
+soixante derniers du dossier et que **rien n'allait chercher les suivants**. Le piège est que la
+liste avait l'air de paginer : une sentinelle tous les dix fils. Mais elle ne demandait que les
+corps des fils déjà listés, pour que l'ouverture soit instantanée — du préchargement, pas de la
+pagination. Une boîte qui n'en montre que soixante sans le dire est une boîte qui ment.
+
+`ThreadQuery` gagne `deja`, un **compte** et non un curseur d'identifiant : IMAP sait dire « les n
+derniers » par numéro de séquence sans rien chercher, là où un curseur d'UID demanderait un `SEARCH`
+qui rapporte toute la boîte en nombres. La contrepartie — un message arrivé entre deux pages décale
+la fenêtre — se paie par un dédoublonnage.
+
+Deux chemins vers la page suivante, et c'est délibéré : la sentinelle au défilement **et** un
+bouton, parce qu'une liste plus courte que l'écran ne fait défiler personne. Trois états en bas, dont
+le dernier compte autant que les autres : « C'est tout le courrier de ce dossier. »
+
+Dans la foulée, le même sujet vu de l'autre côté : « avec rechercher je trouve un mail hors des 60,
+mais si je clique dessus il ne s'ouvre pas ». Les résultats du serveur vivent hors de `threads`, et
+`selectThread` y cherchait un fil qui n'y était pas. Ils sont versés dans la liste avant d'être
+choisis — un résultat qu'on ne peut pas ouvrir n'est pas un résultat.
+
 ## 6 septembre 2026 — la file hors ligne, l'autre moitié d'« Annuler »
 
 Une écriture ratée défaisait le geste. C'est juste quand le serveur refuse ; c'est faux quand le

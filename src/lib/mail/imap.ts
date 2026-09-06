@@ -421,7 +421,7 @@ export async function readFolder(
   client: ImapFlow,
   path: string,
   folder: FolderId,
-  options: { flaggedOnly?: boolean; limit?: number } = {},
+  options: { flaggedOnly?: boolean; limit?: number; deja?: number } = {},
 ): Promise<Thread[]> {
   const lock = await client.getMailboxLock(path);
   try {
@@ -430,18 +430,28 @@ export async function readFolder(
     if (!total) return [];
 
     const limit = options.limit ?? WINDOW;
+    const deja = Math.max(0, options.deja ?? 0);
+    if (deja >= total) return [];
     const messages: FetchMessageObject[] = [];
 
     if (options.flaggedOnly) {
       const uids = await client.search({ flagged: true }, { uid: true });
-      const recent = (uids || []).slice(-limit);
+      /* La page suivante se prend **avant** celle qu'on a déjà : la liste est
+         du plus ancien au plus récent, donc on coupe par la fin. */
+      const tous = uids || [];
+      const fin = tous.length - deja;
+      const recent = tous.slice(Math.max(0, fin - limit), fin);
       if (recent.length === 0) return [];
       for await (const m of client.fetch(recent, ENVELOPE_QUERY, { uid: true })) messages.push(m);
     } else {
       /* Par numéro de séquence : « les `limit` derniers » se dit `n:*`, et le
-         serveur n'a rien à chercher. */
-      const from = Math.max(1, total - limit + 1);
-      for await (const m of client.fetch(`${from}:*`, ENVELOPE_QUERY)) messages.push(m);
+         serveur n'a rien à chercher. Une page plus ancienne est la fenêtre
+         d'avant — `deja` messages plus haut, bornée des deux côtés. */
+      const dernier = total - deja;
+      const from = Math.max(1, dernier - limit + 1);
+      if (from > dernier) return [];
+      for await (const m of client.fetch(deja === 0 ? `${from}:*` : `${from}:${dernier}`, ENVELOPE_QUERY))
+        messages.push(m);
     }
 
     const threads = groupIntoThreads(messages).map((g) => toThread(g, path, folder));

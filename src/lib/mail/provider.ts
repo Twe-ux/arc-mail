@@ -24,6 +24,21 @@ export type ThreadQuery = {
    */
   inboxPath?: string;
   limit?: number;
+  /**
+   * Combien de messages ont **déjà** été lus dans ce dossier, pour aller
+   * chercher les suivants.
+   *
+   * Une lecture rend les `limit` derniers messages ; sans cette borne, tout ce
+   * qui est plus ancien était hors d'atteinte — une boîte qui n'en montre que
+   * soixante sans le dire. `deja: 60` demande donc les soixante d'avant.
+   *
+   * **Un compte, pas un curseur d'identifiant.** IMAP sait dire « les n
+   * derniers » par numéro de séquence sans rien chercher ; un curseur d'UID
+   * demanderait un `SEARCH` qui rapporte toute la boîte en nombres. Le prix est
+   * qu'un message arrivé entre deux pages décale la fenêtre — la frontière peut
+   * se répéter, et le store dédoublonne.
+   */
+  deja?: number;
 };
 
 /** What the interface can change on a thread, in its own words — the provider translates. */

@@ -62,6 +62,7 @@ export class HttpProvider implements MailProvider {
       folder: query.folder,
       inboxPath: query.inboxPath,
       limit: query.limit,
+      deja: query.deja,
     });
     return threads;
   }

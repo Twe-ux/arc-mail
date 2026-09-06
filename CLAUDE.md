@@ -389,6 +389,13 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   dossier). Un déplacement ajuste le compteur d'arrivée **s'il existe déjà** ; rien n'est persisté.
 - La liste ne rapporte que des enveloppes ; le corps arrive par `getThread` à l'ouverture, et
   l'hydratation complète le fil au lieu de le remplacer.
+- Une lecture rend les **60 derniers messages** ; `deja` (`ThreadQuery`) va chercher les suivants,
+  par **numéro de séquence** — un curseur d'UID demanderait un `SEARCH` qui rapporte toute la boîte.
+  La page **s'ajoute** (`ajouterPage`, dédoublonné : la fenêtre glisse si du courrier arrive), une
+  relecture **repart de la page 1**, la clé est `espace|dossier`. Deux chemins — la sentinelle du bas
+  (clé indexée sur la longueur, sinon elle ne parle qu'une fois) **et** un bouton, parce qu'une liste
+  plus courte que l'écran ne fait défiler personne. Trois états en bas : on charge · il en reste ·
+  « C'est tout le courrier de ce dossier ».
 - Il part avant le geste : **la tête (3) d'abord** puis le reste du lot de dix, en un seul appel
   chacun (`getThreads`), les lots suivants au défilement (`Sentinelle`, 400 px d'avance) ; et tout
   fil à l'appui, ou au survol **après 150 ms d'arrêt** (`prefetchThread`, muet).
@@ -459,6 +466,9 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   l'en-tête `multipart/mixed`, approché et assumé.
 - La recherche serveur est un **geste**, pas une frappe (une session IMAP par caractère, sinon) ;
   ses résultats vivent hors de `threads` (`serverResults`) et la palette retire ceux déjà en liste.
+  Les ouvrir passe par **`ouvrirResultat`**, qui les verse dans la liste avant de les choisir :
+  `selectThread` cherche dans `threads`, et un résultat qu'on ne peut pas ouvrir n'est pas un
+  résultat.
 - `de:` `à:` `objet:` `dans:` `est:` `avec:` `avant:` `depuis:`, guillemets, `ET` `OU` `SAUF`,
   parenthèses ; français d'abord, anglais admis.
 - L'analyseur **ne refuse jamais rien** — ce qu'il ne comprend pas redevient du texte —, et un champ

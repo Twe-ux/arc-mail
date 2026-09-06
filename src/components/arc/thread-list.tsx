@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, CloudOff, RefreshCw } from "lucide-react";
+import { ArrowLeft, CloudOff, Loader2, RefreshCw } from "lucide-react";
 import { Fragment } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -224,6 +224,19 @@ export function ThreadList({ className, large }: { className?: string; large?: b
                     )}
                   </Fragment>
                 ))}
+                {/* **Le bas de la liste va chercher le courrier plus ancien.**
+                    Les sentinelles du dessus ne demandent que des *corps* : la
+                    liste s'arrêtait aux soixante derniers messages du dossier,
+                    et rien n'allait plus loin. Celle-ci en demande une page de
+                    plus, et sa clé change avec la longueur de la liste — sans
+                    quoi elle ne parlerait qu'une fois, puisqu'une sentinelle
+                    est faite pour ça.
+
+                    Un bouton **avec** elle, pas à sa place : une liste plus
+                    courte que l'écran ne fait défiler personne, et un chemin
+                    qui n'existe qu'au défilement n'existe pas pour qui ne
+                    défile pas. */}
+                <ListeSuite />
               </ul>
             )}
           </ScrollArea>
@@ -253,4 +266,48 @@ async function versionFraiche() {
   navigator.serviceWorker.addEventListener("controllerchange", () => window.location.reload(), {
     once: true,
   });
+}
+
+/**
+ * La fin de la liste : la page suivante, ou le mot de la fin.
+ *
+ * Trois états et pas un de plus — on charge, il en reste, il n'en reste plus.
+ * Le dernier compte autant que les autres : une liste qui s'arrête sans rien
+ * dire laisse croire qu'elle a été coupée.
+ */
+function ListeSuite() {
+  const chargerPlus = useMail((s) => s.chargerPlus);
+  const chargeSuite = useMail((s) => s.chargeSuite);
+  const fin = useMail((s) => s.pages[`${s.spaceId}|${s.folderId}`]?.fin ?? false);
+  const nombre = useVisibleThreads().length;
+
+  if (chargeSuite) {
+    return (
+      <li className="flex items-center justify-center gap-2 py-4 text-[13px] text-muted-foreground">
+        <Loader2 className="size-4 animate-spin" />
+        Messages plus anciens…
+      </li>
+    );
+  }
+  if (fin) {
+    return (
+      <li className="py-4 text-center text-[13px] text-muted-foreground">
+        C&apos;est tout le courrier de ce dossier.
+      </li>
+    );
+  }
+  return (
+    <>
+      <Sentinelle key={`suite-${nombre}`} onVisible={() => void chargerPlus()} />
+      <li className="flex justify-center py-3">
+        <button
+          type="button"
+          onClick={() => void chargerPlus()}
+          className="rounded-full bg-foreground/[0.06] px-3.5 py-1.5 text-[13px] text-muted-foreground transition-colors hover:bg-foreground/10 hover:text-foreground active:scale-[0.97]"
+        >
+          Charger les messages plus anciens
+        </button>
+      </li>
+    </>
+  );
 }

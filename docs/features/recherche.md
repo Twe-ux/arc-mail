@@ -462,3 +462,23 @@ Vérifié : une vue héritée (`nom: "milone"`, `q: "annecy"`) s'affiche « anne
 fils ; la passer à `de:claire` change la barre, le titre et la liste ; la passer à `dans:archive`
 change **aussi le dossier lu** (3 conversations d'Archive) ; une requête vide n'écrase rien ; le
 crayon du téléphone fait la même chose. Zéro erreur de console.
+
+---
+
+## Un résultat du serveur s'ouvre (6 sept. 2026)
+
+Signalé dans la foulée : **« avec rechercher je trouve un mail hors des 60, mais si je clique dessus
+il ne s'ouvre pas »**.
+
+Les résultats de « Toute la boîte » vivent **hors de `threads`**, exprès : ce sont des fils qu'on n'a
+pas chargés, souvent d'un autre dossier, et les verser dans la liste les ferait apparaître dans une
+réception où ils ne sont pas. Mais les choisir appelait `selectThread`, qui cherche dans `threads`,
+n'y trouvait rien, et l'écran restait sur la liste. **Un résultat qu'on ne peut pas ouvrir n'est pas
+un résultat.**
+
+`ouvrirResultat` le verse donc dans la liste **avant** de le choisir, et bascule sur son dossier. Ce
+n'est pas une triche : il est bien là-bas, et la prochaine lecture le gardera ou l'oubliera selon
+qu'il est dans la fenêtre — c'est le serveur qui tranche, comme partout ailleurs.
+
+Vérifié : `dans:corbeille` lancé sur le serveur rend un fil que la liste n'a pas ; le choisir ouvre
+la conversation et pose le dossier sur Corbeille. Zéro erreur de console.

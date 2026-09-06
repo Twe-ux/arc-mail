@@ -28,6 +28,11 @@ est argumenté dans l'[audit du 6 septembre](audits/2026-09-06-clients-mail.md).
       `20260906180000_icones_24.sql`. La section Espaces de `/comptes` a de quoi s'afficher, et les
       vingt-quatre glyphes sont acceptés à l'enregistrement. **Reste à voir sur une vraie boîte** :
       c'est passé dans « à tester ».
+- [x] **La liste ne s'arrête plus à soixante** (6 sept.) — `deja` dans `ThreadQuery`, la page
+      suivante par numéro de séquence, une sentinelle **et** un bouton, et le mot de la fin
+      → [fiche](features/imap.md). Signalé sur une vraie boîte.
+- [x] **Un résultat de « Toute la boîte » s'ouvre** (6 sept.) — il vit hors de `threads` ;
+      `ouvrirResultat` l'y verse avant de le choisir → [fiche](features/recherche.md).
 - [ ] Mode `filter` des espaces : `INBOX` filtrée par destinataire, pour se passer d'une règle
       côté iCloud.
 

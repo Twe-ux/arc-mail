@@ -493,3 +493,40 @@ et `useEdgeSwipeBack` les reçoit comme les siennes. Détail et mesures dans
 
 Le cadre **observe**, il n'empêche rien : c'est `touch-action: pan-y` sur son `body` qui lui retire
 l'horizontale, et un appui sur un lien reste un appui.
+
+---
+
+## La liste ne s'arrête plus à soixante (6 sept. 2026)
+
+Signalé sur une vraie boîte : **« pourquoi je n'ai pas tous mes messages dans la réception ? »**
+
+`readFolder` lit les `WINDOW = 60` derniers messages du dossier, et **rien n'allait chercher les
+suivants**. Le piège est que la liste *avait l'air* de paginer : une sentinelle tous les dix fils.
+Mais elle ne demandait que les **corps** des fils déjà listés (`prefetchThreads`), pour que
+l'ouverture soit instantanée — du préchargement, pas de la pagination. Une boîte qui n'en montre que
+soixante sans le dire est une boîte qui ment.
+
+**Un compte, pas un curseur d'identifiant.** `ThreadQuery` gagne `deja` : combien de messages ont
+déjà été lus. IMAP sait dire « les n derniers » par **numéro de séquence** sans rien chercher
+(`from:to`), là où un curseur d'UID demanderait un `SEARCH` qui rapporte toute la boîte en nombres.
+Le prix est qu'un message arrivé entre deux pages décale la fenêtre : la frontière peut se répéter,
+et `ajouterPage` dédoublonne. Favoris, qui passe par un `SEARCH` de drapeaux, coupe la même fenêtre
+dans sa liste d'UID.
+
+**La page suivante s'ajoute, elle ne remplace pas.** `replaceFolder` remplace — c'est ce qu'il faut
+pour une relecture, où le serveur redit la vérité ; une pagination complète. Et **une relecture
+repart de la première page** : garder le compte d'avant ferait sauter la page suivante par-dessus
+ce qu'on vient de jeter.
+
+**Deux chemins vers la page suivante, pas un.** La sentinelle du bas la demande au défilement, et sa
+clé change avec la longueur de la liste — sans quoi elle ne parlerait qu'une fois, puisqu'une
+sentinelle est faite pour ça. Un **bouton** l'accompagne : une liste plus courte que l'écran ne fait
+défiler personne, et un chemin qui n'existe qu'au défilement n'existe pas pour qui ne défile pas.
+
+**Trois états en bas de liste, et le troisième compte autant** : on charge · il en reste · « C'est
+tout le courrier de ce dossier. » Une liste qui s'arrête sans rien dire laisse croire qu'elle a été
+coupée. Une page qui ne vient pas n'efface rien : un toast, et la liste garde ce qu'elle a.
+
+Vérifié en abaissant la page à cinq le temps du test : 15 conversations, puis 19, puis « C'est tout »
+et le bouton disparaît ; la clé de pagination est par **espace et par dossier** ; zéro erreur de
+console, téléphone et bureau.

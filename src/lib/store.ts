@@ -126,6 +126,16 @@ export type MailState = {
    * qu'on croit fait.
    */
   enAttente: number;
+  /**
+   * Combien de messages ont été demandés pour un couple espace + dossier, et
+   * si le serveur n'a plus rien à donner.
+   *
+   * La clé est `espace|dossier` : chaque liste pagine pour son compte, et
+   * revenir dans un dossier ne doit pas hériter du défilement d'un autre.
+   */
+  pages: Record<string, { demandes: number; fin: boolean }>;
+  /** Une page suivante est en route : la sentinelle n'en redemande pas trois. */
+  chargeSuite: boolean;
   /** Why the last send failed, shown in the composer next to « Réessayer »; the message itself is back in `compose`. */
   sendError: string | null;
   /** Threads opened recently, per space — the "Today" tabs of Arc. */
@@ -183,6 +193,10 @@ export type MailState = {
   setSpaces: (spaces: Space[]) => void;
   /** Rejoue la file au retour du réseau. Posé par `AppShell` sur l'événement. */
   viderFile: () => Promise<void>;
+  /** La page suivante du dossier ouvert — le courrier plus ancien. */
+  chargerPlus: () => Promise<void>;
+  /** Ouvre un fil que le serveur a rendu et que la liste n'a pas. */
+  ouvrirResultat: (thread: Thread) => void;
   setGroupBy: (mode: MailState["groupBy"]) => void;
   setCorrespondent: (email: string | null) => void;
   /** Garde une requête. Rend la vue créée — ou celle qui portait déjà la même. */
@@ -224,6 +238,18 @@ export type MailState = {
 };
 
 const MAX_RECENT = 8;
+
+/**
+ * Une page de liste, en **messages** — c'est l'unité d'IMAP, pas le fil.
+ *
+ * Soixante, comme la première lecture : la fenêtre par défaut du fournisseur.
+ * Les regrouper en fils en rend moins, et c'est très bien — une page se juge à
+ * ce qu'elle coûte au serveur, pas à ce qu'elle affiche.
+ */
+const PAGE = 60;
+
+/** La clé de pagination d'une liste : chaque dossier de chaque espace pagine seul. */
+const clePage = (spaceId: SpaceId, folder: FolderId) => `${spaceId}|${folder}`;
 const NO_SUBJECT = "(sans objet)";
 
 const patchThread = (threads: Thread[], id: string, patch: (t: Thread) => Thread) =>
@@ -437,6 +463,21 @@ const replaceFolder = (threads: Thread[], spaceId: SpaceId, folder: FolderId, fr
     ...kept,
     ...threads.filter((t) => !ids.has(t.id) && !(t.spaceId === spaceId && t.folder === folder)),
   ];
+};
+
+/**
+ * **Une page de plus, ajoutée à ce qu'on a déjà.**
+ *
+ * `replaceFolder` remplace la tranche du dossier — c'est ce qu'il faut pour une
+ * relecture, où le serveur redit la vérité. Une pagination fait l'inverse :
+ * elle complète. Les fils déjà connus gagnent au dédoublonnage (ils portent
+ * peut-être un corps), et un fil qu'une page ancienne redonne — la fenêtre de
+ * séquence a pu glisser si du courrier est arrivé entre-temps — ne se compte
+ * pas deux fois.
+ */
+const ajouterPage = (threads: Thread[], fresh: Thread[]) => {
+  const connus = new Set(threads.map((t) => t.id));
+  return [...threads, ...fresh.filter((t) => !connus.has(t.id))];
 };
 
 const describe = (err: unknown) => (err instanceof Error ? err.message : String(err));
@@ -783,6 +824,8 @@ export const useMail = create<MailState>()(
   searchError: null,
   error: null,
   enAttente: 0,
+  pages: {},
+  chargeSuite: false,
   sendError: null,
   recent: { perso: [], pro: [], side: [] },
   compose: null,
@@ -812,6 +855,7 @@ export const useMail = create<MailState>()(
         /* Quel dossier tient lieu de « Réception » **pour cet espace** : un
            compte iCloud en porte plusieurs, une par domaine. */
         inboxPath: spaceOf(spaceId).inboxPath,
+        limit: PAGE,
       });
       /* Two reads of the same space can cross; only the latest one may land. */
       if (loadTokens.get(spaceId) !== token) return;
@@ -819,6 +863,10 @@ export const useMail = create<MailState>()(
         threads: replaceFolder(s.threads, spaceId, folder, stamp(spaceId, fresh)),
         loading: { ...s.loading, [spaceId]: false },
         error: null,
+        /* **Une relecture repart de la première page.** Le serveur vient de
+           redire ce qu'il a de plus récent ; garder le compte d'avant ferait
+           sauter la page suivante par-dessus tout ce qu'on vient de jeter. */
+        pages: { ...s.pages, [clePage(spaceId, folder)]: { demandes: PAGE, fin: fresh.length === 0 } },
       }));
       /* **Les compteurs des autres dossiers, en parallèle.** Un `LIST` avec
          `STATUS` chez le fournisseur, et il ne retarde pas la liste : elle est
@@ -1087,6 +1135,79 @@ export const useMail = create<MailState>()(
           : `${parties} action${parties > 1 ? "s" : ""} sur ${nombre} ${parties > 1 ? "sont parties" : "est partie"}`,
       );
     }
+  },
+
+  /**
+   * **Le courrier plus ancien**, une page à la fois.
+   *
+   * La liste ne montrait que les soixante derniers messages du dossier, et
+   * rien n'allait chercher les suivants : la sentinelle du bas ne demande que
+   * les **corps** des fils déjà listés, pour que l'ouverture soit instantanée.
+   * On la prenait pour une pagination — elle n'en était pas une, et une boîte
+   * qui n'en montre que soixante sans le dire est une boîte qui ment.
+   *
+   * La page suivante **s'ajoute** au lieu de remplacer (`ajouterPage`), et un
+   * fil qu'elle redonne ne se compte pas deux fois : la fenêtre de séquence
+   * glisse si du courrier arrive entre deux pages, et la frontière peut se
+   * répéter. Une page vide dit la fin, et la fin se retient — sans quoi la
+   * sentinelle redemanderait la même page à chaque pixel de défilement.
+   */
+  chargerPlus: async () => {
+    const { spaceId, folderId, chargeSuite, pages } = get();
+    const cle = clePage(spaceId, folderId);
+    const etat = pages[cle];
+    if (chargeSuite || !etat || etat.fin) return;
+    const account = accountOf(spaceId);
+    const token = loadTokens.get(spaceId) ?? 0;
+    set({ chargeSuite: true });
+    try {
+      const suite = await providerFor(account).listThreads(account, {
+        folder: folderId,
+        inboxPath: spaceOf(spaceId).inboxPath,
+        limit: PAGE,
+        deja: etat.demandes,
+      });
+      /* Une relecture a pu partir entre-temps — changement d'espace, tirage
+         pour rafraîchir : sa page 1 fait autorité, la nôtre est périmée. */
+      if ((loadTokens.get(spaceId) ?? 0) !== token) return;
+      set((s) => ({
+        threads: ajouterPage(s.threads, stamp(spaceId, suite)),
+        pages: {
+          ...s.pages,
+          [cle]: { demandes: etat.demandes + PAGE, fin: suite.length === 0 },
+        },
+      }));
+    } catch (err) {
+      /* Une page qui ne vient pas n'efface rien : la liste garde ce qu'elle a,
+         et le dire une fois vaut mieux qu'un bandeau sur une liste qui marche. */
+      toast.error("Impossible de charger les messages plus anciens", { description: describe(err) });
+    } finally {
+      set({ chargeSuite: false });
+    }
+  },
+
+  /**
+   * **Ouvrir un résultat que la liste n'a pas.**
+   *
+   * « Toute la boîte » rend des fils qui vivent hors de `threads` — souvent
+   * d'un autre dossier, souvent plus anciens que la fenêtre chargée. Les
+   * sélectionner ne faisait rien : `selectThread` cherche dans `threads`, n'y
+   * trouvait rien, et l'écran restait sur la liste. Un résultat qu'on ne peut
+   * pas ouvrir n'est pas un résultat.
+   *
+   * On le verse donc dans la liste **avant** de le choisir. Ce n'est pas une
+   * triche : il est bien dans ce dossier, et la prochaine lecture le gardera ou
+   * l'oubliera selon qu'il est dans la fenêtre — c'est le serveur qui tranche,
+   * comme partout ailleurs.
+   */
+  ouvrirResultat: (thread) => {
+    const stampe = stampOne(get().spaceId, thread);
+    set((s) => ({
+      threads: s.threads.some((t) => t.id === stampe.id) ? s.threads : [stampe, ...s.threads],
+      folderId: stampe.folder,
+      vueId: null,
+    }));
+    get().selectThread(stampe.id);
   },
 
   setSpaces: (spaces) =>

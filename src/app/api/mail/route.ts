@@ -33,7 +33,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 type Body =
-  | { op: "listThreads"; accountId: string; folder: FolderId; inboxPath?: string; limit?: number }
+  | { op: "listThreads"; accountId: string; folder: FolderId; inboxPath?: string; limit?: number; deja?: number }
   | { op: "getThread"; accountId: string; id: string }
   | { op: "getThreads"; accountId: string; ids: string[] }
   | {
@@ -100,6 +100,7 @@ export async function POST(request: NextRequest) {
             threads: await readFolder(client, reception, "inbox", {
               flaggedOnly: true,
               limit: body.limit,
+              deja: body.deja,
             }),
           };
         }
@@ -107,7 +108,7 @@ export async function POST(request: NextRequest) {
         /* Une boîte iCloud n'a pas d'« En pause » : un dossier absent est une
            liste vide, pas une erreur. */
         if (!path) return { threads: [] };
-        return { threads: await readFolder(client, path, body.folder, { limit: body.limit }) };
+        return { threads: await readFolder(client, path, body.folder, { limit: body.limit, deja: body.deja }) };
       }
 
       if (body.op === "search") {

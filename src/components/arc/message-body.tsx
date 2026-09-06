@@ -90,6 +90,12 @@ const STYLE = `
   }
   img { max-width: 100%; height: auto; }
   img[data-src] { display: none; }
+  /* **Une image sans source ne montre qu'un cadre vide et son texte de
+     secours.** C'est ce que devient une image jointe dont le cid: est
+     introuvable, ou une adresse au schéma refusé par le laveur : un rectangle
+     bordé avec « GoDaddy » écrit dedans, au milieu du courrier.
+     (Pas d'accent grave ici : ce bloc vit dans un littéral gabarit.) */
+  img:not([src]), img[src=""] { display: none; }
   a { color: #0b57d0; }
 `;
 
@@ -216,8 +222,7 @@ const SCRIPT = `
       if (!SUJET) return;
       /* Les preheaders se rembourrent de caracteres invisibles pour occuper la
          ligne d'apercu — le classique est &#847;&zwnj;&nbsp; repete. Sans les
-         retirer, le texte du bloc ne valait jamais l'objet, et rien n'etait
-         masque : c'est ce qui faisait echouer la premiere version. */
+         retirer, le texte ne valait jamais l'objet et rien n'etait masque. */
       var lave = function (t) {
         return (t || "")
           .replace(/[\\u00ad\\u034f\\u200b-\\u200f\\u2028\\u2029\\u2060\\ufeff]/g, "")
@@ -227,43 +232,62 @@ const SCRIPT = `
       };
       var cible = lave(SUJET);
       if (!cible) return;
-      /* **Le filtre compte autant que la marche.** Sans lui, le premier texte
-         du document est celui du <style> que garde le laveur — du CSS, non
-         vide — et la recherche s'arretait la, sur le mauvais noeud. */
+      /* Il dit l'objet **et rien d'autre** : du remplissage ou de la
+         ponctuation peuvent trainer derriere, jamais un mot de plus. */
+      var redite = function (texte) {
+        if (texte.indexOf(cible) !== 0) return false;
+        return !/[\\p{L}\\p{N}]/u.test(texte.slice(cible.length));
+      };
+      /* **Le filtre compte autant que la marche.** Le premier texte du
+         document est celui du <style> que garde le laveur — du CSS, non vide —
+         et sans lui la recherche s'arretait la. On saute aussi ce qui est deja
+         invisible : un preheader que l'expediteur a pense a cacher ne doit pas
+         faire renoncer a celui qui suit. */
       var marcheur = document.createTreeWalker(fit, NodeFilter.SHOW_TEXT, {
         acceptNode: function (n) {
           var p = n.parentElement;
           while (p && p !== fit) {
             if (p.tagName === "STYLE" || p.tagName === "SCRIPT") return NodeFilter.FILTER_REJECT;
+            var st = getComputedStyle(p);
+            if (st.display === "none" || st.visibility === "hidden") return NodeFilter.FILTER_REJECT;
             p = p.parentElement;
           }
           return lave(n.nodeValue) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
         },
       });
       var premier = marcheur.nextNode();
-      if (!premier) return;
-      /* On remonte jusqu'au bloc dont le texte entier est l'objet, et pas plus
-         haut : au-dela, ce serait le message. */
-      /* Le bloc dit l'objet **et rien d'autre** : il peut trainer derriere lui
-         de la ponctuation ou du remplissage, jamais un mot de plus. */
-      var redite = function (texte) {
-        if (texte.indexOf(cible) !== 0) return false;
-        return !/[\\p{L}\\p{N}]/u.test(texte.slice(cible.length));
-      };
-      var bloc = premier.parentElement;
-      while (bloc && bloc !== fit) {
-        if (redite(lave(bloc.textContent))) {
-          /* **On masque le petit, pas le grand.** Une infolettre peut ouvrir
-             sur son propre titre, dessine et colore, qui repete lui aussi
-             l'objet : le retirer laisserait un trou dans sa mise en page. Le
-             preheader, lui, est du texte nu — pas d'image, et la taille du
-             corps. Au-dela de 19 px, c'est un titre : on le laisse. */
-          var taille = parseFloat(getComputedStyle(bloc).fontSize) || 0;
-          if (taille < 20 && !bloc.querySelector("img")) bloc.style.display = "none";
-          return;
-        }
-        bloc = bloc.parentElement;
+      if (!premier || !redite(lave(premier.nodeValue))) return;
+
+      /* **On remonte tant que le bloc ne dit que ca.** Le preheader vit tantot
+         dans une boite a lui — et c'est elle qu'il faut retirer, avec ses
+         marges —, tantot en texte nu au milieu de l'enveloppe du message, dont
+         le parent porte tout le reste : c'est ce cas-la qui echouait, la
+         version d'avant partant du parent et ne trouvant jamais de bloc dont le
+         texte entier soit l'objet. On part donc du **noeud de texte**, et on ne
+         monte que tant que le contenant n'ajoute rien. */
+      var cible2 = premier;
+      var haut = premier.parentElement;
+      while (haut && haut !== fit && redite(lave(haut.textContent))) {
+        cible2 = haut;
+        haut = haut.parentElement;
       }
+
+      if (cible2.nodeType === 3) {
+        /* Texte nu : on l'enveloppe pour pouvoir le masquer. Le message n'est
+           pas modifie au sens ou rien n'est retire — le texte reste dans la
+           source, il cesse seulement d'etre peint. */
+        var etui = document.createElement("span");
+        etui.style.display = "none";
+        cible2.parentNode.insertBefore(etui, cible2);
+        etui.appendChild(cible2);
+        return;
+      }
+      /* **On masque le petit, pas le grand.** Une infolettre peut ouvrir sur
+         son propre titre, dessine et colore, qui repete lui aussi l'objet : le
+         retirer laisserait un trou dans sa mise en page. Le preheader, lui, est
+         du texte nu — pas d'image, et la taille du corps. */
+      var taille = parseFloat(getComputedStyle(cible2).fontSize) || 0;
+      if (taille < 20 && !cible2.querySelector("img")) cible2.style.display = "none";
     };
     masquerRedite();
 

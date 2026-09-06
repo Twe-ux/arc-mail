@@ -187,12 +187,16 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   à qui elle servait à revenir en arrière → [gestes](docs/features/gestes.md).
 
 **Mail ouvert** → [docs/features/mail-ouvert.md](docs/features/mail-ouvert.md)
-- En-tête à trois éléments (retour · dossier·espace / n sur N · favori) ; l'objet vit dans la carte.
+- En-tête à trois éléments (retour · « dossier · n sur N » / nom de la boîte · favori) ; l'objet vit
+  dans la carte.
 - Corps **à bord perdu** : un seul cadre sur téléphone, pas trois ; « à moi », pas notre nom.
 - Trois blocs, pas une dalle : objet 26/1.18 avec son air, en-tête du message clos par un **filet**
   (date courte à droite du nom, date longue dans les destinataires dépliés), puis la feuille du
   courrier qui **remplit la carte** — anneau et rayon sur bureau seulement.
-- Le **préheader** qui répète l'objet est masqué (jamais un titre : moins de 20 px, sans image).
+- Le **préheader** qui répète l'objet est masqué : on part du **nœud de texte** et on remonte tant
+  que le contenant n'ajoute rien (il vit aussi en texte nu dans l'enveloppe du message) ; jamais un
+  titre (moins de 20 px, sans image), et le remplissage invisible est retiré avant de comparer.
+- Une image **sans source** est masquée : un `cid:` introuvable ne montre qu'un cadre vide.
 - **Ouvrir un mail ne lève pas le clavier** : sur téléphone l'en-tête d'un message déplie les
   destinataires (il vise la réponse sur bureau seulement), et la rangée de la liste avale le clic
   fantôme d'iOS qui retombait sur « Répondre ».

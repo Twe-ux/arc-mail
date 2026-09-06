@@ -7,8 +7,13 @@ Refonte du 5 septembre 2026, d'après le handoff mobile.
 
 ## L'en-tête ne fait plus que dire où l'on est
 
-Trois éléments : retour (44 × 44, `-ml-2`), deux lignes grises au centre — « Dossier · Espace » en
-12 px et « n sur N » en 13 px —, et le favori (44 × 44) à droite.
+Trois éléments : retour (44 × 44, `-ml-2`), deux lignes grises au centre — « **Dossier · n sur N** »
+en 12 px et le **nom de la boîte** en 13 px —, et le favori (44 × 44) à droite.
+
+Les deux lignes ont été échangées le 6 septembre : le nom de l'espace partageait la première avec le
+dossier et s'y faisait tronquer (« Boîte de réception · Milone Thierry CoworkingC… ») pendant que
+« 5 sur 13 » occupait seul toute la seconde. Le rang tient en cinq caractères — il monte à côté du
+dossier, et le nom de la boîte prend la ligne entière.
 
 Les **six petites cibles** qui vivaient là sont descendues dans la pill, où le pouce les atteint.
 Et l'objet, qui était répété en haut, est descendu dans la carte : il y est le titre de ce qu'on

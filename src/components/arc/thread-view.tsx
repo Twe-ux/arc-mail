@@ -147,15 +147,24 @@ export function ThreadView({ className }: { className?: string }) {
         >
           <ArrowLeft className="size-6" strokeWidth={1.75} />
         </button>
+        {/* **Le dossier avec le rang, puis la boîte.** Le nom de l'espace
+            partageait la première ligne avec le dossier et s'y faisait tronquer
+            (« Milone Thierry CoworkingC… »), pendant que « 5 sur 13 » occupait
+            seul toute la seconde. Le rang tient en cinq caractères : il monte à
+            côté du dossier, et le nom de la boîte prend la ligne entière. */}
         <div className="min-w-0 flex-1 leading-tight">
           <p className="truncate text-[12px] text-muted-foreground">
-            {folder.name} · {space.name}
+            {folder.name}
+            {position >= 0 && (
+              <>
+                {" · "}
+                <span className="tabular-nums">
+                  {position + 1} sur {visibles.length}
+                </span>
+              </>
+            )}
           </p>
-          {position >= 0 && (
-            <p className="text-[13px] text-muted-foreground tabular-nums">
-              {position + 1} sur {visibles.length}
-            </p>
-          )}
+          <p className="truncate text-[13px] text-muted-foreground">{space.name}</p>
         </div>
         <button
           type="button"

@@ -2,6 +2,22 @@
 
 Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérification.
 
+## 6 septembre 2026 — le préheader, pour de bon
+
+Deux essais avaient échoué sur les vrais courriers, et chacun pour une raison différente. La marge
+ne tombait que pour un courrier plus large que l'écran : celui de GoDaddy est responsive, jamais
+réduit — elle tombe désormais aussi quand le message **peint son propre fond**, ce qui fait de notre
+blanc un liseré. Et le préheader n'était cherché qu'à partir du **parent** du premier texte : quand
+il vit en texte nu au milieu de l'enveloppe du message — le cas de Stripe —, aucun ancêtre ne dit
+jamais l'objet et rien n'était masqué. On part maintenant du **nœud de texte** et on remonte tant
+que le contenant n'ajoute rien ; le remplissage invisible (`&#847;&zwnj;&nbsp;`) est retiré avant de
+comparer, et le parcours saute ce qui est déjà caché. Cinq formes de préheader passées au banc,
+titre dessiné compris — lui, il reste.
+
+Au passage : une image sans source ne montre plus son cadre vide, et l'en-tête du mail ouvert a
+échangé ses deux lignes — « Boîte de réception · 5 sur 13 », puis le nom de la boîte, qui se faisait
+tronquer quand il partageait la première ligne avec le dossier.
+
 ## 6 septembre 2026 — l'identifiant qui survit au déplacement, et le titre écrit une fois
 
 `modify()` rendait `void` : un déplacement IMAP change l'UID du message, donc l'identifiant du fil,

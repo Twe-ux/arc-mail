@@ -259,13 +259,35 @@ largeur, où du texte viendrait sinon coller au bord — vérifié : volet de 11
 
 **Le préheader ne s'écrit pas deux fois.** Une infolettre commence par la ligne que les listes de
 mail montrent en aperçu, et elle répète presque toujours l'objet : on se retrouvait avec le titre en
-26 px puis le même texte en petit, deux centimètres plus bas (vu sur un courrier GoDaddy). Le cadre
-masque donc le **premier bloc du message dont le texte entier est l'objet** — pas plus haut qu'un
-bloc, jamais au-delà de 19 px de corps, et jamais s'il contient une image : une infolettre peut
-ouvrir sur son propre titre dessiné, et le retirer laisserait un trou dans sa mise en page. C'est un
-`display:none` posé à l'affichage ; rien n'est retiré du message. Le premier texte se cherche avec
-un filtre qui écarte `<style>` et `<script>` — sans lui, le premier texte du document était le CSS
-que le laveur garde.
+26 px puis le même texte en petit, deux centimètres plus bas (vu sur GoDaddy et sur Stripe).
+
+Le cadre part du **premier nœud de texte** du message et le compare à l'objet, puis **remonte tant
+que le contenant n'ajoute rien**. C'est cette forme-là qui compte : le préheader vit tantôt dans une
+boîte à lui — et c'est elle qu'il faut retirer, avec ses marges —, tantôt **en texte nu au milieu de
+l'enveloppe du message**, dont le parent porte tout le reste. Partir du parent, comme la première
+version le faisait, ne trouvait alors jamais de bloc dont le texte entier soit l'objet, et rien
+n'était masqué.
+
+Quatre précautions, chacune payée par un essai raté :
+
+- **Les caractères invisibles de remplissage.** Un préheader se rembourre pour occuper la ligne
+  d'aperçu — le classique est `&#847;&zwnj;&nbsp;` répété. `\s` n'avale ni U+034F ni les marques de
+  direction : sans les retirer, le texte ne valait jamais l'objet.
+- **La comparaison est un préfixe**, pas une égalité : le bloc dit l'objet et rien d'autre derrière
+  (aucune lettre ni chiffre dans le reste).
+- **Le filtre du parcours** écarte `<style>` et `<script>` — le premier texte du document était
+  sinon le CSS que le laveur garde — et **ce qui est déjà masqué** : un préheader que l'expéditeur a
+  pensé à cacher ne doit pas faire renoncer à celui qui suit.
+- **On masque le petit, pas le grand** : jamais au-delà de 19 px de corps, jamais s'il contient une
+  image. Une infolettre peut ouvrir sur son propre titre dessiné, et le retirer laisserait un trou.
+
+C'est un `display:none` posé à l'affichage — un texte nu est enveloppé dans un `<span>` pour ça ;
+rien n'est retiré du message.
+
+**Une image sans source ne montre qu'un cadre vide** avec son texte de secours dedans — c'est ce que
+devient une image jointe dont le `cid:` est introuvable, ou une adresse au schéma refusé. Vue sur le
+courrier GoDaddy : un rectangle bordé avec « GoDaddy » écrit au milieu. `img:not([src])` et
+`img[src=""]` sont donc masquées.
 
 **Pas de plancher à l'échelle** : un courrier rogné est le défaut qu'on corrige, et un courrier
 petit reste un courrier entier. En pratique les infolettres font 600 à 800 px, le texte long se

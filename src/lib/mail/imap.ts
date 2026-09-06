@@ -359,19 +359,24 @@ export async function readFolder(
 }
 
 /**
- * Marquer lu, mettre en favori, déplacer.
+ * Marquer lu, mettre en favori, déplacer — et **rendre l'identifiant d'après**.
  *
  * Le vocabulaire de l'app traduit en drapeaux IMAP, et c'est le seul endroit
- * où cette traduction existe. Un déplacement change l'UID donc l'identifiant
- * du fil : celui qu'on a en main devient périmé, et c'est la relecture du
- * dossier qui rend les nouveaux — d'où le fait qu'on referme la conversation
- * en la déplaçant.
+ * où cette traduction existe.
+ *
+ * **Un déplacement change l'UID, donc l'identifiant du fil.** Celui qu'on avait
+ * en main ne désigne plus rien : le garder, c'était un fil fantôme dans la
+ * liste et un second exemplaire à la relecture du dossier d'arrivée. `MOVE`
+ * rend une table `ancien UID → nouvel UID` quand le serveur annonce `UIDPLUS`
+ * (iCloud et Gmail le font tous les deux) ; on s'en sert pour reconstruire
+ * l'identifiant. Sans elle, on rend `null` : déplacé, mais on ne sait pas où,
+ * et c'est la prochaine lecture du dossier qui le retrouvera.
  */
 export async function writeThread(
   client: ImapFlow,
   id: string,
   patch: { unread?: boolean; starred?: boolean; path?: string },
-): Promise<void> {
+): Promise<string | null> {
   const parsed = parseThreadId(id);
   if (!parsed) throw new Error(`Identifiant de conversation illisible : « ${id} »`);
   const lock = await client.getMailboxLock(parsed.path);
@@ -392,8 +397,15 @@ export async function writeThread(
     /* Le déplacement en dernier : après lui, l'UID de départ ne désigne plus
        rien dans ce dossier, et les drapeaux n'auraient plus de cible. */
     if (patch.path && patch.path !== parsed.path) {
-      await client.messageMove(range, patch.path, uid);
+      /* `messageMove` rend `false` quand rien n'a bougé (aucun message ne
+         correspondait au critère) : ce n'est pas une table vide, c'est un
+         déplacement qui n'a pas eu lieu — le fil garde alors son identifiant. */
+      const bouge = await client.messageMove(range, patch.path, uid);
+      if (!bouge) return id;
+      const arrivee = bouge.uidMap?.get(parsed.uid);
+      return arrivee ? threadId(patch.path, arrivee) : null;
     }
+    return id;
   } finally {
     lock.release();
   }

@@ -253,9 +253,17 @@ Suivez votre envoi depuis votre espace client.`,
            ce cas-là qu'il faut avoir sous la main (voir `donnees-mock.md`).
            Le `<style>` qui remet `body` à zéro est du même tonneau : `html.ts`
            le garde, il arrive après le nôtre, et c'est lui qui reprenait la
-           marge du cadre. */
+           marge du cadre.
+           **Le préheader aussi est du vrai**, et il est écrit **visible** :
+           c'est le cas observé sur un courrier GoDaddy, où la ligne d'aperçu
+           répète l'objet et s'affiche sous notre titre de 26 px. Le masquer
+           dans le mock aurait fait passer le correctif pour bon sans rien
+           prouver. Et les 24 px de rembourrage du `<td>` sont ce que
+           toute infolettre se donne : sans eux, le cas « le courrier porte sa
+           propre marge » n'était pas représenté. */
         html: `<style>body{margin:0;padding:0;background:#f4f4f4}img{border:0}</style>
-<table role="presentation" width="600" style="width:600px;margin:0 auto;font-family:Helvetica,Arial,sans-serif;background:#fff"><tr><td>
+<div style="font-family:Helvetica,Arial,sans-serif">Les bons plans du mois</div>
+<table role="presentation" width="600" style="width:600px;margin:0 auto;font-family:Helvetica,Arial,sans-serif;background:#fff"><tr><td style="padding:24px">
   <p style="color:#888;font-size:12px">Voir la version en ligne</p>
   <img data-src="https://exemple.invalid/banniere.png" alt="Bannière" width="600" height="180">
   <h1 style="font-size:26px;color:#c0392b">Les bons plans du mois</h1>

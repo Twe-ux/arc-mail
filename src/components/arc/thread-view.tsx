@@ -214,7 +214,7 @@ export function ThreadView({ className }: { className?: string }) {
               {thread.subject}
             </h1>
             {thread.messages.map((m) => (
-              <MessageCard key={m.id} message={m} onReplyTo={aimReply} />
+              <MessageCard key={m.id} message={m} sujet={thread.subject} onReplyTo={aimReply} />
             ))}
           </div>
         </ScrollArea>

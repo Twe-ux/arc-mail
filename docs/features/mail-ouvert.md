@@ -39,9 +39,14 @@ mesurées sur la capture :
    une ligne qui prenait toute la largeur pour dire deux choses dont une seule se lit d'un coup
    d'œil ; la date longue est rangée avec les destinataires dépliés, où on la cherche.
 3. **La feuille du courrier remplit la carte** : plus de marge ni d'anneau autour d'elle sur
-   téléphone — c'était le troisième cadre — et sa marge intérieure passe de 12 à **16 px**, plus près
-   des 20 px où se tient tout le reste de l'écran. Sur bureau elle garde anneau et rayon : elle y
-   flotte sur le fond sombre du volet, et sans bord elle n'aurait plus de tranche.
+   téléphone — c'était le troisième cadre. Sur bureau elle garde anneau et rayon : elle y flotte sur
+   le fond sombre du volet, et sans bord elle n'aurait plus de tranche.
+4. **Le titre ne s'écrit pas deux fois.** Le préheader d'une infolettre — la ligne d'aperçu, qui
+   répète l'objet — s'affichait en petit sous notre titre de 26 px. Il est masqué quand il ne dit
+   rien de plus que l'objet → [IMAP](imap.md).
+5. **La marge du cadre tombe quand le courrier est mis à la largeur** : elle lui retirait 8 % de
+   taille de texte pour un liseré blanc autour d'un bloc qui a déjà son fond. Elle reste (16 px) pour
+   un courrier qui tient dans la largeur.
 
 **Ouvrir un mail ne lève pas le clavier.** Sur téléphone, l'en-tête d'un message **déplie les
 destinataires** — ce que son chevron annonce — au lieu de viser la réponse. Viser d'ici l'ouvrait :

@@ -130,12 +130,14 @@ export async function POST(request: NextRequest) {
         if (body.patch.folder && !cible) {
           throw new Error(`Cette boîte n'a pas de dossier « ${body.patch.folder} ».`);
         }
-        await writeThread(client, body.id, {
+        /* L'identifiant d'après : le même, un autre si le message a changé de
+           dossier, `null` si le serveur n'a pas dit où il a atterri. */
+        const apres = await writeThread(client, body.id, {
           unread: body.patch.unread,
           starred: body.patch.starred,
           path: cible,
         });
-        return { ok: true };
+        return { id: apres };
       }
 
       /* L'identifiant d'un fil porte son chemin : on retrouve le dossier en

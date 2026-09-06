@@ -25,7 +25,16 @@ import { useRelaisRetour } from "./back-swipe";
  * Le seul script du cadre est le nôtre, en deux lignes : dire sa hauteur, et
  * révéler les images à la demande. Sans lui, il faudrait deviner la hauteur.
  */
-export function MessageBody({ message, className }: { message: Message; className?: string }) {
+export function MessageBody({
+  message,
+  sujet,
+  className,
+}: {
+  message: Message;
+  /** L'objet du fil : sert à masquer le préheader qui le répète (voir `SCRIPT`). */
+  sujet?: string;
+  className?: string;
+}) {
   if (!message.html) {
     /* Ni corps ni HTML : il arrive. Une liste vient de dire ce que le message
        raconte (`snippet`), l'ouvrir ne doit pas montrer moins que la liste —
@@ -34,7 +43,7 @@ export function MessageBody({ message, className }: { message: Message; classNam
     if (!message.body) return <Attente />;
     return <p className={className}>{message.body}</p>;
   }
-  return <CorpsHtml html={message.html} bloquees={message.blockedImages ?? 0} />;
+  return <CorpsHtml html={message.html} bloquees={message.blockedImages ?? 0} sujet={sujet ?? ""} />;
 }
 
 /**
@@ -127,6 +136,7 @@ const GARDE = `
 const SCRIPT = `
   (function () {
     var MARGE = ${MARGE};
+    var SUJET = __SUJET__;
     var fit = document.getElementById("arc-fit");
     var occupe = false;
 
@@ -140,23 +150,43 @@ const SCRIPT = `
        texte long se replie deja (overflow-wrap) et les images sont bornees.
        La transformation est visuelle : la boite de mise en page garde sa
        hauteur entiere, donc c'est le rectangle **transforme** qu'on mesure. */
+    /* La marge du cadre, posee en ligne et en !important : elle bat la feuille
+       de garde, qui l'est aussi. */
+    var marge = MARGE;
+    var poser = function (px) {
+      marge = px;
+      document.documentElement.style.setProperty("padding", px + "px", "important");
+    };
+
     var dire = function () {
       if (occupe) return;
       occupe = true;
       fit.style.width = "";
       fit.style.transform = "";
+      poser(MARGE);
       /* La largeur disponible se lit sur l'enveloppe elle-meme : un bloc remplit
          la boite de contenu de son parent, ou que vive la marge — la notre sur
          html, celle que l'infolettre se donne sur body. Mesurer la fenetre
          obligeait a deviner ou etaient passes les pixels. */
       var dispo = fit.offsetWidth;
       var naturel = Math.max(fit.scrollWidth, dispo);
+      /* **Un courrier qui apporte sa mise en page ne paie pas notre marge.**
+         Un tableau de 600 px sur un telephone de 393 est deja reduit ; les
+         32 px de cadre lui retiraient encore 8 % de taille de texte pour un
+         liseré blanc autour d'un bloc qui porte son propre fond. Elle reste
+         pour un courrier qui tient dans la largeur — la, du texte viendrait
+         sinon coller au bord. */
+      if (naturel > dispo + 1) {
+        poser(0);
+        dispo = fit.offsetWidth;
+        naturel = Math.max(fit.scrollWidth, dispo);
+      }
       var echelle = naturel > dispo + 1 ? dispo / naturel : 1;
       var h;
       if (echelle < 1) {
         fit.style.width = naturel + "px";
         fit.style.transform = "scale(" + echelle + ")";
-        h = Math.ceil(fit.getBoundingClientRect().height) + MARGE * 2;
+        h = Math.ceil(fit.getBoundingClientRect().height) + marge * 2;
       } else {
         h = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight);
       }
@@ -164,6 +194,60 @@ const SCRIPT = `
       parent.postMessage({ type: "arc-mail-height", height: h }, "*");
     };
 
+    /* **L'objet, ecrit deux fois.** Une infolettre commence par un « preheader »
+       — la ligne que les listes de mail montrent en apercu — et il repete
+       presque toujours l'objet. Cache par l'expediteur quand il pense a le
+       faire, visible sinon : on se retrouvait avec le titre en 26 px puis le
+       meme texte en petit, deux centimetres plus bas. On masque donc le premier
+       bloc du message quand il ne dit rien de plus que l'objet.
+       Rien n'est retire du message : on le masque, et le texte reste dans la
+       source. (Pas d'accent grave ici : ce bloc vit dans un litteral gabarit.) */
+    var masquerRedite = function () {
+      if (!SUJET) return;
+      var lave = function (t) {
+        return (t || "")
+          .replace(/[\\u200b\\u200c\\ufeff]/g, "")
+          .replace(/\\s+/g, " ")
+          .trim()
+          .toLowerCase();
+      };
+      var cible = lave(SUJET);
+      if (!cible) return;
+      /* **Le filtre compte autant que la marche.** Sans lui, le premier texte
+         du document est celui du <style> que garde le laveur — du CSS, non
+         vide — et la recherche s'arretait la, sur le mauvais noeud. */
+      var marcheur = document.createTreeWalker(fit, NodeFilter.SHOW_TEXT, {
+        acceptNode: function (n) {
+          var p = n.parentElement;
+          while (p && p !== fit) {
+            if (p.tagName === "STYLE" || p.tagName === "SCRIPT") return NodeFilter.FILTER_REJECT;
+            p = p.parentElement;
+          }
+          return lave(n.nodeValue) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+        },
+      });
+      var premier = marcheur.nextNode();
+      if (!premier) return;
+      /* On remonte jusqu'au bloc dont le texte entier est l'objet, et pas plus
+         haut : au-dela, ce serait le message. */
+      var bloc = premier.parentElement;
+      while (bloc && bloc !== fit) {
+        if (lave(bloc.textContent) === cible) {
+          /* **On masque le petit, pas le grand.** Une infolettre peut ouvrir
+             sur son propre titre, dessine et colore, qui repete lui aussi
+             l'objet : le retirer laisserait un trou dans sa mise en page. Le
+             preheader, lui, est du texte nu — pas d'image, et la taille du
+             corps. Au-dela de 19 px, c'est un titre : on le laisse. */
+          var taille = parseFloat(getComputedStyle(bloc).fontSize) || 0;
+          if (taille < 20 && !bloc.querySelector("img")) bloc.style.display = "none";
+          return;
+        }
+        bloc = bloc.parentElement;
+      }
+    };
+    masquerRedite();
+
+    addEventListener("load", masquerRedite);
     addEventListener("load", dire);
     addEventListener("resize", dire);
     addEventListener("message", function (e) {
@@ -209,7 +293,7 @@ const SCRIPT = `
   })();
 `;
 
-function CorpsHtml({ html, bloquees }: { html: string; bloquees: number }) {
+function CorpsHtml({ html, bloquees, sujet }: { html: string; bloquees: number; sujet: string }) {
   const cadre = useRef<HTMLIFrameElement>(null);
   const [hauteur, setHauteur] = useState(220);
   const [montrees, setMontrees] = useState(false);
@@ -227,8 +311,15 @@ function CorpsHtml({ html, bloquees }: { html: string; bloquees: number }) {
       `<style>${STYLE}</style></head><body><div id="arc-fit">${html}</div>` +
       /* Après le message, pas avant : le `<style>` d'une infolettre est dans le
          corps, et à importance égale c'est l'ordre qui tranche. */
-      `<style>${GARDE}</style><script>${SCRIPT}<\/script></body></html>`,
-    [html],
+      /* Le sujet entre dans le script comme une **donnée**, pas comme du code :
+         `JSON.stringify` échappe les guillemets, et la séquence `</` est
+         coupée pour qu'un objet contenant `</script>` ne referme pas la
+         balise. */
+      `<style>${GARDE}</style><script>${SCRIPT.replace(
+        "__SUJET__",
+        JSON.stringify(sujet).replace(/<\//g, "<\\/"),
+      )}<\/script></body></html>`,
+    [html, sujet],
   );
 
   useEffect(() => {

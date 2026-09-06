@@ -48,3 +48,12 @@ déborde d'un téléphone de 393, qu'il fallait avoir sous la main pour vérifie
 
 Elle porte aussi un `<style>` qui remet `body` à zéro, comme les vraies : `html.ts` le garde, il
 arrive après le nôtre, et c'est lui qui reprenait la marge du cadre.
+
+Depuis le 6 septembre elle porte deux choses de plus, et les deux servent à voir un défaut :
+
+- **un préheader visible qui répète l'objet** — la ligne d'aperçu des infolettres. Écrit visible, et
+  non masqué comme la plupart des expéditeurs le font : c'est le cas observé sur un courrier
+  GoDaddy, et le masquer dans le mock aurait fait passer le correctif pour bon sans rien prouver ;
+- **24 px de rembourrage dans son `<td>`**, comme toute infolettre s'en donne. Sans eux, le cas « le
+  courrier porte sa propre marge » n'était pas représenté, et retirer celle du cadre semblait faire
+  coller le texte au bord.

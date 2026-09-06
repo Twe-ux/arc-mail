@@ -38,13 +38,16 @@ export class MockProvider implements MailProvider {
     return this.threads.filter((t) => ids.includes(t.id));
   }
 
-  async modify(_account: AccountRef, id: string, patch: ThreadPatch): Promise<void> {
+  /* Le mock range par un champ, pas par un dossier IMAP : déplacer n'y change
+     aucun identifiant, et il rend donc toujours le même. */
+  async modify(_account: AccountRef, id: string, patch: ThreadPatch): Promise<string | null> {
     this.patch(id, (t) => ({
       ...t,
       unread: patch.unread ?? t.unread,
       starred: patch.starred ?? t.starred,
       folder: patch.folder ?? t.folder,
     }));
+    return id;
   }
 
   async send(account: AccountRef, message: OutgoingMessage): Promise<Thread> {

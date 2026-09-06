@@ -191,7 +191,8 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - Corps **à bord perdu** : un seul cadre sur téléphone, pas trois ; « à moi », pas notre nom.
 - Trois blocs, pas une dalle : objet 26/1.18 avec son air, en-tête du message clos par un **filet**
   (date courte à droite du nom, date longue dans les destinataires dépliés), puis la feuille du
-  courrier qui **remplit la carte** — marge intérieure 16, anneau et rayon sur bureau seulement.
+  courrier qui **remplit la carte** — anneau et rayon sur bureau seulement.
+- Le **préheader** qui répète l'objet est masqué (jamais un titre : moins de 20 px, sans image).
 - **Ouvrir un mail ne lève pas le clavier** : sur téléphone l'en-tête d'un message déplie les
   destinataires (il vise la réponse sur bureau seulement), et la rangée de la liste avale le clic
   fantôme d'iOS qui retombait sur « Répondre ».
@@ -260,7 +261,11 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - Un lot s'arrête à **1,2 Mo** rendu, et rien ne se précharge si `saveData` est annoncé ; précharger
   ne marque jamais comme lu (`BODY.PEEK`).
 - Un corps qui n'est pas encore là montre un squelette ; un message sans texte le dit.
-- `modify` écrit les drapeaux (`\Seen`, `\Flagged`) et déplace ; le déplacement passe en dernier.
+- `modify` écrit les drapeaux (`\Seen`, `\Flagged`) et déplace ; le déplacement passe en dernier, et
+  il **rend l'identifiant d'après** (`uidMap` du `MOVE`) : le store renomme le fil, ou le retire si
+  le serveur n'a pas dit où — un UID de dossier ne survit pas au déplacement.
+- La marge du cadre (16 px) **tombe à zéro pour un courrier mis à la largeur** : elle lui coûtait 8 %
+  d'échelle pour un liseré autour d'un bloc qui a déjà son fond.
 - Envoyer, c'est SMTP **puis** un `APPEND` dans « Envoyés » — un seul message composé pour les deux ;
   Gmail range déjà lui-même, on n'y ajoute rien. Une réponse porte `In-Reply-To` et `References`.
 - Un brouillon s'écrit avant que l'ancien ne parte ; le retirer, c'est la corbeille, pas `EXPUNGE`.

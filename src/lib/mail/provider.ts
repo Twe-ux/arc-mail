@@ -91,8 +91,23 @@ export interface MailProvider {
    * rien, et le préchargement arrive après le doigt.
    */
   getThreads(account: AccountRef, ids: string[]): Promise<Thread[]>;
-  /** Flags and moves. */
-  modify(account: AccountRef, id: string, patch: ThreadPatch): Promise<void>;
+  /**
+   * Drapeaux et déplacements — et **ce que le fil devient**.
+   *
+   * Un déplacement IMAP change l'UID du message, donc l'identifiant du fil :
+   * celui qu'on avait en main ne désigne plus rien. L'écriture rend donc le
+   * nouvel identifiant, et le store renomme le fil au lieu de le garder sous un
+   * nom mort — sans quoi la relecture du dossier d'arrivée en ramenait un
+   * second exemplaire, et toute action sur l'ancien visait un UID disparu.
+   *
+   * Trois réponses possibles, et il faut les trois :
+   * - **le même identifiant** — rien n'a bougé de place (un simple « lu ») ;
+   * - **un autre** — le message a été déplacé et le serveur a dit où (`UIDPLUS`,
+   *   qu'iCloud et Gmail annoncent tous les deux) ;
+   * - **`null`** — déplacé, mais le serveur n'a pas dit où : le fil n'est plus
+   *   adressable, et c'est la prochaine lecture du dossier qui le retrouvera.
+   */
+  modify(account: AccountRef, id: string, patch: ThreadPatch): Promise<string | null>;
   /** Send. A reply lands in its thread; anything else opens one in Sent. */
   send(account: AccountRef, message: OutgoingMessage): Promise<Thread>;
   /** Create or update a draft; the returned thread is what Drafts shows. */

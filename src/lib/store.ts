@@ -179,6 +179,46 @@ const accountOf = (spaceId: SpaceId) => spaceOf(spaceId).account;
 /** Qui écrit depuis cet espace. Porté par l'espace, pas par une table d'adresses. */
 const identityOf = (spaceId: SpaceId): Contact => spaceOf(spaceId).identity;
 
+/**
+ * Le fil sous son nouveau nom, après un déplacement.
+ *
+ * Tout ce qui dérive de l'identifiant d'un fil est **bâti sur lui** : le
+ * message hydraté porte le même (`chemin uid`), et une pièce jointe y ajoute
+ * son rang (`chemin uid 0`). Un remplacement de préfixe les renomme donc tous
+ * les trois d'un coup, et rien ne reste accroché à l'UID disparu. Les messages
+ * plus anciens d'un fil à plusieurs gardent le leur : ils ne servent qu'à viser
+ * une réponse à l'écran, jamais à adresser le serveur.
+ */
+const renommerFil = (threads: Thread[], ancien: string, nouveau: string): Thread[] =>
+  threads.map((t) =>
+    t.id !== ancien
+      ? t
+      : {
+          ...t,
+          id: nouveau,
+          messages: t.messages.map((m) =>
+            m.id.startsWith(ancien)
+              ? {
+                  ...m,
+                  id: nouveau + m.id.slice(ancien.length),
+                  attachments: m.attachments?.map((a) =>
+                    a.id.startsWith(ancien) ? { ...a, id: nouveau + a.id.slice(ancien.length) } : a,
+                  ),
+                }
+              : m,
+          ),
+        },
+  );
+
+/** Les récents suivent le renommage, ou perdent le fil s'il n'a plus de nom. */
+const retirerRecent = (recent: RecentMap, ancien: string, nouveau: string | null): RecentMap =>
+  Object.fromEntries(
+    Object.entries(recent).map(([space, ids]) => [
+      space,
+      nouveau ? (ids ?? []).map((r) => (r === ancien ? nouveau : r)) : (ids ?? []).filter((r) => r !== ancien),
+    ]),
+  );
+
 /** One thread as it was, put back in place — or back at the top when it had been removed. */
 const restoreThread = (threads: Thread[], before: Thread) =>
   threads.some((t) => t.id === before.id) ? threads.map((t) => (t.id === before.id ? before : t)) : [before, ...threads];
@@ -518,11 +558,23 @@ export const useMail = create<MailState>()(
    * thread silently returning would read as a glitch. With the mock nothing
    * fails; with IMAP this is where a dropped connection lands.
    */
-  const commit = (before: Thread, run: () => Promise<unknown>, undone: string) =>
-    run().catch((err: unknown) => {
-      set((s) => ({ threads: restoreThread(s.threads, before) }));
-      toast.error(undone, { description: describe(err) });
-    });
+  /* `apres` reçoit ce que l'écriture a rendu — pour `modify`, l'identifiant du
+     fil après coup. Deux branches d'un seul `then` plutôt qu'un `.then().catch()` :
+     une erreur dans `apres` ne doit pas déclencher le retour arrière, qui dirait
+     que l'écriture a échoué alors qu'elle a réussi. */
+  const commit = <T>(
+    before: Thread,
+    run: () => Promise<T>,
+    undone: string,
+    apres?: (resultat: T) => void,
+  ) =>
+    run().then(
+      (resultat) => apres?.(resultat),
+      (err: unknown) => {
+        set((s) => ({ threads: restoreThread(s.threads, before) }));
+        toast.error(undone, { description: describe(err) });
+      },
+    );
 
   return {
   spaceId: SPACES[0].id,
@@ -665,6 +717,13 @@ export const useMail = create<MailState>()(
     commit(t, () => providerFor(account).modify(account, id, { unread: !t.unread }), "Impossible de changer l'état de lecture");
   },
 
+  /* **Déplacer change l'identifiant du fil.** Sur IMAP, l'UID d'un message
+     appartient à son dossier : le message qui arrive dans « Archive » en reçoit
+     un nouveau, et l'ancien ne désigne plus rien. Le garder faisait deux dégâts
+     — un fil fantôme sur lequel toute action visait un UID disparu, et un
+     second exemplaire dès qu'on relisait le dossier d'arrivée. Le fournisseur
+     rend donc le nom d'après, et on renomme ; s'il ne le sait pas (`null`), on
+     retire le fil de la liste et la prochaine lecture le retrouvera. */
   moveThread: (id, folder) => {
     const before = get().threads;
     const t = before.find((x) => x.id === id);
@@ -676,7 +735,23 @@ export const useMail = create<MailState>()(
     const account = accountOf(t.spaceId);
     const undone = { archive: "Archivage impossible, la conversation est de retour", trash: "Suppression impossible, la conversation est de retour" }[folder as string]
       ?? "Déplacement impossible, la conversation est de retour";
-    commit(t, () => providerFor(account).modify(account, id, { folder }), undone);
+    commit(
+      t,
+      () => providerFor(account).modify(account, id, { folder }),
+      undone,
+      (apres) => {
+        if (apres === id) return;
+        set((s) => ({
+          threads: apres
+            ? renommerFil(s.threads, id, apres)
+            : s.threads.filter((x) => x.id !== id),
+          recent: retirerRecent(s.recent, id, apres),
+          third: s.third?.kind === "message" && s.third.messageId.startsWith(id)
+            ? null
+            : s.third,
+        }));
+      },
+    );
   },
 
   removeRecent: (id) =>

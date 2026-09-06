@@ -138,6 +138,7 @@ function ModeMessage() {
           </div>
           <MessageBody
             message={message}
+            sujet={thread.subject}
             className="mt-3 block text-sm leading-[1.7] whitespace-pre-wrap"
           />
         </div>

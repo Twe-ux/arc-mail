@@ -35,9 +35,12 @@ import { MessageBody } from "./message-body";
  */
 export function MessageCard({
   message,
+  sujet,
   onReplyTo,
 }: {
   message: Message;
+  /** L'objet du fil, passé au corps : il masque le préheader qui le répète. */
+  sujet: string;
   onReplyTo: (to: Contact[]) => void;
 }) {
   /* Les destinataires ne sont dépliés qu'à la demande : « à moi » suffit dans
@@ -177,6 +180,7 @@ export function MessageCard({
 
       <MessageBody
         message={message}
+        sujet={sujet}
         /* Sur bureau le texte s'aligne sous le nom, pas sous l'avatar : 28 px
            de tuile plus 10 de gouttière. */
         className={cn(

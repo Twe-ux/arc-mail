@@ -2,6 +2,23 @@
 
 Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérification.
 
+## 6 septembre 2026 — l'identifiant qui survit au déplacement, et le titre écrit une fois
+
+`modify()` rendait `void` : un déplacement IMAP change l'UID du message, donc l'identifiant du fil,
+et le fil déplacé restait dans la liste sous un nom mort — toute action dessus visait un message qui
+n'existe plus, et relire le dossier d'arrivée en ramenait un second exemplaire. Il rend maintenant
+**l'identifiant d'après**, lu dans la table `uidMap` du `MOVE` : le store renomme le fil, ses
+messages et ses pièces jointes (tout est bâti sur le même préfixe), ou le retire quand le serveur
+n'a pas dit où le message a atterri.
+
+Et sur téléphone, deux défauts vus sur un vrai courrier GoDaddy : **l'objet s'écrivait deux fois** —
+notre titre en 26 px, puis le préheader de l'infolettre juste en dessous, qui le répète — et la
+**marge blanche du cadre** entourait un bloc qui porte déjà son fond. Le premier bloc du message est
+donc masqué quand il ne dit rien de plus que l'objet (jamais un titre : moins de 20 px, sans image),
+et la marge tombe à zéro dès qu'il faut réduire le courrier — 8 % de taille de texte rendus au
+message, mesurés. Le mock a gagné le préheader visible et les 24 px de rembourrage qu'ont les vraies
+infolettres, sans quoi le correctif passait pour bon sans rien prouver.
+
 ## 6 septembre 2026 — regarder ailleurs, puis ranger l'à-faire
 
 Mailspring cloné en lecture seule et lu pour ce qu'il sait faire, pas pour son code — il est sous

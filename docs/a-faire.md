@@ -16,9 +16,10 @@ est argumenté dans l'[audit du 6 septembre](audits/2026-09-06-clients-mail.md).
 
 ### Le courrier réel — ce qui est faux ou absent
 
-- [ ] **`modify(): Promise<Thread>`** — un déplacement IMAP change l'UID, donc l'identifiant du
-      fil. Aujourd'hui le fil déplacé garde son ancien id : la prochaine action dessus vise un
-      message qui n'existe plus. C'est la ligne la plus urgente de cette page.
+- [x] **`modify()` rend l'identifiant d'après** (6 sept.) — un déplacement IMAP change l'UID, donc
+      l'identifiant du fil. Le store renomme le fil, ses messages et ses pièces jointes, ou le
+      retire quand le serveur n'a pas dit où le message a atterri. **Reste à voir sur une vraie
+      boîte** : c'est dans « à tester ».
 - [ ] **`listFolders`** — les compteurs de non-lus ne valent que pour le dossier ouvert ; les
       autres affichent zéro tant qu'on n'y est pas allé.
 - [ ] Appliquer `supabase/migrations/20260904140000_espaces.sql` à la base (les précédentes le
@@ -62,8 +63,10 @@ correctif.
       raccrocher au fil chez le destinataire (et chez nous à la relecture).
 - [ ] **Les drapeaux** — `\Seen` et `\Flagged` écrits sur le serveur : les voir tenir après un
       rafraîchissement, et depuis Mail d'iOS sur le même compte.
-- [ ] **Les déplacements** — archiver, supprimer, restaurer : l'aller-retour complet (voir
-      `modify()` ci-dessus, qui bloque probablement le retour).
+- [ ] **Les déplacements** — archiver, supprimer, restaurer : l'aller-retour complet, et surtout
+      **le renommage du fil** que `modify()` rend depuis le 6 sept. À vérifier : le fil archivé
+      porte bien son nouvel identifiant (iCloud annonce `UIDPLUS`), il ne se dédouble pas quand on
+      ouvre Archive, et une action dessus juste après le déplacement aboutit.
 - [ ] **Les brouillons** — écrire, fermer, rouvrir, envoyer ; le retrait passe par la corbeille,
       pas par `EXPUNGE`.
 - [ ] **Les pièces jointes en émission** — 10 Mo, plusieurs fichiers, un nom accentué.

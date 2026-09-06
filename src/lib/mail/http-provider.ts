@@ -82,8 +82,14 @@ export class HttpProvider implements MailProvider {
     return avecPieces(account, threads);
   }
 
-  async modify(account: AccountRef, id: string, patch: ThreadPatch): Promise<void> {
-    await this.call({ op: "modify", accountId: account.id, id, patch });
+  async modify(account: AccountRef, id: string, patch: ThreadPatch): Promise<string | null> {
+    const { id: apres } = await this.call<{ id: string | null }>({
+      op: "modify",
+      accountId: account.id,
+      id,
+      patch,
+    });
+    return apres;
   }
 
   async send(account: AccountRef, message: OutgoingMessage): Promise<Thread> {

@@ -90,9 +90,13 @@ que d'ouvrir un chemin qui n'existe pas.
 ## L'identifiant d'un fil
 
 `"INBOX 4271"` — le chemin, puis l'UID. Un UID n'a de sens **que dans son dossier**, et il **change
-quand le message est déplacé**. D'où le chemin dedans, et d'où le fait qu'un déplacement rendra un
-nouvel identifiant plutôt que de garder l'ancien : c'est aussi pourquoi `modify()` devra rendre le
-fil et non `void`.
+quand le message est déplacé**. D'où le chemin dedans, et d'où le fait qu'un déplacement rend un
+nouvel identifiant plutôt que de garder l'ancien : c'est pourquoi `modify()` rend `string | null` et
+non `void` (voir « Écrire »).
+
+Tout ce qui dérive de cet identifiant est **bâti sur lui** : le message hydraté porte le même, et
+une pièce jointe y ajoute son rang (`INBOX 4271 0`). Renommer un fil, c'est donc remplacer un
+préfixe — et rien ne reste accroché à l'UID disparu.
 
 ## Des fils, à partir de messages qui n'en forment pas
 
@@ -240,11 +244,28 @@ elles le font toutes — reprenait la marge qu'on venait de donner au cadre, et 
 coller aux deux bords (signalé sur une vraie infolettre). Les règles de structure sont donc écrites
 en dernier et en `!important` : à importance égale, c'est l'ordre qui tranche, et on est après.
 
-La marge de 12 px vit sur **`html`**, pas sur `body` : aucune infolettre ne cible `html`, et le fond
+La marge de 16 px vit sur **`html`**, pas sur `body` : aucune infolettre ne cible `html`, et le fond
 du corps se propage quand même au canevas — un courrier à fond coloré le garde jusqu'aux bords. Et
 la largeur disponible se lit sur l'**enveloppe elle-même** (`fit.offsetWidth`), pas sur la fenêtre :
 un bloc remplit la boîte de contenu de son parent où que vive la marge, la nôtre ou celle que
 l'infolettre se donne.
+
+**Un courrier qui apporte sa mise en page ne paie pas cette marge.** Dès qu'il faut le réduire — un
+tableau de 600 px sur un téléphone de 393 —, la marge tombe à zéro : mesuré, elle lui retirait 8 %
+de taille de texte (échelle 0,602 contre 0,652) pour un liseré blanc autour d'un bloc qui porte
+déjà son propre fond et son propre rembourrage. Elle reste pour un courrier qui tient dans la
+largeur, où du texte viendrait sinon coller au bord — vérifié : volet de 1147 px, marge 16, aucune
+échelle.
+
+**Le préheader ne s'écrit pas deux fois.** Une infolettre commence par la ligne que les listes de
+mail montrent en aperçu, et elle répète presque toujours l'objet : on se retrouvait avec le titre en
+26 px puis le même texte en petit, deux centimètres plus bas (vu sur un courrier GoDaddy). Le cadre
+masque donc le **premier bloc du message dont le texte entier est l'objet** — pas plus haut qu'un
+bloc, jamais au-delà de 19 px de corps, et jamais s'il contient une image : une infolettre peut
+ouvrir sur son propre titre dessiné, et le retirer laisserait un trou dans sa mise en page. C'est un
+`display:none` posé à l'affichage ; rien n'est retiré du message. Le premier texte se cherche avec
+un filtre qui écarte `<style>` et `<script>` — sans lui, le premier texte du document était le CSS
+que le laveur garde.
 
 **Pas de plancher à l'échelle** : un courrier rogné est le défaut qu'on corrige, et un courrier
 petit reste un courrier entier. En pratique les infolettres font 600 à 800 px, le texte long se
@@ -298,10 +319,23 @@ ce dossier et les drapeaux n'auraient plus de cible.
 Sans cela, chaque ouverture de message aurait produit un toast d'erreur — le store marque comme lu
 dès qu'on ouvre.
 
-**Un déplacement périme l'identifiant du fil** (l'UID change avec le dossier). Le fil déplacé garde
-donc un identifiant mort jusqu'à la relecture du dossier ; comme un déplacement referme aussi la
-conversation, on ne le voit pas. La correction propre est que `modify` rende le fil plutôt que
-`void` — c'est noté dans [À faire](../a-faire.md).
+**Un déplacement périme l'identifiant du fil** (l'UID change avec le dossier) : `modify` rend donc
+**l'identifiant d'après**, et le store renomme le fil au lieu de le garder sous un nom mort. Sans
+cela le fil déplacé restait dans la liste avec un UID disparu — toute action dessus visait un
+message qui n'existe plus — et la relecture du dossier d'arrivée en ramenait un second exemplaire.
+
+Trois réponses, et il faut les trois :
+
+| Réponse | Ce que ça veut dire | Ce que le store en fait |
+|---|---|---|
+| le même identifiant | rien n'a changé de place (un simple « lu ») | rien |
+| un autre | déplacé, et le serveur a dit où (`UIDPLUS`) | il renomme le fil, ses messages et ses pièces |
+| `null` | déplacé, mais sans table de correspondance | il retire le fil ; la prochaine lecture le retrouve |
+
+La table vient de la réponse du `MOVE` (`uidMap`, `ancien UID → nouvel UID`), que le serveur ne
+donne que s'il annonce `UIDPLUS` — iCloud et Gmail le font tous les deux. Et `messageMove` peut
+rendre `false` : aucun message ne correspondait au critère, donc rien n'a bougé et le fil garde son
+nom. Un déplacement qui n'a pas eu lieu n'est pas une table vide.
 
 ## Envoyer : deux protocoles pour un geste
 

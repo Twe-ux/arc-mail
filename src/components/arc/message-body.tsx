@@ -142,6 +142,8 @@ const GARDE = `
 const SCRIPT = `
   (function () {
     var MARGE = ${MARGE};
+    /* La page pour laquelle les courriers sont ecrits, depuis toujours. */
+    var CANEVAS = 600;
     var SUJET = __SUJET__;
     var fit = document.getElementById("arc-fit");
     var occupe = false;
@@ -194,10 +196,25 @@ const SCRIPT = `
          sans mise en page : la, du texte viendrait coller au bord. */
       var fond = getComputedStyle(document.body).backgroundColor;
       var neutre = !fond || fond === "rgba(0, 0, 0, 0)" || fond === "transparent" || fond === "rgb(255, 255, 255)";
-      if (naturel > dispo + 1 || !neutre || fit.querySelector("table")) {
+      var misEnPage = naturel > dispo + 1 || !neutre || !!fit.querySelector("table");
+      if (misEnPage) {
         poser(0);
         dispo = fit.offsetWidth;
         naturel = Math.max(fit.scrollWidth, dispo);
+      }
+      /* **Le canevas des courriers, puis la reduction** — ce que fait Mail
+         d'iOS. Un courrier mis en page est ecrit pour une page de 600 px ;
+         rendu sur les 393 d'un telephone, ses regles pour petit ecran prennent
+         la main et il s'affiche en gros caracteres, bien plus gros que le meme
+         courrier chez Apple, qui le pose sur 600 et le reduit. Deux courriers
+         voisins n'avaient alors pas la meme taille de texte, et aucun n'avait
+         celle de l'app. On le pose donc sur le canevas quand l'ecran est plus
+         etroit, et l'echelle fait le reste.
+         Le HTML simple n'y passe pas : 15 px reduits a 0,65 ne se lisent plus,
+         et un texte sans mise en page n'a pas de largeur a lui. */
+      if (misEnPage && dispo < CANEVAS) {
+        fit.style.width = CANEVAS + "px";
+        naturel = Math.max(fit.scrollWidth, CANEVAS);
       }
       var echelle = naturel > dispo + 1 ? dispo / naturel : 1;
       var h;

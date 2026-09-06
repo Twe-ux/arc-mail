@@ -266,6 +266,17 @@ Le troisième cas est celui qui a résisté à deux correctifs : le courrier GoD
 Reste avec sa marge le courrier en **HTML simple** — quelques paragraphes sans mise en page —, où du
 texte viendrait sinon coller au bord. Les quatre cas sont vérifiés au banc.
 
+**Le canevas des courriers, puis la réduction.** Un courrier mis en page est écrit pour une page de
+**600 px** ; rendu sur les 393 d'un téléphone, ce sont ses règles pour petit écran qui prennent la
+main et il s'affiche en gros caractères — un titre de 32 px reste à 32 px. Mail d'iOS, lui, le pose
+sur 600 et réduit : le même titre y fait 21 px. Deux courriers voisins n'avaient donc pas la même
+taille de texte chez nous, et aucun n'avait celle de l'app. On pose donc tout courrier mis en page
+sur le canevas de 600 px dès que l'écran est plus étroit, et l'échelle fait le reste — mesuré :
+32 px rendus à **21**, qu'il soit responsive ou bâti sur 600.
+
+Le HTML simple n'y passe pas : 15 px réduits à 0,655 ne se lisent plus, et un texte sans mise en
+page n'a pas de largeur à lui.
+
 **Le préheader ne s'écrit pas deux fois.** Une infolettre commence par la ligne que les listes de
 mail montrent en aperçu, et elle répète presque toujours l'objet : on se retrouvait avec le titre en
 26 px puis le même texte en petit, deux centimètres plus bas (vu sur GoDaddy et sur Stripe).

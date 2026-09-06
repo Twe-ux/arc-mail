@@ -270,6 +270,9 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   le serveur n'a pas dit où — un UID de dossier ne survit pas au déplacement.
 - La marge du cadre (16 px) **tombe à zéro pour un courrier qui apporte sa mise en page** — plus
   large que l'écran, ou fond sur `body`, ou bâti sur des tableaux ; seul le HTML simple la garde.
+- Ce même courrier est posé sur le **canevas de 600 px** puis réduit, comme le fait Mail d'iOS :
+  sinon ses règles pour petit écran le rendent en gros caractères, et deux courriers voisins n'ont
+  pas la même taille de texte.
 - Envoyer, c'est SMTP **puis** un `APPEND` dans « Envoyés » — un seul message composé pour les deux ;
   Gmail range déjà lui-même, on n'y ajoute rien. Une réponse porte `In-Reply-To` et `References`.
 - Un brouillon s'écrit avant que l'ancien ne parte ; le retirer, c'est la corbeille, pas `EXPUNGE`.

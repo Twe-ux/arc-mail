@@ -18,6 +18,12 @@ La marge, elle, a demandé un troisième passage : GoDaddy est *responsive* — 
 son gris **sur une table**, pas sur `body`. Elle tombe donc aussi pour un courrier **bâti sur des
 tableaux**, ce que fait toute infolettre ; seul le HTML simple la garde.
 
+Enfin le texte des courriers a retrouvé la taille qu'il a chez Apple : un courrier mis en page est
+écrit pour une page de 600 px, et rendu sur les 393 d'un téléphone ce sont ses règles pour petit
+écran qui prenaient la main — un titre de 32 px restait à 32. On le pose sur le **canevas de 600**
+et on réduit, comme Mail d'iOS : le même titre fait 21 px, et deux courriers voisins ont enfin la
+même taille de texte. Le HTML simple n'y passe pas — 15 px réduits ne se lisent plus.
+
 Au passage : une image sans source ne montre plus son cadre vide, et l'en-tête du mail ouvert a
 échangé ses deux lignes — « Boîte de réception · 5 sur 13 », puis le nom de la boîte, qui se faisait
 tronquer quand il partageait la première ligne avec le dossier.

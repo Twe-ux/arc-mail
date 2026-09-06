@@ -16,6 +16,7 @@ import type { StoredAccount } from "@/lib/accounts/server";
 import type { RechercheImap } from "@/lib/search/imap";
 import type { Contact, FolderId, Message, Thread } from "@/lib/types";
 import { apercuDe } from "./apercu";
+import { lireListUnsubscribe } from "./desabonnement";
 import { inlineImages, nettoyer } from "./html";
 
 /**
@@ -333,6 +334,20 @@ const fragment = (m: FetchMessageObject): Buffer | undefined => {
 };
 
 /**
+ * Un en-tête du message analysé, en chaîne.
+ *
+ * `mailparser` rend soit une chaîne, soit une structure déjà découpée selon
+ * l'en-tête ; `headerLines` garde la ligne d'origine, qui est ce qu'on veut
+ * quand on relit soi-même la syntaxe.
+ */
+function entete(mime: ParsedMail, nom: string): string | undefined {
+  const ligne = mime.headerLines?.find((h) => h.key === nom);
+  if (!ligne) return undefined;
+  const deuxPoints = ligne.line.indexOf(":");
+  return deuxPoints < 0 ? undefined : ligne.line.slice(deuxPoints + 1).trim();
+}
+
+/**
  * Un fil sans espace : le fournisseur n'en connaît pas, c'est le store qui
  * tamponne à la réception (voir `stamp` dans `store.ts`).
  */
@@ -582,6 +597,12 @@ async function complet(
        en HTML seul n'aurait aucune ligne de résumé. */
     if (!body) thread.messages[0].body = propre.texte.slice(0, 2000);
   }
+
+  /* **Le désabonnement se lit dans l'en-tête, pas au fond du message.**
+     `List-Unsubscribe` est déjà là dans presque toutes les infolettres ; le
+     lire coûte zéro aller-retour de plus, la source est déjà en main. */
+  const desabonnement = lireListUnsubscribe(entete(mime, "list-unsubscribe"));
+  if (desabonnement) thread.messages[0].desabonnement = desabonnement;
 
   /* Un corps vide et pas de HTML, c'est un message sans texte — une invitation,
      une pièce jointe seule. Le dire : sinon l'affichage ne peut pas distinguer

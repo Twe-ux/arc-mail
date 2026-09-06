@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, Reply } from "lucide-react";
+import { ChevronDown, MailMinus, Reply } from "lucide-react";
 import { useState } from "react";
 
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -10,6 +10,7 @@ import { useMail, useSpace } from "@/lib/store";
 import type { Contact, Message } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { AttachmentRow } from "./attachment";
+import { Desabonner } from "./desabonner";
 import { ContactAvatar } from "./contact-avatar";
 import { MessageBody } from "./message-body";
 
@@ -35,11 +36,14 @@ import { MessageBody } from "./message-body";
  */
 export function MessageCard({
   message,
+  threadId,
   sujet,
   premier,
   onReplyTo,
 }: {
   message: Message;
+  /** Le fil auquel il appartient — le désabonnement écrit dessus. */
+  threadId: string;
   /** L'objet du fil, passé au corps : il masque le préheader qui le répète. */
   sujet: string;
   /** Le premier message du fil : c'est lui qui porte l'objet, sur téléphone. */
@@ -216,6 +220,17 @@ export function MessageCard({
       {message.attachments && message.attachments.length > 0 && (
         <div className={cn("px-5 pb-4 md:px-0 md:pb-0", !estHtml && "md:ms-[38px]")}>
           <AttachmentRow attachments={message.attachments} />
+        </div>
+      )}
+      {/* **Sous le message, jamais dedans.** Le bandeau des images distantes vit
+          dans la feuille blanche du courrier parce qu'il parle de ce qui y est
+          retenu ; le désabonnement, lui, parle de la **liste**, pas du message,
+          et une infolettre en texte simple n'a pas de feuille blanche. Il prend
+          donc l'encre de l'app, en fin de message, là où le lien minuscule
+          qu'on cherchait se trouvait. */}
+      {message.desabonnement && (
+        <div className={cn("px-5 pb-4 md:px-0 md:pb-0", !estHtml && "md:ms-[38px]")}>
+          <Desabonner message={message} threadId={threadId} icone={<MailMinus className="size-4 shrink-0" strokeWidth={1.75} />} />
         </div>
       )}
     </div>

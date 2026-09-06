@@ -147,8 +147,11 @@ qui suivent.
       `imap.<domaine>`. Aujourd'hui « Autre » demande de taper les hôtes à la main.
 - [ ] **Signatures par compte** (`identity` existe, aucune signature ne s'écrit).
 - [ ] **Modèles de réponse** (« quick replies »).
-- [ ] **`List-Unsubscribe`** (RFC 8058) : l'en-tête est là dans la plupart des infolettres, il
-      suffit de le lire et de poser un bouton. Petit, très rentable.
+- [x] **`List-Unsubscribe`** (6 sept.) — l'en-tête lu, une rangée sous le message, le `mailto:`
+      envoyé par notre SMTP → [fiche](features/mail-ouvert.md). **Reste le clic unique** (RFC 8058) :
+      il demande un `POST` vers une URL choisie par l'expéditeur depuis notre serveur, donc un
+      garde-fou SSRF — schéma imposé, adresse résolue, plages privées refusées, pas de redirection
+      suivie, délai court, réponse jamais rendue au navigateur.
 - [ ] **Images distantes par expéditeur** : « toujours afficher pour La Poste » plutôt que le tout
       ou rien d'aujourd'hui.
 - [ ] **Tri à l'entrée** (l'idée de HEY) : un expéditeur inconnu attend une décision avant

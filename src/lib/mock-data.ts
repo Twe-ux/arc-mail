@@ -1,5 +1,5 @@
 import type { AccountRef } from "./mail/provider";
-import type { Attachment, Contact, Folder, Space, SpaceId, Thread } from "./types";
+import type { Attachment, Contact, Desabonnement, Folder, Space, SpaceId, Thread } from "./types";
 
 /** The mock gives each space its own account: three different addresses. `mock:perso`. */
 export const mockAccount = (spaceId: SpaceId): AccountRef => ({ id: `mock:${spaceId}`, kind: "mock" });
@@ -163,6 +163,8 @@ function thread(
     html?: string;
     /** Combien d'images distantes ont été retenues au lavage. */
     blockedImages?: number;
+    /** Ce que `List-Unsubscribe` proposait, quand le message en portait un. */
+    desabonnement?: Desabonnement;
     attachments?: Attachment[];
   }>,
   opts: Partial<Pick<Thread, "labels" | "unread" | "starred">> = {},
@@ -175,6 +177,7 @@ function thread(
     body: m.body.trim(),
     html: m.html,
     blockedImages: m.blockedImages,
+    desabonnement: m.desabonnement,
     attachments: m.attachments,
   }));
   const last = msgs[msgs.length - 1];
@@ -247,6 +250,10 @@ Suivez votre envoi depuis votre espace client.`,
         hoursAgo: 5,
         body: "Voir la version en ligne — Les bons plans du mois",
         blockedImages: 2,
+        /* **Le cas `List-Unsubscribe` du monde réel** : les deux chemins à la
+           fois, le `mailto:` portant le jeton qui identifie l'abonné dans son
+           objet. C'est celui-là qu'on honore — il n'ouvre aucune page. */
+        desabonnement: { mailto: "stop-4f21@laposte.invalid", sujet: "unsubscribe 4f21", url: "https://laposte.invalid/stop?t=4f21" },
         /* **Une largeur fixe, comme les vraies.** Le gabarit à `max-width` se
            repliait tout seul et ne testait donc rien : les infolettres du monde
            réel posent un tableau de 600 px qui déborde d'un téléphone, et c'est

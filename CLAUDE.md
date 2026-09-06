@@ -261,6 +261,11 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   par-dessus — et il prend les marges pleines (14 / 16) : le mail ouvert n'est pas une carte qui
   flotte. L'en-tête est en `px-5`, boutons débordant de 10 px pour aligner le glyphe.
 - Le message **passe sous la pill** (réserve `--nav-height`), il ne se dissout pas.
+- **`List-Unsubscribe`** se lit dans l'en-tête (`desabonnement.ts`) et pose une rangée discrète sous
+  le message : le `mailto:` part par **notre SMTP** (aucune route de plus, on ne quitte pas l'app,
+  et l'objet réclamé est repris tel quel — il porte le jeton de l'abonné) ; un lien `https` seul
+  ouvre la page de l'expéditeur en `noreferrer`. Le clic unique de la RFC 8058 attend son garde-fou
+  SSRF. La rangée disparaît à l'envoi et revient si l'envoi échoue.
 - L'en-tête **ne se replie pas** : essayé, retiré — le repli suit le sens du défilement, et
   l'élastique du bas d'un message le faisait sauter en fin de course.
 - Une `iframe` de message HTML avale tous les touchers : le cadre les **relaie**

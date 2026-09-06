@@ -171,3 +171,42 @@ message cliquables qui détachent leur message dans le troisième volet, et à u
 posé hors du défilant. La règle du cadre unique y vaut aussi : un courrier HTML apporte sa feuille
 blanche, et le bloc ne peint pas la sienne derrière. Le détail est dans
 [La fenêtre du bureau](bureau.md).
+
+---
+
+## Se désabonner, sans descendre au fond du message (6 sept. 2026)
+
+`List-Unsubscribe` (RFC 2369, et 8058 pour le clic unique) est déjà dans presque toutes les
+infolettres. Le geste existait donc dans le message : un lien de six pixels, tout en bas, après
+trois écrans de promotions. Il suffisait de **lire l'en-tête**.
+
+**Une rangée sous le message, jamais dedans.** Le bandeau des images distantes vit dans la feuille
+blanche du courrier parce qu'il parle de ce qui y est retenu ; le désabonnement parle de la
+**liste**, et une infolettre en texte simple n'a pas de feuille blanche. Il prend donc l'encre de
+l'app, en fin de message, là où on cherchait le lien. Une rangée discrète, pas un bandeau d'alerte :
+se désabonner est une chose qu'on décide, jamais une chose dont l'app avertit.
+
+**Deux chemins, et ils ne se valent pas.**
+
+- Par **`mailto:`** — le cas le plus fréquent —, se désabonner est un **message que notre propre
+  SMTP envoie** : le chemin qui existe déjà, aucune route de plus, on ne quitte pas l'app, et
+  l'expéditeur n'apprend rien de plus que ce qu'il a demandé. L'objet réclamé par la liste est
+  repris tel quel : il porte souvent le jeton qui identifie l'abonné, et le remplacer ferait un
+  désabonnement qui n'aboutit pas.
+- Par **lien**, il faut ouvrir la page de l'expéditeur. Le bouton le dit, plutôt que de faire croire
+  au même geste ; `noopener noreferrer` — la page n'a pas à savoir d'où l'on vient. **Seul `https`
+  est retenu** : un `http:` nu enverrait en clair un jeton qui identifie l'abonné.
+
+**Le clic unique de la RFC 8058 n'est pas fait**, et c'est délibéré : il demande un `POST` vers une
+URL choisie par l'expéditeur, **depuis notre serveur**. C'est une porte (SSRF) qu'aucune infolettre
+ne mérite tant qu'elle n'est pas gardée — schéma imposé, adresse résolue et plages privées
+refusées, pas de redirection suivie, délai court, réponse jamais rendue au navigateur.
+
+**La rangée disparaît à l'envoi** : une demande partie ne se repropose pas. Elle revient avec sa
+raison si l'envoi échoue, et une relecture du message la ramènera si l'en-tête est toujours là —
+c'est la vérité, on ne sait pas ce que la liste a fait.
+
+Vérifié : sur l'infolettre mock, la rangée s'affiche (téléphone et bureau, clair et sombre), le clic
+envoie et fait apparaître « Désabonnement demandé à … », la rangée disparaît ; un mail ordinaire
+n'en montre aucune. L'icône est calée sur la première ligne (3 px), pas centrée sur les deux. Zéro
+erreur de console.

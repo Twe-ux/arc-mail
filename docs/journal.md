@@ -2,6 +2,20 @@
 
 Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérification.
 
+## 6 septembre 2026 — se désabonner sans descendre au fond du message
+
+`List-Unsubscribe` est déjà dans presque toutes les infolettres : le geste existait dans le message,
+sous la forme d'un lien de six pixels après trois écrans de promotions. Il suffisait de lire
+l'en-tête, ce qui ne coûte aucun aller-retour — la source est déjà en main quand on ouvre le mail.
+
+Le `mailto:` est le bon chemin, et c'est celui qu'on honore : se désabonner devient **un message que
+notre propre SMTP envoie**. Aucune route de plus, on ne quitte pas l'app, et l'objet réclamé par la
+liste est repris tel quel — il porte souvent le jeton qui identifie l'abonné.
+
+Le clic unique de la RFC 8058 attend : il demande un `POST` vers une URL choisie par l'expéditeur
+depuis notre serveur. C'est une porte qu'aucune infolettre ne mérite tant qu'elle n'est pas gardée,
+et le garde-fou est écrit dans la fiche avant le code.
+
 ## 6 septembre 2026 — une vue n'a pas de nom, elle est sa requête
 
 « Quand je change le nom, la recherche reste sur la précédente. » Une demi-journée plus tôt j'avais

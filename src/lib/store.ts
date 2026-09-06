@@ -205,6 +205,8 @@ export type MailState = {
   /** Closes the composer, keeping the text as a draft unless it is blank. */
   closeCompose: () => void;
   sendMail: () => void;
+  /** Honore le `mailto:` de `List-Unsubscribe` : un message, par notre SMTP. */
+  desabonner: (threadId: string, messageId: string) => void;
   deleteDraft: (threadId: string) => void;
   setSpaceHue: (id: SpaceId, hue: number | null) => void;
   renameSpace: (id: SpaceId, patch: { name: string; icon: Space["icon"] }) => Promise<void>;
@@ -361,6 +363,7 @@ const hydrate = (before: Thread, full: Thread): Thread => ({
           body: filled.body,
           html: filled.html,
           blockedImages: filled.blockedImages,
+          desabonnement: filled.desabonnement,
           attachments: filled.attachments,
         }
       : m;
@@ -474,6 +477,7 @@ const enMemoire = (threads: Thread[]): Thread[] =>
       body: "",
       html: undefined,
       blockedImages: undefined,
+      desabonnement: undefined,
       attachments: undefined,
     })),
   }));
@@ -1216,6 +1220,59 @@ export const useMail = create<MailState>()(
         set({ compose: d });
         toast.error("Impossible d'enregistrer le brouillon, il est de retour dans le composeur", { description: describe(err) });
       });
+  },
+
+  /**
+   * Se désabonner d'une liste, sans quitter l'app.
+   *
+   * **C'est un message, pas une page.** `List-Unsubscribe` propose souvent un
+   * `mailto:` : l'honorer, c'est envoyer un courrier par notre propre SMTP —
+   * le chemin qui existe déjà, aucune route de plus, et personne d'autre n'est
+   * prévenu que le message a été lu. Le lien `https:` reste pour les listes qui
+   * n'offrent que lui, mais il s'ouvre dans le navigateur, pas ici : poster à
+   * une URL choisie par l'expéditeur depuis **notre** serveur ouvrirait une
+   * porte qu'aucune infolettre ne mérite.
+   *
+   * La rangée disparaît à l'envoi : une demande partie ne se repropose pas. Une
+   * relecture du message la ramènera si l'en-tête est toujours là — c'est la
+   * vérité, on ne sait pas ce que la liste a fait.
+   */
+  desabonner: (threadId, messageId) => {
+    const t = get().threads.find((x) => x.id === threadId);
+    const m = t?.messages.find((x) => x.id === messageId);
+    const adresse = m?.desabonnement?.mailto;
+    if (!t || !m || !adresse) return;
+    const account = accountOf(t.spaceId);
+    set((s) => ({
+      threads: patchThread(s.threads, threadId, (fil) => ({
+        ...fil,
+        messages: fil.messages.map((x) => (x.id === messageId ? { ...x, desabonnement: undefined } : x)),
+      })),
+    }));
+    providerFor(account)
+      .send(account, {
+        from: identityOf(t.spaceId),
+        to: [{ name: adresse, email: adresse }],
+        /* L'objet que la liste réclame porte souvent le jeton qui identifie
+           l'abonné : le remplacer par le nôtre ferait un désabonnement qui
+           n'aboutit pas. */
+        subject: m.desabonnement?.sujet ?? "unsubscribe",
+        body: "unsubscribe",
+      })
+      .then(
+        () => toast.success(`Désabonnement demandé à ${adresse}`),
+        (err: unknown) => {
+          /* La rangée revient avec la raison : une demande qui n'est pas partie
+             ne doit pas laisser croire qu'elle l'est. */
+          set((s) => ({
+            threads: patchThread(s.threads, threadId, (fil) => ({
+              ...fil,
+              messages: fil.messages.map((x) => (x.id === messageId ? m : x)),
+            })),
+          }));
+          toast.error("Le désabonnement n'a pas pu être envoyé", { description: describe(err) });
+        },
+      );
   },
 
   sendMail: () => {

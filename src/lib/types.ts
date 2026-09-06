@@ -110,6 +110,21 @@ export type Attachment = {
   url?: string;
 };
 
+/**
+ * Ce que l'en-tête `List-Unsubscribe` d'une infolettre propose.
+ *
+ * Deux chemins, et le premier vaut mieux : par `mailto:` le désabonnement est
+ * un message que **notre** SMTP envoie — on ne quitte pas l'app et personne
+ * d'autre n'est prévenu de la lecture. Par lien, il faut ouvrir la page de
+ * l'expéditeur.
+ */
+export type Desabonnement = {
+  mailto?: string;
+  /** L'objet que la liste réclame — souvent un jeton qui l'identifie. */
+  sujet?: string;
+  url?: string;
+};
+
 export type Message = {
   id: string;
   from: Contact;
@@ -126,6 +141,8 @@ export type Message = {
   html?: string;
   /** Combien d'images distantes ont été retenues, pour proposer de les montrer. */
   blockedImages?: number;
+  /** Ce que `List-Unsubscribe` propose, quand l'en-tête est là. */
+  desabonnement?: Desabonnement;
   attachments?: Attachment[];
 };
 

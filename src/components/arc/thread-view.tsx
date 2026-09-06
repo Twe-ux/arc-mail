@@ -210,6 +210,7 @@ export function ThreadView({ className }: { className?: string }) {
               <MessageCard
                 key={m.id}
                 message={m}
+                threadId={thread.id}
                 sujet={thread.subject}
                 premier={i === 0}
                 onReplyTo={aimReply}

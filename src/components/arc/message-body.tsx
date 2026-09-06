@@ -171,12 +171,22 @@ const SCRIPT = `
       var dispo = fit.offsetWidth;
       var naturel = Math.max(fit.scrollWidth, dispo);
       /* **Un courrier qui apporte sa mise en page ne paie pas notre marge.**
-         Un tableau de 600 px sur un telephone de 393 est deja reduit ; les
-         32 px de cadre lui retiraient encore 8 % de taille de texte pour un
-         liseré blanc autour d'un bloc qui porte son propre fond. Elle reste
-         pour un courrier qui tient dans la largeur — la, du texte viendrait
-         sinon coller au bord. */
-      if (naturel > dispo + 1) {
+         Deux facons de l'apporter, et il fallait les deux :
+
+         - il est **plus large que l'ecran** — un tableau de 600 px sur un
+           telephone de 393 est deja reduit, et les 32 px de cadre lui
+           retiraient encore 8 % de taille de texte ;
+         - il **peint son propre fond** — une infolettre pose un
+           body{background:#f4f4f4} qui arrive apres le notre, et notre marge
+           blanche devient alors un lisere visible tout autour du gris. C'est le
+           cas signale sur un courrier GoDaddy : il est responsive, donc jamais
+           reduit, donc la premiere regle ne le voyait pas.
+
+         Elle reste pour un courrier sur fond blanc qui tient dans la largeur :
+         la, du texte viendrait sinon coller au bord. */
+      var fond = getComputedStyle(document.body).backgroundColor;
+      var neutre = !fond || fond === "rgba(0, 0, 0, 0)" || fond === "transparent" || fond === "rgb(255, 255, 255)";
+      if (naturel > dispo + 1 || !neutre) {
         poser(0);
         dispo = fit.offsetWidth;
         naturel = Math.max(fit.scrollWidth, dispo);
@@ -204,9 +214,13 @@ const SCRIPT = `
        source. (Pas d'accent grave ici : ce bloc vit dans un litteral gabarit.) */
     var masquerRedite = function () {
       if (!SUJET) return;
+      /* Les preheaders se rembourrent de caracteres invisibles pour occuper la
+         ligne d'apercu — le classique est &#847;&zwnj;&nbsp; repete. Sans les
+         retirer, le texte du bloc ne valait jamais l'objet, et rien n'etait
+         masque : c'est ce qui faisait echouer la premiere version. */
       var lave = function (t) {
         return (t || "")
-          .replace(/[\\u200b\\u200c\\ufeff]/g, "")
+          .replace(/[\\u00ad\\u034f\\u200b-\\u200f\\u2028\\u2029\\u2060\\ufeff]/g, "")
           .replace(/\\s+/g, " ")
           .trim()
           .toLowerCase();
@@ -230,9 +244,15 @@ const SCRIPT = `
       if (!premier) return;
       /* On remonte jusqu'au bloc dont le texte entier est l'objet, et pas plus
          haut : au-dela, ce serait le message. */
+      /* Le bloc dit l'objet **et rien d'autre** : il peut trainer derriere lui
+         de la ponctuation ou du remplissage, jamais un mot de plus. */
+      var redite = function (texte) {
+        if (texte.indexOf(cible) !== 0) return false;
+        return !/[\\p{L}\\p{N}]/u.test(texte.slice(cible.length));
+      };
       var bloc = premier.parentElement;
       while (bloc && bloc !== fit) {
-        if (lave(bloc.textContent) === cible) {
+        if (redite(lave(bloc.textContent))) {
           /* **On masque le petit, pas le grand.** Une infolettre peut ouvrir
              sur son propre titre, dessine et colore, qui repete lui aussi
              l'objet : le retirer laisserait un trou dans sa mise en page. Le

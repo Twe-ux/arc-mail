@@ -140,8 +140,10 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   d'un dégradé à 135° et annonçait donc `h+35`, une couleur que l'espace ne prend nulle part.
 - Un **curseur de segmenté est plus clair que sa piste**, en sombre aussi (`dark:bg-white/20` sur
   une piste `bg-black/[0.06] dark:bg-white/[0.07]`) : `bg-background` y vaut presque noir.
-- La feuille **Personnaliser** est **un seul groupe de quatre lignes**, sans titre en capitales ni
-  tuile arc-en-ciel, le contrôle à droite de son nom ; le filet d'une ligne se pose après le `pl-4`.
+- La feuille **Personnaliser** est **un seul groupe de quatre lignes**, sans titre en capitales,
+  chacune avec son icône en trait et son contrôle à droite ; le filet se pose après le `pl-4`. Les
+  pastilles de teinte prennent **toute** la largeur sous leur titre — indentées de l'icône, il ne
+  restait plus qu'un pixel de gouttière.
 - `SheetTile` **n'existe plus** : une rangée de feuille porte l'icône **nue** (trait de 20,
   `strokeWidth 1.75`), la grammaire du menu du `⋯` — plus de carré coloré nulle part.
 - Un `SheetGroup` **se borne dans les deux thèmes** (filet blanc à 10 % en sombre) : sur la feuille

@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronRight, X } from "lucide-react";
+import { ChevronRight, Moon, Palette, Rows3, UserRound, X } from "lucide-react";
 import Link from "next/link";
 
 import { SignOut } from "@/components/auth/sign-out";
@@ -185,9 +185,16 @@ export function MobileSettings() {
           <li className="group/row">
             <div className="pl-4">
               <div className="border-b border-black/[0.07] py-3 pr-4 group-last/row:border-0 dark:border-white/[0.09]">
-                <p className="mb-2.5 text-[15px]">Couleur de l&apos;espace</p>
+                <div className="flex items-center gap-3">
+                  <Palette className="size-5 shrink-0" strokeWidth={1.75} />
+                  <p className="text-[15px]">Couleur de l&apos;espace</p>
+                </div>
+                {/* Les pastilles reprennent **toute** la largeur de la rangée, elles
+                    ne s'indentent pas sous le libellé : décalées des 32 px de
+                    l'icône, huit ronds de 34 ne laissaient plus qu'un pixel de
+                    gouttière. L'icône appartient au titre, pas à la ligne entière. */}
                 <div
-                  className="flex items-center justify-between gap-2"
+                  className="mt-2.5 flex items-center justify-between gap-2"
                   role="radiogroup"
                   aria-label="Couleur de l'espace"
                 >
@@ -226,7 +233,8 @@ export function MobileSettings() {
           <li className="group/row">
             <div className="pl-4">
               <div className="flex min-h-[50px] items-center gap-3 border-b border-black/[0.07] py-1.5 pr-4 group-last/row:border-0 dark:border-white/[0.09]">
-                <span className="min-w-0 flex-1 text-[15px]">Densité de la liste</span>
+                <Rows3 className="size-5 shrink-0" strokeWidth={1.75} />
+                <span className="min-w-0 flex-1 truncate text-[15px]">Densité</span>
                 {/* **Deux lignes ou trois**, le même réglage que sur bureau
                     (`listDensity`) — mais ici il se voit tout de suite : une
                     rangée de trois lignes sur un écran de 852 px en montre huit,
@@ -271,6 +279,7 @@ export function MobileSettings() {
           </li>
 
           <SheetRow onClick={toggleDark} checked={dark}>
+            <Moon className="size-5 shrink-0" strokeWidth={1.75} />
             <span className="min-w-0 flex-1 text-[15px]">Thème sombre</span>
             <Switch on={dark} />
           </SheetRow>
@@ -282,6 +291,7 @@ export function MobileSettings() {
               className="flex w-full items-center gap-3 pl-4 text-left transition-colors active:bg-muted"
             >
               <span className="flex min-h-[50px] min-w-0 flex-1 items-center gap-3 py-1.5 pr-4">
+                <UserRound className="size-5 shrink-0" strokeWidth={1.75} />
                 <span className="min-w-0 flex-1 text-[15px]">Comptes et signatures</span>
                 <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
               </span>

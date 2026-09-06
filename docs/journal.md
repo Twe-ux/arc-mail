@@ -2,6 +2,22 @@
 
 Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérification.
 
+## 6 septembre 2026 — « Personnaliser » prend ses icônes, et l'uniformisation est complète
+
+Dernière pièce du lot : les quatre lignes de la feuille portaient chacune un contrôle mais aucune
+icône, quand les quatre autres feuilles venaient de s'accorder sur « icône en trait, nom, valeur à
+droite ». Palette, densité, lune, personne.
+
+Deux mesures ont décidé de la mise en page. Les **pastilles de teinte ne s'indentent pas** sous le
+libellé : décalées des 32 px de l'icône, huit ronds de 34 ne laissaient plus qu'un pixel de
+gouttière — elles reprennent toute la largeur de la rangée, et l'icône appartient au titre (329 px
+de place, 272 de pastilles, sept gouttières de 8). Et le libellé de la densité tombe à
+**« Densité »** : avec l'icône et le segmenté de 147 px, « Densité de la liste » demandait 135 px
+pour 138 disponibles à 393 — trois pixels de marge, une troncature en dessous. Le segmenté d'à côté
+dit Confort ou Compact.
+
+Feuille de 366 px, groupe de 242 (92 · 50 · 50 · 50), zéro erreur de console.
+
 ## 6 septembre 2026 — la grille Dossiers repart, une forme de moins
 
 Montée le matin, retirée le soir. « Il faut tout uniformiser, même menu Dossiers, sinon trop de

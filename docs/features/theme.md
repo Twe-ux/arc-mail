@@ -244,9 +244,20 @@ contrôle à droite de son nom**, comme Réglages. La couleur est la seule qui p
 largeur (huit pastilles ne tiennent pas à côté d'un libellé) ; densité, thème et comptes tiennent
 sur 50 px.
 
-Les tuiles colorées d'iOS sont parties le même jour que celles de la feuille Dossiers : deux
-feuilles voisines ne parlent pas deux langues. Elles restent dans « Déplacer vers » et dans le
-sélecteur de pièces jointes, à revoir.
+Les tuiles colorées d'iOS sont parties le même jour que celles de la feuille Dossiers — et le soir
+même `SheetTile` a disparu de tout le dépôt. Chaque ligne porte donc **son icône en trait**
+(palette, densité, lune, personne), la grammaire des autres feuilles : une rangée est une icône, un
+nom, une valeur à droite.
+
+La ligne de la couleur est la seule à deux niveaux — l'icône appartient à son **titre**, et les huit
+pastilles reprennent toute la largeur de la rangée en dessous. Indentées des 32 px de l'icône, elles
+ne laissaient plus qu'un pixel de gouttière (mesuré : 329 px de place, 8 × 34 = 272, sept
+gouttières de 8).
+
+Le libellé de la densité est **« Densité »**, pas « Densité de la liste » : avec l'icône et le
+segmenté de 147 px, le nom long demandait 135 px pour 138 disponibles à 393 — trois pixels de
+marge, et une troncature dès qu'on descend en dessous. Le segmenté juste à côté dit Confort ou
+Compact, la ligne se comprend.
 
 Le filet d'une ligne se pose **après** le `pl-4`, comme celui de `SheetRow` : sur le même élément
 que le retrait il repart du bord du groupe, et deux lignes sur quatre étaient soulignées plus à

@@ -125,6 +125,20 @@ export type MailState = {
   prefetchThreads: (ids: string[]) => void;
   /* `silencieux` : ne pas proposer d'annuler. C'est l'annulation elle-même qui
      s'en sert — un « Annuler » sur un « Annulé » n'aurait plus de fin. */
+  /**
+   * Ce que le **serveur** a rendu pour la dernière recherche lancée.
+   *
+   * Hors de `threads` exprès : ce sont des fils qu'on n'a pas chargés, souvent
+   * d'un autre dossier que celui qu'on regarde, et les verser dans la liste les
+   * ferait apparaître dans une réception où ils ne sont pas. Ils vivent le
+   * temps de la palette.
+   */
+  serverResults: Thread[];
+  serverQuery: string;
+  searching: boolean;
+  searchError: string | null;
+  /** Poser la question à la boîte entière. Une chaîne vide efface les résultats. */
+  searchOnServer: (q: string) => void;
   toggleStar: (id: string, silencieux?: boolean) => void;
   toggleUnread: (id: string, silencieux?: boolean) => void;
   moveThread: (id: string, folder: FolderId, silencieux?: boolean) => void;
@@ -181,6 +195,11 @@ const patchThread = (threads: Thread[], id: string, patch: (t: Thread) => Thread
  * L'espace, lu dans l'état courant et jamais deviné : une écriture sur le
  * mauvais compte réel serait pire qu'une écriture manquée.
  */
+/* Le jeton de la recherche serveur : deux demandes lancées coup sur coup
+   peuvent revenir dans le désordre, et la première ne doit pas écraser la
+   seconde. Même mécanique que les jetons de `loadSpace`. */
+let recherche = 0;
+
 const spaceOf = (spaceId: SpaceId): Space => {
   const space = useMail.getState().spaces.find((sp) => sp.id === spaceId);
   if (!space) throw new Error(`Espace inconnu « ${spaceId} »`);
@@ -664,6 +683,10 @@ export const useMail = create<MailState>()(
   threads: [],
   loading: {},
   folderCounts: {},
+  serverResults: [],
+  serverQuery: "",
+  searching: false,
+  searchError: null,
   error: null,
   sendError: null,
   recent: { perso: [], pro: [], side: [] },
@@ -778,6 +801,42 @@ export const useMail = create<MailState>()(
 
   prefetchThreads: (ids) => {
     void precharger(ids);
+  },
+
+  /**
+   * La recherche côté serveur.
+   *
+   * Elle ne part **jamais toute seule** : ⌘K filtre la mémoire à chaque frappe,
+   * ce qui ne coûte rien ; interroger IMAP à chaque lettre coûterait une
+   * session par caractère. C'est donc un geste — on demande, on attend.
+   *
+   * Le jeton (`recherche`) sert au même que celui de `loadSpace` : deux
+   * demandes lancées coup sur coup peuvent revenir dans le désordre, et la
+   * première ne doit pas écraser la seconde.
+   */
+  searchOnServer: (q) => {
+    const requete = q.trim();
+    if (!requete) {
+      set({ serverResults: [], serverQuery: "", searching: false, searchError: null });
+      return;
+    }
+    const s = get();
+    const space = s.spaces.find((x) => x.id === s.spaceId);
+    if (!space) return;
+    const jeton = ++recherche;
+    set({ searching: true, searchError: null, serverQuery: requete });
+    providerFor(space.account)
+      .search(space.account, { q: requete, folder: s.folderId, inboxPath: space.inboxPath })
+      .then(
+        (trouves) => {
+          if (jeton !== recherche) return;
+          set({ serverResults: stamp(space.id, trouves), searching: false });
+        },
+        (err: unknown) => {
+          if (jeton !== recherche) return;
+          set({ searching: false, searchError: describe(err), serverResults: [] });
+        },
+      );
   },
 
   /* **Une bascule est son propre inverse** : annuler, c'est rappeler la même

@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { Archive, Clock, Columns2, FileText, Inbox, Moon, PanelLeft, PenSquare, Send, Star, Trash2, type LucideIcon } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Archive, Clock, Columns2, FileText, Globe, Inbox, Loader2, Moon, PanelLeft, PenSquare, Send, Star, Trash2, type LucideIcon } from "lucide-react";
 
 import {
   CommandDialog,
@@ -61,6 +61,11 @@ export function CommandPalette() {
   const toggleDark = useMail((s) => s.toggleDark);
   const sidebarMode = useMail((s) => s.sidebarMode);
   const cycleSidebarMode = useMail((s) => s.cycleSidebarMode);
+  const searchOnServer = useMail((s) => s.searchOnServer);
+  const serverResults = useMail((s) => s.serverResults);
+  const serverQuery = useMail((s) => s.serverQuery);
+  const searching = useMail((s) => s.searching);
+  const searchError = useMail((s) => s.searchError);
 
   /* **L'arbre plutôt qu'une correspondance floue.** cmdk sait comparer une
      chaîne à un libellé ; il ne sait pas ce qu'est un expéditeur, un dossier ou
@@ -99,6 +104,21 @@ export function CommandPalette() {
     setCommandOpen(false);
     fn();
   };
+
+  /* Les résultats du serveur appartiennent à **une** question : fermer la
+     palette les emporte, sans quoi la prochaine ouverture montrerait la réponse
+     à une question qu'on ne voit plus. */
+  useEffect(() => {
+    if (!open) searchOnServer("");
+  }, [open, searchOnServer]);
+
+  /* Ceux qui sont déjà dans la liste ne se répètent pas : le serveur les rend
+     aussi, et une conversation deux fois dans la même carte fait douter du
+     reste. */
+  const nouveaux = useMemo(() => {
+    const connus = new Set(spaceThreads.map((t) => t.id));
+    return serverResults.filter((t) => !connus.has(t.id));
+  }, [serverResults, spaceThreads]);
 
   return (
     <CommandDialog
@@ -200,6 +220,63 @@ export function CommandPalette() {
             );
           })}
         </CommandGroup>
+
+        {/* **La boîte entière, à la demande.** ⌘K filtre la mémoire à chaque
+            frappe — les 150 enveloppes gardées, souvent le seul dossier ouvert.
+            Le reste est sur le serveur, et une recherche IMAP par lettre tapée
+            ouvrirait une session par caractère : c'est donc un geste, avec sa
+            ligne, son attente et son compte rendu. */}
+        {cherche && (
+          <CommandGroup heading="Toute la boîte">
+            {serverQuery !== requete.trim() && (
+              <CommandItem
+                value="__serveur"
+                onSelect={() => searchOnServer(requete)}
+                disabled={searching}
+              >
+                {searching ? <Loader2 className="animate-spin" /> : <Globe />}
+                <span className="min-w-0 flex-1">
+                  {searching ? "Recherche en cours…" : `Chercher « ${requete.trim()} » dans toute la boîte`}
+                </span>
+              </CommandItem>
+            )}
+            {searchError && (
+              <p className="px-4 py-2 text-xs text-destructive">
+                {searchError}
+              </p>
+            )}
+            {serverQuery === requete.trim() && !searching && nouveaux.length === 0 && !searchError && (
+              <p className="px-4 py-2 text-xs text-muted-foreground">
+                Rien de plus sur le serveur.
+              </p>
+            )}
+            {nouveaux.map((t) => {
+              const last = t.messages[t.messages.length - 1];
+              return (
+                <CommandItem
+                  key={`serveur-${t.id}`}
+                  value={`serveur-${t.id}`}
+                  onSelect={() =>
+                    run(() => {
+                      setFolder(t.folder);
+                      selectThread(t.id);
+                    })
+                  }
+                >
+                  <ContactAvatar contact={last.from} className="size-6 [&_[data-slot=avatar-fallback]]:text-[10px]" />
+                  <span className="min-w-0 flex-1 leading-tight">
+                    <span className="block truncate">
+                      <Surligne texte={t.subject} requete={libre} />
+                    </span>
+                    <span className="text-muted-foreground block truncate text-xs">
+                      <Surligne texte={last.from.name} requete={libre} />
+                    </span>
+                  </span>
+                </CommandItem>
+              );
+            })}
+          </CommandGroup>
+        )}
 
         <CommandSeparator />
 

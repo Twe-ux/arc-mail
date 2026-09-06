@@ -441,8 +441,14 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   ligne, l'adresse tombe et l'objet du dernier fil prend sa place, compte en colonne fixe.
 
 **Recherche** → [docs/features/recherche.md](docs/features/recherche.md)
-- La requête passe par un **arbre** (`src/lib/search/`) : un analyseur, et un compilateur par dos —
-  la mémoire aujourd'hui, le `SEARCH` IMAP demain. cmdk ne filtre plus (`shouldFilter={false}`).
+- La requête passe par un **arbre** (`src/lib/search/`) : un analyseur, et **deux** compilateurs —
+  la mémoire (`match.ts`) et le `SEARCH` IMAP (`imap.ts`). cmdk ne filtre plus (`shouldFilter={false}`).
+- Côté serveur : deux `text` ne cohabitent pas dans un `SearchObject`, d'où **De Morgan** en cas de
+  collision seulement ; `dans:` **sélectionne une boîte**, ce n'est pas un critère, et plusieurs
+  dossiers font plusieurs `SEARCH` remélangés par date ; « a une pièce jointe » n'existe pas, c'est
+  l'en-tête `multipart/mixed`, approché et assumé.
+- La recherche serveur est un **geste**, pas une frappe (une session IMAP par caractère, sinon) ;
+  ses résultats vivent hors de `threads` (`serverResults`) et la palette retire ceux déjà en liste.
 - `de:` `à:` `objet:` `dans:` `est:` `avec:` `avant:` `depuis:`, guillemets, `ET` `OU` `SAUF`,
   parenthèses ; français d'abord, anglais admis.
 - L'analyseur **ne refuse jamais rien** — ce qu'il ne comprend pas redevient du texte —, et un champ

@@ -117,9 +117,66 @@ Quinze requêtes passées sur l'app : `de:` et `objet:` seuls rendent les 19 fil
 Un fil jeté puis cherché : `dans:corbeille` 1, `dans:reception` 18, requête vide 18. Zéro erreur de
 console.
 
+---
+
+## Le second compilateur : toute la boîte (6 sept. 2026)
+
+⌘K filtrait la mémoire — immédiat, mais borné aux **150 enveloppes** gardées, souvent du seul
+dossier ouvert. Le même arbre part maintenant au serveur
+([`imap.ts`](../../src/lib/search/imap.ts)), et c'est là que « un langage compilé vers deux dos »
+cesse d'être une intention : ajouter `avant:` à la grammaire a servi les deux compilateurs sans
+qu'aucun des deux ne change.
+
+### Ce qu'IMAP ne sait pas faire
+
+**Deux `text` ne cohabitent pas.** `SEARCH` met en ET les critères qu'on lui liste, et ImapFlow les
+expose comme les **clés d'un objet** : « facture septembre » en demande deux, et un objet n'a qu'une
+clé `text`. De Morgan les réconcilie — `A ET B` s'écrit `NON (NON A OU NON B)`, et `or`/`not`
+existent tous les deux. On ne s'en sert **qu'en cas de collision** : sans elle, l'objet fusionné
+reste lisible (`de:claire objet:devis est:non-lu` → `{from, subject, seen:false}`).
+
+**Il n'y a pas de critère « a une pièce jointe ».** L'en-tête est le seul indice qui se cherche côté
+serveur : `content-type: multipart/mixed`. Approché et assumé — un message signé l'est aussi.
+
+**Un dossier n'est pas un critère, c'est une boîte à ouvrir.** IMAP cherche dans la boîte
+sélectionnée : `dans:` dit donc *où* chercher et ne contraint rien une fois qu'on y est. Plusieurs
+dossiers nommés font plusieurs `SEARCH` — un par boîte — et les paquets se remélangent par date,
+sinon Archive se poserait en bloc après Réception. Un `dans:` sous un `SAUF` n'est pas repris :
+« partout sauf Archive » ne s'exprime pas en une sélection, et mieux vaut chercher là où l'on est
+que mentir sur l'étendue.
+
+**« à » couvre le destinataire et la copie**, comme en mémoire ; IMAP les sépare, d'où un `OU`.
+
+### Ce que ça donne dans la palette
+
+Un **geste**, pas une frappe : une recherche IMAP par lettre tapée ouvrirait une session par
+caractère. Le groupe « Toute la boîte » propose donc la ligne, montre son attente, et rend ses
+résultats — **moins ceux qui sont déjà dans la liste** : le serveur les rend aussi, et une
+conversation deux fois dans la même carte fait douter du reste.
+
+Ils vivent hors de `threads` (`serverResults`) : ce sont des fils qu'on n'a pas chargés, souvent
+d'un autre dossier que celui qu'on regarde, et les verser dans la liste les ferait apparaître dans
+une réception où ils ne sont pas. Fermer la palette les emporte. Un jeton protège l'ordre, comme
+pour `loadSpace` : deux demandes coup sur coup peuvent revenir à l'envers.
+
+**Le mock l'implémente aussi**, en appliquant le compilateur mémoire à *tous* ses fils et non aux
+seuls chargés — c'est exactement le rapport qu'entretiennent les deux compilateurs sur une vraie
+boîte, et ça permet de vérifier le chemin de bout en bout sans IMAP.
+
+### Vérifié
+
+Le compilateur seul, sur dix-sept requêtes : `facture septembre` sort bien en De Morgan,
+`de:claire objet:devis est:non-lu` en objet fusionné lisible, `dans:archive de:claire` rend
+`{from:"claire"}` **plus** le dossier `archive` à part, `à:thierry` un `OU` sur `to`/`cc`.
+
+Puis le chemin entier dans la palette : `dans:corbeille` ne rend rien en mémoire — la palette
+écarte la corbeille — et un fil après la recherche serveur ; `facture` en rend un en mémoire et
+« Rien de plus sur le serveur » ensuite ; `dans:corbeille OU annecy` rend deux fils en mémoire et un
+troisième, jeté, sur le serveur. Zéro erreur de console.
+
 ### Ce qui reste
 
-- **Le compilateur IMAP** — `FROM`, `TO`, `SUBJECT`, `TEXT`, `UNSEEN`, `FLAGGED`, `SINCE`,
-  `BEFORE` — et le `MailProvider.search()` qui va avec. L'arbre l'attend.
 - **Les vues enregistrées** : une requête nommée qui vit à côté des dossiers. Elles découlent de
   l'arbre, elles ne demandent rien de plus.
+- **À voir sur une vraie boîte** : les `SEARCH` d'iCloud, leur temps de réponse, et ce que
+  `multipart/mixed` attrape vraiment.

@@ -7,11 +7,13 @@ import {
   type FetchMessageObject,
   type FetchQueryObject,
   type ListResponse,
+  type SearchObject,
   type MessageAddressObject,
 } from "imapflow";
 import { simpleParser, type ParsedMail } from "mailparser";
 
 import type { StoredAccount } from "@/lib/accounts/server";
+import type { RechercheImap } from "@/lib/search/imap";
 import type { Contact, FolderId, Message, Thread } from "@/lib/types";
 import { apercuDe } from "./apercu";
 import { inlineImages, nettoyer } from "./html";
@@ -362,6 +364,41 @@ function toThread(group: FetchMessageObject[], path: string, folder: FolderId): 
     starred: group.some((m) => m.flags?.has("\\Flagged")),
     messages,
   };
+}
+
+/**
+ * Les fils d'un dossier qui répondent à une requête.
+ *
+ * C'est le débouché du second compilateur : l'arbre devient un `SEARCH`, le
+ * serveur rend des UID, et on ne descend que les enveloppes de ceux-là. La
+ * différence avec la recherche en mémoire n'est pas la précision — c'est
+ * **l'étendue** : ⌘K ne voyait que les 150 enveloppes gardées, ici c'est toute
+ * la boîte.
+ *
+ * On garde les **derniers** UID, pas les premiers : un `SEARCH` rend ses
+ * résultats du plus ancien au plus récent, et personne ne cherche pour lire
+ * l'e-mail le plus vieux qui corresponde.
+ */
+export async function searchFolder(
+  client: ImapFlow,
+  path: string,
+  folder: FolderId,
+  critere: RechercheImap,
+  limit = 40,
+): Promise<Thread[]> {
+  const lock = await client.getMailboxLock(path);
+  try {
+    const uids = await client.search(critere as SearchObject, { uid: true });
+    const derniers = (uids || []).slice(-limit);
+    if (derniers.length === 0) return [];
+    const messages: FetchMessageObject[] = [];
+    for await (const m of client.fetch(derniers, ENVELOPE_QUERY, { uid: true })) messages.push(m);
+    return groupIntoThreads(messages)
+      .map((g) => toThread(g, path, folder))
+      .sort((a, b) => (a.messages.at(-1)!.date < b.messages.at(-1)!.date ? 1 : -1));
+  } finally {
+    lock.release();
+  }
 }
 
 /** Les derniers fils d'un dossier, du plus récent au plus ancien. */

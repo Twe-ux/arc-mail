@@ -1,5 +1,8 @@
 import { firstLine } from "../format";
 import { THREADS } from "../mock-data";
+import { dossiersDe } from "../search/imap";
+import { correspond } from "../search/match";
+import { parse } from "../search/parse";
 import type { Thread } from "../types";
 import type {
   AccountRef,
@@ -7,6 +10,7 @@ import type {
   FolderUnread,
   MailProvider,
   OutgoingMessage,
+  SearchQuery,
   ThreadPatch,
   ThreadQuery,
 } from "./provider";
@@ -49,6 +53,24 @@ export class MockProvider implements MailProvider {
       if (t.starred && t.folder !== "trash") comptes.starred = (comptes.starred ?? 0) + 1;
     }
     return comptes;
+  }
+
+  /**
+   * Le mock a tout en mémoire : sa « recherche serveur » est le compilateur
+   * mémoire, appliqué à **tous** ses fils et non aux seuls chargés. C'est
+   * exactement le rapport qu'entretiennent les deux compilateurs sur une vraie
+   * boîte, et ça permet de vérifier le chemin de bout en bout sans IMAP.
+   */
+  async search(account: AccountRef, query: SearchQuery): Promise<Thread[]> {
+    const spaceId = spaceOf(account);
+    const arbre = parse(query.q);
+    const dossiers = dossiersDe(arbre);
+    return this.threads
+      .filter((t) => t.spaceId === spaceId)
+      .filter((t) => (dossiers.length ? dossiers.includes(t.folder) : true))
+      .filter((t) => correspond(arbre, t))
+      .sort((a, b) => (a.messages.at(-1)!.date < b.messages.at(-1)!.date ? 1 : -1))
+      .slice(0, query.limit ?? 40);
   }
 
   async getThread(_account: AccountRef, id: string): Promise<Thread | null> {

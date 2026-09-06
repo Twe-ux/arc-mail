@@ -71,6 +71,9 @@ correctif.
       **le renommage du fil** que `modify()` rend depuis le 6 sept. À vérifier : le fil archivé
       porte bien son nouvel identifiant (iCloud annonce `UIDPLUS`), il ne se dédouble pas quand on
       ouvre Archive, et une action dessus juste après le déplacement aboutit.
+- [ ] **La recherche serveur** — les `SEARCH` d'iCloud : leur temps de réponse sur une vraie boîte,
+      ce que `multipart/mixed` attrape vraiment pour `avec:piece`, et le comportement de `dans:` sur
+      un espace-vue (sa « Réception » est un autre dossier).
 - [ ] **Les compteurs de non-lus** — `listFolders` rend les chiffres du serveur pour les dossiers
       qu'on ne regarde pas. À vérifier sur iCloud : les chemins SPECIAL-USE tombent juste (Archive,
       Corbeille, Envoyés), le compte d'un espace-vue est celui de **son** dossier de réception et
@@ -116,8 +119,9 @@ qui suivent.
 - [ ] Push et notifications (`IDLE`, service worker, permission iOS).
 - [ ] Mise en pause : un fil qui revient à l'heure dite.
 - [ ] Envoyer plus tard, et rappel de suivi (« personne n'a répondu depuis trois jours »).
-- [ ] Recherche côté serveur — il ne manque plus que le **second compilateur** : l'arbre est écrit
-      depuis le 6 sept. Elle marche sans processus permanent, en `SEARCH` IMAP à la demande.
+- [x] **Recherche côté serveur** (6 sept.) — le second compilateur, `MailProvider.search()`, l'op
+      `search` de la route et le groupe « Toute la boîte » dans ⌘K → [fiche](features/recherche.md).
+      **Reste à voir sur une vraie boîte** : c'est dans « à tester ».
 
 ### Les deux mécaniques qui portent le reste
 
@@ -126,10 +130,9 @@ qui suivent.
       deux formes d'inverse → [fiche](features/annulation.md). **Restent** les deux fonctions que la
       même mécanique portera : la **file hors ligne** (garder et rejouer les écritures) et l'**envoi
       différé** (une tâche qui porte son heure), celui-ci derrière la décision d'hébergement.
-- [x] **Arbre de recherche** (6 sept.) — l'analyseur et le compilateur mémoire, branchés sur ⌘K
-      → [fiche](features/recherche.md). **Restent** le compilateur IMAP (`SEARCH`) avec le
-      `MailProvider.search()` qui va avec, et les **vues enregistrées**, qui découlent de l'arbre
-      sans rien demander de plus.
+- [x] **Arbre de recherche** (6 sept.) — l'analyseur et **les deux** compilateurs, mémoire et
+      `SEARCH` IMAP, branchés sur ⌘K → [fiche](features/recherche.md). **Restent** les **vues
+      enregistrées**, qui découlent de l'arbre sans rien demander de plus.
 
 ### Fonctions à instruire
 

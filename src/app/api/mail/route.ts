@@ -7,14 +7,17 @@ import {
   readFolder,
   readThread,
   readThreads,
+  searchFolder,
   unreadByFolder,
   withImap,
   writeThread,
 } from "@/lib/mail/imap";
 import type { DraftInput, OutgoingMessage } from "@/lib/mail/provider";
+import { dossiersDe, versImap } from "@/lib/search/imap";
+import { parse } from "@/lib/search/parse";
 import { deleteDraftMessage, saveDraftMessage, sendMessage } from "@/lib/mail/smtp";
 import { currentUser } from "@/lib/supabase/server";
-import type { FolderId } from "@/lib/types";
+import type { FolderId, Thread } from "@/lib/types";
 
 /**
  * La seule porte entre le navigateur et une boîte mail.
@@ -43,7 +46,8 @@ type Body =
   | { op: "saveDraft"; accountId: string; draft: DraftInput }
   | { op: "deleteDraft"; accountId: string; id: string }
   | { op: "folders"; accountId: string }
-  | { op: "folderCounts"; accountId: string; inboxPath?: string };
+  | { op: "folderCounts"; accountId: string; inboxPath?: string }
+  | { op: "search"; accountId: string; q: string; folder: FolderId; inboxPath?: string; limit?: number };
 
 export async function POST(request: NextRequest) {
   const user = await currentUser();
@@ -104,6 +108,47 @@ export async function POST(request: NextRequest) {
            liste vide, pas une erreur. */
         if (!path) return { threads: [] };
         return { threads: await readFolder(client, path, body.folder, { limit: body.limit }) };
+      }
+
+      if (body.op === "search") {
+        const arbre = parse(body.q);
+        const critere = versImap(arbre);
+        const reception = body.inboxPath || "INBOX";
+
+        /* **`dans:` dit où chercher, pas quoi chercher** : IMAP interroge la
+           boîte sélectionnée, donc un dossier nommé est une sélection et non un
+           critère. Rien de nommé : on cherche là où l'on regarde. Plusieurs
+           dossiers : plusieurs `SEARCH`, IMAP n'en sélectionne qu'un à la fois. */
+        const demandes = dossiersDe(arbre);
+        const cibles = demandes.length ? demandes : [body.folder];
+
+        const threads: Thread[] = [];
+        for (const cible of cibles) {
+          /* Favoris est un drapeau, pas un dossier : on le cherche dans la
+             réception, comme `listThreads`, et le critère porte déjà
+             `flagged` si la requête l'a demandé. */
+          const flagged = cible === "starred";
+          const path = flagged
+            ? reception
+            : cible === "inbox"
+              ? reception
+              : (await paths())[cible];
+          /* Un dossier absent — « En pause » sur iCloud — est une liste vide. */
+          if (!path) continue;
+          threads.push(
+            ...(await searchFolder(
+              client,
+              path,
+              flagged ? "inbox" : cible,
+              flagged ? { ...critere, flagged: true } : critere,
+              body.limit,
+            )),
+          );
+        }
+        /* Plusieurs dossiers rendent plusieurs paquets déjà triés : le mélange
+           doit l'être aussi, sinon Archive se poserait en bloc après Réception. */
+        threads.sort((a, b) => (a.messages.at(-1)!.date < b.messages.at(-1)!.date ? 1 : -1));
+        return { threads: threads.slice(0, body.limit ?? 40) };
       }
 
       if (body.op === "send") {

@@ -66,6 +66,27 @@ pastille saturée au milieu de trois boîtes grises se lit comme un bouton d'une
 s'agissait seulement de le distinguer de ses voisins. Il garde la boîte de tout le monde et prend
 `--space-ink` — jamais l'accent brut, la règle du thème.
 
+## 6 septembre 2026 — la recherche atteint toute la boîte
+
+Le second compilateur, celui que l'arbre attendait. ⌘K filtrait la mémoire — immédiat, mais borné
+aux 150 enveloppes gardées, souvent du seul dossier ouvert. Le même arbre part maintenant au
+serveur, et « un langage compilé vers deux dos » cesse d'être une intention.
+
+Trois choses qu'IMAP ne sait pas faire, et ce qu'on en a fait. **Deux `text` ne cohabitent pas** —
+`SEARCH` met ses critères en ET et ImapFlow les expose comme les clés d'un objet, or « facture
+septembre » en demande deux : De Morgan les réconcilie, `A ET B` = `NON (NON A OU NON B)`, et
+seulement en cas de collision, pour que le cas courant reste lisible. **« A une pièce jointe »
+n'existe pas** : reste l'en-tête `multipart/mixed`, approché et assumé — un message signé l'est
+aussi. **Un dossier n'est pas un critère mais une boîte à ouvrir** : `dans:` dit où chercher,
+plusieurs dossiers font plusieurs `SEARCH` remélangés par date.
+
+Dans la palette, c'est un **geste** et non une frappe : une recherche IMAP par lettre tapée ouvrirait
+une session par caractère. Une ligne, une attente, des résultats — moins ceux déjà en liste, qu'une
+conversation en double ferait douter.
+
+Vérifié en deux temps, le compilateur seul sur dix-sept requêtes puis le chemin entier :
+`dans:corbeille OU annecy` rend deux fils en mémoire et un troisième, jeté, sur le serveur.
+
 ## 6 septembre 2026 — la recherche devient un langage
 
 Seconde des deux mécaniques de l'audit, après l'annulation. Jusqu'ici cmdk comparait la requête au

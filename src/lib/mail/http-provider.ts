@@ -7,6 +7,7 @@ import type {
   OutgoingMessage,
   ThreadPatch,
   ThreadQuery,
+  SearchQuery,
 } from "./provider";
 
 /**
@@ -58,6 +59,18 @@ export class HttpProvider implements MailProvider {
     const { threads } = await this.call<{ threads: Thread[] }>({
       op: "listThreads",
       accountId: account.id,
+      folder: query.folder,
+      inboxPath: query.inboxPath,
+      limit: query.limit,
+    });
+    return threads;
+  }
+
+  async search(account: AccountRef, query: SearchQuery): Promise<Thread[]> {
+    const { threads } = await this.call<{ threads: Thread[] }>({
+      op: "search",
+      accountId: account.id,
+      q: query.q,
       folder: query.folder,
       inboxPath: query.inboxPath,
       limit: query.limit,

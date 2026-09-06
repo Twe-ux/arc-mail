@@ -92,6 +92,24 @@ export type DraftInput = Omit<OutgoingMessage, "replyTo"> & {
  * compte iCloud porte trois espaces et que le fournisseur n'a aucun moyen de
  * savoir lequel demande.
  */
+/**
+ * Une recherche posée au fournisseur.
+ *
+ * Elle porte la **requête telle qu'elle est tapée**, pas l'arbre : c'est le
+ * fournisseur qui sait la compiler — IMAP en `SEARCH`, le mock en filtre
+ * mémoire —, et une chaîne traverse HTTP sans qu'on ait à versionner la forme
+ * de l'arbre entre le navigateur et la route.
+ */
+export type SearchQuery = {
+  /** Ce qui a été tapé dans ⌘K, syntaxe comprise (`de:`, `est:non-lu`…). */
+  q: string;
+  /** Où chercher quand la requête ne nomme aucun dossier : celui qu'on regarde. */
+  folder: FolderId;
+  /** Comme dans `ThreadQuery` : la « Réception » de cet espace. */
+  inboxPath?: string;
+  limit?: number;
+};
+
 export interface MailProvider {
   /** Threads of one folder, newest first. */
   listThreads(account: AccountRef, query: ThreadQuery): Promise<Thread[]>;
@@ -135,4 +153,13 @@ export interface MailProvider {
   /** Create or update a draft; the returned thread is what Drafts shows. */
   saveDraft(account: AccountRef, draft: DraftInput): Promise<Thread>;
   deleteDraft(account: AccountRef, id: string): Promise<void>;
+  /**
+   * Chercher **au-delà de ce qui est chargé**.
+   *
+   * ⌘K filtre en mémoire — immédiat, mais borné aux enveloppes descendues. Ceci
+   * pose la même question au serveur, donc à toute la boîte. Les fils rendus
+   * n'ont que leurs enveloppes, comme ceux d'une liste : le corps arrive à
+   * l'ouverture.
+   */
+  search(account: AccountRef, query: SearchQuery): Promise<Thread[]>;
 }

@@ -405,3 +405,33 @@ qu'on regarde.
 Vérifié : « est:non-lu » devient « À lire » puis « Non lus », `q` inchangée dans le store, le titre
 de la liste suit ; `Échap` annule, un nom vide n'écrase rien ; le crayon du téléphone fait la même
 chose. Zéro erreur de console.
+
+---
+
+## La carte vide ne montre plus que le courrier (6 sept. 2026)
+
+Actions, dossiers, espaces et vues sortaient tous à l'ouverture de ⌘K : quinze rangées de
+navigation sous les récentes, dont on ne voyait que le haut — « je ne vois pas l'utilité des
+fonctions en bas ».
+
+**Ils ne se montrent plus qu'en réponse à une question.** `garde()` rendait `true` tant que rien
+n'était tapé ; il rend `false`. La carte vide n'a donc que l'aide de syntaxe et six récentes, et
+tout le reste remonte dès qu'on tape : « arch » propose Archive, « barre » le repli de la barre,
+« thème » la bascule, « lire » la vue qui s'appelle « À lire ». Rien n'est perdu — y compris les
+deux actions qui n'ont **aucun autre chemin** que ⌘K, la vue partagée et les trois états de la
+barre : on les trouve en les nommant, ce qui est le geste d'une palette.
+
+**Ce qui est caché doit être annoncé** : l'aide de syntaxe gagne une ligne, « Un dossier, une vue
+ou une action se trouvent en les nommant ». Sans elle on aurait refait le défaut qu'on venait de
+corriger ailleurs — une fonction qu'on ne peut pas deviner.
+
+Le plafond redevient **six dans les deux états** : il était à quatre sans requête pour faire de la
+place aux groupes de navigation, qui ne sont plus là.
+
+Et « Conversations » ne se pose plus sur zéro rangée : « barre » et « thème » ne trouvent aucun
+courrier, l'intitulé restait. Même règle que pour les autres groupes.
+
+Vérifié sur huit requêtes : carte vide = récentes seules, 41 px de défilement, rien sous la ligne ;
+`arch` fait apparaître « Aller à », `barre` et `thème` « Actions », `lire` « Vues » ; aucun intitulé
+vide ; `facture`, `barre`, `thème`, `lire` ne cachent **rien**, `claire` 86 px. Zéro erreur de
+console.

@@ -101,26 +101,33 @@ export function CommandPalette() {
      flottaison : « il y a plusieurs options en bas de recherche qui ne sont pas
      visibles si on ne descend pas ». Six tiennent dans la carte avec le reste ;
      les autres sont à une ligne, et la liste elle-même est là pour les lire
-     toutes. **Sans requête aussi** : la carte s'ouvrait sur dix-neuf récentes et
-     rien d'autre, ce qui est pourtant l'écran où l'on découvre ce que ⌘K sait
-     faire — six suffisent, et les actions, les vues, les dossiers et les
-     espaces deviennent la carte de la maison — **quatre** dans cet état, parce
-     que c'est là qu'il faut faire de la place au reste, et que les récentes ont
-     déjà leur liste dans la barre (« Aujourd'hui »). */
+     toutes. **Sans requête aussi** : la carte s'ouvrait sur dix-neuf récentes,
+     et six suffisent — la liste elle-même est là pour le reste. */
   /* L'état retenu est **la requête dépliée**, pas un booléen : une autre
      question se replie d'elle-même, sans effet qui remette un drapeau à zéro
      après coup — un `setState` dans un effet redessine la carte une fois de
      trop, et React 19 le refuse. */
   const [deplie, setDeplie] = useState<string | null>(null);
-  const spaceThreads = deplie === requete ? tousLesFils : tousLesFils.slice(0, cherche ? 6 : 4);
+  const spaceThreads = deplie === requete ? tousLesFils : tousLesFils.slice(0, 6);
   const caches = tousLesFils.length - spaceThreads.length;
 
-  /* Une entrée qui n'est pas du courrier ne se montre que si **tous** les mots
-     nus s'y trouvent — et pas du tout dès que la requête n'a plus que des
-     champs, qui ne la concernent pas. */
+  /**
+   * Ce qui n'est pas du courrier **ne se montre qu'en réponse à une question**.
+   *
+   * Actions, dossiers, espaces et vues sortaient tous à l'ouverture de la
+   * carte : quinze rangées de navigation sous les récentes, dont on ne voyait
+   * que le haut — « je ne vois pas l'utilité des fonctions en bas ». La carte
+   * vide n'a donc plus que les récentes et la syntaxe, et tout le reste remonte
+   * dès qu'on tape : « arch » propose Archive, « barre » propose le repli.
+   * Rien n'est perdu, rien n'encombre l'écran d'ouverture — et ce qui n'a
+   * d'autre chemin que ⌘K (la vue partagée, les trois états de la barre) se
+   * trouve maintenant en le nommant, ce qui est le geste d'une palette.
+   *
+   * Ils ne répondent qu'aux **mots nus** : `de:claire` ne concerne ni « Nouveau
+   * message » ni Archive.
+   */
   const garde = (libelle: string) => {
-    if (!cherche) return true;
-    if (!libre) return false;
+    if (!cherche || !libre) return false;
     const cible = laver(libelle);
     return libre.split(" ").every((mot) => cible.includes(mot));
   };
@@ -145,10 +152,12 @@ export function CommandPalette() {
      son nom **ou** par sa requête, mot à mot. */
   const brut = laver(requete.trim());
   const motsBruts = brut.split(" ").filter(Boolean);
-  const vuesTrouvees = vues.filter((v) => {
-    const cible = laver(`${v.nom} ${v.q}`);
-    return motsBruts.every((m) => cible.includes(m));
-  });
+  const vuesTrouvees = !cherche
+    ? []
+    : vues.filter((v) => {
+        const cible = laver(`${v.nom} ${v.q}`);
+        return motsBruts.every((m) => cible.includes(m));
+      });
   /* On ne propose de garder que ce qui n'est pas déjà gardé — et jamais une
      requête vide, qui ne serait une question sur rien. */
   const aGarder = cherche && !vues.some((v) => v.q === requete.trim());
@@ -252,6 +261,13 @@ export function CommandPalette() {
             <span className="font-medium">est:</span> non-lu ·{" "}
             <span className="font-medium">avec:</span> piece ·{" "}
             <span className="font-medium">depuis:</span> 7j — et ET, OU, SAUF.
+            {/* **Ce qui est caché doit être annoncé.** Les dossiers, les vues et
+                les actions ne sortent plus qu'en réponse à une question : sans
+                cette phrase, on ne pourrait plus deviner qu'ils sont là — le
+                défaut même qu'on vient de corriger ailleurs. */}
+            <span className="mt-1 block">
+              Un dossier, une vue ou une action se trouvent en les nommant.
+            </span>
           </p>
         )}
 
@@ -284,6 +300,9 @@ export function CommandPalette() {
           </CommandGroup>
         )}
 
+        {/* Lui aussi : « barre » ou « thème » ne trouvent aucun courrier, et
+            l'intitulé restait posé sur zéro rangée. */}
+        {spaceThreads.length > 0 && (
         <CommandGroup heading={requete ? "Conversations" : "Conversations récentes"}>
           {spaceThreads.map((t) => {
             const last = t.messages[t.messages.length - 1];
@@ -328,6 +347,7 @@ export function CommandPalette() {
             </CommandItem>
           )}
         </CommandGroup>
+        )}
 
         {/* **La boîte entière, à la demande.** ⌘K filtre la mémoire à chaque
             frappe — les 150 enveloppes gardées, souvent le seul dossier ouvert.

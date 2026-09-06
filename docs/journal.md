@@ -2,6 +2,22 @@
 
 Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérification.
 
+## 6 septembre 2026 — ⌘K ne montre plus que le courrier tant qu'on n'a rien demandé
+
+« Je ne vois pas l'utilité des fonctions en bas. » Actions, dossiers, espaces et vues sortaient
+tous à l'ouverture de la carte : quinze rangées de navigation sous les récentes, dont on ne voyait
+que le haut.
+
+Ils ne se montrent plus qu'en réponse à une question. La carte vide n'a que l'aide de syntaxe et
+six récentes ; tout le reste remonte dès qu'on tape — « arch » propose Archive, « barre » le repli,
+« thème » la bascule, « lire » la vue qui s'appelle « À lire ». Y compris les deux actions qui n'ont
+aucun autre chemin que ⌘K : on les trouve en les nommant, ce qui est le geste d'une palette.
+
+Contrepartie, et elle est le cœur de la journée : **ce qui est caché doit être annoncé**. L'aide de
+syntaxe gagne une ligne — « Un dossier, une vue ou une action se trouvent en les nommant ». Sans
+elle on refaisait le défaut qu'on venait de corriger trois fois : une fonction qu'on ne peut pas
+deviner.
+
 ## 6 septembre 2026 — deux portes pour les vues, et une palette qui tient dans son cadre
 
 Les vues n'avaient qu'une entrée : une ligne de ⌘K qui n'apparaît qu'après avoir tapé quelque

@@ -453,8 +453,11 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   parenthèses ; français d'abord, anglais admis.
 - L'analyseur **ne refuse jamais rien** — ce qu'il ne comprend pas redevient du texte —, et un champ
   connu **sans valeur ne contraint rien** : on tape `de:` avant `de:claire`.
-- Seuls les **mots nus** filtrent ce qui n'est pas du courrier (actions, dossiers, espaces), et un
-  intitulé de groupe ne se pose jamais au-dessus de rien.
+- Seuls les **mots nus** filtrent ce qui n'est pas du courrier (actions, dossiers, espaces, vues),
+  et un intitulé de groupe ne se pose jamais au-dessus de rien — « Conversations » compris.
+- Ces groupes **ne sortent qu'en réponse à une question** : carte vide = l'aide de syntaxe et six
+  récentes, rien d'autre. L'aide dit donc qu'un dossier, une vue ou une action se trouvent en les
+  nommant — ce qui est caché doit être annoncé.
 - Un mot nu **n'atteint pas notre propre identité** (`cestNous`, tous les espaces) : elle est dans
   les destinataires de tout le reçu et l'expéditeur de tout l'envoyé — chercher son prénom rendait
   la boîte entière. Le corps garde la mention.
@@ -469,8 +472,7 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   se change en champ sur place — le groupe Vues existe donc même vide, seule entorse assumée à
   « un intitulé ne se pose pas au-dessus de rien ». Deux portes, deux moments : fabriquer une vue,
   ou garder celle qu'on vient de taper.
-- La palette ne montre que **six** conversations (quatre sans requête), le reste derrière « Voir
-  les N autres » : au-delà, la boîte entière, les actions, les vues et les dossiers tombaient sous
+- La palette ne montre que **six** conversations, le reste derrière « Voir les N autres » : au-delà, la boîte entière, les actions, les vues et les dossiers tombaient sous
   la ligne de flottaison. Carte à **440 px** sur bureau.
 - Vue ouverte, **la rangée de la liste dit pourquoi elle est là** comme la palette : mots nus
   surlignés (`surligne.tsx`, une seule définition pour les deux surfaces) et l'aperçu remplacé par

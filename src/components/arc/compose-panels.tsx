@@ -122,9 +122,9 @@ export function Panneau({
       /* Le masque du dépôt : quand la place manque — clavier resté ouvert —,
          le panneau défile et s'efface en bas au lieu d'être tranché au milieu
          d'une case. Le `pb-6` le fait tomber sur du vide en fin de liste. */
-      className="flex min-h-28 shrink flex-col overflow-y-auto overscroll-contain px-3 pb-6 [mask-image:linear-gradient(to_bottom,#000_calc(100%-1.5rem),transparent)]"
+      className="flex min-h-28 shrink flex-col overflow-y-auto overscroll-contain px-4 pb-6 [mask-image:linear-gradient(to_bottom,#000_calc(100%-1.5rem),transparent)]"
     >
-      <div className="mb-2 flex shrink-0 items-center gap-3 px-1">
+      <div className="mb-2 flex shrink-0 items-center gap-3">
         <p className="min-w-0 flex-1 truncate text-[15px] font-semibold">{label}</p>
         <SheetCloseButton onClose={onClose} />
       </div>

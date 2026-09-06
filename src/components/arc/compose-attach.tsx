@@ -15,7 +15,7 @@ import { toast } from "sonner";
 import { formatSize } from "@/lib/format";
 import type { OutgoingAttachment } from "@/lib/mail/provider";
 import { Panneau } from "./compose-panels";
-import { SheetGroup, SheetRow, SheetTile } from "./bottom-sheet";
+import { SheetGroup, SheetRow } from "./bottom-sheet";
 
 /**
  * Ce qu'un message peut peser, pièces comprises.
@@ -84,16 +84,12 @@ export function AttachPanel({
       <SheetGroup>
         {SOURCES.map((source) => (
           <SheetRow key={source.label} onClick={() => ouvrir(source)}>
-            <SheetTile>
-              <source.icon />
-            </SheetTile>
+            <source.icon className="size-5 shrink-0" strokeWidth={1.75} />
             <span className="min-w-0 flex-1 text-[15px]">{source.label}</span>
           </SheetRow>
         ))}
         <SheetRow onClick={onSignature}>
-          <SheetTile>
-            <PenLine />
-          </SheetTile>
+          <PenLine className="size-5 shrink-0" strokeWidth={1.75} />
           <span className="min-w-0 flex-1 text-[15px]">
             Signature de l&apos;espace
             {!hasSignature && <span className="text-muted-foreground"> · aucune</span>}

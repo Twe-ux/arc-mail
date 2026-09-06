@@ -2,6 +2,24 @@
 
 Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérification.
 
+## 6 septembre 2026 — plus de tuile du tout, et un groupe qui se borne
+
+Le carré coloré était passé à la teinte de l'espace le matin ; l'après-midi il disparaît. « J'aime
+bien ce style simple sans tuile », en montrant le menu du `⋯` du composeur — icône en trait de 20 à
+1.75, le nom, rien autour. `SheetTile` est supprimé, et « Déplacer vers », « Plus » et « Pièces
+jointes » prennent cette grammaire-là.
+
+Deux défauts signalés dans la foulée, tous deux mesurés :
+
+Le **panneau des pièces jointes n'avait plus de cadre en sombre**. `SheetGroup` n'avait de filet
+qu'en clair et comptait sur le contraste avec la feuille ; ça marchait sur `#1c1c1e`, pas du tout
+sur celle du composeur, qui est `#26262a` — sa propre couleur. Filet blanc à 10 % en sombre : un
+groupe est une surface, il se borne.
+
+Les **outils du composeur étaient à 30 px du bord** quand le ✕ du bandeau est à 38 : le bandeau est
+en `px-4` avec des cases de 44, la barre était en `px-2.5` avec des cases de 40. `px-[18px]` remet
+les deux sur la même verticale — vérifié au `getBoundingClientRect` (38 et 355 des deux côtés).
+
 ## 6 septembre 2026 — l'arc-en-ciel d'iOS s'en va, et le composeur revient de la bonne boîte
 
 Deux demandes en une : finir ce que la grille Dossiers avait commencé, et faire que la tête du

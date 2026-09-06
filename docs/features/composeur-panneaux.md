@@ -361,3 +361,15 @@ qu'un menu posé par-dessus puisse offrir. Encart de 8 px, lignes de 54 px.
   enregistré se jette en le vidant, `closeCompose` ne rangeant alors rien (`isBlank`).
 - **« Programmer l'envoi » est désactivé** et le dit : il n'y a ni file d'attente ni serveur qui
   tienne l'heure. Une entrée qui refermerait le menu sans rien programmer serait pire.
+
+---
+
+## Les outils rentrent de 8 px (6 sept. 2026)
+
+Signalé : « rapproche les boutons pièces jointes et 3 points, trop près du bord ». Mesuré, c'est un
+défaut d'alignement, pas une marge trop petite : le bandeau est en `px-4` avec des cases de 44, ses
+glyphes tombent donc à **38 px** du bord ; la barre d'outils était en `px-2.5` avec des cases de 40
+— **30 px**. Huit pixels plus près du bord que le ✕ juste au-dessus, sur la même feuille.
+
+`px-[18px]` : 18 + 20 = 38. Le trombone est sur la verticale du ✕, le `⋯` sur celle du bouton
+d'envoi (355 des deux côtés) — vérifié au `getBoundingClientRect`, pas à l'œil.

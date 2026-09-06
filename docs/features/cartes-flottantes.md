@@ -155,9 +155,9 @@ défilant, `pb-3` sous le défilant, masque en bas avec `pb-6` dedans, pas de cl
 `transition-none` pour le glisser-fermer.
 
 Ce qui va avec : `SheetScroller`, `SheetGroup` (le groupe encarté d'iOS, avec son bord — blanc sur
-`#f2f2f7` ne se voit pas), `SheetRow` (50 px au moins, séparateur sauf la dernière) et `SheetTile`
-(le carré de 28 px, **à la teinte de l'espace** depuis le 6 sept. — voir
-[thème](theme.md)). Mesuré aux quatre : marges 8 / 8 / 8, rayon 36 px.
+`#f2f2f7` ne se voit pas), `SheetRow` (50 px au moins, séparateur sauf la dernière) — `SheetTile`, le carré
+devant une ligne, **n'existe plus** (voir plus bas). Mesuré aux quatre : marges 8 / 8 / 8, rayon
+36 px.
 
 **Une feuille à la fois.** Sur la liste, `sidebarOpen` et `settingsOpen` se ferment l'une l'autre
 dans le store ; sur le mail ouvert, un seul état `sheet`. Deux cartes de 36 px empilées sur 390 px
@@ -197,3 +197,23 @@ l'en-tête d'écran, là où il y a la largeur pour le lire.
 
 Mesuré à 393 × 852 (insets 59/34) : carte de 362 px au lieu de 562, marges 8 / 8 / 8, rayon 36.
 Environ 200 px rendus, et « Aujourd'hui » remonte au-dessus de la ligne de flottaison.
+
+---
+
+## Une seule grammaire de rangée, et un groupe qui se borne (6 sept. 2026)
+
+« J'aime bien ce style simple sans tuile », en montrant le menu du `⋯` du composeur : icône en
+trait de 20 à `strokeWidth 1.75`, le nom, rien autour. C'est lui qui gagne. `SheetTile` est
+**supprimé** — le carré coloré a vécu une journée à la teinte de l'espace avant de partir tout à
+fait — et les trois feuilles qui en portaient (« Déplacer vers », « Plus », « Pièces jointes »)
+posent l'icône nue, comme le menu du brouillon. Quatre couleurs de moins, un prop de moins, une
+grammaire au lieu de deux.
+
+**Le groupe se borne dans les deux thèmes.** Il n'avait de filet qu'en clair (blanc sur `#f2f2f7`
+ne se voit pas) et comptait en sombre sur le contraste avec la feuille. Ça marchait sur `#1c1c1e`
+et pas du tout sur le composeur, dont la feuille est `#26262a` — la couleur du groupe : le panneau
+des pièces jointes n'avait **plus de cadre du tout**, signalé sur l'appareil. Filet blanc à 10 %
+en sombre. Un groupe est une surface : il se borne, il ne compte pas sur ce qu'il y a derrière.
+
+Le panneau du composeur passe de `px-3` à `px-4` : son groupe commençait 4 px plus à gauche que
+celui des feuilles, pour la même rangée.

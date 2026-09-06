@@ -311,7 +311,12 @@ export function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
               }}
             />
           )}
-          <footer className="relative z-20 flex items-center gap-1 border-t border-black/[0.06] bg-background px-2.5 pt-1.5 pb-[var(--bas)] dark:border-white/[0.08] dark:bg-[#26262a]">
+          {/* **18 px, pas 10.** Le bandeau est en `px-4` avec des cases de 44 : ses
+              glyphes tombent à 38 px du bord. Les outils, en `px-2.5` avec des
+              cases de 40, tombaient à 30 — huit pixels plus près du bord que le
+              ✕ juste au-dessus, et c'est cet écart qu'on voyait. 18 + 20 = 38 :
+              le trombone et le ✕ sont sur la même verticale. */}
+          <footer className="relative z-20 flex items-center gap-1 border-t border-black/[0.06] bg-background px-[18px] pt-1.5 pb-[var(--bas)] dark:border-white/[0.08] dark:bg-[#26262a]">
             <ToolCase
               label="Pièce jointe"
               active={t.panneau === "pieces"}

@@ -5,7 +5,7 @@ import { toast } from "sonner";
 
 import { useMail } from "@/lib/store";
 import type { FolderId, Thread } from "@/lib/types";
-import { BottomSheet, SheetGroup, SheetRow, SheetScroller, SheetTile } from "./bottom-sheet";
+import { BottomSheet, SheetGroup, SheetRow, SheetScroller } from "./bottom-sheet";
 
 /** Où l'on range depuis « Déplacer vers » : quatre destinations, pas sept. */
 const DESTINATIONS: { id: FolderId; name: string; icon: LucideIcon }[] = [
@@ -55,9 +55,7 @@ export function ThreadSheets({
           <SheetGroup>
             {DESTINATIONS.map(({ id, name, icon: Icon }) => (
               <SheetRow key={id} active={thread.folder === id} onClick={() => onRanger(id, name)}>
-                <SheetTile>
-                  <Icon />
-                </SheetTile>
+                <Icon className="size-5 shrink-0" strokeWidth={1.75} />
                 <span className="min-w-0 flex-1 truncate text-[15px]">{name}</span>
               </SheetRow>
             ))}
@@ -75,9 +73,7 @@ export function ThreadSheets({
           <SheetGroup>
             {canReplyAll && (
               <SheetRow onClick={onReplyAll}>
-                <SheetTile>
-                  <ReplyAll />
-                </SheetTile>
+                <ReplyAll className="size-5 shrink-0" strokeWidth={1.75} />
                 <span className="min-w-0 flex-1 text-[15px]">Répondre à tous</span>
               </SheetRow>
             )}
@@ -87,9 +83,7 @@ export function ThreadSheets({
                 onForward();
               }}
             >
-              <SheetTile>
-                <Forward />
-              </SheetTile>
+              <Forward className="size-5 shrink-0" strokeWidth={1.75} />
               <span className="min-w-0 flex-1 text-[15px]">Transférer</span>
             </SheetRow>
             <SheetRow
@@ -99,15 +93,13 @@ export function ThreadSheets({
                 toast(thread.unread ? "Marqué comme lu" : "Marqué comme non lu");
               }}
             >
-              <SheetTile>{thread.unread ? <MailOpen /> : <Mail />}</SheetTile>
+              {thread.unread ? <MailOpen className="size-5 shrink-0" strokeWidth={1.75} /> : <Mail className="size-5 shrink-0" strokeWidth={1.75} />}
               <span className="min-w-0 flex-1 text-[15px]">
                 {thread.unread ? "Marquer comme lu" : "Marquer comme non lu"}
               </span>
             </SheetRow>
             <SheetRow onClick={() => onRanger("snoozed", "En pause")}>
-              <SheetTile>
-                <Clock />
-              </SheetTile>
+              <Clock className="size-5 shrink-0" strokeWidth={1.75} />
               <span className="min-w-0 flex-1 text-[15px]">Mettre en pause</span>
             </SheetRow>
             {premierePiece && (
@@ -117,9 +109,7 @@ export function ThreadSheets({
                   setPreview(premierePiece.id);
                 }}
               >
-                <SheetTile>
-                  <Paperclip />
-                </SheetTile>
+                <Paperclip className="size-5 shrink-0" strokeWidth={1.75} />
                 <span className="min-w-0 flex-1 truncate text-[15px]">Pièces jointes</span>
               </SheetRow>
             )}

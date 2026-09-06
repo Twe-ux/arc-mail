@@ -257,17 +257,17 @@ Mesuré à 393 × 852 (insets 59/34) : feuille de 366 px, groupe de 242 (92 · 5
 
 ---
 
-## Une tuile de feuille n'a plus qu'une teinte (6 sept. 2026)
+## Une tuile de feuille n'a plus de teinte du tout (6 sept. 2026)
 
 `SheetTile` — le carré de 28 px devant une ligne — portait la couleur qu'iOS Mail donne à chaque
 action : bleu, indigo, violet, ambre, sarcelle. Elles ne voulaient rien dire ici. Le violet de
 « Mettre en pause » n'était pas le violet de l'espace ; sur trois feuilles voisines (« Déplacer
-vers », « Plus », « Pièces jointes ») l'arc-en-ciel finissait par être la seule chose qu'on voyait,
-et il restait seul de son espèce après le passage de la grille Dossiers et de « Personnaliser ».
+vers », « Plus », « Pièces jointes ») l'arc-en-ciel finissait par être la seule chose qu'on voyait.
 
-Une teinte : **l'accent à 22 %, l'encre `--space-ink`** — celle de la case active de la pill et de
-la tuile de dossier ouverte. Un prop en moins (`tint`), deux tables de couleurs en moins
-(`DESTINATIONS`, `SOURCES`).
+Il est d'abord passé à **une** teinte, celle de l'espace — puis il a disparu le jour même :
+« j'aime bien ce style simple sans tuile ». L'icône est nue, en trait de 20 à `strokeWidth 1.75`,
+comme dans le menu du `⋯` du composeur qui n'en a jamais eu →
+[cartes flottantes](cartes-flottantes.md).
 
 ## Le bandeau du composeur prend la couleur de la boîte
 

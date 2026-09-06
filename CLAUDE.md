@@ -141,8 +141,10 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   une piste `bg-black/[0.06] dark:bg-white/[0.07]`) : `bg-background` y vaut presque noir.
 - La feuille **Personnaliser** est **un seul groupe de quatre lignes**, sans titre en capitales ni
   tuile arc-en-ciel, le contrôle à droite de son nom ; le filet d'une ligne se pose après le `pl-4`.
-- `SheetTile` n'a **plus qu'une teinte**, celle de l'espace (accent 22 %, encre `--space-ink`) :
-  l'arc-en-ciel d'iOS ne voulait rien dire dans « Déplacer vers », « Plus » et « Pièces jointes ».
+- `SheetTile` **n'existe plus** : une rangée de feuille porte l'icône **nue** (trait de 20,
+  `strokeWidth 1.75`), la grammaire du menu du `⋯` — plus de carré coloré nulle part.
+- Un `SheetGroup` **se borne dans les deux thèmes** (filet blanc à 10 % en sombre) : sur la feuille
+  du composeur, qui est de sa couleur, il n'avait plus de cadre du tout.
 - Les préférences ne s'enregistrent qu'**après** avoir été relues (stockage `preferences` du
   store) : un `set` pendant le rendu écrasait sinon la teinte et le thème sombre.
 - Un groupe blanc a un bord (`shadow 0 0 0 1px`) ; un rail horizontal rogne aussi verticalement,
@@ -238,7 +240,8 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   d'iOS », et la mise en page ne change plus selon le clavier. L'expéditeur est sur la ligne repliée
   `Cc/Cci · De`, les outils **à plat** en bas (le composeur est sorti de
   [pill-actions](docs/features/pill-actions.md), qui n'a plus que deux emplois). 202 px de message
-  clavier sorti (192 avant), 512 au repos.
+  clavier sorti (192 avant), 512 au repos. La barre d'outils est en **`px-[18px]`** : ses glyphes
+  tombent à 38 px du bord, sur la verticale du ✕ et du bouton d'envoi du bandeau.
 - Ce qui la rattache à Arc Mail est le voile de l'espace qui la coiffe, d'un bord à l'autre, effacé
   vers le bas au masque — pas un halo radial, qui laissait le côté droit gris ; et pas une tuile à
   côté du titre : essayée, retirée — la ligne repliée donne déjà l'adresse. C'est **la couleur de la

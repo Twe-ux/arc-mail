@@ -115,12 +115,20 @@ export function SheetScroller({ className, children }: { className?: string; chi
   );
 }
 
-/** Le groupe encarté des listes iOS. Un bord, parce que blanc sur #f2f2f7 ne se voit pas. */
+/**
+ * Le groupe encarté des listes iOS.
+ *
+ * **Un filet dans les deux thèmes.** En clair, blanc sur `#f2f2f7` ne se voit
+ * pas ; en sombre le groupe (`#26262a`) tombait sur une feuille de la même
+ * couleur — celle du composeur — et le panneau des pièces jointes n'avait
+ * plus de cadre du tout. Un groupe est une surface : il se borne, il ne
+ * compte pas sur le contraste de ce qu'il y a derrière.
+ */
 export function SheetGroup({ className, children }: { className?: string; children: ReactNode }) {
   return (
     <ul
       className={cn(
-        "overflow-hidden rounded-2xl bg-white shadow-[0_0_0_1px_rgba(0,0,0,0.06)] dark:bg-[#26262a] dark:shadow-none",
+        "overflow-hidden rounded-2xl bg-white shadow-[0_0_0_1px_rgba(0,0,0,0.06)] dark:bg-[#26262a] dark:shadow-[0_0_0_1px_rgba(255,255,255,0.10)]",
         className,
       )}
     >
@@ -160,27 +168,5 @@ export function SheetRow({
         </span>
       </button>
     </li>
-  );
-}
-
-/**
- * Le carré devant une ligne — **à la teinte de l'espace**, pas à celle d'iOS.
- *
- * iOS Mail donne une couleur par action : bleu, indigo, violet, ambre. Ici
- * elles ne veulent rien dire — le violet de « Mettre en pause » n'est pas le
- * violet de l'espace, et sur trois feuilles voisines l'arc-en-ciel finissait
- * par être la seule chose qu'on voyait. La tuile prend l'accent à 22 % et
- * l'encre `--space-ink`, comme la case active de la pill et la tuile de la
- * grille Dossiers : ce qui est une action porte la couleur de la boîte où on
- * est.
- */
-export function SheetTile({ children }: { children: ReactNode }) {
-  return (
-    <span
-      aria-hidden
-      className="flex size-7 shrink-0 items-center justify-center rounded-[7px] bg-[color-mix(in_oklch,var(--space-accent)_22%,transparent)] text-[var(--space-ink)] [&_svg]:size-4"
-    >
-      {children}
-    </span>
   );
 }

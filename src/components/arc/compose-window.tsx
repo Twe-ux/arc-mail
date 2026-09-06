@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Bold, Italic, Link as LinkIcon, List, Maximize2, Minimize2, Paperclip, PenLine, Send, Trash2, X } from "lucide-react";
+import { Maximize2, Minimize2, Paperclip, PenLine, Send, Trash2, Type, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/kbd";
@@ -15,14 +15,9 @@ import type { ComposeDraft } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { AttachmentChips } from "./compose-attach";
 import { ComposeFields, SendFailed } from "./compose-fields";
+import { FormatControls } from "./compose-panels";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useComposeTools } from "./use-compose-tools";
-
-/** Les commandes de mise en forme du pied de fenêtre — les quatre qui servent. */
-const FORMES = [
-  { icon: Bold, label: "Gras · ⌘B", commande: "bold" },
-  { icon: Italic, label: "Italique · ⌘I", commande: "italic" },
-  { icon: List, label: "Liste à puces", commande: "insertUnorderedList" },
-] as const;
 
 /**
  * **760 × 560, au centre.** Elle a été une colonne à droite du message pendant
@@ -125,7 +120,16 @@ export function ComposeWindow({ draft }: { draft: ComposeDraft }) {
           </HeaderButton>
         </header>
 
-        <ComposeFields draft={draft} corps={t.poserCorps} />
+        <ComposeFields
+          draft={draft}
+          corps={t.poserCorps}
+          /* Le confort d'écriture vaut des deux côtés : il n'était réglé que
+             sur la feuille, et son réglage n'avait donc aucun effet ici. */
+          bodyStyle={{
+            fontSize: t.taille,
+            fontFamily: t.serif ? "ui-serif, Georgia, serif" : undefined,
+          }}
+        />
         {sendError && <SendFailed detail={sendError} />}
         <AttachmentChips attachments={t.pieces} onRemove={t.retirer} />
 
@@ -140,21 +144,62 @@ export function ComposeWindow({ draft }: { draft: ComposeDraft }) {
             {sendError ? "Réessayer" : "Envoyer"}
             <Kbd className="bg-white/20 text-white/90">⌘⏎</Kbd>
           </button>
-          {/* **La mise en forme est là aussi.** Le panneau du téléphone la
-              portait seul, et la fenêtre du bureau n'avait rien — un message
-              écrit d'un côté ne se met pas en forme de l'autre. Trois commandes
-              et le lien, celles qu'on emploie ; ⌘B, ⌘I et ⌘U marchent en plus
-              nativement dans un champ riche. */}
-          <span className="mx-1 flex items-center gap-0.5 border-l border-black/[0.07] pl-2 dark:border-white/[0.12]">
-            {FORMES.map(({ icon: Icon, label, commande }) => (
-              <FooterButton key={label} label={label} onClick={() => t.mettreEnForme(commande)}>
-                <Icon />
-              </FooterButton>
-            ))}
-            <FooterButton label="Lien" onClick={t.lier}>
-              <LinkIcon />
-            </FooterButton>
-          </span>
+          {/* **La mise en forme, la même qu'au téléphone.** Elle a d'abord été
+              quatre cases posées dans le pied : le téléphone en avait onze,
+              plus la police et la taille — « moins de personnalisation que
+              mobile ». La bulle porte donc exactement le panneau de la feuille,
+              une seule définition pour les deux (`FormatControls`), comme le
+              panneau d'apparence dit déjà la même chose que sa feuille.
+
+              `onOpenAutoFocus` retenu : la bulle prendrait le focus, et avec
+              lui la sélection du message — les commandes n'auraient plus rien
+              à mettre en forme. */}
+          <Popover>
+            {/* **L'ordre `Tooltip > TooltipTrigger asChild > PopoverTrigger
+                asChild > bouton`**, celui de la fiche bureau : `asChild` clone
+                son enfant, et un `Tooltip` n'a pas de nœud DOM où poser le
+                `onClick` — intercalé, le bouton devient muet, sans erreur.
+                D'où le bouton écrit ici plutôt qu'un `FooterButton`, qui porte
+                déjà son infobulle. */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label="Mise en forme"
+                    className="text-muted-foreground hover:text-foreground"
+                  >
+                    <Type />
+                  </Button>
+                </PopoverTrigger>
+              </TooltipTrigger>
+              <TooltipContent>Mise en forme</TooltipContent>
+            </Tooltip>
+            <PopoverContent
+              align="start"
+              side="top"
+              sideOffset={8}
+              onOpenAutoFocus={(e) => e.preventDefault()}
+              /* **Une commande rend le focus au message**, et Radix voyait un
+                 focus sorti de la bulle : elle se refermait au premier gras, il
+                 fallait la rouvrir pour chaque commande. Un clic ailleurs la
+                 ferme toujours — c'est `pointerDownOutside`, un autre
+                 événement. */
+              onFocusOutside={(e) => e.preventDefault()}
+              className="w-[340px] p-2"
+            >
+              <FormatControls
+                bureau
+                size={t.taille}
+                onSize={t.setTaille}
+                serif={t.serif}
+                onSerif={t.setSerif}
+                onCommande={t.mettreEnForme}
+                onLien={t.lier}
+              />
+            </PopoverContent>
+          </Popover>
           <FooterButton
             label="Joindre un fichier"
             onClick={() => {

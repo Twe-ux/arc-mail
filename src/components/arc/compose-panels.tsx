@@ -76,7 +76,49 @@ export function FormatPanel({
 }) {
   return (
     <Panneau label="Mise en forme" onClose={onClose}>
-      <div className="rounded-3xl bg-white p-2 dark:bg-[#26262a]">
+      <FormatControls
+        size={size}
+        onSize={onSize}
+        serif={serif}
+        onSerif={onSerif}
+        onCommande={onCommande}
+        onLien={onLien}
+      />
+    </Panneau>
+  );
+}
+
+/**
+ * Les commandes elles-mêmes, **sans leur cadre**.
+ *
+ * Le téléphone les pose dans un panneau qui remplace le message ; le bureau
+ * dans une bulle au-dessus du pied de fenêtre. Une seule définition pour les
+ * deux, parce que la règle de la maison vaut ici comme pour l'apparence : les
+ * deux surfaces disent la **même chose, avec les mêmes mots**. La fenêtre du
+ * bureau n'avait que quatre commandes et ni police ni taille — un message
+ * écrit d'un côté ne se met pas en forme de l'autre.
+ */
+export function FormatControls({
+  size,
+  onSize,
+  serif,
+  onSerif,
+  onCommande,
+  onLien,
+  bureau,
+}: {
+  size: number;
+  onSize: (px: number) => void;
+  serif: boolean;
+  onSerif: (v: boolean) => void;
+  onCommande: (commande: string, valeur?: string) => void;
+  onLien: () => void;
+  /** Dans une bulle, la carte n'a pas à repeindre le fond du panneau. */
+  bureau?: boolean;
+}) {
+  return (
+    <>
+      <div className={cn("rounded-3xl p-2", !bureau && "bg-white dark:bg-[#26262a]")}>
         <Rangee>
           {STYLES.map(({ icon: Icon, label, commande }) => (
             <Case key={label} label={label} onClick={() => onCommande(commande)}>
@@ -128,7 +170,7 @@ export function FormatPanel({
       <p className="px-2 pt-2 text-[13px] text-muted-foreground">
         La police et la taille ne changent que le champ. Le reste part avec le message.
       </p>
-    </Panneau>
+    </>
   );
 }
 

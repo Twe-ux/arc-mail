@@ -427,9 +427,20 @@ calculent maintenant la même chaîne.
   fenêtre.
 - **L'invite s'écrit en CSS** (`data-vide` + `content: attr(...)`) : un champ riche n'a pas de
   `placeholder`, et un `<span>` posé dedans deviendrait du message.
-- La **fenêtre du bureau a les mêmes commandes**, dans son pied : gras, italique, liste et lien. Le
-  panneau du téléphone les portait seul, et un message écrit d'un côté ne se met pas en forme de
-  l'autre. ⌘B, ⌘I et ⌘U marchent en plus nativement dans un champ riche.
+- La **fenêtre du bureau a exactement le panneau du téléphone**, dans une bulle ouverte par « Aa ».
+  Elle a d'abord eu quatre cases posées dans le pied : onze d'un côté, quatre de l'autre, et ni la
+  police ni la taille — « moins de personnalisation que mobile ». `FormatControls` est donc une
+  seule définition pour les deux surfaces, comme le panneau d'apparence dit déjà la même chose que
+  sa feuille. Le confort d'écriture s'applique aussi au champ du bureau, où son réglage n'avait
+  aucun effet. ⌘B, ⌘I et ⌘U marchent en plus nativement dans un champ riche.
+- **La bulle du bureau ne se referme pas quand une commande rend le focus au message.** Radix y
+  voyait un focus sorti : elle se fermait au premier gras, et il fallait la rouvrir pour chaque
+  commande (`onFocusOutside` retenu ; un clic ailleurs la ferme toujours, c'est un autre
+  événement). `onOpenAutoFocus` est retenu de la même façon — sans lui la bulle prend le focus, et
+  avec lui la sélection du message : les commandes n'auraient plus rien à mettre en forme.
+- Son déclencheur suit l'ordre de la fiche bureau — `Tooltip > TooltipTrigger asChild >
+  PopoverTrigger asChild > bouton` : `asChild` clone son enfant, et une infobulle intercalée rend le
+  bouton muet, sans erreur.
 
 ### La régression qu'il fallait voir
 

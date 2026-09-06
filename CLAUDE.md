@@ -331,7 +331,10 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   calculent la **même chaîne**, sinon il se récrit à chaque frappe et le curseur repart au début. Le
   collage entre en **texte simple** (laver appartient au serveur), `execCommand` est assumé, une case
   de panneau empêche son `mousedown` (sinon la sélection part), le lien n'accepte que `https` et
-  `mailto`, et l'invite s'écrit en CSS. La feuille reconnaît le clavier par
+  `mailto`, et l'invite s'écrit en CSS. La **fenêtre du bureau porte le panneau du téléphone** dans
+  une bulle (`FormatControls`, une définition pour les deux ; `onOpenAutoFocus` **et**
+  `onFocusOutside` retenus, sinon la sélection part ou la bulle se ferme au premier gras) et le
+  confort d'écriture s'y applique aussi. La feuille reconnaît le clavier par
   `:has(:is(input,textarea,[contenteditable]):focus)` — **sans `[contenteditable]`, écrire levait le
   clavier sans que la feuille le sache**.
 

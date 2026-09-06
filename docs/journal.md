@@ -2,6 +2,32 @@
 
 Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérification.
 
+## 6 septembre 2026 — on peut revenir en arrière
+
+`commit` faisait déjà le retour arrière **sur échec** ; il manquait celui **à la demande**, et
+c'est la première des deux mécaniques que l'audit désigne comme portant le reste.
+
+Le toast qui porte « Annuler » appartient au **store**. Neuf endroits archivent, jettent, mettent en
+pause ou marquent un fil — la liste et son balayage, le mail ouvert, ses deux feuilles, le troisième
+volet, l'en-tête du bureau, deux raccourcis clavier — et deux seulement disaient ce qu'ils venaient
+de faire, chacun avec sa formule. Le geste est au store, son récit aussi : `annulable()` le pose une
+fois pour tous, et le balayage de rangée a eu son « Annuler » sans qu'on lui demande rien.
+
+Deux formes d'inverse, et c'est la distinction qui compte. Une **bascule** — favori, lu — est son
+propre inverse, rappelée en silence. Un **déplacement** ne l'est pas : « l'inverse d'archiver »
+n'existe pas dans l'absolu, il faut avoir gardé le dossier d'avant.
+
+Deux pièges évités, tous deux dans l'attente : l'annulation **attend l'écriture** parce qu'un
+déplacement IMAP renomme le fil et que défaire trop tôt viserait l'identifiant d'avant ; et elle ne
+fait **rien** si l'écriture a échoué — le fil est déjà revenu tout seul, et « défaire » serait cette
+fois faire le déplacement inverse pour de bon. `commit` rend donc un booléen, et le toast s'efface
+quand l'écriture rate plutôt que de contredire le message d'échec.
+
+Au passage, un compteur qui ne revenait pas : un déplacement ajoutait son non-lu à l'arrivée sans le
+retirer du départ. C'était juste tant que le départ était le dossier ouvert, dont le compte est
+local ; une annulation ramène le fil depuis Archive, qu'on ne regarde pas, et Archive gardait son
++1 pour toujours. Vérifié au faux compte serveur : **42 → 43 → 42**.
+
 ## 6 septembre 2026 — vingt-quatre glyphes, et le choix descend sur le téléphone
 
 Deux demandes : le choix de l'icône n'existait que dans le panneau du bureau — on pouvait donc

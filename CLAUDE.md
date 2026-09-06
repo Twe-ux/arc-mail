@@ -302,6 +302,17 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - La barre est posée par-dessus la liste ; le défilant lui laisse `--nav-height` en bas, sinon le
   verre n'a rien à flouter.
 
+**Annuler** → [docs/features/annulation.md](docs/features/annulation.md)
+- Le toast qui porte « Annuler » est posé par le **store**, une fois (`annulable`), jamais par les
+  neuf appelants qui archivent, jettent ou marquent.
+- Deux formes d'inverse : une **bascule** est son propre inverse (rappelée en `silencieux`), un
+  **déplacement** garde le dossier d'avant — « l'inverse d'archiver » n'existe pas dans l'absolu.
+- L'annulation **attend l'écriture** : un déplacement renomme le fil, et défaire une écriture ratée
+  ne défait rien, ça fait le déplacement inverse pour de bon. `commit` rend donc un booléen.
+- Un déplacement **retire** le non-lu du dossier de départ autant qu'il l'ajoute à l'arrivée : sans
+  ça une annulation laissait le `+1` d'Archive pour toujours.
+- Le libellé se lit **au passé** — « Archivé », pas « Déplacé vers Archive » (`FOLDER_DONE`).
+
 **Répondre** → [docs/features/reponse.md](docs/features/reponse.md)
 - Par défaut **l'expéditeur seul** ; « Répondre à tous » n'apparaît que s'il reste quelqu'un d'autre
   une fois **toutes nos adresses** retirées (tous les espaces, comparaison lavée) — un espace-vue

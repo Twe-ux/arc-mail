@@ -1,7 +1,6 @@
 "use client";
 
 import { Archive, Clock, Forward, Mail, MailOpen, Paperclip, ReplyAll, Star, Trash2, type LucideIcon } from "lucide-react";
-import { toast } from "sonner";
 
 import { useMail } from "@/lib/store";
 import type { FolderId, Thread } from "@/lib/types";
@@ -36,7 +35,7 @@ export function ThreadSheets({
   canReplyAll: boolean;
   onReplyAll: () => void;
   onForward: () => void;
-  onRanger: (to: FolderId, nom: string) => void;
+  onRanger: (to: FolderId) => void;
 }) {
   const toggleUnread = useMail((s) => s.toggleUnread);
   const setPreview = useMail((s) => s.setPreview);
@@ -54,7 +53,7 @@ export function ThreadSheets({
         <SheetScroller>
           <SheetGroup>
             {DESTINATIONS.map(({ id, name, icon: Icon }) => (
-              <SheetRow key={id} active={thread.folder === id} onClick={() => onRanger(id, name)}>
+              <SheetRow key={id} active={thread.folder === id} onClick={() => onRanger(id)}>
                 <Icon className="size-5 shrink-0" strokeWidth={1.75} />
                 <span className="min-w-0 flex-1 truncate text-[15px]">{name}</span>
               </SheetRow>
@@ -87,10 +86,10 @@ export function ThreadSheets({
               <span className="min-w-0 flex-1 text-[15px]">Transférer</span>
             </SheetRow>
             <SheetRow
+              /* Le toast — et son « Annuler » — vient de `toggleUnread`. */
               onClick={() => {
                 toggleUnread(thread.id);
                 onSheet(null);
-                toast(thread.unread ? "Marqué comme lu" : "Marqué comme non lu");
               }}
             >
               {thread.unread ? <MailOpen className="size-5 shrink-0" strokeWidth={1.75} /> : <Mail className="size-5 shrink-0" strokeWidth={1.75} />}
@@ -98,7 +97,7 @@ export function ThreadSheets({
                 {thread.unread ? "Marquer comme lu" : "Marquer comme non lu"}
               </span>
             </SheetRow>
-            <SheetRow onClick={() => onRanger("snoozed", "En pause")}>
+            <SheetRow onClick={() => onRanger("snoozed")}>
               <Clock className="size-5 shrink-0" strokeWidth={1.75} />
               <span className="min-w-0 flex-1 text-[15px]">Mettre en pause</span>
             </SheetRow>

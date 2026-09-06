@@ -117,11 +117,11 @@ qui suivent.
 
 ### Les deux mécaniques qui portent le reste
 
-- [ ] **File de tâches annulables.** Chaque action devient un objet qui sait se décrire et
-      fabriquer son inverse — bascule (favori, lu) ou instantané (déplacement). On en tire d'un
-      coup : le toast « Annuler » sur *toutes* les actions, la file hors ligne, et le socle de
-      l'envoi différé. `commit(thread, run, message)` fait déjà le retour arrière **sur échec** ; il
-      manque le retour arrière **à la demande** → [audit](audits/2026-09-06-clients-mail.md#11-la-file-de-tâches-et-lannulation-qui-en-découle).
+- [x] **Annulation à la demande** (6 sept.) — le toast « Annuler » sur toutes les actions qui
+      touchent un fil, posé par le store et non par ses neuf appelants ; bascule et instantané comme
+      deux formes d'inverse → [fiche](features/annulation.md). **Restent** les deux fonctions que la
+      même mécanique portera : la **file hors ligne** (garder et rejouer les écritures) et l'**envoi
+      différé** (une tâche qui porte son heure), celui-ci derrière la décision d'hébergement.
 - [ ] **Arbre de recherche.** Un analyseur (`from:`, `to:`, `subject:`, `in:`, `is:unread`,
       `has:attachment`, dates, `ET`/`OU`/`SAUF`) et deux compilateurs : l'un filtre ce qui est en
       mémoire, l'autre écrit un `SEARCH` IMAP. La même barre ⌘K sert les deux, et les vues
@@ -167,7 +167,8 @@ qui suivent.
 - [ ] **« Agir et continuer »** : archiver puis passer au message suivant sans revenir à la liste
       (`E` chez Superhuman). On a `j`/`k` et ⌘K ; il manque l'enchaînement.
 - [ ] **Balayage à deux crans** : court = archiver, long = choisir l'action.
-- [ ] Toast « Annuler » après un balayage de rangée — dépend de la file de tâches ci-dessus.
+- [x] Toast « Annuler » après un balayage de rangée (6 sept.) — il vient du store, donc le
+      balayage l'a eu sans rien demander.
 
 ### Accessibilité
 

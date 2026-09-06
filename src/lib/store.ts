@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { renommerEspace } from "./accounts/actions";
+import { FOLDER_DONE } from "./folders";
 import { firstLine } from "./format";
 import { providerFor } from "./mail";
 import type { FolderUnread } from "./mail/provider";
@@ -122,9 +123,11 @@ export type MailState = {
   prefetchThread: (id: string) => void;
   /** Le lot suivant, quand le défilement s'en approche. Une requête pour tous. */
   prefetchThreads: (ids: string[]) => void;
-  toggleStar: (id: string) => void;
-  toggleUnread: (id: string) => void;
-  moveThread: (id: string, folder: FolderId) => void;
+  /* `silencieux` : ne pas proposer d'annuler. C'est l'annulation elle-même qui
+     s'en sert — un « Annuler » sur un « Annulé » n'aurait plus de fin. */
+  toggleStar: (id: string, silencieux?: boolean) => void;
+  toggleUnread: (id: string, silencieux?: boolean) => void;
+  moveThread: (id: string, folder: FolderId, silencieux?: boolean) => void;
   removeRecent: (id: string) => void;
   clearRecent: () => void;
   toggleSplit: () => void;
@@ -593,19 +596,52 @@ export const useMail = create<MailState>()(
      fil après coup. Deux branches d'un seul `then` plutôt qu'un `.then().catch()` :
      une erreur dans `apres` ne doit pas déclencher le retour arrière, qui dirait
      que l'écriture a échoué alors qu'elle a réussi. */
+  /* Il **rend s'il a écrit** : l'annulation en dépend. Défaire une action qui
+     n'a pas eu lieu, c'est en faire une nouvelle — le fil est déjà revenu tout
+     seul par le retour arrière ci-dessous, et le « déplacer en sens inverse »
+     l'enverrait cette fois pour de bon. */
   const commit = <T>(
     before: Thread,
     run: () => Promise<T>,
     undone: string,
     apres?: (resultat: T) => void,
-  ) =>
+  ): Promise<boolean> =>
     run().then(
-      (resultat) => apres?.(resultat),
+      (resultat) => {
+        apres?.(resultat);
+        return true;
+      },
       (err: unknown) => {
         set((s) => ({ threads: restoreThread(s.threads, before) }));
         toast.error(undone, { description: describe(err) });
+        return false;
       },
     );
+
+  /**
+   * Le toast qui porte « Annuler ».
+   *
+   * **Une seule définition, au lieu d'un cas par appelant.** Neuf endroits
+   * archivent, jettent ou marquent — la liste, son balayage, le mail ouvert,
+   * ses deux feuilles, le troisième volet, l'en-tête du bureau, deux
+   * raccourcis clavier — et deux seulement disaient ce qu'ils venaient de
+   * faire. Le geste appartient au store, donc son récit aussi.
+   *
+   * L'annulation **attend l'écriture** avant de partir : un déplacement change
+   * l'identifiant du fil, et défaire trop tôt viserait celui d'avant. Et si
+   * l'écriture a échoué, elle ne fait rien — le fil est déjà revenu, et le
+   * message d'échec le dit.
+   */
+  const annulable = (libelle: string, ecriture: Promise<boolean>, inverse: () => void) => {
+    const id = toast(libelle, {
+      action: { label: "Annuler", onClick: () => void ecriture.then((ok) => ok && inverse()) },
+    });
+    /* Deux toasts pour un geste raté — « Archivé » puis « Archivage impossible »
+       — se contrediraient l'un l'autre. Le premier s'efface. */
+    void ecriture.then((ok) => {
+      if (!ok) toast.dismiss(id);
+    });
+  };
 
   return {
   spaceId: SPACES[0].id,
@@ -744,22 +780,34 @@ export const useMail = create<MailState>()(
     void precharger(ids);
   },
 
-  toggleStar: (id) => {
+  /* **Une bascule est son propre inverse** : annuler, c'est rappeler la même
+     action — en silence, pour ne pas proposer d'annuler l'annulation. */
+  toggleStar: (id, silencieux) => {
     const before = get().threads;
     const t = before.find((x) => x.id === id);
     if (!t) return;
     set({ threads: patchThread(before, id, (x) => ({ ...x, starred: !x.starred })) });
     const account = accountOf(t.spaceId);
-    commit(t, () => providerFor(account).modify(account, id, { starred: !t.starred }), t.starred ? "Toujours en favori" : "Impossible d'ajouter aux favoris");
+    const ecriture = commit(t, () => providerFor(account).modify(account, id, { starred: !t.starred }), t.starred ? "Toujours en favori" : "Impossible d'ajouter aux favoris");
+    if (silencieux) return;
+    annulable(t.starred ? "Retiré des favoris" : "Ajouté aux favoris", ecriture, () => {
+      get().toggleStar(id, true);
+      toast("Annulé");
+    });
   },
 
-  toggleUnread: (id) => {
+  toggleUnread: (id, silencieux) => {
     const before = get().threads;
     const t = before.find((x) => x.id === id);
     if (!t) return;
     set({ threads: patchThread(before, id, (x) => ({ ...x, unread: !x.unread })) });
     const account = accountOf(t.spaceId);
-    commit(t, () => providerFor(account).modify(account, id, { unread: !t.unread }), "Impossible de changer l'état de lecture");
+    const ecriture = commit(t, () => providerFor(account).modify(account, id, { unread: !t.unread }), "Impossible de changer l'état de lecture");
+    if (silencieux) return;
+    annulable(t.unread ? "Marqué comme lu" : "Marqué comme non lu", ecriture, () => {
+      get().toggleUnread(id, true);
+      toast("Annulé");
+    });
   },
 
   /* **Déplacer change l'identifiant du fil.** Sur IMAP, l'UID d'un message
@@ -769,10 +817,15 @@ export const useMail = create<MailState>()(
      second exemplaire dès qu'on relisait le dossier d'arrivée. Le fournisseur
      rend donc le nom d'après, et on renomme ; s'il ne le sait pas (`null`), on
      retire le fil de la liste et la prochaine lecture le retrouvera. */
-  moveThread: (id, folder) => {
+  moveThread: (id, folder, silencieux) => {
     const before = get().threads;
     const t = before.find((x) => x.id === id);
     if (!t) return;
+    const depuis = t.folder;
+    /* **L'annulation vise l'identifiant d'après.** Il change au déplacement, et
+       il n'est connu qu'une fois le serveur revenu : la fermeture le relit
+       plutôt que de le capturer. */
+    let courant = id;
     set((s) => ({
       threads: patchThread(before, id, (x) => ({ ...x, folder })),
       selectedThreadId: s.selectedThreadId === id ? null : s.selectedThreadId,
@@ -781,16 +834,26 @@ export const useMail = create<MailState>()(
          le fil vient d'en sortir. On ne touche qu'un compte **déjà connu** —
          inventer un 1 là où le serveur n'a rien dit écraserait le compte local,
          qui est juste. */
-      folderCounts: t.unread ? bouger(s.folderCounts, t.spaceId, folder, +1) : s.folderCounts,
+      /* Le dossier de **départ** perd son non-lu autant que celui d'arrivée le
+         gagne. On ne le faisait pas : le départ était toujours le dossier
+         ouvert, dont le compte est local et se recalcule seul. Une annulation
+         casse cette hypothèse — elle ramène le fil depuis Archive, qu'on ne
+         regarde pas —, et sans cette ligne Archive gardait son +1 pour de bon.
+         `bouger` ne touche qu'un compte déjà connu, donc le dossier ouvert n'y
+         perd rien. */
+      folderCounts: t.unread
+        ? bouger(bouger(s.folderCounts, t.spaceId, folder, +1), t.spaceId, depuis, -1)
+        : s.folderCounts,
     }));
     const account = accountOf(t.spaceId);
     const undone = { archive: "Archivage impossible, la conversation est de retour", trash: "Suppression impossible, la conversation est de retour" }[folder as string]
       ?? "Déplacement impossible, la conversation est de retour";
-    commit(
+    const ecriture = commit(
       t,
       () => providerFor(account).modify(account, id, { folder }),
       undone,
       (apres) => {
+        if (apres) courant = apres;
         if (apres === id) return;
         set((s) => ({
           threads: apres
@@ -803,6 +866,11 @@ export const useMail = create<MailState>()(
         }));
       },
     );
+    if (silencieux) return;
+    annulable(FOLDER_DONE[folder], ecriture, () => {
+      get().moveThread(courant, depuis, true);
+      toast("Annulé");
+    });
   },
 
   removeRecent: (id) =>

@@ -2,7 +2,6 @@
 
 import { Archive, ArrowLeft, Folder, Mail, MoreHorizontal, Reply, Star, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
 
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { formatFullDate } from "@/lib/format";
@@ -102,12 +101,13 @@ export function ThreadView({ className }: { className?: string }) {
   const canReplyAll = everyone.length > 1;
   /* Ranger, c'est **revenir à la liste** : le fil qu'on vient de déplacer n'est
      plus dans le dossier qu'on regardait, et le laisser ouvert donnerait un
-     message sans place. Le toast est la seule trace de ce qui s'est passé. */
-  const ranger = (to: FolderId, nom: string) => {
+     message sans place. Le toast est la seule trace de ce qui s'est passé —
+     et c'est `moveThread` qui le pose, avec son « Annuler », pour les neuf
+     endroits qui rangent et non pour celui-ci seulement. */
+  const ranger = (to: FolderId) => {
     moveThread(thread.id, to);
     selectThread(null);
     setSheet(null);
-    toast(`Déplacé vers ${nom}`);
   };
 
   const position = visibles.findIndex((t) => t.id === thread.id);
@@ -174,9 +174,9 @@ export function ThreadView({ className }: { className?: string }) {
         thread={thread}
         onForward={forward}
         onReplyAll={() => aimReply(everyone)}
-        onArchive={() => ranger("archive", "Archive")}
-        onTrash={() => (inTrash ? ranger("inbox", "Réception") : ranger("trash", "Corbeille"))}
-        onSnooze={() => ranger("snoozed", "En pause")}
+        onArchive={() => ranger("archive")}
+        onTrash={() => (inTrash ? ranger("inbox") : ranger("trash"))}
+        onSnooze={() => ranger("snoozed")}
       />
 
       {/* Le message : une carte flottante sur téléphone, une colonne sur bureau. */}
@@ -255,14 +255,14 @@ export function ThreadView({ className }: { className?: string }) {
               </PillPrimary>
               <PillCase
                 label="Archiver"
-                onClick={() => ranger("archive", "Archive")}
+                onClick={() => ranger("archive")}
               >
                 <Archive strokeWidth={1.75} />
               </PillCase>
               <PillCase
                 label={inTrash ? "Restaurer" : "Supprimer"}
                 danger={!inTrash}
-                onClick={() => (inTrash ? ranger("inbox", "Réception") : ranger("trash", "Corbeille"))}
+                onClick={() => (inTrash ? ranger("inbox") : ranger("trash"))}
               >
                 <Trash2 strokeWidth={1.75} />
               </PillCase>

@@ -147,11 +147,16 @@ export type Folder = {
 };
 
 /**
- * Une **vue enregistrée** : une requête nommée, qui vit à côté des dossiers.
+ * Une **vue enregistrée** : une requête gardée, qui vit à côté des dossiers.
  *
  * Elle ne range rien et ne copie rien — c'est la question, gardée. Elle
  * découle de l'arbre de recherche sans rien lui demander de plus : le même
  * analyseur, le même compilateur mémoire que ⌘K.
+ *
+ * **La rangée est la requête**, il n'y a pas d'étiquette à côté. Elle en a eu
+ * une une demi-journée, et c'était une erreur : la corriger ne changeait pas la
+ * recherche — « quand je change le nom, la recherche reste sur la précédente ».
+ * Une chose à lire, une chose à modifier.
  *
  * `q` est la requête **telle qu'elle a été tapée**, pas son arbre : un arbre
  * sérialisé se périme dès que la grammaire gagne un mot-clé, la chaîne se
@@ -159,8 +164,6 @@ export type Folder = {
  */
 export type Vue = {
   id: string;
-  /** Ce qu'on lit dans la barre. Par défaut la requête elle-même. */
-  nom: string;
   q: string;
 };
 

@@ -477,11 +477,12 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - Vue ouverte, **la rangée de la liste dit pourquoi elle est là** comme la palette : mots nus
   surlignés (`surligne.tsx`, une seule définition pour les deux surfaces) et l'aperçu remplacé par
   `extrait()` quand le mot est dans une adresse ou un corps.
-- Le nom d'une vue **se corrige** : double-clic sur sa rangée dans la barre, crayon sur téléphone
-  (le double-appui y est pris par le zoom) ; le champ présélectionne le nom, valide au départ du
-  focus, et `q` ne bouge jamais — on corrige l'étiquette, pas la question.
-- Une **vue enregistrée** est une requête nommée, gardée depuis ⌘K (« Garder « … » comme vue »,
-  nommée par la requête) : elle vit dans le store (`vues` persisté, `vueId` non), pose **une
+- **La rangée d'une vue est sa requête** (`Vue = { id, q }`, pas d'étiquette à côté) : la corriger
+  récrit la recherche — double-clic dans la barre, crayon sur téléphone (le double-appui y est pris
+  par le zoom). `modifierVue` **relit la vue ouverte**, dossier compris ; une requête vide n'écrase
+  rien. Un nom séparé a été essayé une demi-journée puis retiré : le corriger ne changeait pas ce
+  que la liste montrait.
+- Une **vue enregistrée** est une requête gardée depuis ⌘K (« Garder « … » comme vue ») : elle vit dans le store (`vues` persisté, `vueId` non), pose **une
   question à un dossier** — celui que `dans:` nomme, la réception sinon — et se retrouve dans la
   palette **sur le texte tapé**, pas sur ses mots nus. Elle n'apparaît **qu'une fois** : groupe sous
   les dossiers en barre attachée, après un filet dans le rail, en puce de tête barre masquée, groupe

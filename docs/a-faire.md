@@ -167,8 +167,10 @@ qui suivent.
 
 ### Recherche
 
-- [x] **Renommer une vue** (6 sept.) — double-clic dans la barre, crayon sur téléphone ; le champ
-      est celui de « Garder une recherche… », et `q` ne bouge pas.
+- [x] **Modifier la recherche d'une vue** (6 sept.) — double-clic dans la barre, crayon sur
+      téléphone. Le nom séparé a été essayé puis retiré : la rangée **est** la requête.
+- [ ] **Une étiquette pour une vue** — « À lire » pour `est:non-lu`. Un **second** champ, jamais le
+      même que la requête : c'est la confusion des deux qui a fait retirer le premier essai.
 - [ ] **Une vue sur plusieurs dossiers** : `dans:archive OU dans:corbeille` ouvre Archive, la
       première nommée — une liste lit un dossier. ⌘K, lui, sait déjà interroger les deux.
 

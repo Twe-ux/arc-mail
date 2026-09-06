@@ -174,7 +174,7 @@ export function ListHeaderDesktop() {
           deux partis que la tête doit dire ce qu'on regarde. */}
       {mode === "hidden" && (
         <div className="flex items-center gap-2 md:group-data-[large=true]/liste:order-7 md:group-data-[large=true]/liste:shrink-0">
-          {vue ? <PuceVue nom={vue.nom} /> : null}
+          {vue ? <PuceVue nom={vue.q} /> : null}
           <nav aria-label="Dossiers épinglés" className="grid flex-1 grid-cols-4 gap-2">
             {EPINGLES.map(({ id, label }) => (
               <TuileBureau key={id} id={id} label={label} active={id === folder.id && !vue} />

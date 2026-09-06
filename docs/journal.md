@@ -2,6 +2,21 @@
 
 Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérification.
 
+## 6 septembre 2026 — une vue n'a pas de nom, elle est sa requête
+
+« Quand je change le nom, la recherche reste sur la précédente. » Une demi-journée plus tôt j'avais
+donné aux vues une étiquette distincte de leur requête, avec le nom valant la requête par défaut :
+la rangée avait donc l'air d'être la requête, et la corriger ne changeait rien à ce que la liste
+montrait. Le défaut était dans le modèle, pas dans le code.
+
+`Vue` n'a plus que `{ id, q }`. Une chose à lire, une chose à modifier, et le geste qui la modifie
+fait ce qu'il a l'air de faire. `modifierVue` relit la vue ouverte dans la foulée — la nouvelle
+requête peut nommer un autre dossier, et laisser la liste sur l'ancien serait montrer la réponse à
+la question d'avant.
+
+Ce qu'on perd, c'est l'étiquette lisible d'une requête technique. Personne ne l'avait demandée ;
+elle reviendra le jour où quelqu'un la demandera, et elle sera un second champ, pas le même.
+
 ## 6 septembre 2026 — ⌘K ne montre plus que le courrier tant qu'on n'a rien demandé
 
 « Je ne vois pas l'utilité des fonctions en bas. » Actions, dossiers, espaces et vues sortaient

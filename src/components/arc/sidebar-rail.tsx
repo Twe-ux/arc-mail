@@ -170,7 +170,7 @@ function RailVue({ vue, active, onClick }: { vue: Vue; active: boolean; onClick:
         <button
           type="button"
           onClick={onClick}
-          aria-label={`Vue ${vue.nom}`}
+          aria-label={`Vue ${vue.q}`}
           aria-current={active ? "page" : undefined}
           className={cn(
             "relative flex size-9 items-center justify-center rounded-lg transition-colors",
@@ -182,7 +182,7 @@ function RailVue({ vue, active, onClick }: { vue: Vue; active: boolean; onClick:
         </button>
       </TooltipTrigger>
       <TooltipContent side="right">
-        {vue.nom}
+        {vue.q}
         {count > 0 && ` · ${count}`}
       </TooltipContent>
     </Tooltip>

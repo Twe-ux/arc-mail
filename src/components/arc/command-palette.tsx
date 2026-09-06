@@ -148,14 +148,14 @@ export function CommandPalette() {
      ne regarde que les mots nus — c'est la bonne règle pour une action ou un
      dossier, que `de:claire` ne concerne pas. Mais une vue *est* une requête :
      taper « avec:piece » et ne pas voir la vue qui s'appelle « avec:piece »
-     serait la cacher au moment précis où on la nomme. Elle se retrouve donc par
-     son nom **ou** par sa requête, mot à mot. */
+     serait la cacher au moment précis où on la nomme. Elle se retrouve donc sur
+     sa requête, mot à mot. */
   const brut = laver(requete.trim());
   const motsBruts = brut.split(" ").filter(Boolean);
   const vuesTrouvees = !cherche
     ? []
     : vues.filter((v) => {
-        const cible = laver(`${v.nom} ${v.q}`);
+        const cible = laver(v.q);
         return motsBruts.every((m) => cible.includes(m));
       });
   /* On ne propose de garder que ce qui n'est pas déjà gardé — et jamais une
@@ -287,7 +287,7 @@ export function CommandPalette() {
               value="__garder"
               onSelect={() =>
                 run(() => {
-                  const vue = enregistrerVue(requete.trim(), requete);
+                  const vue = enregistrerVue(requete);
                   ouvrirVue(vue.id);
                 })
               }
@@ -452,10 +452,10 @@ export function CommandPalette() {
             <CommandSeparator />
             <CommandGroup heading="Vues">
               {vuesTrouvees.map((v) => (
-                <CommandItem key={v.id} value={`vue ${v.nom} ${v.q}`} onSelect={() => run(() => ouvrirVue(v.id))}>
+                <CommandItem key={v.id} value={`vue ${v.q}`} onSelect={() => run(() => ouvrirVue(v.id))}>
                   <VUE_ICON />
                   <span className="min-w-0 flex-1 truncate">
-                    <Surligne texte={v.nom} requete={brut} />
+                    <Surligne texte={v.q} requete={brut} />
                   </span>
                 </CommandItem>
               ))}

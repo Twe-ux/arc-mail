@@ -106,7 +106,7 @@ export function MobileMenu() {
             ))}
             <NouvelleVue
               onValider={(q) => {
-                ouvrirVue(enregistrerVue(q, q).id);
+                ouvrirVue(enregistrerVue(q).id);
                 setCorrespondent(null);
                 setOpen(false);
               }}
@@ -232,10 +232,10 @@ function FolderRow({
  * un `<button>` dans un `<button>` est du HTML invalide et le navigateur peut
  * le démonter. C'est la règle de `SheetRow` depuis les récents.
  *
- * **Un crayon plutôt qu'un double-appui.** Le nom se corrige au double-clic
- * dans la barre du bureau, geste de renommage partout où une liste porte des
- * noms qu'on a écrits ; sur téléphone le double-appui ne veut rien dire — il
- * est pris par le zoom — et il ne s'annonce pas. Une cible visible, donc.
+ * **Un crayon plutôt qu'un double-appui.** La recherche se corrige au
+ * double-clic dans la barre du bureau ; sur téléphone le double-appui ne veut
+ * rien dire — il est pris par le zoom — et il ne s'annonce pas. Une cible
+ * visible, donc.
  */
 function VueRow({
   vue,
@@ -249,20 +249,20 @@ function VueRow({
   onForget: () => void;
 }) {
   const count = useMail((s) => selectVueUnread(s, vue));
-  const renommerVue = useMail((s) => s.renommerVue);
-  const [renomme, setRenomme] = useState(false);
+  const modifierVue = useMail((s) => s.modifierVue);
+  const [edite, setEdite] = useState(false);
 
-  if (renomme) {
+  if (edite) {
     return (
       <ChampRangee
-        depart={vue.nom}
-        placeholder={vue.q}
-        aria={`Nom de la vue ${vue.nom}`}
+        depart={vue.q}
+        placeholder="est:non-lu, de:claire…"
+        aria={`Recherche de la vue ${vue.q}`}
         icone={<Pencil className="size-5 shrink-0 text-muted-foreground" strokeWidth={1.75} />}
-        onClose={() => setRenomme(false)}
-        onValider={(nom) => {
-          setRenomme(false);
-          renommerVue(vue.id, nom);
+        onClose={() => setEdite(false)}
+        onValider={(q) => {
+          setEdite(false);
+          modifierVue(vue.id, q);
         }}
       />
     );
@@ -276,8 +276,8 @@ function VueRow({
         <span className="flex items-center">
           <button
             type="button"
-            onClick={() => setRenomme(true)}
-            aria-label={`Renommer la vue ${vue.nom}`}
+            onClick={() => setEdite(true)}
+            aria-label={`Modifier la recherche ${vue.q}`}
             className="relative flex size-8 items-center justify-center rounded-full text-muted-foreground active:bg-muted"
           >
             <Pencil className="size-4" />
@@ -285,7 +285,7 @@ function VueRow({
           <button
             type="button"
             onClick={onForget}
-            aria-label={`Oublier la vue ${vue.nom}`}
+            aria-label={`Oublier la vue ${vue.q}`}
             className="relative flex size-8 items-center justify-center rounded-full text-muted-foreground after:absolute after:-inset-1.5 active:bg-muted"
           >
             <X className="size-4" />
@@ -294,7 +294,7 @@ function VueRow({
       }
     >
       <VUE_ICON className="size-5 shrink-0" strokeWidth={1.75} />
-      <span className={cn("min-w-0 flex-1 truncate text-[15px]", active && "font-medium")}>{vue.nom}</span>
+      <span className={cn("min-w-0 flex-1 truncate text-[15px]", active && "font-medium")}>{vue.q}</span>
       {count > 0 && (
         <span className="shrink-0 text-[15px] text-muted-foreground tabular-nums">
           {count}

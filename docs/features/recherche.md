@@ -435,3 +435,30 @@ Vérifié sur huit requêtes : carte vide = récentes seules, 41 px de défileme
 `arch` fait apparaître « Aller à », `barre` et `thème` « Actions », `lire` « Vues » ; aucun intitulé
 vide ; `facture`, `barre`, `thème`, `lire` ne cachent **rien**, `claire` 86 px. Zéro erreur de
 console.
+
+---
+
+## La rangée **est** la requête (6 sept. 2026)
+
+Une vue a porté un nom séparé de sa requête pendant une demi-journée. C'était une erreur, et elle
+s'est vue tout de suite : **« quand je change le nom, la recherche reste sur la précédente »**. Le
+nom valait la requête par défaut, donc la rangée avait l'air d'être la requête ; la corriger ne
+changeait rien à ce que la liste montrait.
+
+`Vue` n'a plus que `{ id, q }`. Une chose à lire, une chose à modifier — et le geste qui la modifie
+(double-clic dans la barre, crayon sur téléphone) fait ce qu'il a l'air de faire : **il récrit la
+recherche**. `modifierVue` **relit la vue ouverte** dans la foulée : la nouvelle requête peut nommer
+un autre dossier, et laisser la liste sur l'ancien serait montrer la réponse à la question d'avant.
+Une requête vide n'écrase rien.
+
+Ce qu'on perd : une étiquette lisible pour une requête technique — « À lire » pour `est:non-lu`.
+Personne ne l'avait demandée ; elle reviendra le jour où quelqu'un la demandera, et elle sera un
+**second** champ, pas le même.
+
+Les vues déjà gardées avec un nom séparé retrouvent leur requête à l'écran : la clé `nom` est
+ignorée, `q` n'a jamais bougé, rien n'est perdu.
+
+Vérifié : une vue héritée (`nom: "milone"`, `q: "annecy"`) s'affiche « annecy » et rend ses deux
+fils ; la passer à `de:claire` change la barre, le titre et la liste ; la passer à `dans:archive`
+change **aussi le dossier lu** (3 conversations d'Archive) ; une requête vide n'écrase rien ; le
+crayon du téléphone fait la même chose. Zéro erreur de console.

@@ -221,7 +221,7 @@ function Vues() {
           onClose={() => setSaisie(false)}
           onValider={(q) => {
             setSaisie(false);
-            ouvrirVue(enregistrerVue(q, q).id);
+            ouvrirVue(enregistrerVue(q).id);
           }}
         />
       ) : (
@@ -288,15 +288,16 @@ function SaisieVue({
 }
 
 /**
- * Une vue dans la barre — et **son nom se corrige au double-clic**.
+ * Une vue dans la barre — et **sa recherche se corrige au double-clic**.
  *
- * Le nom par défaut est la requête : c'est ce qui la fait reconnaître au moment
- * où on la garde, et ce qui la fait lire comme du code une semaine plus tard.
- * Le double-clic est le geste de renommage partout où une liste porte des noms
- * qu'on a écrits — un fichier, un onglet, un calque —, et il laisse le simple
+ * La rangée **est** la requête : il n'y a rien d'autre à modifier. Elle a porté
+ * une étiquette séparée une demi-journée, et la corriger ne changeait rien à ce
+ * que la liste montrait — « quand je change le nom, la recherche reste sur la
+ * précédente ». Une chose à lire, une chose à modifier.
+ *
+ * Le double-clic est le geste d'édition partout où une liste porte des chaînes
+ * qu'on a écrites — un fichier, un onglet, un calque —, et il laisse le simple
  * clic à l'action principale : ouvrir la vue.
- *
- * La requête, elle, ne bouge pas : elle reste lisible dans l'infobulle.
  */
 function VueRow({
   vue,
@@ -310,19 +311,18 @@ function VueRow({
   onForget: () => void;
 }) {
   const count = useMail((s) => selectVueUnread(s, vue));
-  const renommerVue = useMail((s) => s.renommerVue);
-  const [renomme, setRenomme] = useState(false);
+  const modifierVue = useMail((s) => s.modifierVue);
+  const [edite, setEdite] = useState(false);
 
-  if (renomme) {
+  if (edite) {
     return (
       <SaisieVue
-        depart={vue.nom}
-        placeholder={vue.q}
-        aria={`Nom de la vue ${vue.nom}`}
-        onClose={() => setRenomme(false)}
-        onValider={(nom) => {
-          setRenomme(false);
-          renommerVue(vue.id, nom);
+        depart={vue.q}
+        aria={`Recherche de la vue ${vue.q}`}
+        onClose={() => setEdite(false)}
+        onValider={(q) => {
+          setEdite(false);
+          modifierVue(vue.id, q);
         }}
       />
     );
@@ -341,16 +341,16 @@ function VueRow({
       <button
         type="button"
         onClick={onClick}
-        onDoubleClick={() => setRenomme(true)}
+        onDoubleClick={() => setEdite(true)}
         aria-current={active ? "page" : undefined}
-        title={`${vue.q} — double-clic pour renommer`}
+        title={`${vue.q} — double-clic pour modifier la recherche`}
         className={cn(
           "flex h-8 min-w-0 flex-1 items-center gap-2.5 rounded-lg pl-2.5 text-sm transition-colors",
           active ? "text-[var(--side-ink)]" : cn(TN.hover, "text-[var(--side-ink-soft)]"),
         )}
       >
         <VUE_ICON className="size-4 shrink-0" />
-        <span className="min-w-0 flex-1 truncate text-left">{vue.nom}</span>
+        <span className="min-w-0 flex-1 truncate text-left">{vue.q}</span>
       </button>
       {count > 0 && (
         <span className={cn("mr-1 rounded-full px-1.5 text-[11px] font-semibold tabular-nums", TN.count)}>
@@ -362,7 +362,7 @@ function VueRow({
       <button
         type="button"
         onClick={onForget}
-        aria-label={`Oublier la vue ${vue.nom}`}
+        aria-label={`Oublier la vue ${vue.q}`}
         className={cn(
           "grid size-6 shrink-0 place-items-center rounded-md opacity-0 transition-opacity group-hover/vue:opacity-100 focus-visible:opacity-100",
           TN.icon,

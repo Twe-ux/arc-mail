@@ -174,11 +174,10 @@ export type MailState = {
   setSpaces: (spaces: Space[]) => void;
   setGroupBy: (mode: MailState["groupBy"]) => void;
   setCorrespondent: (email: string | null) => void;
-  /** Garde la requête courante sous un nom. Rend la vue créée. */
-  enregistrerVue: (nom: string, q: string) => Vue;
-  /** Change le **nom** d'une vue, jamais sa requête : c'est l'étiquette qu'on
-   *  corrige, la question reste la même. */
-  renommerVue: (id: string, nom: string) => void;
+  /** Garde une requête. Rend la vue créée — ou celle qui portait déjà la même. */
+  enregistrerVue: (q: string) => Vue;
+  /** Récrit la requête d'une vue. La vue ouverte se relit aussitôt. */
+  modifierVue: (id: string, q: string) => void;
   supprimerVue: (id: string) => void;
   ouvrirVue: (id: string) => void;
   setListWidth: (px: number) => void;
@@ -1023,35 +1022,37 @@ export const useMail = create<MailState>()(
   /**
    * Garder la question.
    *
-   * Le nom par défaut est **la requête elle-même** : c'est ce qu'on vient de
-   * taper, donc ce qu'on reconnaîtra, et une vue nommée « Vue 3 » ne se
-   * distingue de rien. Une requête déjà gardée n'en fabrique pas une seconde —
-   * deux lignes identiques dans la barre ne sont pas deux vues, c'est un
-   * doublon qu'on ira supprimer.
+   * Une requête déjà gardée n'en fabrique pas une seconde — deux lignes
+   * identiques dans la barre ne sont pas deux vues, c'est un doublon qu'on ira
+   * supprimer.
    */
-  enregistrerVue: (nom, q) => {
+  enregistrerVue: (q) => {
     const requete = q.trim();
     const connue = get().vues.find((v) => v.q === requete);
     if (connue) return connue;
-    const vue: Vue = { id: `vue-${Date.now().toString(36)}`, nom: nom.trim() || requete, q: requete };
+    const vue: Vue = { id: `vue-${Date.now().toString(36)}`, q: requete };
     set((s) => ({ vues: [...s.vues, vue] }));
     return vue;
   },
 
   /**
-   * Renommer.
+   * Récrire la requête d'une vue.
    *
-   * Le nom par défaut **est** la requête — c'est ce qui la fait reconnaître au
-   * moment où on la garde, et ce qui la fait lire comme du code une semaine
-   * plus tard. `q` ne bouge pas : on corrige l'étiquette, pas la question, et
-   * la requête reste lisible dans l'infobulle de la rangée.
+   * **C'est la recherche qu'on modifie, pas une étiquette.** La rangée a porté
+   * un nom séparé une demi-journée : le corriger ne changeait rien à ce que la
+   * liste montrait — « quand je change le nom, la recherche reste sur la
+   * précédente ». Une chose à lire, une chose à modifier.
    *
-   * Un nom vide n'écrase rien — la rangée redeviendrait muette.
+   * La vue ouverte **se relit aussitôt** : la requête peut nommer un autre
+   * dossier (`dans:`), et laisser la liste sur l'ancien serait montrer la
+   * réponse à la question d'avant. Une requête vide n'écrase rien — la rangée
+   * redeviendrait muette.
    */
-  renommerVue: (id, nom) => {
-    const propre = nom.trim();
-    if (!propre) return;
-    set((s) => ({ vues: s.vues.map((v) => (v.id === id ? { ...v, nom: propre } : v)) }));
+  modifierVue: (id, q) => {
+    const requete = q.trim();
+    if (!requete) return;
+    set((s) => ({ vues: s.vues.map((v) => (v.id === id ? { ...v, q: requete } : v)) }));
+    if (get().vueId === id) get().ouvrirVue(id);
   },
 
   supprimerVue: (id) =>
@@ -1551,7 +1552,7 @@ export const selectVue = (s: MailState) => s.vues.find((v) => v.id === s.vueId);
  * téléphone et celle du bureau la posaient chacune de leur côté, et une vue
  * ouverte sous le titre « Boîte de réception » serait une liste qui ment.
  */
-export const selectListTitle = (s: MailState) => selectVue(s)?.nom ?? selectFolder(s).name;
+export const selectListTitle = (s: MailState) => selectVue(s)?.q ?? selectFolder(s).name;
 
 /**
  * Les **mots nus** de la vue ouverte, `""` quand on regarde un dossier.

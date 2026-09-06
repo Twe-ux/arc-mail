@@ -188,6 +188,11 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   une lune : le thème y est devenu un réglage parmi cinq) et **l'avatar du compte**, dont le menu
   porte « Comptes et signatures » et « Se déconnecter ». La rangée nom + deux icônes a disparu, et
   le **rail reçoit le même bas** empilé — il n'avait aucun chemin vers l'apparence ni vers la sortie.
+- Une **infobulle ne s'intercale pas dans un déclencheur** : `asChild` clone son enfant, et un
+  `Tooltip` n'a pas de nœud DOM où poser le `onClick` — le bouton devient muet, sans erreur. L'ordre
+  est `Tooltip > TooltipTrigger asChild > PopoverTrigger asChild > bouton` ; `AppearancePanel` prend
+  donc un prop `tooltip` et le pose lui-même.
+- En dev, le `nextjs-portal` couvre le **bas du rail** : le masquer avant tout test local.
 - Le regroupement par correspondant enclenché **se remplit** (accent 22 %, encre `--space-ink`).
 - Ouvrir le troisième volet **réduit une barre attachée en rail** ; il fait 460 px à chaque
   ouverture, sa largeur a sa propre clé, et il porte un message **ou** un fichier.

@@ -150,19 +150,14 @@ export function SidebarContent() {
           {/* La lune basculait le thème d'un coup. Le thème est devenu un
               réglage parmi cinq, dans ce panneau : l'icône dit donc « réglages »
               et non « sombre ». */}
-          <AppearancePanel>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  type="button"
-                  aria-label="Apparence et réglages"
-                  className={cn("flex size-8 items-center justify-center rounded-lg transition-colors", TN.icon)}
-                >
-                  <Settings2 className="size-4" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="top">Apparence et réglages</TooltipContent>
-            </Tooltip>
+          <AppearancePanel tooltip="Apparence et réglages">
+            <button
+              type="button"
+              aria-label="Apparence et réglages"
+              className={cn("flex size-8 items-center justify-center rounded-lg transition-colors", TN.icon)}
+            >
+              <Settings2 className="size-4" />
+            </button>
           </AppearancePanel>
           <AccountMenu className={TN.icon} />
         </div>

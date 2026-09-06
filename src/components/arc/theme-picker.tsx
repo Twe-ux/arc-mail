@@ -16,6 +16,7 @@ import Link from "next/link";
 import { useState, type ReactNode } from "react";
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { useMail, useSpace } from "@/lib/store";
 import { PRESET_HUES, themeFromHue } from "@/lib/theme";
@@ -50,7 +51,23 @@ const ICONES = Object.keys(SPACE_ICONS) as Space["icon"][];
  * jusqu'en thème sombre. Deux surfaces pour un même réglage ne peuvent pas
  * avoir deux grammaires ; c'est la même personne qui les regarde.
  */
-export function AppearancePanel({ children }: { children: ReactNode }) {
+export function AppearancePanel({
+  children,
+  tooltip,
+}: {
+  children: ReactNode;
+  /**
+   * L'infobulle du déclencheur, posée **ici**.
+   *
+   * Elle ne peut pas venir de l'appelant : un `Tooltip` glissé entre le
+   * `PopoverTrigger` et son bouton donne à `asChild` un composant Radix sans
+   * nœud DOM à cloner, et le déclencheur n'est jamais câblé — le panneau
+   * n'ouvrait plus rien, ni dans la barre ni dans le rail. L'ordre qui marche
+   * est `Tooltip > TooltipTrigger asChild > PopoverTrigger asChild > bouton`,
+   * et seul ce composant peut le poser.
+   */
+  tooltip?: string;
+}) {
   const space = useSpace();
   const hue = useMail((s) => s.themes[space.id]);
   const setSpaceHue = useMail((s) => s.setSpaceHue);
@@ -76,7 +93,16 @@ export function AppearancePanel({ children }: { children: ReactNode }) {
 
   return (
     <Popover>
-      <PopoverTrigger asChild>{children}</PopoverTrigger>
+      {tooltip ? (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <PopoverTrigger asChild>{children}</PopoverTrigger>
+          </TooltipTrigger>
+          <TooltipContent side="top">{tooltip}</TooltipContent>
+        </Tooltip>
+      ) : (
+        <PopoverTrigger asChild>{children}</PopoverTrigger>
+      )}
       <PopoverContent
         align="start"
         /* Vers le haut : le bouton vit tout en bas de la barre, et un panneau

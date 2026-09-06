@@ -78,19 +78,14 @@ export function SidebarRail() {
           (⌘B) pour changer de thème. Ce que la rangée du bas a gagné, le rail
           le gagne aussi. */}
       <div className="flex shrink-0 flex-col items-center gap-0.5">
-        <AppearancePanel>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                type="button"
-                aria-label="Apparence et réglages"
-                className={cn("flex size-9 items-center justify-center rounded-lg transition-colors", TN.icon)}
-              >
-                <Settings2 className="size-[18px]" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="right">Apparence et réglages</TooltipContent>
-          </Tooltip>
+        <AppearancePanel tooltip="Apparence et réglages">
+          <button
+            type="button"
+            aria-label="Apparence et réglages"
+            className={cn("flex size-9 items-center justify-center rounded-lg transition-colors", TN.icon)}
+          >
+            <Settings2 className="size-[18px]" />
+          </button>
         </AppearancePanel>
         <AccountMenu className={cn("size-9", TN.icon)} />
       </div>

@@ -289,3 +289,37 @@ chacun ; rail à 52 px, réglages et avatar à y = 710 et 748, 36 px chacun ; **
 « Nouveau message » dans la barre ni dans le rail ; celui de la tête rend `background-image: none`
 et une encre `oklch(0.389 0.144 304)` en clair, `rgb(168,85,247)` en sombre ; le menu rend ses deux
 entrées ; zéro erreur de console.
+
+---
+
+## Une infobulle ne s'intercale pas dans un déclencheur (6 sept. 2026)
+
+Signalé aussitôt : « le bouton apparence réglages sur desktop n'affiche rien ». Introduit une heure
+plus tôt, en ajoutant une infobulle au bouton :
+
+```tsx
+<AppearancePanel>          {/* fait <PopoverTrigger asChild>{children}</PopoverTrigger> */}
+  <Tooltip>                {/* ← un composant Radix, pas un nœud DOM */}
+    <TooltipTrigger asChild><button …/></TooltipTrigger>
+```
+
+`asChild` **clone son unique enfant** pour lui passer les gestionnaires et la ref. Donné un
+`Tooltip` — une racine Radix sans élément à rendre —, il n'a rien où les poser : le bouton ne reçoit
+jamais le `onClick` du popover, et rien ne s'ouvre. Aucune erreur de console, aucun avertissement :
+un bouton qui ne fait rien.
+
+L'ordre qui marche est **`Tooltip > TooltipTrigger asChild > PopoverTrigger asChild > bouton`** —
+chaque `asChild` clone un composant qui sait à son tour être cloné, jusqu'au vrai `<button>`. Comme
+`PopoverTrigger` vit à l'intérieur d'`AppearancePanel`, l'appelant ne peut pas s'insérer au milieu :
+le panneau prend donc un prop **`tooltip`** et pose l'ordre lui-même. `AccountMenu` l'avait déjà, ce
+qui explique qu'il ait marché du premier coup et pas l'autre.
+
+Vérifié en **cliquant vraiment** — les quatre cas, barre attachée et rail × clair et sombre : le
+panneau s'ouvre, 268 px, treize lignes, zéro erreur de console. La leçon de méthode est là : la
+mesure au `getBoundingClientRect` disait que le bouton était bien placé et de la bonne taille, et
+elle ne disait rien de ce qui comptait.
+
+**En développement, l'indicateur de Next couvre le bas du rail.** Le `nextjs-portal` du coin bas
+gauche se pose exactement sur l'engrenage et l'avatar : ils sont inatteignables tant qu'il est là.
+Il n'existe pas en production, mais il fausse tout test local — les vérifications le masquent
+(`nextjs-portal{display:none}`) avant de cliquer.

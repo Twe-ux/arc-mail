@@ -597,3 +597,36 @@ rien faire.
 La reprise se fait par **paires** dans un seau par objet, pas par un nœud commun : un nœud
 `subj:` unissait tout le seau d'un coup, et une seule paire légitime y aurait ramené les trois
 autres messages.
+
+## Un fil tient dans deux boîtes (6 sept. 2026)
+
+« Quand je recharge, mes messages envoyés ne s'affichent pas — mais ils sont dans Envoyés. »
+
+C'est exact, et c'est la forme même d'IMAP : une conversation est rangée dans autant de boîtes
+qu'elle a de sens. Ce qu'on reçoit est dans la réception, ce qu'on répond dans « Envoyés » — et
+`readFolder` ne lit **qu'un dossier**. Le défaut n'apparaissait qu'au retour : avant le
+rechargement, l'écriture optimiste avait posé notre réponse dans le fil ; après, la relecture
+serveur remplaçait la tranche du dossier par ce que la réception contient, et notre moitié
+disparaissait.
+
+`lireEnvoyes` relit donc les **40 derniers** messages d'« Envoyés » à chaque lecture de liste, et le
+regroupement se fait sur les deux boîtes ensemble — **les mêmes règles**, sans exception : ce sont
+`References` et la paire « une réponse + un correspondant commun » qui décident, pas la provenance.
+Trois conséquences qu'il a fallu écrire :
+
+- **Chaque message porte son chemin** (`Situe`, `arcPath`) : un UID n'a de sens que dans son
+  dossier, et un fil en compte maintenant deux.
+- **L'identité du fil reste dans la boîte qu'on regarde.** Un fil fondu se termine souvent par
+  notre propre réponse ; en faire l'identifiant enverrait le prochain archivage écrire dans
+  « Envoyés » au lieu de la réception. On prend le dernier message **de cette boîte**.
+- **On trie par date, plus par UID** : les UID de deux dossiers ne se comparent pas. `readThread`
+  range aussi ses UID par boîte et fait un tour par boîte — on ne peut en sélectionner qu'une à la
+  fois.
+
+Un fil qui n'est *que* dans « Envoyés » n'entre pas dans la réception : il est déjà dans son propre
+dossier.
+
+**Le coût est réel et assumé** : un `LIST` (mis en cache pour la requête), un `SELECT` et un `FETCH`
+de quarante enveloppes de plus par lecture de liste. C'est ce que paient tous les clients qui
+montrent une conversation entière. La fenêtre de quarante est l'approximation : une réponse plus
+ancienne que les quarante derniers envois ne se fond pas.

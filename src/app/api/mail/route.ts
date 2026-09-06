@@ -92,6 +92,13 @@ export async function POST(request: NextRequest) {
         /* Favoris n'est pas un dossier mais un drapeau : on cherche les
            messages marqués dans la réception plutôt que d'ouvrir un chemin
            qui n'existe pas. */
+        /* **Nos réponses vivent dans « Envoyés ».** On les fond dans les fils
+           de la boîte qu'on lit, sinon un fil rouvert après rechargement ne
+           montre que sa moitié reçue. Le chemin passe par `paths()` — un LIST
+           de plus, mis en cache pour la requête. Inutile quand on lit
+           « Envoyés » lui-même. */
+        const envoyes = body.folder === "sent" ? undefined : (await paths()).sent;
+
         if (body.folder === "starred") {
           /* Ils gardent « inbox » comme dossier : ce sont les mêmes messages,
              et les marquer « starred » les ferait disparaître de la réception
@@ -102,6 +109,7 @@ export async function POST(request: NextRequest) {
               limit: body.limit,
               deja: body.deja,
               moi: account.email,
+              sentPath: envoyes,
             }),
           };
         }
@@ -117,6 +125,7 @@ export async function POST(request: NextRequest) {
             limit: body.limit,
             deja: body.deja,
             moi: account.email,
+            sentPath: envoyes,
           }),
         };
       }

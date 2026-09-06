@@ -105,6 +105,9 @@ correctif.
       nouveaux s'enregistrent au lieu d'être refusés par la contrainte `check`.
 - [ ] **La PWA installée sur l'iPhone** — après un déploiement : la version se rafraîchit-elle au
       tirage, et l'écran ne reste-t-il pas figé.
+- [ ] **La fusion avec « Envoyés »** — une réponse écrite depuis Arc Mail doit rester dans le fil
+      après rechargement, et l'archivage doit continuer d'écrire dans la réception, pas dans
+      « Envoyés ». Le mock ne range rien dans deux boîtes.
 - [ ] **Le regroupement en fils** — quatre envois de même objet à quatre personnes doivent faire
       quatre fils, et une réponse doit rejoindre le bon exemplaire. La règle tient à `Re:` plus un
       correspondant commun ; le mock ne peut pas la mettre à l'épreuve.

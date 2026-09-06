@@ -251,6 +251,22 @@ function bareSubject(subject: string): string {
     .toLowerCase();
 }
 
+/**
+ * Un message **et sa boîte**.
+ *
+ * Un UID ne veut rien dire sans son dossier, et un fil peut désormais tenir
+ * dans deux boîtes à la fois : la réception porte ce qu'on a reçu, « Envoyés »
+ * ce qu'on a répondu. Chaque message emporte donc son chemin ; celui du fil ne
+ * sert plus que de défaut, pour tout ce qui n'a jamais quitté sa boîte.
+ */
+type Situe = FetchMessageObject & { arcPath?: string };
+
+const chemin = (m: Situe, defaut: string) => m.arcPath ?? defaut;
+
+/** La date d'un message, pour trier un fil qui vient de deux boîtes : les UID
+ *  de deux dossiers ne se comparent pas. */
+const quand = (m: FetchMessageObject) => (m.envelope?.date ?? new Date(0)).getTime();
+
 /** « Re: », « Fwd: », « Tr : » — ce message se présente comme une réponse. */
 function estReponse(subject: string): boolean {
   return /^((re|ré|rép|fwd|fw|tr)\s*(\[\d+\])?\s*:\s*)+/i.test(subject.trim());
@@ -297,7 +313,7 @@ function correspondants(m: FetchMessageObject, moi?: string): Set<string> {
  * s'attache plus. Elle est alors indistinguable d'un message neuf, et
  * l'attacher à l'un des quatre au hasard serait pire que de ne rien faire.
  */
-function groupIntoThreads(messages: FetchMessageObject[], moi?: string): FetchMessageObject[][] {
+function groupIntoThreads(messages: Situe[], moi?: string): Situe[][] {
   const parent = new Map<string, string>();
   const find = (x: string): string => {
     const up = parent.get(x);
@@ -367,7 +383,10 @@ function groupIntoThreads(messages: FetchMessageObject[], moi?: string): FetchMe
     if (group) group.push(m);
     else groups.set(root, [m]);
   }
-  return [...groups.values()].map((g) => g.sort((a, b) => a.uid - b.uid));
+  /* **Par date, plus par UID** : un fil peut venir de deux boîtes, et les UID
+     de deux dossiers ne se comparent pas. À date égale l'UID départage, pour
+     que deux messages de la même minute gardent un ordre stable. */
+  return [...groups.values()].map((g) => g.sort((a, b) => quand(a) - quand(b) || a.uid - b.uid));
 }
 
 /**
@@ -419,10 +438,15 @@ function entete(mime: ParsedMail, nom: string): string | undefined {
  * Un fil sans espace : le fournisseur n'en connaît pas, c'est le store qui
  * tamponne à la réception (voir `stamp` dans `store.ts`).
  */
-function toThread(group: FetchMessageObject[], path: string, folder: FolderId): Thread {
+function toThread(group: Situe[], path: string, folder: FolderId): Thread {
   const last = group[group.length - 1];
+  /* **L'identité du fil reste dans la boîte qu'on regarde.** Un fil fondu se
+     termine souvent par notre propre réponse, qui vit dans « Envoyés » : en
+     faire l'identifiant enverrait le prochain archivage écrire là-bas au lieu
+     de la réception. On prend donc le dernier message **de cette boîte**. */
+  const sien = [...group].reverse().find((m) => chemin(m, path) === path) ?? last;
   const messages: Message[] = group.map((m) => ({
-    id: threadId(path, m.uid),
+    id: threadId(chemin(m, path), m.uid),
     from: contact(m.envelope?.from?.[0]),
     to: contacts(m.envelope?.to),
     cc: m.envelope?.cc?.length ? contacts(m.envelope.cc) : undefined,
@@ -434,7 +458,7 @@ function toThread(group: FetchMessageObject[], path: string, folder: FolderId): 
   }));
 
   return {
-    id: threadId(path, last.uid),
+    id: threadId(path, sien.uid),
     spaceId: "",
     folder,
     subject: last.envelope?.subject?.trim() || "(sans objet)",
@@ -485,14 +509,59 @@ export async function searchFolder(
   }
 }
 
+/**
+ * Combien d'« Envoyés » on relit pour fondre nos réponses dans les fils.
+ *
+ * Moins que la fenêtre d'un dossier : ce qu'on cherche est récent par nature —
+ * nos réponses aux fils que la liste montre. Au-delà, on paierait un fetch pour
+ * des messages dont l'autre moitié n'est plus à l'écran.
+ */
+const ENVOYES = 40;
+
+/**
+ * Nos propres réponses, lues dans « Envoyés » pour être fondues dans les fils.
+ *
+ * **Pourquoi il faut aller les chercher** : IMAP range une conversation dans
+ * autant de boîtes qu'elle a de sens. Ce qu'on reçoit est dans la réception, ce
+ * qu'on répond dans « Envoyés » — et une lecture de dossier ne rapporte qu'un
+ * dossier. Un fil rouvert après rechargement ne montrait donc **que la moitié
+ * reçue** : nos réponses n'y étaient plus, alors qu'elles étaient bien dans
+ * « Envoyés ». Avant le rechargement elles s'y trouvaient par l'écriture
+ * optimiste, ce qui faisait un défaut qui n'apparaissait qu'au retour.
+ *
+ * Le coût est réel et assumé : un SELECT et un FETCH de plus par lecture de
+ * liste. C'est ce que font les clients qui montrent une conversation entière.
+ */
+async function lireEnvoyes(client: ImapFlow, path: string): Promise<Situe[]> {
+  const lock = await client.getMailboxLock(path);
+  try {
+    const box = client.mailbox;
+    const total = typeof box === "object" ? box.exists : 0;
+    if (!total) return [];
+    const from = Math.max(1, total - ENVOYES + 1);
+    const messages: Situe[] = [];
+    for await (const m of client.fetch(`${from}:*`, ENVELOPE_QUERY)) {
+      messages.push(Object.assign(m, { arcPath: path }));
+    }
+    return messages;
+  } catch {
+    /* Une boîte sans « Envoyés », ou qui refuse : le fil garde sa moitié reçue
+       plutôt que la lecture entière échoue. */
+    return [];
+  } finally {
+    lock.release();
+  }
+}
+
 /** Les derniers fils d'un dossier, du plus récent au plus ancien. */
 export async function readFolder(
   client: ImapFlow,
   path: string,
   folder: FolderId,
-  options: { flaggedOnly?: boolean; limit?: number; deja?: number; moi?: string } = {},
+  options: { flaggedOnly?: boolean; limit?: number; deja?: number; moi?: string; sentPath?: string } = {},
 ): Promise<Thread[]> {
   const lock = await client.getMailboxLock(path);
+  let rendu = false;
   try {
     const box = client.mailbox;
     const total = typeof box === "object" ? box.exists : 0;
@@ -501,7 +570,7 @@ export async function readFolder(
     const limit = options.limit ?? WINDOW;
     const deja = Math.max(0, options.deja ?? 0);
     if (deja >= total) return [];
-    const messages: FetchMessageObject[] = [];
+    const messages: Situe[] = [];
 
     if (options.flaggedOnly) {
       const uids = await client.search({ flagged: true }, { uid: true });
@@ -523,10 +592,24 @@ export async function readFolder(
         messages.push(m);
     }
 
-    const threads = groupIntoThreads(messages, options.moi).map((g) => toThread(g, path, folder));
+    /* Le verrou tombe ici : on ne peut sélectionner qu'une boîte à la fois, et
+       la suite va lire « Envoyés ». */
+    lock.release();
+    rendu = true;
+
+    const envoyes =
+      options.sentPath && options.sentPath !== path ? await lireEnvoyes(client, options.sentPath) : [];
+
+    /* **Seuls les fils qui existent ici.** Fondre ajoute nos réponses aux fils
+       de cette boîte ; un fil qui n'est *que* dans « Envoyés » n'a rien à faire
+       dans la réception — il est déjà dans le dossier « Envoyés ». */
+    const propres = new Set(messages.map((m) => m.uid));
+    const threads = groupIntoThreads([...messages, ...envoyes], options.moi)
+      .filter((g) => g.some((m) => !m.arcPath && propres.has(m.uid)))
+      .map((g) => toThread(g, path, folder));
     return threads.sort((a, b) => (a.messages.at(-1)!.date < b.messages.at(-1)!.date ? 1 : -1));
   } finally {
-    lock.release();
+    if (!rendu) lock.release();
   }
 }
 
@@ -657,13 +740,9 @@ export async function readThreads(
  * squelette, **pour toujours** : « pourquoi je n'ai pas tous les messages de la
  * conversation ? ». Un fil de trois messages n'en montrait qu'un.
  */
-async function complet(
-  messages: FetchMessageObject[],
-  path: string,
-  folder: FolderId,
-): Promise<Thread> {
+async function complet(messages: Situe[], path: string, folder: FolderId): Promise<Thread> {
   const thread = toThread(messages, path, folder);
-  await Promise.all(messages.map((m, i) => remplirMessage(thread, i, m, path)));
+  await Promise.all(messages.map((m, i) => remplirMessage(thread, i, m, chemin(m, path))));
 
   /* L'aperçu du fil vient du **dernier** message : c'est celui que la liste
      résume, et c'est lui que le fil porte comme objet. */
@@ -780,28 +859,38 @@ export async function readThread(
 ): Promise<Thread | null> {
   const parsed = parseThreadId(id);
   if (!parsed) return null;
-  /* Les UID du même dossier que le fil, l'ordre d'arrivée conservé, et celui du
-     fil toujours dedans — un client qui n'envoie rien retombe sur l'ancien
-     comportement plutôt que sur une liste vide. */
-  const uids = [
-    ...new Set(
-      (messageIds ?? [])
-        .map(parseThreadId)
-        .filter((x): x is { path: string; uid: number } => x !== null && x.path === parsed.path)
-        .map((x) => x.uid)
-        .concat(parsed.uid),
-    ),
-  ].sort((a, b) => a - b);
-
-  const lock = await client.getMailboxLock(parsed.path);
-  try {
-    const messages: FetchMessageObject[] = [];
-    for await (const m of client.fetch(uids, { ...ENVELOPE_QUERY, source: true }, { uid: true })) {
-      if (m.source) messages.push(m);
-    }
-    if (messages.length === 0) return null;
-    return await complet(messages, parsed.path, folder);
-  } finally {
-    lock.release();
+  /* **Les UID, rangés par boîte.** Un fil fondu tient dans deux dossiers — la
+     réception pour ce qu'on a reçu, « Envoyés » pour ce qu'on a répondu —, et
+     un UID n'a de sens que dans le sien. On ne peut sélectionner qu'une boîte à
+     la fois : c'est donc un tour par boîte, et celle du fil toujours dedans —
+     un client qui n'envoie rien retombe sur l'ancien comportement plutôt que
+     sur une liste vide. */
+  const parBoite = new Map<string, number[]>();
+  for (const x of [...(messageIds ?? []), id].map(parseThreadId)) {
+    if (!x) continue;
+    const deja = parBoite.get(x.path);
+    if (deja) {
+      if (!deja.includes(x.uid)) deja.push(x.uid);
+    } else parBoite.set(x.path, [x.uid]);
   }
+
+  const messages: Situe[] = [];
+  for (const [path, uids] of parBoite) {
+    const lock = await client.getMailboxLock(path);
+    try {
+      for await (const m of client.fetch([...uids].sort((a, b) => a - b), { ...ENVELOPE_QUERY, source: true }, { uid: true })) {
+        if (m.source) messages.push(Object.assign(m, { arcPath: path }));
+      }
+    } catch {
+      /* Cette boîte-là ne répond pas : le fil garde ce que les autres ont
+         rendu, plutôt que de ne rien rendre du tout. */
+    } finally {
+      lock.release();
+    }
+  }
+  if (messages.length === 0) return null;
+  /* Deux boîtes, donc l'ordre est celui des dates : les UID ne se comparent
+     pas d'un dossier à l'autre. */
+  messages.sort((a, b) => quand(a) - quand(b) || a.uid - b.uid);
+  return await complet(messages, parsed.path, folder);
 }

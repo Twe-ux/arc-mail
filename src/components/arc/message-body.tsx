@@ -469,6 +469,15 @@ const script = (marge: number) => `
         bouton.setAttribute("aria-label", ouverte ? "Masquer le message cite" : "Afficher le message cite");
         dire();
       };
+      /* **Le blanc d'avant part avec la citation.** Un webmail pose un ou deux
+         <br> entre la reponse et ce qu'elle cite ; replier la citation seule
+         laissait ce vide au milieu de la bulle — mesure : cent pixels sous une
+         ligne de texte. On remonte donc tant que le voisin ne dit rien. */
+      var vide = debut.previousElementSibling;
+      while (vide && !(vide.textContent || "").replace(/[\s\u00a0]/g, "")) {
+        caches.push(vide);
+        vide = vide.previousElementSibling;
+      }
       var bouton = document.createElement("button");
       bouton.type = "button";
       bouton.className = "arc-cit";

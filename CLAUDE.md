@@ -417,6 +417,12 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   retour), lancé en parallèle de la liste : le dossier ouvert compte en local — l'optimiste doit se
   voir —, les autres lisent le serveur, Favoris et « En pause » n'y sont pas (un drapeau, pas de
   dossier). Un déplacement ajuste le compteur d'arrivée **s'il existe déjà** ; rien n'est persisté.
+- **Un fil tient dans deux boîtes** : `lireEnvoyes` relit les 40 derniers « Envoyés » à chaque
+  lecture de liste et le regroupement se fait sur les deux ensemble — sinon un fil rouvert après
+  rechargement n'a que sa moitié reçue. Chaque message porte son chemin (`Situe`), **l'identité du
+  fil reste dans la boîte qu'on regarde** (sinon l'archivage écrirait dans Envoyés), et on trie par
+  **date**, jamais par UID — deux dossiers ne se comparent pas. Coût assumé : un SELECT et un FETCH
+  de plus par liste.
 - **L'objet seul ne fait pas un fil** : la reprise par objet demande qu'**un des deux se présente
   comme une réponse** (`Re:`/`Fwd:`) **et** qu'ils aient un correspondant en commun, nous exclus
   (`moi` vient de la route) — sinon quatre envois de même objet à quatre personnes fusionnaient. Par

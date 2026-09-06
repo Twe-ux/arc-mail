@@ -2,6 +2,21 @@
 
 Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérification.
 
+## 6 septembre 2026 — un fil tient dans deux boîtes
+
+« Quand je recharge, mes messages envoyés ne s'affichent pas — mais ils sont dans Envoyés. » Exact :
+`readFolder` ne lit qu'un dossier, et une conversation est rangée dans autant de boîtes qu'elle a de
+sens. Le défaut n'apparaissait qu'au retour — avant le rechargement, l'écriture optimiste avait posé
+notre réponse dans le fil.
+
+On relit donc les 40 derniers « Envoyés » à chaque lecture de liste et on groupe les deux boîtes
+ensemble, avec les mêmes règles. Trois choses ont dû suivre : chaque message porte son chemin (un
+UID n'a de sens que dans son dossier), l'identité du fil reste dans la boîte qu'on regarde — sinon
+le prochain archivage irait écrire dans « Envoyés » —, et le tri passe par la date, les UID de deux
+dossiers ne se comparant pas.
+
+Coût assumé : un SELECT et un FETCH de quarante enveloppes de plus par liste.
+
 ## 6 septembre 2026 — l'objet seul ne fait plus un fil
 
 Quatre fiches de salaire, envoyées le même jour à quatre personnes différentes, dans **un seul fil**

@@ -177,22 +177,24 @@ const SCRIPT = `
       var dispo = fit.offsetWidth;
       var naturel = Math.max(fit.scrollWidth, dispo);
       /* **Un courrier qui apporte sa mise en page ne paie pas notre marge.**
-         Deux facons de l'apporter, et il fallait les deux :
+         Elle lui coute de la largeur — 8 % de taille de texte sur un tableau de
+         600 px reduit a un telephone de 393 — et elle se voit comme un lisere
+         blanc tout autour de son fond. Trois facons de reconnaitre qu'il en
+         apporte une, et il fallait les trois :
 
-         - il est **plus large que l'ecran** — un tableau de 600 px sur un
-           telephone de 393 est deja reduit, et les 32 px de cadre lui
-           retiraient encore 8 % de taille de texte ;
-         - il **peint son propre fond** — une infolettre pose un
-           body{background:#f4f4f4} qui arrive apres le notre, et notre marge
-           blanche devient alors un lisere visible tout autour du gris. C'est le
-           cas signale sur un courrier GoDaddy : il est responsive, donc jamais
-           reduit, donc la premiere regle ne le voyait pas.
+         - il est **plus large que l'ecran**, donc deja reduit ;
+         - il **peint son propre fond** sur body ;
+         - il **est bati sur des tableaux**, ce que fait toute infolettre : elle
+           porte alors ses propres marges, et les notres s'ajoutent aux siennes.
+           C'est ce cas-la qui restait — le courrier GoDaddy est responsive
+           (jamais reduit) et pose son gris sur une table, pas sur body, donc
+           les deux premieres regles ne le voyaient pas.
 
-         Elle reste pour un courrier sur fond blanc qui tient dans la largeur :
-         la, du texte viendrait sinon coller au bord. */
+         Reste avec sa marge le courrier en HTML simple, quelques paragraphes
+         sans mise en page : la, du texte viendrait coller au bord. */
       var fond = getComputedStyle(document.body).backgroundColor;
       var neutre = !fond || fond === "rgba(0, 0, 0, 0)" || fond === "transparent" || fond === "rgb(255, 255, 255)";
-      if (naturel > dispo + 1 || !neutre) {
+      if (naturel > dispo + 1 || !neutre || fit.querySelector("table")) {
         poser(0);
         dispo = fit.offsetWidth;
         naturel = Math.max(fit.scrollWidth, dispo);

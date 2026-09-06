@@ -268,8 +268,8 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - `modify` écrit les drapeaux (`\Seen`, `\Flagged`) et déplace ; le déplacement passe en dernier, et
   il **rend l'identifiant d'après** (`uidMap` du `MOVE`) : le store renomme le fil, ou le retire si
   le serveur n'a pas dit où — un UID de dossier ne survit pas au déplacement.
-- La marge du cadre (16 px) **tombe à zéro pour un courrier mis à la largeur** : elle lui coûtait 8 %
-  d'échelle pour un liseré autour d'un bloc qui a déjà son fond.
+- La marge du cadre (16 px) **tombe à zéro pour un courrier qui apporte sa mise en page** — plus
+  large que l'écran, ou fond sur `body`, ou bâti sur des tableaux ; seul le HTML simple la garde.
 - Envoyer, c'est SMTP **puis** un `APPEND` dans « Envoyés » — un seul message composé pour les deux ;
   Gmail range déjà lui-même, on n'y ajoute rien. Une réponse porte `In-Reply-To` et `References`.
 - Un brouillon s'écrit avant que l'ancien ne parte ; le retirer, c'est la corbeille, pas `EXPUNGE`.

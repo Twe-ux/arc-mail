@@ -14,6 +14,10 @@ que le contenant n'ajoute rien ; le remplissage invisible (`&#847;&zwnj;&nbsp;`)
 comparer, et le parcours saute ce qui est déjà caché. Cinq formes de préheader passées au banc,
 titre dessiné compris — lui, il reste.
 
+La marge, elle, a demandé un troisième passage : GoDaddy est *responsive* — jamais réduit — et pose
+son gris **sur une table**, pas sur `body`. Elle tombe donc aussi pour un courrier **bâti sur des
+tableaux**, ce que fait toute infolettre ; seul le HTML simple la garde.
+
 Au passage : une image sans source ne montre plus son cadre vide, et l'en-tête du mail ouvert a
 échangé ses deux lignes — « Boîte de réception · 5 sur 13 », puis le nom de la boîte, qui se faisait
 tronquer quand il partageait la première ligne avec le dossier.

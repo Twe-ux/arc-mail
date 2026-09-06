@@ -250,12 +250,21 @@ la largeur disponible se lit sur l'**enveloppe elle-même** (`fit.offsetWidth`),
 un bloc remplit la boîte de contenu de son parent où que vive la marge, la nôtre ou celle que
 l'infolettre se donne.
 
-**Un courrier qui apporte sa mise en page ne paie pas cette marge.** Dès qu'il faut le réduire — un
-tableau de 600 px sur un téléphone de 393 —, la marge tombe à zéro : mesuré, elle lui retirait 8 %
-de taille de texte (échelle 0,602 contre 0,652) pour un liseré blanc autour d'un bloc qui porte
-déjà son propre fond et son propre rembourrage. Elle reste pour un courrier qui tient dans la
-largeur, où du texte viendrait sinon coller au bord — vérifié : volet de 1147 px, marge 16, aucune
-échelle.
+**Un courrier qui apporte sa mise en page ne paie pas cette marge.** Elle lui coûte de la largeur —
+mesuré, 8 % de taille de texte sur un tableau de 600 px réduit à un téléphone de 393 (échelle 0,602
+contre 0,652) — et elle se voit comme un liseré blanc tout autour de son fond. Trois façons de
+reconnaître qu'il en apporte une, et il a fallu les trois :
+
+1. il est **plus large que l'écran**, donc déjà réduit ;
+2. il **peint son fond sur `body`** — le `<style>` d'une infolettre arrive après le nôtre ;
+3. il **est bâti sur des tableaux**, ce que fait toute infolettre : elle porte alors ses propres
+   marges, et les nôtres s'ajoutent aux siennes.
+
+Le troisième cas est celui qui a résisté à deux correctifs : le courrier GoDaddy est *responsive*
+(il tient dans 393 px, donc jamais réduit) et pose son gris **sur une table**, pas sur `body`.
+
+Reste avec sa marge le courrier en **HTML simple** — quelques paragraphes sans mise en page —, où du
+texte viendrait sinon coller au bord. Les quatre cas sont vérifiés au banc.
 
 **Le préheader ne s'écrit pas deux fois.** Une infolettre commence par la ligne que les listes de
 mail montrent en aperçu, et elle répète presque toujours l'objet : on se retrouvait avec le titre en

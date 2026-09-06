@@ -2,6 +2,31 @@
 
 Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérification.
 
+## 6 septembre 2026 — la recherche devient un langage
+
+Seconde des deux mécaniques de l'audit, après l'annulation. Jusqu'ici cmdk comparait la requête au
+texte rendu de chaque rangée : il sait rapprocher deux chaînes, il ne sait pas ce qu'est un
+expéditeur, un dossier ou un non-lu. Et une correspondance floue **ne se compile vers rien** — c'est
+le vrai problème, pas la précision : impossible de poser la même question au serveur.
+
+Un analyseur, un arbre, un compilateur. `de:` `à:` `objet:` `dans:` `est:` `avec:` `avant:`
+`depuis:`, les guillemets pour une phrase, `ET` `OU` `SAUF`, les parenthèses, la juxtaposition qui
+vaut `ET`. Français d'abord, anglais admis — `from:` est dans les doigts de qui écrit du courrier.
+
+Trois décisions valent d'être dites. L'analyseur **ne refuse jamais rien** : une requête se tape
+lettre par lettre, et `de:` seul ou une parenthèse ouverte sont des états normaux de la frappe, pas
+des erreurs. Un champ connu **sans valeur ne contraint rien** — voir la liste se vider entre `de:`
+et `de:claire` fait croire qu'il n'y a rien à trouver. Et seuls les **mots nus** sortent du
+courrier : `de:claire` ne doit pas faire remonter « Nouveau message », mais `nouveau` si.
+
+Un défaut trouvé à la vérification : `dans:corbeille` rendait zéro, la palette écartant la corbeille
+avant même de lire la requête. On ne retombe pas par hasard sur ce qu'on a jeté — mais `dans:` n'est
+pas un hasard. L'exclusion tombe quand la requête nomme un dossier ; vérifié en jetant un fil, puis
+en le retrouvant.
+
+Quinze requêtes passées sur l'app, dont `((` qui ne casse rien. Reste le second compilateur, celui
+qui écrira le `SEARCH` IMAP : l'arbre l'attend.
+
 ## 6 septembre 2026 — on peut revenir en arrière
 
 `commit` faisait déjà le retour arrière **sur échec** ; il manquait celui **à la demande**, et

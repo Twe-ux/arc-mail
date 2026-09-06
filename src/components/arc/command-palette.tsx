@@ -15,6 +15,9 @@ import {
 } from "@/components/ui/command";
 import { FOLDERS } from "@/lib/mock-data";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import { nommeUnDossier, texteLibre } from "@/lib/search/ast";
+import { correspond } from "@/lib/search/match";
+import { laver, parse } from "@/lib/search/parse";
 import { sortByDate, useMail, useSpace, useSpaces, type SidebarMode } from "@/lib/store";
 import type { FolderId } from "@/lib/types";
 import { ContactAvatar } from "./contact-avatar";
@@ -59,10 +62,38 @@ export function CommandPalette() {
   const sidebarMode = useMail((s) => s.sidebarMode);
   const cycleSidebarMode = useMail((s) => s.cycleSidebarMode);
 
-  const spaceThreads = useMemo(
-    () => sortByDate(threads.filter((t) => t.spaceId === spaceId && t.folder !== "trash")).slice(0, 40),
-    [threads, spaceId],
-  );
+  /* **L'arbre plutôt qu'une correspondance floue.** cmdk sait comparer une
+     chaîne à un libellé ; il ne sait pas ce qu'est un expéditeur, un dossier ou
+     un non-lu. La requête est donc analysée ici
+     ([`src/lib/search`](../../lib/search/ast.ts)) et c'est nous qui filtrons —
+     `shouldFilter={false}` sur la boîte. Le même arbre servira le `SEARCH` IMAP
+     pour ce qui n'est pas en mémoire : c'est tout l'intérêt de l'avoir. */
+  const arbre = useMemo(() => parse(requete), [requete]);
+  /* Les mots nus, seuls à avoir un sens hors du courrier : `de:claire` ne doit
+     pas faire remonter « Nouveau message », mais `nouveau` si. */
+  const libre = useMemo(() => texteLibre(arbre), [arbre]);
+  const cherche = requete.trim().length > 0;
+
+  /* La corbeille est écartée **sauf si la requête la nomme** : on ne retombe
+     pas par hasard sur ce qu'on a jeté, mais `dans:corbeille` n'est pas un
+     hasard — et rendre zéro résultat à une question précise est pire que la
+     précaution qu'on croyait prendre. */
+  const spaceThreads = useMemo(() => {
+    const jetees = nommeUnDossier(arbre);
+    return sortByDate(threads.filter((t) => t.spaceId === spaceId && (jetees || t.folder !== "trash")))
+      .filter((t) => correspond(arbre, t))
+      .slice(0, 40);
+  }, [threads, spaceId, arbre]);
+
+  /* Une entrée qui n'est pas du courrier ne se montre que si **tous** les mots
+     nus s'y trouvent — et pas du tout dès que la requête n'a plus que des
+     champs, qui ne la concernent pas. */
+  const garde = (libelle: string) => {
+    if (!cherche) return true;
+    if (!libre) return false;
+    const cible = laver(libelle);
+    return libre.split(" ").every((mot) => cible.includes(mot));
+  };
 
   const run = (fn: () => void) => {
     setCommandOpen(false);
@@ -73,6 +104,7 @@ export function CommandPalette() {
     <CommandDialog
       open={open}
       onOpenChange={setCommandOpen}
+      shouldFilter={false}
       title="Barre de commande"
       description="Rechercher une conversation ou lancer une action"
       /* Opening this always means typing next, so the keyboard is seconds
@@ -125,6 +157,22 @@ export function CommandPalette() {
       <CommandList className="max-h-none min-h-0 flex-1 pb-6 [mask-image:linear-gradient(to_bottom,#000_calc(100%-1.5rem),transparent)] sm:max-h-[300px] sm:flex-none">
         <CommandEmpty>Aucun résultat.</CommandEmpty>
 
+        {/* **La syntaxe s'annonce.** Un langage de recherche que rien ne
+            montre n'existe pas : personne ne devine `est:non-lu`. Une ligne,
+            sous le champ — pas en bas de dix-neuf conversations, où il faudrait la
+            chercher — et seulement tant qu'on n'a rien tapé. */}
+        {!cherche && (
+          <p className="px-4 pt-1 pb-2 text-xs leading-relaxed text-muted-foreground">
+            <span className="font-medium">de:</span> claire ·{" "}
+            <span className="font-medium">objet:</span> devis ·{" "}
+            <span className="font-medium">dans:</span> archive ·{" "}
+            <span className="font-medium">est:</span> non-lu ·{" "}
+            <span className="font-medium">avec:</span> piece ·{" "}
+            <span className="font-medium">depuis:</span> 7j — et ET, OU, SAUF.
+          </p>
+        )}
+
+
         <CommandGroup heading={requete ? "Conversations" : "Conversations récentes"}>
           {spaceThreads.map((t) => {
             const last = t.messages[t.messages.length - 1];
@@ -142,10 +190,10 @@ export function CommandPalette() {
                 <ContactAvatar contact={last.from} className="size-6 [&_[data-slot=avatar-fallback]]:text-[10px]" />
                 <span className="min-w-0 flex-1 leading-tight">
                   <span className="block truncate">
-                    <Surligne texte={t.subject} requete={requete} />
+                    <Surligne texte={t.subject} requete={libre} />
                   </span>
                   <span className="text-muted-foreground block truncate text-xs">
-                    <Surligne texte={last.from.name} requete={requete} />
+                    <Surligne texte={last.from.name} requete={libre} />
                   </span>
                 </span>
               </CommandItem>
@@ -156,13 +204,15 @@ export function CommandPalette() {
         <CommandSeparator />
 
         <CommandGroup heading="Actions">
-          <CommandItem onSelect={() => run(() => openCompose())}>
-            <PenSquare /> Nouveau message
-            <CommandShortcut className="max-sm:hidden">⌘N</CommandShortcut>
-          </CommandItem>
+          {garde("Nouveau message") && (
+            <CommandItem onSelect={() => run(() => openCompose())}>
+              <PenSquare /> Nouveau message
+              <CommandShortcut className="max-sm:hidden">⌘N</CommandShortcut>
+            </CommandItem>
+          )}
           {/* Not merely hidden on a phone: cmdk still matches a CSS-hidden item,
               which left an "Actions" heading standing over nothing. */}
-          {desktop && (
+          {desktop && garde("Basculer la vue partagée") && (
             <CommandItem onSelect={() => run(toggleSplit)}>
               <Columns2 /> Basculer la vue partagée
               <CommandShortcut>⌘⇧D</CommandShortcut>
@@ -171,21 +221,23 @@ export function CommandPalette() {
           {/* Attachée, la barre latérale efface la tête de liste — donc le
               sélecteur de ses trois états. Sans cette entrée, ⌘B serait le seul
               chemin du retour, et un raccourci ne s'annonce pas. */}
-          {desktop && (
+          {desktop && garde("Barre latérale") && (
             <CommandItem onSelect={() => run(cycleSidebarMode)}>
               <PanelLeft /> Barre latérale : {MODE_SUIVANT[sidebarMode]}
               <CommandShortcut>⌘B</CommandShortcut>
             </CommandItem>
           )}
-          <CommandItem onSelect={() => run(toggleDark)}>
-            <Moon /> Basculer le thème
-          </CommandItem>
+          {garde("Basculer le thème") && (
+            <CommandItem onSelect={() => run(toggleDark)}>
+              <Moon /> Basculer le thème
+            </CommandItem>
+          )}
         </CommandGroup>
 
         <CommandSeparator />
 
         <CommandGroup heading="Aller à">
-          {FOLDERS.map((f) => {
+          {FOLDERS.filter((f) => garde(f.name)).map((f) => {
             const Icon = FOLDER_ICONS[f.id];
             return (
               <CommandItem key={f.id} value={`dossier ${f.name}`} onSelect={() => run(() => setFolder(f.id))}>
@@ -196,7 +248,7 @@ export function CommandPalette() {
         </CommandGroup>
 
         <CommandGroup heading="Espaces">
-          {spaces.map((space, i) => (
+          {spaces.filter((sp) => garde(`${sp.name} ${sp.email}`)).map((space, i) => (
             <CommandItem
               key={space.id}
               value={`espace ${space.name} ${space.email}`}
@@ -223,9 +275,16 @@ export function CommandPalette() {
  * thème, et le seul choix lisible sur un fond clair comme sur un fond sombre.
  */
 function Surligne({ texte, requete }: { texte: string; requete: string }) {
-  const terme = requete.trim();
+  const terme = requete.trim().split(" ")[0] ?? "";
   if (terme.length < 2) return <>{texte}</>;
-  const i = texte.toLowerCase().indexOf(terme.toLowerCase());
+  /* On cherche sur le texte **lavé** — sans accents ni casse, comme le fait le
+     filtre — mais on découpe l'original : « Élodie » doit se surligner quand on
+     tape « elodie ». Retirer un accent garde la longueur pour les lettres
+     latines ; si une écriture décompose autrement, on préfère ne rien
+     surligner à surligner de travers. */
+  const cible = laver(texte);
+  if (cible.length !== texte.length) return <>{texte}</>;
+  const i = cible.indexOf(terme);
   if (i < 0) return <>{texte}</>;
   return (
     <>

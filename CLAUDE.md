@@ -419,6 +419,14 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   ligne, l'adresse tombe et l'objet du dernier fil prend sa place, compte en colonne fixe.
 
 **Recherche** → [docs/features/recherche.md](docs/features/recherche.md)
+- La requête passe par un **arbre** (`src/lib/search/`) : un analyseur, et un compilateur par dos —
+  la mémoire aujourd'hui, le `SEARCH` IMAP demain. cmdk ne filtre plus (`shouldFilter={false}`).
+- `de:` `à:` `objet:` `dans:` `est:` `avec:` `avant:` `depuis:`, guillemets, `ET` `OU` `SAUF`,
+  parenthèses ; français d'abord, anglais admis.
+- L'analyseur **ne refuse jamais rien** — ce qu'il ne comprend pas redevient du texte —, et un champ
+  connu **sans valeur ne contraint rien** : on tape `de:` avant `de:claire`.
+- Seuls les **mots nus** filtrent ce qui n'est pas du courrier (actions, dossiers, espaces).
+- La corbeille est écartée **sauf si la requête la nomme**.
 
 ## Où on en est, où on va
 

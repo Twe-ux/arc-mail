@@ -116,8 +116,8 @@ qui suivent.
 - [ ] Push et notifications (`IDLE`, service worker, permission iOS).
 - [ ] Mise en pause : un fil qui revient à l'heure dite.
 - [ ] Envoyer plus tard, et rappel de suivi (« personne n'a répondu depuis trois jours »).
-- [ ] Recherche côté serveur (voir ci-dessous : elle marche aussi sans processus permanent, en
-      `SEARCH` IMAP à la demande, plus lentement).
+- [ ] Recherche côté serveur — il ne manque plus que le **second compilateur** : l'arbre est écrit
+      depuis le 6 sept. Elle marche sans processus permanent, en `SEARCH` IMAP à la demande.
 
 ### Les deux mécaniques qui portent le reste
 
@@ -126,11 +126,10 @@ qui suivent.
       deux formes d'inverse → [fiche](features/annulation.md). **Restent** les deux fonctions que la
       même mécanique portera : la **file hors ligne** (garder et rejouer les écritures) et l'**envoi
       différé** (une tâche qui porte son heure), celui-ci derrière la décision d'hébergement.
-- [ ] **Arbre de recherche.** Un analyseur (`from:`, `to:`, `subject:`, `in:`, `is:unread`,
-      `has:attachment`, dates, `ET`/`OU`/`SAUF`) et deux compilateurs : l'un filtre ce qui est en
-      mémoire, l'autre écrit un `SEARCH` IMAP. La même barre ⌘K sert les deux, et les vues
-      enregistrées en découlent →
-      [audit](audits/2026-09-06-clients-mail.md#12-un-langage-de-recherche-compilé-vers-deux-dos).
+- [x] **Arbre de recherche** (6 sept.) — l'analyseur et le compilateur mémoire, branchés sur ⌘K
+      → [fiche](features/recherche.md). **Restent** le compilateur IMAP (`SEARCH`) avec le
+      `MailProvider.search()` qui va avec, et les **vues enregistrées**, qui découlent de l'arbre
+      sans rien demander de plus.
 
 ### Fonctions à instruire
 

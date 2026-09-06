@@ -6,7 +6,6 @@ import { toast } from "sonner";
 
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { formatFullDate } from "@/lib/format";
-import { useEnteteRepliable } from "@/hooks/use-collapsing-header";
 import { replyRecipients, selectFolder, useMail, useSpace, useVisibleThreads } from "@/lib/store";
 import type { Contact, FolderId } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -41,7 +40,6 @@ export function ThreadView({ className }: { className?: string }) {
   const [replyOpen, setReplyOpen] = useState(false);
 
   const threadId = thread?.id;
-  const vue = useEnteteRepliable<HTMLElement>(threadId ?? null);
   const aimed = aim?.threadId === threadId ? aim : null;
   const focusTick = aimed?.tick ?? 0;
 
@@ -115,7 +113,7 @@ export function ThreadView({ className }: { className?: string }) {
   const position = visibles.findIndex((t) => t.id === thread.id);
 
   return (
-    <article ref={vue} className={cn("group/vue min-h-0 min-w-0 flex-1 flex-col", className)}>
+    <article className={cn("min-h-0 min-w-0 flex-1 flex-col", className)}>
       {/* Téléphone : trois éléments et rien de plus. Les six petites cibles qui
           vivaient ici sont descendues dans la pill, où le pouce les atteint ;
           ce qui reste en haut dit **où l'on est**, ce qu'un titre répété sous
@@ -124,21 +122,13 @@ export function ThreadView({ className }: { className?: string }) {
           carte, et les deux boutons débordent de 10 px : une cible de 44 posée
           à 20 px mettrait son **glyphe** de 24 à 30 px du bord, décalé de tout
           le reste de l'app. C'est le dessin qui s'aligne, pas la boîte. */}
-      {/* **Il se replie quand on descend, et revient quand on remonte.** 56 px
-          d'en-tête plus 80 de pill sur 852, c'était lire une infolettre par une
-          fente. Hauteur explicite (`h-14`, la mesure du contenu) parce qu'on ne
-          peut pas animer vers `auto` ; `overflow-hidden` pour que le contenu
-          parte avec la boîte, et il cesse d'être une cible une fois replié. */}
-      <div
-        className={cn(
-          "flex h-14 shrink-0 items-center gap-1 overflow-hidden px-5 pt-0.5 pb-2.5 md:hidden",
-          "transition-[height,padding,opacity,transform] duration-[260ms] ease-out motion-reduce:transition-none",
-          /* `py-0` avec `h-0` : sans lui il restait les 12 px de marge verticale,
-             mesurés — une hauteur nulle ne replie pas un rembourrage. */
-          "group-data-[compact=true]/vue:pointer-events-none group-data-[compact=true]/vue:h-0 group-data-[compact=true]/vue:py-0",
-          "group-data-[compact=true]/vue:-translate-y-1.5 group-data-[compact=true]/vue:opacity-0",
-        )}
-      >
+      {/* **Il ne se replie plus quand on descend.** Il l'a fait une journée, pour
+          rendre ses 56 px à la lecture — mais le repli suit le sens du
+          défilement, et l'élastique du bas d'un message en change deux fois de
+          suite : arrivé au bout d'une infolettre, l'en-tête sautait. Un repère
+          qui bouge quand on ne défile plus coûte plus que les pixels qu'il
+          rend. */}
+      <div className="flex h-14 shrink-0 items-center gap-1 px-5 pt-0.5 pb-2.5 md:hidden">
         <button
           type="button"
           onClick={() => selectThread(null)}

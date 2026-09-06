@@ -204,8 +204,8 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   par-dessus — et il prend ses marges (14 / 16), pas la variante `inset` : le mail ouvert n'est pas
   une carte qui flotte. L'en-tête est en `px-5`, boutons débordant de 10 px pour aligner le glyphe.
 - Le message **passe sous la pill** (réserve `--nav-height`), il ne se dissout pas.
-- L'en-tête se **replie quand on descend** et revient quand on remonte (56 px rendus à la lecture) :
-  `data-compact` écrit sur le nœud, jamais un `setState` par événement de défilement.
+- L'en-tête **ne se replie pas** : essayé, retiré — le repli suit le sens du défilement, et
+  l'élastique du bas d'un message le faisait sauter en fin de course.
 - Une `iframe` de message HTML avale tous les touchers : le cadre les **relaie**
   (`arc-mail-touch` → `feed` de `useEdgeSwipeBack`, par le contexte de `BackSwipe`) pour que le
   geste de retour se fasse du milieu, et il pose `touch-action: pan-y` sans rien empêcher.

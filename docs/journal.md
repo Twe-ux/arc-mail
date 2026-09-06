@@ -24,6 +24,11 @@ Enfin le texte des courriers a retrouvé la taille qu'il a chez Apple : un courr
 et on réduit, comme Mail d'iOS : le même titre fait 21 px, et deux courriers voisins ont enfin la
 même taille de texte. Le HTML simple n'y passe pas — 15 px réduits ne se lisent plus.
 
+Et l'en-tête du mail ouvert **cesse de se replier** : le repli suit le sens du défilement, et
+l'élastique du bas d'un message en change deux fois de suite — arrivé au bout d'une infolettre,
+l'en-tête sautait. Un repère qui bouge alors qu'on ne défile plus coûte plus que les 56 px qu'il
+rend. Le hook part avec lui ; la fiche garde le pourquoi, au cas où l'envie revienne.
+
 Au passage : une image sans source ne montre plus son cadre vide, et l'en-tête du mail ouvert a
 échangé ses deux lignes — « Boîte de réception · 5 sur 13 », puis le nom de la boîte, qui se faisait
 tronquer quand il partageait la première ligne avec le dossier.

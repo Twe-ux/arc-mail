@@ -112,31 +112,23 @@ Vérifié sur la vraie infolettre du jeu de données, aux quatre cas : HTML depu
 le bord, texte depuis le milieu et depuis le bord — les quatre reviennent à la liste, et un appui
 laisse le mail ouvert.
 
-## L'en-tête se replie quand on descend
+## L'en-tête ne se replie pas (essayé, retiré)
 
 Sur un iPhone, l'en-tête coûte **56 px** en permanence — sur 852, et sous une pill qui en prend 80.
-Lire une infolettre revenait à la regarder par une fente. Il se replie donc dès qu'on descend dans
-le message, et **revient dès qu'on remonte** : c'est la façon dont Safari range sa barre d'adresse,
-et le geste qui le rappelle est celui qu'on fait déjà pour relire ce qu'on vient de passer.
+Lire une infolettre revient à la regarder par une fente, et il a donc été replié une journée : il
+disparaissait dès qu'on descendait dans le message et revenait dès qu'on remontait, comme Safari
+range sa barre d'adresse. Mesuré, ça rendait bien la colonne de lecture de **423 à 479 px**.
 
-```
-seuil de course : 8 px — en dessous, un tremblement du pouce ne bascule rien
-zone haute      : 32 px — au-dessus du message, l'en-tête reste quoi qu'on fasse
-mouvement       : hauteur, marge, opacité et 6 px de remontée, 260 ms ease-out
-```
+**Retiré le 6 septembre.** Le repli suit le *sens* du défilement, et l'élastique du bas d'un message
+en change deux fois de suite : arrivé au bout d'une infolettre, l'en-tête sautait — il partait, la
+page rebondissait, il revenait. Un repère qui bouge alors qu'on ne défile plus coûte plus que les
+56 px qu'il rend, et c'est le genre de mouvement qu'on ne peut pas défendre en le réglant : ce n'est
+pas un seuil mal choisi, c'est le geste qui n'a pas de sens en fin de course.
 
-Mesuré (393×480, pour que le fil déborde) : en-tête **56 → 0**, colonne de lecture **423 → 479**,
-et retour à 56/423 dès qu'on remonte. `py-0` accompagne `h-0` — une hauteur nulle ne replie pas un
-rembourrage, et il restait 12 px.
-
-**L'état est écrit sur le nœud, pas dans React** (`data-compact` sur l'article, lu par
-`group-data-[compact=true]`) : un `setState` par événement de défilement ferait rendre tout le fil,
-corps HTML compris. Le mouvement, lui, est une **transition** et non un suivi du doigt : c'est un
-changement d'état, pas une transformation tirée — la règle des gestes ne s'y applique pas.
-
-L'effet se réattache à **chaque conversation** (`useEnteteRepliable(threadId)`) : sans cette clé il
-ne partait qu'au premier montage, quand la vue rend encore son état vide et que le défilant n'existe
-pas — il renonçait, et ne repassait jamais.
+Ce qui reste vrai si on y revient un jour : l'état s'écrit **sur le nœud** (`data-compact`, lu par
+`group-data-[…]`), jamais par un `setState` par événement de défilement — il ferait rendre tout le
+fil, corps HTML compris ; et l'effet doit se réattacher à **chaque conversation**, sans quoi il ne
+part qu'au premier montage, quand la vue rend encore son état vide et que le défilant n'existe pas.
 
 ## La pill, et ce qu'elle range
 

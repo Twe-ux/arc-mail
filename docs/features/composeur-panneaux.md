@@ -176,8 +176,17 @@ décalée d'autant vers le haut, tête au ras de l'encoche.
 hauteur : `--vv-height` ne revient pas, c'est lui qui faisait se redessiner la feuille à chaque
 frame, et les flashs avec.
 
-Mesuré : décalage de 21 px simulé, feuille posée à 80 dans les coordonnées de mise en page — soit
-**59 à l'écran**, exactement l'encoche.
+**Les deux marges, pas une.** N'ajouter le décalage qu'en haut remettait la tête en place et
+laissait le bas où il était : la barre d'outils apparaissait d'autant plus haut au-dessus des
+touches, et elle ne tombait pas au même endroit selon le champ visé — le corps décale le viewport,
+« À » presque pas. « Il faut que les boutons restent à la même place, le plus bas possible », et
+« quand je vais écrire, la zone de texte se réduit » : c'était le même défaut, vu par ses deux
+bouts. La marge du bas est donc l'opposé de celle du haut : la feuille **entière** descend de
+`--vv-top`, sa hauteur ne change pas, et elle se repose exactement là où le navigateur l'aurait
+posée sans décaler. Ce qui dépasse sous le viewport est sous les touches.
+
+Mesuré, décalages simulés de 0, 21 et 40 px, et dans les deux mondes — **la même feuille à chaque
+fois** : haut à **59** à l'écran, bas de la barre d'outils à **516**, message à **204**.
 
 ### La barre d'outils rend 12 px
 
@@ -186,7 +195,7 @@ coussin du bas était l'encoche entière (34 px) : la barre est déjà une cible
 d'accueil n'a pas besoin de tout ça. Il passe à **l'encoche moins 12** (22 px), et à **6 px** quand
 un champ a le focus — la feuille s'arrête alors sur les touches, où le moindre vide se lit comme un
 trou. Barre : **69 px** au repos contre 81, **53** clavier sorti contre 55, et le message gagne
-d'autant.
+d'autant — 524 px au repos, 204 clavier sorti.
 
 ### Le haut ne peut plus passer au-dessus de l'encoche
 

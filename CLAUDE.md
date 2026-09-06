@@ -244,9 +244,11 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   l'ouverture d'un dialogue — l'écran qui monte derrière, puis les flashs.
 - Le haut est un **`top: 0` plus une marge** (jamais `top: var(…)`, qui peut ne pas résoudre) et un
   `max-h-[100svh]` : au pire la feuille commence au bord de l'écran, jamais au-dessus.
-- Cette marge **ajoute `--vv-top`** : poser le curseur fait glisser le viewport visuel, et une
-  feuille `fixed` apparaît décalée d'autant. On lui rend ces pixels par une **marge**, jamais par
-  une hauteur — `--vv-height` reste banni, c'est lui qui faisait les flashs.
+- Cette marge **ajoute `--vv-top`**, et celle du bas **le retranche** : poser le curseur fait
+  glisser le viewport visuel, et une feuille `fixed` apparaît décalée d'autant. On la descend
+  **entière** par deux marges opposées — jamais par une hauteur, `--vv-height` reste banni, c'est
+  lui qui faisait les flashs. Compenser le haut seul faisait remonter la barre d'outils et rétrécir
+  le message, différemment selon le champ visé.
 - La barre d'outils prend **l'encoche moins 12 px** au repos, **6 px** quand un champ a le focus :
   69 px de barre au lieu de 81, 53 au lieu de 55.
 - Elle **entre de 32 px, pas de tout en bas** : le glissement plein la posait à 800 px de sa place

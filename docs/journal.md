@@ -2,6 +2,17 @@
 
 Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérification.
 
+## 6 septembre 2026 — la feuille descend entière, pas seulement sa tête
+
+La compensation du décalage de viewport n'était qu'à moitié faite : ajouter `--vv-top` à la marge du
+haut remettait la tête en place et laissait le bas où il était. La barre d'outils apparaissait donc
+d'autant plus haut au-dessus des touches, et pas au même endroit selon le champ visé — le corps
+décale le viewport, « À » presque pas. « Les boutons doivent rester à la même place, le plus bas
+possible » et « la zone de texte se réduit quand je vais écrire » étaient les deux bouts du même
+défaut. La marge du bas est maintenant l'opposé de celle du haut : la feuille entière descend, sa
+hauteur ne change pas. Mesuré à 0, 21 et 40 px de décalage, dans les deux mondes : haut à 59, bas
+des outils à 516, message à 204 — la même feuille à chaque fois.
+
 ## 6 septembre 2026 — la feuille ne remonte plus, la barre d'outils maigrit
 
 Poser le curseur dans le message faisait glisser le viewport visuel de quelques pixels — iOS révèle

@@ -124,6 +124,15 @@ export function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
            ces pixels. C'est une **marge**, jamais une hauteur : `--vv-height`
            ne revient pas, c'est lui qui faisait les flashs.
 
+           **Les deux marges, pas une.** N'ajouter le décalage qu'en haut
+           remettait la tête en place et laissait le bas où il était : la barre
+           d'outils apparaissait d'autant plus haut au-dessus des touches, et
+           elle ne tombait pas au même endroit selon le champ visé — le corps
+           décale, « À » presque pas. La marge du bas est donc son opposé : la
+           feuille entière descend de `--vv-top`, sa hauteur ne change pas, et
+           elle se repose exactement là où le navigateur l'aurait posée sans
+           décaler. Ce qui dépasse sous le viewport est sous les touches.
+
            **Le haut est un `top: 0` et une marge**, pas un `top: var(…)`.
            Signalé : « à la première ouverture la page est trop grande, du coup
            on ne voit pas le haut ». Une position qui dépend d'une variable
@@ -163,7 +172,7 @@ export function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
            lecteurs de la même mesure, une seule condition — sinon la barre
            rendait ses 34 px pendant le fantôme et sautait de 26 px à
            l'ouverture. */
-        className="inset-x-0 top-0 bottom-0 mt-[calc(var(--safe-top)+var(--vv-top,0px))] flex h-auto max-h-[100svh] w-auto max-w-none flex-col gap-0 rounded-t-[36px] border-0 p-0 pb-[var(--clavier)] shadow-[0_-8px_40px_rgb(0_0_0/0.28)] transition-none data-[state=open]:slide-in-from-bottom-8 data-[state=open]:duration-300 [--bas:max(0.5rem,calc(env(safe-area-inset-bottom)-12px))] [--clavier:0px] [&:has(:is(input,textarea):focus)]:[--bas:0.375rem] [&:has(:is(input,textarea):focus)]:[--clavier:var(--keyboard-inset,0px)] dark:bg-[#26262a] dark:ring-1 dark:ring-white/12"
+        className="inset-x-0 top-0 bottom-0 mt-[calc(var(--safe-top)+var(--vv-top,0px))] mb-[calc(0px-var(--vv-top,0px))] flex h-auto max-h-[100svh] w-auto max-w-none flex-col gap-0 rounded-t-[36px] border-0 p-0 pb-[var(--clavier)] shadow-[0_-8px_40px_rgb(0_0_0/0.28)] transition-none data-[state=open]:slide-in-from-bottom-8 data-[state=open]:duration-300 [--bas:max(0.5rem,calc(env(safe-area-inset-bottom)-12px))] [--clavier:0px] [&:has(:is(input,textarea):focus)]:[--bas:0.375rem] [&:has(:is(input,textarea):focus)]:[--clavier:var(--keyboard-inset,0px)] dark:bg-[#26262a] dark:ring-1 dark:ring-white/12"
       >
         {/* Le voile de l'espace, en haut de la feuille et lui seul : c'est ce
             qui la rattache à Arc Mail plutôt qu'à la feuille grise d'iOS.

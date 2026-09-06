@@ -236,8 +236,10 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - **Lignes et corps sont enfants directs de la feuille** : enfermés dans un `flex-1 min-h-0` ils se
   recouvraient dès qu'un panneau s'ouvrait sans que le clavier se ferme. Lignes `shrink-0`, corps
   `flex-1` avec plancher `min-h-16`, panneau `min-h-28` qui défile et s'efface en bas.
-- **Un panneau ouvert efface les lignes** (`hidden`, l'état est gardé) : sinon il se réduisait à son
-  titre, et « le fond blanc n'est plus là ».
+- **Un panneau ouvert efface les lignes** (`hidden`, l'état est gardé) **seulement si un champ a le
+  focus** : sinon il se réduisait à son titre, et « le fond blanc n'est plus là » ; mais clavier
+  refermé la feuille a ses 793 px et les effacer ne laissait qu'un grand vide. Le focus est notre
+  seul témoin du clavier — `--keyboard-inset` vaut zéro en app installée.
 - **La feuille est ancrée, jamais calée sur le viewport visuel** (mécanique de Kairos) : haut à
   l'encoche, bas au bord, et le clavier ne lui prend qu'un `padding-bottom`. La caler sur
   `--vv-top`/`--vv-height` la faisait se redessiner quand WebKit re-résout le viewport à

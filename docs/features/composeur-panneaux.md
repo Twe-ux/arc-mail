@@ -242,6 +242,23 @@ eux) : la feuille répartit elle-même, et personne ne peut déborder de personn
 - **Panneau** : `min-h-28` au moins, il défile, et **s'efface en bas** (`mask-image`, `pb-6`) plutôt
   que d'être tranché au milieu d'une case.
 
+**Et les lignes ne s'effacent que si le clavier tient bon**, pas dès qu'un panneau s'ouvre. Ouvrir
+un panneau referme normalement le clavier : la feuille retrouve ses 793 px, et les faire disparaître
+n'y laissait qu'un grand vide sous le message pour rien — vu sur l'appareil, panneau ouvert avec
+350 px de blanc et plus d'adresse à l'écran. La condition est double : **un panneau ouvert *et* un
+champ visé**. C'est le focus qui sert de témoin, faute de mieux — `--keyboard-inset` vaut zéro en app
+installée, il ne peut pas dire si les touches sont là ; les événements de focus remontent, une
+capture sur la feuille suffit, et on ne retient que les champs (un bouton d'outil ne lève aucun
+clavier).
+
+Mesuré à 393×852 :
+
+| | Lignes | Message | Panneau |
+|---|---|---|---|
+| Mise en forme, clavier refermé | **visibles** | 237 | **287, entier** |
+| Mise en forme, clavier revenu | masquées | 64 (le plancher) | 272, défile de 15 |
+| Pièces jointes, clavier refermé | **visibles** | 206 | **318, entier** |
+
 Mesuré, clavier simulé à 516 px de rectangle visible : sans panneau, lignes 132 et corps 202 ;
 panneau ouvert, lignes masquées, corps 64 (le plancher) et panneau **270** — 457 en tout dans les
 deux cas, aucun recouvrement.

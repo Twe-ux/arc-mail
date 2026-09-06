@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowUp, MoreHorizontal, Paperclip, Type, X } from "lucide-react";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { toast } from "sonner";
 
 import {
@@ -70,6 +70,12 @@ export function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
     draft?.subject.trim() || (draft?.draftId ? "Brouillon" : "Nouveau message");
   const sheetRef = useSheetDismiss(closeCompose);
   const t = useComposeTools(draft);
+  /* **Un champ a-t-il le focus ?** C'est notre seule façon de savoir que le
+     clavier tient l'écran — `--keyboard-inset` vaut zéro en app installée. Les
+     événements de focus remontent, une capture sur la feuille suffit, et on ne
+     retient que les champs : un bouton d'outil qui prend le focus ne lève
+     aucun clavier. */
+  const [champVise, setChampVise] = useState(false);
 
   return (
     <Sheet
@@ -84,6 +90,10 @@ export function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
         ref={sheetRef}
         side="bottom"
         showCloseButton={false}
+        onFocusCapture={(e) =>
+          setChampVise(e.target instanceof HTMLElement && /^(INPUT|TEXTAREA)$/.test(e.target.tagName))
+        }
+        onBlurCapture={() => setChampVise(false)}
         /* This sheet already has three explicit ways to close: Fermer, the
            swipe-down gesture, sending. Radix's own default — a pointerdown
            outside the content also closes it — is one more, undeclared one,
@@ -228,7 +238,7 @@ export function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
             key={draft.draftId ?? "new"}
             draft={draft}
             compact
-            lignesCachees={t.panneau !== null}
+            lignesCachees={t.panneau !== null && champVise}
             bodyStyle={{
               fontSize: t.taille,
               fontFamily: t.serif ? "ui-serif, Georgia, serif" : undefined,

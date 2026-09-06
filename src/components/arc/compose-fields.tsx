@@ -37,9 +37,15 @@ export function ComposeFields({
   /** Téléphone : la mise en page suit celle d'une feuille, pas d'une fenêtre. */
   compact?: boolean;
   /**
-   * Un panneau prend l'écran : les destinataires s'effacent le temps qu'il
-   * dure. Clavier sorti, la feuille n'a que 457 px — l'adresse n'est pas ce
-   * qu'on est venu régler, et sans ça le panneau se réduisait à son titre.
+   * Un panneau prend l'écran **et le clavier tient bon** : les destinataires
+   * s'effacent le temps que ça dure. La feuille n'a alors que 457 px, l'adresse
+   * n'est pas ce qu'on est venu régler, et sans ça le panneau se réduisait à
+   * son titre.
+   *
+   * **Les deux conditions, pas une.** Ouvrir un panneau referme normalement le
+   * clavier : la feuille retrouve ses 793 px, et effacer les lignes n'y laissait
+   * qu'un grand vide sous le message pour rien.
+   *
    * `hidden` et non un démontage : le champ garde son texte et son état.
    */
   lignesCachees?: boolean;

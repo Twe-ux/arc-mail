@@ -2,6 +2,15 @@
 
 Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérification.
 
+## 6 septembre 2026 — les lignes ne s'effacent que si le clavier tient bon
+
+Ouvrir un panneau effaçait les destinataires quoi qu'il arrive. C'était juste quand le clavier
+refusait de se fermer — le panneau se réduisait sinon à son titre — et absurde le reste du temps :
+sur l'appareil, panneau ouvert et clavier refermé, il y avait 350 px de blanc sous le message et
+plus d'adresse à l'écran. La condition est maintenant double, un panneau ouvert **et** un champ
+visé, le focus servant de témoin du clavier faute de mieux. Résultat mesuré : « Mise en forme »
+clavier refermé garde ses lignes et affiche ses 287 px entiers, « Pièces jointes » ses 318.
+
 ## 6 septembre 2026 — la feuille descend entière, pas seulement sa tête
 
 La compensation du décalage de viewport n'était qu'à moitié faite : ajouter `--vv-top` à la marge du

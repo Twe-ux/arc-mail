@@ -377,3 +377,31 @@ La porte de la barre existe sans aucune vue gardée, crée « est:non-lu » et l
 vue, ferme la feuille et pose le titre de la liste. Défilement de la palette : `facture` et
 `annecy` ne cachent **rien**, `claire` 86 px (seul « Toute la boîte » dépasse), et l'état vide fait
 apparaître « Actions » qui était sous la ligne. Zéro erreur de console.
+
+---
+
+## Renommer une vue (6 sept. 2026)
+
+Le nom par défaut **est** la requête : c'est ce qui la fait reconnaître au moment où on la garde, et
+ce qui la fait lire comme du code une semaine plus tard. Il se corrige donc.
+
+**Au double-clic dans la barre du bureau** — le geste de renommage partout où une liste porte des
+noms qu'on a écrits, un fichier, un onglet, un calque —, et le simple clic reste à l'action
+principale : ouvrir la vue. Le champ est celui de « Garder une recherche… », une seule définition
+pour les deux gestes : il remplace la rangée, garde sa hauteur et son rayon, **présélectionne** le
+nom (on renomme plus souvent qu'on ne complète), valide à `Entrée` **et au départ du focus** — un
+nom corrigé puis abandonné d'un clic à côté serait un travail perdu sans le dire —, annule à `Échap`.
+
+**Un crayon sur téléphone**, pas un double-appui : le double-appui y est pris par le zoom et ne
+s'annonce pas. Deux cibles dans le `suffixe` de la rangée, crayon puis croix, **à côté** du bouton
+et jamais dedans.
+
+**`q` ne bouge jamais** : on corrige l'étiquette, pas la question, et la requête reste lisible dans
+l'infobulle. Un nom vide n'écrase rien — la rangée redeviendrait muette.
+
+Le double-clic ouvre aussi la vue au passage (le premier clic est un clic) : assumé, on renomme ce
+qu'on regarde.
+
+Vérifié : « est:non-lu » devient « À lire » puis « Non lus », `q` inchangée dans le store, le titre
+de la liste suit ; `Échap` annule, un nom vide n'écrase rien ; le crayon du téléphone fait la même
+chose. Zéro erreur de console.

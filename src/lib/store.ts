@@ -176,6 +176,9 @@ export type MailState = {
   setCorrespondent: (email: string | null) => void;
   /** Garde la requête courante sous un nom. Rend la vue créée. */
   enregistrerVue: (nom: string, q: string) => Vue;
+  /** Change le **nom** d'une vue, jamais sa requête : c'est l'étiquette qu'on
+   *  corrige, la question reste la même. */
+  renommerVue: (id: string, nom: string) => void;
   supprimerVue: (id: string) => void;
   ouvrirVue: (id: string) => void;
   setListWidth: (px: number) => void;
@@ -1033,6 +1036,22 @@ export const useMail = create<MailState>()(
     const vue: Vue = { id: `vue-${Date.now().toString(36)}`, nom: nom.trim() || requete, q: requete };
     set((s) => ({ vues: [...s.vues, vue] }));
     return vue;
+  },
+
+  /**
+   * Renommer.
+   *
+   * Le nom par défaut **est** la requête — c'est ce qui la fait reconnaître au
+   * moment où on la garde, et ce qui la fait lire comme du code une semaine
+   * plus tard. `q` ne bouge pas : on corrige l'étiquette, pas la question, et
+   * la requête reste lisible dans l'infobulle de la rangée.
+   *
+   * Un nom vide n'écrase rien — la rangée redeviendrait muette.
+   */
+  renommerVue: (id, nom) => {
+    const propre = nom.trim();
+    if (!propre) return;
+    set((s) => ({ vues: s.vues.map((v) => (v.id === id ? { ...v, nom: propre } : v)) }));
   },
 
   supprimerVue: (id) =>

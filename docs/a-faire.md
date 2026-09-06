@@ -167,8 +167,8 @@ qui suivent.
 
 ### Recherche
 
-- [ ] **Renommer une vue** : son nom est sa requête, ce qui la fait reconnaître mais se lit comme du
-      code dans la barre. Un champ dans la rangée, ou au moment de la garder.
+- [x] **Renommer une vue** (6 sept.) — double-clic dans la barre, crayon sur téléphone ; le champ
+      est celui de « Garder une recherche… », et `q` ne bouge pas.
 - [ ] **Une vue sur plusieurs dossiers** : `dans:archive OU dans:corbeille` ouvre Archive, la
       première nommée — une liste lit un dossier. ⌘K, lui, sait déjà interroger les deux.
 

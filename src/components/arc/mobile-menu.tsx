@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus, X } from "lucide-react";
+import { Pencil, Plus, X } from "lucide-react";
 import { useState } from "react";
 
 import { FOLDER_ICON, VUE_ICON } from "@/lib/folders";
@@ -228,9 +228,14 @@ function FolderRow({
 /**
  * Une vue : le même gabarit qu'une boîte, l'entonnoir à la place du dossier.
  *
- * La croix passe par `suffixe` — **à côté** du bouton, jamais dedans : un
- * `<button>` dans un `<button>` est du HTML invalide et le navigateur peut le
- * démonter. C'est la règle de `SheetRow` depuis les récents.
+ * Les deux cibles passent par `suffixe` — **à côté** du bouton, jamais dedans :
+ * un `<button>` dans un `<button>` est du HTML invalide et le navigateur peut
+ * le démonter. C'est la règle de `SheetRow` depuis les récents.
+ *
+ * **Un crayon plutôt qu'un double-appui.** Le nom se corrige au double-clic
+ * dans la barre du bureau, geste de renommage partout où une liste porte des
+ * noms qu'on a écrits ; sur téléphone le double-appui ne veut rien dire — il
+ * est pris par le zoom — et il ne s'annonce pas. Une cible visible, donc.
  */
 function VueRow({
   vue,
@@ -244,19 +249,48 @@ function VueRow({
   onForget: () => void;
 }) {
   const count = useMail((s) => selectVueUnread(s, vue));
+  const renommerVue = useMail((s) => s.renommerVue);
+  const [renomme, setRenomme] = useState(false);
+
+  if (renomme) {
+    return (
+      <ChampRangee
+        depart={vue.nom}
+        placeholder={vue.q}
+        aria={`Nom de la vue ${vue.nom}`}
+        icone={<Pencil className="size-5 shrink-0 text-muted-foreground" strokeWidth={1.75} />}
+        onClose={() => setRenomme(false)}
+        onValider={(nom) => {
+          setRenomme(false);
+          renommerVue(vue.id, nom);
+        }}
+      />
+    );
+  }
+
   return (
     <SheetRow
       active={active}
       onClick={onClick}
       suffixe={
-        <button
-          type="button"
-          onClick={onForget}
-          aria-label={`Oublier la vue ${vue.nom}`}
-          className="relative flex size-8 items-center justify-center rounded-full text-muted-foreground after:absolute after:-inset-1.5 active:bg-muted"
-        >
-          <X className="size-4" />
-        </button>
+        <span className="flex items-center">
+          <button
+            type="button"
+            onClick={() => setRenomme(true)}
+            aria-label={`Renommer la vue ${vue.nom}`}
+            className="relative flex size-8 items-center justify-center rounded-full text-muted-foreground active:bg-muted"
+          >
+            <Pencil className="size-4" />
+          </button>
+          <button
+            type="button"
+            onClick={onForget}
+            aria-label={`Oublier la vue ${vue.nom}`}
+            className="relative flex size-8 items-center justify-center rounded-full text-muted-foreground after:absolute after:-inset-1.5 active:bg-muted"
+          >
+            <X className="size-4" />
+          </button>
+        </span>
       }
     >
       <VUE_ICON className="size-5 shrink-0" strokeWidth={1.75} />
@@ -284,7 +318,6 @@ function VueRow({
  */
 function NouvelleVue({ onValider }: { onValider: (q: string) => void }) {
   const [saisie, setSaisie] = useState(false);
-  const [q, setQ] = useState("");
   if (!saisie) {
     return (
       <SheetRow onClick={() => setSaisie(true)}>
@@ -294,20 +327,55 @@ function NouvelleVue({ onValider }: { onValider: (q: string) => void }) {
     );
   }
   return (
+    <ChampRangee
+      placeholder="est:non-lu, de:claire…"
+      aria="Requête de la nouvelle vue"
+      icone={<Plus className="size-5 shrink-0 text-muted-foreground" strokeWidth={1.75} />}
+      onClose={() => setSaisie(false)}
+      onValider={onValider}
+    />
+  );
+}
+
+/**
+ * Un champ **à la place d'une rangée** de feuille : même hauteur, même
+ * gouttière, l'icône qui dit ce qu'on écrit.
+ *
+ * Une seule définition pour la requête d'une vue neuve et le nom d'une vue
+ * gardée — deux gestes, la même forme.
+ */
+function ChampRangee({
+  depart = "",
+  placeholder,
+  aria,
+  icone,
+  onClose,
+  onValider,
+}: {
+  depart?: string;
+  placeholder: string;
+  aria: string;
+  icone: React.ReactNode;
+  onClose: () => void;
+  onValider: (v: string) => void;
+}) {
+  const [v, setV] = useState(depart);
+  return (
     <div className="flex h-[52px] items-center gap-3 px-4">
-      <Plus className="size-5 shrink-0 text-muted-foreground" strokeWidth={1.75} />
+      {icone}
       <input
         autoFocus
-        value={q}
-        onChange={(e) => setQ(e.target.value)}
+        value={v}
+        onChange={(e) => setV(e.target.value)}
+        onFocus={(e) => e.currentTarget.select()}
         onKeyDown={(e) => {
-          if (e.key === "Escape") setSaisie(false);
-          if (e.key === "Enter" && q.trim()) onValider(q.trim());
+          if (e.key === "Escape") onClose();
+          if (e.key === "Enter" && v.trim()) onValider(v.trim());
         }}
-        onBlur={() => !q.trim() && setSaisie(false)}
+        onBlur={() => (v.trim() && v.trim() !== depart ? onValider(v.trim()) : onClose())}
         enterKeyHint="done"
-        placeholder="est:non-lu, de:claire…"
-        aria-label="Requête de la nouvelle vue"
+        placeholder={placeholder}
+        aria-label={aria}
         /* 16 px au moins : sous ce seuil iOS zoome sur le champ à la mise au
            point, et l'écran part de travers (fiche PWA). */
         className="min-w-0 flex-1 bg-transparent text-[16px] outline-none placeholder:text-muted-foreground"

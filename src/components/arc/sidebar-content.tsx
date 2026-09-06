@@ -217,6 +217,7 @@ function Vues() {
       ))}
       {saisie ? (
         <SaisieVue
+          aria="Requête de la nouvelle vue"
           onClose={() => setSaisie(false)}
           onValider={(q) => {
             setSaisie(false);
@@ -248,8 +249,20 @@ function Vues() {
  * `Entrée` valide, et ouvre la vue dans la foulée : on la fabrique pour la
  * regarder, pas pour la ranger.
  */
-function SaisieVue({ onClose, onValider }: { onClose: () => void; onValider: (q: string) => void }) {
-  const [q, setQ] = useState("");
+function SaisieVue({
+  depart = "",
+  placeholder = "est:non-lu, de:claire…",
+  aria,
+  onClose,
+  onValider,
+}: {
+  depart?: string;
+  placeholder?: string;
+  aria: string;
+  onClose: () => void;
+  onValider: (q: string) => void;
+}) {
+  const [q, setQ] = useState(depart);
   return (
     <input
       autoFocus
@@ -259,9 +272,13 @@ function SaisieVue({ onClose, onValider }: { onClose: () => void; onValider: (q:
         if (e.key === "Escape") onClose();
         if (e.key === "Enter" && q.trim()) onValider(q.trim());
       }}
-      onBlur={() => !q.trim() && onClose()}
-      placeholder="est:non-lu, de:claire…"
-      aria-label="Requête de la nouvelle vue"
+      /* Sortir en ayant écrit quelque chose **valide** : un nom corrigé puis
+         abandonné d'un clic à côté serait un travail perdu sans le dire.
+         `Échap` reste le chemin qui annule. */
+      onBlur={() => (q.trim() && q.trim() !== depart ? onValider(q.trim()) : onClose())}
+      onFocus={(e) => e.currentTarget.select()}
+      placeholder={placeholder}
+      aria-label={aria}
       className={cn(
         "h-8 w-full rounded-lg bg-[var(--side-fill-active)] px-2.5 text-sm outline-none",
         "text-[var(--side-ink)] placeholder:text-[var(--side-ink-soft)]",
@@ -270,6 +287,17 @@ function SaisieVue({ onClose, onValider }: { onClose: () => void; onValider: (q:
   );
 }
 
+/**
+ * Une vue dans la barre — et **son nom se corrige au double-clic**.
+ *
+ * Le nom par défaut est la requête : c'est ce qui la fait reconnaître au moment
+ * où on la garde, et ce qui la fait lire comme du code une semaine plus tard.
+ * Le double-clic est le geste de renommage partout où une liste porte des noms
+ * qu'on a écrits — un fichier, un onglet, un calque —, et il laisse le simple
+ * clic à l'action principale : ouvrir la vue.
+ *
+ * La requête, elle, ne bouge pas : elle reste lisible dans l'infobulle.
+ */
 function VueRow({
   vue,
   active,
@@ -282,6 +310,24 @@ function VueRow({
   onForget: () => void;
 }) {
   const count = useMail((s) => selectVueUnread(s, vue));
+  const renommerVue = useMail((s) => s.renommerVue);
+  const [renomme, setRenomme] = useState(false);
+
+  if (renomme) {
+    return (
+      <SaisieVue
+        depart={vue.nom}
+        placeholder={vue.q}
+        aria={`Nom de la vue ${vue.nom}`}
+        onClose={() => setRenomme(false)}
+        onValider={(nom) => {
+          setRenomme(false);
+          renommerVue(vue.id, nom);
+        }}
+      />
+    );
+  }
+
   return (
     /* **La croix est une sœur du bouton, jamais sa fille** : un `<button>` dans
        un `<button>` est du HTML invalide et le navigateur peut le démonter. Le
@@ -295,8 +341,9 @@ function VueRow({
       <button
         type="button"
         onClick={onClick}
+        onDoubleClick={() => setRenomme(true)}
         aria-current={active ? "page" : undefined}
-        title={vue.q}
+        title={`${vue.q} — double-clic pour renommer`}
         className={cn(
           "flex h-8 min-w-0 flex-1 items-center gap-2.5 rounded-lg pl-2.5 text-sm transition-colors",
           active ? "text-[var(--side-ink)]" : cn(TN.hover, "text-[var(--side-ink-soft)]"),

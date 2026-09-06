@@ -101,6 +101,7 @@ export async function POST(request: NextRequest) {
               flaggedOnly: true,
               limit: body.limit,
               deja: body.deja,
+              moi: account.email,
             }),
           };
         }
@@ -108,7 +109,16 @@ export async function POST(request: NextRequest) {
         /* Une boîte iCloud n'a pas d'« En pause » : un dossier absent est une
            liste vide, pas une erreur. */
         if (!path) return { threads: [] };
-        return { threads: await readFolder(client, path, body.folder, { limit: body.limit, deja: body.deja }) };
+        return {
+          /* Notre adresse est des deux côtés de tout notre courrier : sans
+             elle, la reprise par l'objet croirait voir un correspondant commun
+             entre deux messages qui n'en ont aucun (`groupIntoThreads`). */
+          threads: await readFolder(client, path, body.folder, {
+            limit: body.limit,
+            deja: body.deja,
+            moi: account.email,
+          }),
+        };
       }
 
       if (body.op === "search") {
@@ -143,6 +153,7 @@ export async function POST(request: NextRequest) {
               flagged ? "inbox" : cible,
               flagged ? { ...critere, flagged: true } : critere,
               body.limit,
+              account.email,
             )),
           );
         }

@@ -565,3 +565,35 @@ c'est précisément ce que le `every` rend possible.
 messages s'ouvre sans un seul squelette, zéro erreur de console). **Le correctif lui-même ne se
 prouve que sur une vraie boîte** — le mock rend tous les corps d'un coup et ne peut pas reproduire
 le défaut. C'est dans « à tester ».
+
+## L'objet seul ne fait plus un fil (6 sept. 2026)
+
+Quatre fiches de salaire envoyées le même jour à quatre personnes différentes — même objet, aucun
+lien entre elles — se sont retrouvées dans **un seul fil**, sous le nom du dernier destinataire.
+« C'est pas ce que je veux », et c'est exact : ce ne sont pas des réponses les unes des autres.
+
+`groupIntoThreads` reliait par `Message-ID` / `In-Reply-To` / `References` — la méthode exacte — et
+retombait sur l'objet normalisé pour les correspondants qui répondent sans ces en-têtes. Mais cette
+reprise était **inconditionnelle** : deux messages partageant un objet fusionnaient, quoi qu'ils
+soient.
+
+Deux conditions maintenant, et il faut les deux :
+
+1. **L'un des deux se présente comme une réponse** (`Re:`, `Fwd:`, `Tr :`). Deux messages d'origine
+   ne se rejoignent donc plus jamais par leur objet : un envoi n'est pas la réponse d'un autre
+   envoi. À elle seule, cette condition corrige le cas ci-dessus.
+2. **Ils ont un correspondant en commun, nous exclus.** Sans quoi la réponse d'Eva à « Fiche de
+   salaire » rejoindrait l'exemplaire envoyé à Pedro : on est des deux côtés de tout notre courrier,
+   notre propre adresse ne prouve donc aucun lien. C'est pourquoi la route passe `moi:
+   account.email` à `readFolder` et à `searchFolder` — sans elle la règle croit voir un
+   correspondant commun partout. Deux messages qui n'ont plus personne une fois nous retirés — un
+   mot qu'on s'écrit à soi-même — comptent comme se croisant : c'est le seul cas où l'absence de
+   correspondant est le lien.
+
+Ce qu'on y perd : une réponse sans `References` **et** sans `Re:` ne s'attache plus. Elle est alors
+indistinguable d'un message neuf, et l'attacher à l'un des quatre au hasard serait pire que de ne
+rien faire.
+
+La reprise se fait par **paires** dans un seau par objet, pas par un nœud commun : un nœud
+`subj:` unissait tout le seau d'un coup, et une seule paire légitime y aurait ramené les trois
+autres messages.

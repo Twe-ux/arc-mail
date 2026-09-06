@@ -251,15 +251,53 @@ function bareSubject(subject: string): string {
     .toLowerCase();
 }
 
+/** « Re: », « Fwd: », « Tr : » — ce message se présente comme une réponse. */
+function estReponse(subject: string): boolean {
+  return /^((re|ré|rép|fwd|fw|tr)\s*(\[\d+\])?\s*:\s*)+/i.test(subject.trim());
+}
+
+/** Les correspondants d'un message, **nous en moins**. */
+function correspondants(m: FetchMessageObject, moi?: string): Set<string> {
+  const mien = moi?.toLowerCase();
+  const set = new Set<string>();
+  for (const liste of [m.envelope?.from, m.envelope?.to, m.envelope?.cc]) {
+    for (const a of liste ?? []) {
+      const adresse = a?.address?.toLowerCase();
+      if (adresse && adresse !== mien) set.add(adresse);
+    }
+  }
+  return set;
+}
+
 /**
  * Regrouper des messages en fils.
  *
  * IMAP ne connaît pas la notion de fil : ce sont les en-têtes qui la portent.
  * On relie par `Message-ID` / `In-Reply-To` / `References` — la seule méthode
- * exacte — et on retombe sur l'objet normalisé pour les correspondants qui
- * répondent sans ces en-têtes, ce qui arrive plus souvent qu'on ne voudrait.
+ * exacte — et on retombe sur l'objet pour les correspondants qui répondent
+ * sans ces en-têtes, ce qui arrive plus souvent qu'on ne voudrait.
+ *
+ * **L'objet ne suffit jamais à lui seul.** Il a suffi, et quatre fiches de
+ * salaire envoyées le même jour à quatre personnes différentes — même objet,
+ * aucun lien entre elles — se sont retrouvées dans un seul fil, sous le nom du
+ * dernier destinataire. Deux conditions maintenant, et il faut les deux :
+ *
+ * 1. **L'un des deux se présente comme une réponse** (`Re:`, `Fwd:`, `Tr :`).
+ *    Deux messages d'origine ne se rejoignent donc plus jamais par leur objet :
+ *    un envoi n'est pas la réponse d'un autre envoi. C'est la condition qui
+ *    manquait, et à elle seule elle corrige le cas ci-dessus.
+ * 2. **Ils ont un correspondant en commun**, nous exclus. Sans quoi la réponse
+ *    d'Eva à « Fiche de salaire » rejoindrait l'exemplaire envoyé à Pedro : on
+ *    est des deux côtés de tout notre courrier, notre propre adresse ne prouve
+ *    donc aucun lien. Deux messages qui n'ont plus personne une fois nous
+ *    retirés — un mot qu'on s'écrit à soi-même — comptent comme se croisant :
+ *    c'est le seul cas où l'absence de correspondant est le lien.
+ *
+ * Ce qu'on y perd : une réponse sans `References` **et** sans `Re:` ne
+ * s'attache plus. Elle est alors indistinguable d'un message neuf, et
+ * l'attacher à l'un des quatre au hasard serait pire que de ne rien faire.
  */
-function groupIntoThreads(messages: FetchMessageObject[]): FetchMessageObject[][] {
+function groupIntoThreads(messages: FetchMessageObject[], moi?: string): FetchMessageObject[][] {
   const parent = new Map<string, string>();
   const find = (x: string): string => {
     const up = parent.get(x);
@@ -284,11 +322,41 @@ function groupIntoThreads(messages: FetchMessageObject[]): FetchMessageObject[][
       if (!parent.has(id)) parent.set(id, id);
       union(own, id);
     }
-    const subject = bareSubject(m.envelope?.subject ?? "");
-    if (subject) {
-      const s = `subj:${subject}`;
-      if (!parent.has(s)) parent.set(s, s);
-      union(own, s);
+  }
+
+  /* La reprise par l'objet, par paires : un seau par objet normalisé, et
+     dedans, deux messages ne se rejoignent que s'ils passent les deux
+     conditions. Un seau tient dans une page de soixante messages ; comparer
+     ses paires ne coûte rien. */
+  const seaux = new Map<string, FetchMessageObject[]>();
+  for (const m of messages) {
+    const s = bareSubject(m.envelope?.subject ?? "");
+    if (!s) continue;
+    const seau = seaux.get(s);
+    if (seau) seau.push(m);
+    else seaux.set(s, [m]);
+  }
+  const gens = new Map<number, Set<string>>();
+  const partis = (m: FetchMessageObject) => {
+    let set = gens.get(m.uid);
+    if (!set) gens.set(m.uid, (set = correspondants(m, moi)));
+    return set;
+  };
+  for (const seau of seaux.values()) {
+    if (seau.length < 2) continue;
+    for (let i = 0; i < seau.length; i++) {
+      for (let j = i + 1; j < seau.length; j++) {
+        const a = seau[i];
+        const b = seau[j];
+        if (find(key(a)) === find(key(b))) continue;
+        if (!estReponse(a.envelope?.subject ?? "") && !estReponse(b.envelope?.subject ?? "")) continue;
+        const pa = partis(a);
+        const pb = partis(b);
+        const croise =
+          (pa.size === 0 && pb.size === 0) || [...pa].some((adresse) => pb.has(adresse));
+        if (!croise) continue;
+        union(key(a), key(b));
+      }
     }
   }
 
@@ -400,6 +468,7 @@ export async function searchFolder(
   folder: FolderId,
   critere: RechercheImap,
   limit = 40,
+  moi?: string,
 ): Promise<Thread[]> {
   const lock = await client.getMailboxLock(path);
   try {
@@ -408,7 +477,7 @@ export async function searchFolder(
     if (derniers.length === 0) return [];
     const messages: FetchMessageObject[] = [];
     for await (const m of client.fetch(derniers, ENVELOPE_QUERY, { uid: true })) messages.push(m);
-    return groupIntoThreads(messages)
+    return groupIntoThreads(messages, moi)
       .map((g) => toThread(g, path, folder))
       .sort((a, b) => (a.messages.at(-1)!.date < b.messages.at(-1)!.date ? 1 : -1));
   } finally {
@@ -421,7 +490,7 @@ export async function readFolder(
   client: ImapFlow,
   path: string,
   folder: FolderId,
-  options: { flaggedOnly?: boolean; limit?: number; deja?: number } = {},
+  options: { flaggedOnly?: boolean; limit?: number; deja?: number; moi?: string } = {},
 ): Promise<Thread[]> {
   const lock = await client.getMailboxLock(path);
   try {
@@ -454,7 +523,7 @@ export async function readFolder(
         messages.push(m);
     }
 
-    const threads = groupIntoThreads(messages).map((g) => toThread(g, path, folder));
+    const threads = groupIntoThreads(messages, options.moi).map((g) => toThread(g, path, folder));
     return threads.sort((a, b) => (a.messages.at(-1)!.date < b.messages.at(-1)!.date ? 1 : -1));
   } finally {
     lock.release();

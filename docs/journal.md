@@ -2,6 +2,19 @@
 
 Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérification.
 
+## 6 septembre 2026 — l'expéditeur se coupe au bord du bouton
+
+En pleine largeur, un nom long courait jusqu'à 347 quand le bouton « Nouveau message » de la tête
+s'arrête à 313 : la colonne dépassait de 34 px le seul élément de la fenêtre qui finit plus tôt
+qu'elle.
+
+Un **retrait**, pas une largeur : la colonne garde ses 224 px de gabarit — ce sont eux qui posent
+l'objet à 357, exactement là où commence le champ de recherche — et prend `pr-[34px]`. Rétrécir la
+colonne aurait ramené l'objet à 323 et cassé cet alignement-là.
+
+Les 34 px sont mesurés et constants : à 1100, 1280, 1440 et 1800 px, barre attachée comme rail,
+l'écart ne bouge pas. Vérifié sur un nom long, qui se coupe à 313 — écart zéro.
+
 ## 6 septembre 2026 — le toast redevient une carte
 
 « Annuler » sortait en rectangle blanc vide sur l'appareil, et le bandeau pleine largeur en dégradé

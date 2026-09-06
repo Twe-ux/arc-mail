@@ -323,3 +323,22 @@ elle ne disait rien de ce qui comptait.
 gauche se pose exactement sur l'engrenage et l'avatar : ils sont inatteignables tant qu'il est là.
 Il n'existe pas en production, mais il fausse tout test local — les vérifications le masquent
 (`nextjs-portal{display:none}`) avant de cliquer.
+
+---
+
+## L'expéditeur se coupe au bord du bouton d'écriture (6 sept. 2026)
+
+Signalé : « il faut couper la fin des expéditeurs au niveau du bouton nouveau message ». En pleine
+largeur, un nom long courait jusqu'à 347 quand le bouton de la tête s'arrête à 313 : il dépassait de
+34 px le seul élément de la fenêtre qui finit plus tôt que lui, et la colonne n'avait plus de bord
+franc.
+
+**Un retrait, pas une largeur.** La colonne garde ses 224 px de gabarit — ce sont eux qui posent
+l'objet à 357, exactement là où commence le champ de recherche —, et prend `pr-[34px]` : son texte
+s'arrête à 313, son emprise ne bouge pas. Rétrécir la colonne aurait ramené l'objet à 323 et cassé
+l'alignement que la tête de liste protège.
+
+**34 px, et c'est un constant.** Mesuré à 1100, 1280, 1440 et 1800 px, barre attachée comme rail :
+l'écart entre le bord du bouton et celui de la colonne ne bouge jamais. Vérifié ensuite sur un nom
+long — « noreply-dmarc-support@google.com — rapport quotidien » se coupe à 313, écart zéro — et les
+deux alignements tiennent : objet et champ de recherche à 357 tous les deux.

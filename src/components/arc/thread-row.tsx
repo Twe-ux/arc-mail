@@ -191,7 +191,17 @@ export function ThreadRow({
             {/* L'expéditeur prend une colonne fixe en pleine largeur : c'est ce
                 qui aligne les objets les uns sous les autres, et sans cet
                 alignement la liste ne se balaie plus. */}
-            <span className="flex items-center gap-2 md:group-data-[large=true]/liste:w-56 md:group-data-[large=true]/liste:shrink-0">
+            {/* **L'expéditeur se coupe au bord du bouton « Nouveau message ».**
+                La colonne garde ses 224 px de gabarit — c'est eux qui posent
+                l'objet à 357, là où commence le champ de recherche —, mais son
+                texte s'arrête 34 px plus tôt : sans ce retrait il dépassait le
+                bouton de la tête, seul élément de la fenêtre à finir plus tôt
+                que lui. 34 px, mesuré, et **constant** : à 1100 comme à 1800,
+                barre attachée comme rail, l'écart entre le bord du bouton et
+                celui de la colonne ne bouge pas. C'est un retrait et non une
+                largeur : rétrécir la colonne aurait ramené l'objet à 323 et
+                cassé son alignement avec la recherche. */}
+            <span className="flex items-center gap-2 md:group-data-[large=true]/liste:w-56 md:group-data-[large=true]/liste:shrink-0 md:group-data-[large=true]/liste:pr-[34px]">
               {thread.unread && (
                 <span className="size-2 shrink-0 rounded-full" style={{ backgroundColor: accent }}>
                   <span className="sr-only">Non lu</span>
@@ -406,7 +416,7 @@ export function RangeeCorrespondant({
         <span className="min-w-0 flex-1 md:group-data-[large=true]/liste:flex md:group-data-[large=true]/liste:items-center md:group-data-[large=true]/liste:gap-2.5">
           {/* Le nom prend la même colonne fixe que l'expéditeur d'un fil : c'est
               ce qui aligne les deux vues l'une sur l'autre. */}
-          <span className="flex items-center gap-2 md:group-data-[large=true]/liste:w-56 md:group-data-[large=true]/liste:shrink-0">
+          <span className="flex items-center gap-2 md:group-data-[large=true]/liste:w-56 md:group-data-[large=true]/liste:shrink-0 md:group-data-[large=true]/liste:pr-[34px]">
             <span className={cn("min-w-0 flex-1 truncate text-[15px] md:text-sm", c.unread > 0 && "font-semibold")}>
               {c.name}
             </span>

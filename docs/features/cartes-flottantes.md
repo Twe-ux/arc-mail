@@ -165,3 +165,34 @@ ne se lisent plus.
 Le **composeur** ne garde plus rien de cette fiche : feuille plein écran **ancrée** (le clavier ne
 lui prend qu'un `padding-bottom`, jamais une position), poignée, outils à plat, envoi dans le
 bandeau du haut → [fiche](composeur-panneaux.md).
+
+---
+
+## La feuille Dossiers : une grille, plus une liste (6 sept. 2026)
+
+Elle posait sept rangées d'iOS — tuile colorée, nom long, compteur à droite — sous un rail de
+pastilles pour changer de compte. Ça faisait 52 px de tête et 350 px de liste pour sept cibles, et
+« Aujourd'hui » commençait sous la ligne de flottaison.
+
+**Le choix du compte est parti.** Les espaces vivent dans la barre du bas, à demeure, sous le
+pouce ([barre du bas](barre-du-bas.md)) ; le rail les répétait pour un chemin qu'on ne prenait
+jamais. La feuille ne fait plus qu'une chose : choisir un dossier.
+
+**Les sept boîtes sont une grille de quatre colonnes** — c'est la forme des épinglés de la tête de
+liste, ramenée ici pour les sept. Tuile de 70 px, rayon 16, gouttière 8 ; icône en trait de 20,
+nom court dessous en 11,5/500 centré. Le fond est la **teinte de l'espace**, pas sept couleurs
+d'arc-en-ciel : 7 % au repos, et **ce qui est ouvert se remplit** — accent à 20 %, encre
+`--space-ink`, la règle de la [pill d'actions](pill-actions.md) et du regroupement du bureau. Un
+anneau seul ne se voyait pas à 70 px de haut au milieu de six voisines.
+
+Les non-lus sont une **pastille en haut à droite** (`--space-gradient`, blanc, 10,5/700), pas une
+colonne de chiffres : dans une grille il n'y a pas de bord droit commun où les aligner. Elle
+porte un « non lus » en `sr-only` — un nombre nu ne dit rien à un lecteur d'écran.
+
+**Le nom court n'est écrit qu'une fois**, dans [`src/lib/folders.ts`](../../src/lib/folders.ts)
+(`FOLDER_SHORT`, `FOLDER_ICON`) : la tête de liste (`EPINGLES`) et cette grille le lisent au même
+endroit. `FOLDERS` de `mock-data` garde le nom long — « Boîte de réception » —, celui de
+l'en-tête d'écran, là où il y a la largeur pour le lire.
+
+Mesuré à 393 × 852 (insets 59/34) : carte de 362 px au lieu de 562, marges 8 / 8 / 8, rayon 36.
+Environ 200 px rendus, et « Aujourd'hui » remonte au-dessus de la ligne de flottaison.

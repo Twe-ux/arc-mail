@@ -2,6 +2,23 @@
 
 Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérification.
 
+## 6 septembre 2026 — la feuille Dossiers passe en grille
+
+Sept rangées d'iOS et un rail de comptes au-dessus : 562 px de carte pour sept cibles, et
+« Aujourd'hui » commençait sous la ligne de flottaison. Le rail est parti — les espaces sont dans
+la barre du bas, à demeure ; le répéter ici ouvrait un chemin qu'on ne prenait pas. Les boîtes sont
+une **grille de quatre colonnes**, la forme des épinglés de la tête de liste étendue aux sept :
+tuile de 70, icône en trait, nom court dessous.
+
+Le fond n'est plus l'arc-en-ciel d'iOS mais la **teinte de l'espace** (7 %), et ce qui est ouvert
+**se remplit** (20 %, encre `--space-ink`) — la règle de la pill et du regroupement du bureau. Les
+non-lus passent en pastille au coin haut : dans une grille il n'y a pas de bord droit où aligner
+une colonne de chiffres.
+
+Au passage, le nom court d'un dossier n'est plus écrit à deux endroits : `src/lib/folders.ts` le
+porte, la tête de liste et la grille le lisent. Mesuré à 393 × 852 (insets 59/34) : carte de
+362 px au lieu de 562, marges 8 / 8 / 8, rayon 36, zéro erreur de console.
+
 ## 6 septembre 2026 — les compteurs de non-lus disent enfin la vérité
 
 Une lecture ne rapporte qu'un dossier, et on comptait ce qu'on avait en mémoire : Archive et

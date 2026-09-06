@@ -1,64 +1,40 @@
 "use client";
 
-import {
-  Archive,
-  ChevronRight,
-  Clock,
-  FileText,
-  Inbox,
-  Moon,
-  Send,
-  Star,
-  Trash2,
-  UserRound,
-  X,
-  type LucideIcon,
-} from "lucide-react";
+import { ChevronRight, Moon, UserRound, X } from "lucide-react";
 import Link from "next/link";
 
 import { SignOut } from "@/components/auth/sign-out";
+import { FOLDER_ICON, FOLDER_SHORT } from "@/lib/folders";
 import { FOLDERS } from "@/lib/mock-data";
-import { selectUnreadCount, useMail, useRecentThreads, useSpace, useSpaces } from "@/lib/store";
+import { selectUnreadCount, useMail, useRecentThreads, useSpace } from "@/lib/store";
 import { PRESET_HUES, themeFromHue } from "@/lib/theme";
 import type { FolderId } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import {
-  BottomSheet,
-  SheetCloseButton,
-  SheetGroup,
-  SheetRow,
-  SheetScroller,
-  SheetTile,
-} from "./bottom-sheet";
+import { BottomSheet, SheetCloseButton, SheetGroup, SheetRow, SheetScroller, SheetTile } from "./bottom-sheet";
 import { ContactAvatar } from "./contact-avatar";
 import { InstallHint } from "./install-hint";
 import { SpaceIcon } from "./space-icon";
 
-/** iOS Mail gives every mailbox a coloured tile; so do we. */
-const FOLDER_TILES: Record<FolderId, { icon: LucideIcon; tint: string }> = {
-  inbox: { icon: Inbox, tint: "bg-blue-500" },
-  starred: { icon: Star, tint: "bg-amber-400" },
-  snoozed: { icon: Clock, tint: "bg-purple-500" },
-  sent: { icon: Send, tint: "bg-emerald-500" },
-  drafts: { icon: FileText, tint: "bg-neutral-500" },
-  archive: { icon: Archive, tint: "bg-teal-500" },
-  trash: { icon: Trash2, tint: "bg-red-500" },
-};
-
 /**
- * La feuille Dossiers : les espaces en pastilles, puis les boîtes.
+ * La feuille Dossiers : les sept boîtes en grille, puis les récents.
  *
  * Elle ne porte plus que la navigation. Le réglage de l'espace — teinte,
  * thème, compte — est parti dans sa propre feuille : les deux tenaient dans
  * la même carte tant qu'il y avait trois dossiers et une case à cocher, plus
  * depuis. **Une feuille par intention.**
+ *
+ * Et le choix du compte est parti aussi : les espaces sont dans la barre du
+ * bas, à demeure, sous le pouce. Le rail de pastilles qui les répétait ici
+ * coûtait 52 px de tête pour un chemin qu'on ne prenait jamais.
+ *
+ * Les dossiers sont une **grille de quatre colonnes**, pas sept rangées
+ * d'iOS : c'est la forme des épinglés de la tête de liste (icône, nom court,
+ * la teinte de l'espace pour dire lequel est ouvert), et elle rend 200 px —
+ * « Aujourd'hui » remonte au-dessus de la ligne de flottaison.
  */
 export function MobileMenu() {
   const open = useMail((s) => s.sidebarOpen);
   const setOpen = useMail((s) => s.setSidebarOpen);
-  const spaces = useSpaces();
-  const spaceId = useMail((s) => s.spaceId);
-  const setSpace = useMail((s) => s.setSpace);
   const folderId = useMail((s) => s.folderId);
   const setFolder = useMail((s) => s.setFolder);
   const selectedThreadId = useMail((s) => s.selectedThreadId);
@@ -80,48 +56,18 @@ export function MobileMenu() {
       title="Dossiers"
       description="Espaces, boîtes et conversations récentes"
       head={
-        <>
-          <div className="flex items-center gap-3">
-            <p className="min-w-0 flex-1 truncate text-[17px] font-semibold">Dossiers</p>
-            <SheetCloseButton onClose={() => setOpen(false)} />
-          </div>
-          {/* `py-1` plutôt que `mt-1 pb-1` : un rail horizontal rogne aussi
-              verticalement (le CSS transforme le `visible` de l'autre axe en
-              `auto`), et l'anneau de la pastille active est une ombre peinte
-              *hors* de sa boîte — au ras du haut du rail, ce bord se faisait
-              raboter. */}
-          <div className="-mx-4 mt-2 flex gap-2 overflow-x-auto px-4 py-1 [scrollbar-width:none]">
-            {spaces.map((sp) => {
-              const active = sp.id === spaceId;
-              return (
-                <button
-                  key={sp.id}
-                  type="button"
-                  onClick={() => setSpace(sp.id)}
-                  aria-pressed={active}
-                  className={cn(
-                    "flex shrink-0 items-center gap-2 rounded-full py-1.5 pr-3.5 pl-1.5 text-[15px] transition-colors",
-                    active
-                      ? "bg-[color-mix(in_oklch,var(--space-accent)_16%,white)] font-medium text-foreground ring-1 ring-[color-mix(in_oklch,var(--space-accent)_35%,transparent)] dark:bg-[color-mix(in_oklch,var(--space-accent)_22%,black)]"
-                      : "bg-white text-muted-foreground dark:bg-[#26262a]",
-                  )}
-                >
-                  <SpaceIcon space={sp} size="md" />
-                  {sp.name}
-                </button>
-              );
-            })}
-          </div>
-        </>
+        <div className="flex items-center gap-3">
+          <p className="min-w-0 flex-1 truncate text-[17px] font-semibold">Dossiers</p>
+          <SheetCloseButton onClose={() => setOpen(false)} />
+        </div>
       }
     >
       <SheetScroller>
-        <SheetGroup className="mt-1">
+        <div className="mt-1 grid grid-cols-4 gap-2">
           {FOLDERS.map((f) => (
-            <FolderRow
+            <FolderTile
               key={f.id}
               id={f.id}
-              name={f.name}
               active={f.id === folderId}
               onClick={go(() => {
                 setFolder(f.id);
@@ -129,7 +75,7 @@ export function MobileMenu() {
               })}
             />
           ))}
-        </SheetGroup>
+        </div>
 
         <Section
           title="Aujourd'hui"
@@ -337,27 +283,41 @@ function Section({
   );
 }
 
-function FolderRow({
-  id,
-  name,
-  active,
-  onClick,
-}: {
-  id: FolderId;
-  name: string;
-  active: boolean;
-  onClick: () => void;
-}) {
+/**
+ * Une boîte dans la grille : icône, nom court, non-lus en pastille au coin.
+ *
+ * Ce qui est ouvert **se remplit** — la règle de la pill d'actions et du
+ * regroupement du bureau : l'accent à 20 %, l'encre `--space-ink`. Un anneau
+ * seul ne se voyait pas sur 70 px de haut au milieu de six voisines. Et le
+ * compte va au coin, pas dans une colonne à droite : dans une grille il n'y a
+ * pas de bord droit commun où l'aligner.
+ */
+function FolderTile({ id, active, onClick }: { id: FolderId; active: boolean; onClick: () => void }) {
   const count = useMail((s) => selectUnreadCount(s, s.spaceId, id));
-  const { icon: Icon, tint } = FOLDER_TILES[id];
+  const Icon = FOLDER_ICON[id];
   return (
-    <SheetRow active={active} onClick={onClick}>
-      <SheetTile tint={tint}>
-        <Icon />
-      </SheetTile>
-      <span className={cn("min-w-0 flex-1 truncate text-[15px]", active && "font-medium")}>{name}</span>
-      {count > 0 && <span className="text-[15px] text-muted-foreground tabular-nums">{count}</span>}
-    </SheetRow>
+    <button
+      type="button"
+      onClick={onClick}
+      aria-current={active ? "page" : undefined}
+      className={cn(
+        "relative flex h-[70px] flex-col items-center justify-center gap-1.5 rounded-2xl px-1 transition-transform active:scale-95 active:duration-0",
+        active
+          ? "bg-[color-mix(in_oklch,var(--space-accent)_20%,transparent)] text-[var(--space-ink)]"
+          : "bg-[color-mix(in_oklch,var(--space-accent)_7%,transparent)] text-foreground",
+      )}
+    >
+      <Icon className={cn("size-5", !active && "text-muted-foreground")} strokeWidth={1.75} />
+      <span className={cn("max-w-full truncate text-[11.5px] leading-none", active ? "font-semibold" : "font-medium")}>
+        {FOLDER_SHORT[id]}
+      </span>
+      {count > 0 && (
+        <span className="absolute top-[7px] right-2 rounded-full px-1.5 text-[10.5px] leading-[1.5] font-bold text-white tabular-nums [background:var(--space-gradient)]">
+          {count}
+          <span className="sr-only"> non lus</span>
+        </span>
+      )}
+    </button>
   );
 }
 

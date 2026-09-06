@@ -1,9 +1,10 @@
 "use client";
 
-import { Inbox, Send, Star, Trash2, Users, type LucideIcon } from "lucide-react";
+import { Users } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { FOLDER_ICON, FOLDER_SHORT } from "@/lib/folders";
 import { selectFolder, useMail, useSpace, useSpaces, useVisibleThreads } from "@/lib/store";
 import type { FolderId } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -16,12 +17,11 @@ import { cn } from "@/lib/utils";
  * Dossiers, qui est à un appui de là. Une rangée de sept tuiles de 55 px
  * n'aurait plus de libellé lisible et n'aurait rien épinglé du tout.
  */
-export const EPINGLES: { id: FolderId; label: string; icon: LucideIcon }[] = [
-  { id: "inbox", label: "Réception", icon: Inbox },
-  { id: "starred", label: "Favoris", icon: Star },
-  { id: "sent", label: "Envoyés", icon: Send },
-  { id: "trash", label: "Corbeille", icon: Trash2 },
-];
+export const EPINGLES = (["inbox", "starred", "sent", "trash"] as const).map((id: FolderId) => ({
+  id,
+  label: FOLDER_SHORT[id],
+  icon: FOLDER_ICON[id],
+}));
 
 /**
  * L'en-tête de la liste sur téléphone : le grand titre iOS, ce que le dossier

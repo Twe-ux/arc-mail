@@ -9,7 +9,10 @@ import { providerFor } from "./mail";
 import type { FolderUnread } from "./mail/provider";
 import { FOLDERS, SPACES } from "./mock-data";
 import { resolveSpace } from "./theme";
-import type { Attachment, ComposeDraft, Contact, FolderId, Message, Space, SpaceId, Thread } from "./types";
+import { dossiersDe } from "./search/imap";
+import { correspond } from "./search/match";
+import { parse } from "./search/parse";
+import type { Attachment, ComposeDraft, Contact, FolderId, Message, Space, SpaceId, Thread, Vue } from "./types";
 
 /** Partiel : un espace nouveau n'a pas encore de clé, et `?? []` est la lecture. */
 type RecentMap = Partial<Record<SpaceId, string[]>>;
@@ -82,6 +85,21 @@ export type MailState = {
   groupBy: "fil" | "correspondant";
   /** La personne ouverte dans la vue par correspondant. Passager, jamais persisté. */
   correspondent: string | null;
+  /**
+   * Les **vues enregistrées** : des requêtes nommées, à côté des dossiers.
+   *
+   * Communes aux espaces, et non rangées par boîte : une requête est une
+   * question, pas un classement. « est:non-lu avec:piece » se pose aussi bien
+   * dans Perso que dans Pro, et la même question copiée trois fois dérive à la
+   * première correction.
+   */
+  vues: Vue[];
+  /**
+   * La vue ouverte, `null` quand on regarde un dossier. Passagère comme
+   * `folderId` : rouvrir l'app sur une liste filtrée sans l'avoir demandé,
+   * c'est une boîte qui ment sur ce qu'elle contient.
+   */
+  vueId: string | null;
   dark: boolean;
   /** Everything loaded so far, every space and folder; selectors slice it. */
   threads: Thread[];
@@ -155,6 +173,10 @@ export type MailState = {
   setSpaces: (spaces: Space[]) => void;
   setGroupBy: (mode: MailState["groupBy"]) => void;
   setCorrespondent: (email: string | null) => void;
+  /** Garde la requête courante sous un nom. Rend la vue créée. */
+  enregistrerVue: (nom: string, q: string) => Vue;
+  supprimerVue: (id: string) => void;
+  ouvrirVue: (id: string) => void;
   setListWidth: (px: number) => void;
   /** Cas particulier d'`openThird` : la pièce jointe. `null` referme. */
   setPreview: (attachmentId: string | null) => void;
@@ -678,6 +700,8 @@ export const useMail = create<MailState>()(
   fondBureau: "degrade",
   listWidth: LISTE_DEFAUT,
   groupBy: "fil",
+  vues: [],
+  vueId: null,
   correspondent: null,
   third: null,
   thirdWidth: TIERS_DEFAUT,
@@ -753,9 +777,13 @@ export const useMail = create<MailState>()(
     }
   },
 
-  setSpace: (spaceId) => set({ spaceId, folderId: "inbox", selectedThreadId: null, unreadOnly: false }),
+  setSpace: (spaceId) =>
+    set({ spaceId, folderId: "inbox", selectedThreadId: null, unreadOnly: false, vueId: null }),
 
-  setFolder: (folderId) => set({ folderId, selectedThreadId: null }),
+  /* **Choisir un dossier, c'est quitter la vue.** Les deux occupent la même
+     liste : la laisser filtrée par une question qu'on ne voit plus, c'est une
+     réception qui cache la moitié de son courrier sans le dire. */
+  setFolder: (folderId) => set({ folderId, selectedThreadId: null, vueId: null }),
 
   selectThread: (id) => {
     if (id === null) {
@@ -987,6 +1015,44 @@ export const useMail = create<MailState>()(
      saurait plus quitter. */
   setGroupBy: (groupBy) => set({ groupBy, correspondent: null }),
   setCorrespondent: (correspondent) => set({ correspondent }),
+
+  /**
+   * Garder la question.
+   *
+   * Le nom par défaut est **la requête elle-même** : c'est ce qu'on vient de
+   * taper, donc ce qu'on reconnaîtra, et une vue nommée « Vue 3 » ne se
+   * distingue de rien. Une requête déjà gardée n'en fabrique pas une seconde —
+   * deux lignes identiques dans la barre ne sont pas deux vues, c'est un
+   * doublon qu'on ira supprimer.
+   */
+  enregistrerVue: (nom, q) => {
+    const requete = q.trim();
+    const connue = get().vues.find((v) => v.q === requete);
+    if (connue) return connue;
+    const vue: Vue = { id: `vue-${Date.now().toString(36)}`, nom: nom.trim() || requete, q: requete };
+    set((s) => ({ vues: [...s.vues, vue] }));
+    return vue;
+  },
+
+  supprimerVue: (id) =>
+    set((s) => ({ vues: s.vues.filter((v) => v.id !== id), vueId: s.vueId === id ? null : s.vueId })),
+
+  /**
+   * Ouvrir une vue, c'est **poser une question à un dossier**.
+   *
+   * Le dossier est celui que la requête nomme (`dans:`), la réception sinon —
+   * la même règle que côté serveur, où `dans:` sélectionne une boîte et n'est
+   * pas un critère. Sans elle, une vue rendrait ce qui traîne en mémoire des
+   * dossiers déjà visités : le résultat dépendrait de l'endroit d'où on l'a
+   * ouverte, ce qu'aucune question ne devrait faire.
+   */
+  ouvrirVue: (id) => {
+    const vue = get().vues.find((v) => v.id === id);
+    if (!vue) return;
+    const folderId = dossiersDe(parse(vue.q))[0] ?? "inbox";
+    set({ vueId: id, folderId, selectedThreadId: null, correspondent: null, unreadOnly: false });
+    void get().loadSpace(get().spaceId, folderId);
+  },
   setPreview: (attachmentId) =>
     attachmentId === null ? get().closeThird() : get().openThird({ kind: "file", attachmentId }),
 
@@ -1271,6 +1337,7 @@ export const useMail = create<MailState>()(
           | "listWidth"
           | "thirdWidth"
           | "groupBy"
+          | "vues"
           | "recent"
           | "threads"
         >;
@@ -1287,6 +1354,7 @@ export const useMail = create<MailState>()(
         listWidth: s.listWidth,
         thirdWidth: s.thirdWidth,
         groupBy: s.groupBy,
+        vues: s.vues,
         recent: s.recent,
         threads: enMemoire(s.threads),
       }),
@@ -1452,15 +1520,63 @@ export function useSpace(): Space {
   return spaces.find((sp) => sp.id === spaceId) ?? spaces[0];
 }
 export const selectFolder = (s: MailState) => FOLDERS.find((f) => f.id === s.folderId) ?? FOLDERS[0];
+
+/** La vue ouverte, ou `undefined` quand on regarde un dossier. */
+export const selectVue = (s: MailState) => s.vues.find((v) => v.id === s.vueId);
+
+/**
+ * Ce que la liste s'appelle : le nom de la vue, ou celui du dossier.
+ *
+ * Un seul endroit pour la question « qu'est-ce que je regarde ? » — la tête du
+ * téléphone et celle du bureau la posaient chacune de leur côté, et une vue
+ * ouverte sous le titre « Boîte de réception » serait une liste qui ment.
+ */
+export const selectListTitle = (s: MailState) => selectVue(s)?.nom ?? selectFolder(s).name;
+
+/**
+ * L'arbre d'une vue, analysé une fois par requête.
+ *
+ * `selectVisibleThreads` tourne à chaque rendu de la liste ; réanalyser la même
+ * chaîne quatre-vingts fois par seconde pour rien serait payer l'analyseur au
+ * prix du filtre.
+ */
+const arbres = new Map<string, ReturnType<typeof parse>>();
+function arbreDe(q: string) {
+  const connu = arbres.get(q);
+  if (connu) return connu;
+  const arbre = parse(q);
+  arbres.set(q, arbre);
+  return arbre;
+}
 export const selectSelectedThread = (s: MailState) => s.threads.find((t) => t.id === s.selectedThreadId);
 
 /** Pure version used outside React (keyboard shortcuts). */
 export function selectVisibleThreads(s: MailState): Thread[] {
+  /* **Une vue est une question posée à un dossier**, pas à la mémoire entière :
+     `ouvrirVue` a déjà choisi la boîte (celle que `dans:` nomme, la réception
+     sinon), et le filtre s'applique dedans. Sans ce garde-fou, une vue
+     ramasserait ce que les dossiers déjà visités ont laissé en mémoire, et
+     rendrait donc autre chose selon l'endroit d'où on l'a ouverte. */
+  const vue = selectVue(s);
+  const arbre = vue ? arbreDe(vue.q) : null;
   return sortByDate(
     s.threads.filter(
-      (t) => t.spaceId === s.spaceId && threadMatchesFolder(t, s.folderId) && (!s.unreadOnly || t.unread),
+      (t) =>
+        t.spaceId === s.spaceId &&
+        threadMatchesFolder(t, s.folderId) &&
+        (arbre === null || correspond(arbre, t)) &&
+        (!s.unreadOnly || t.unread),
     ),
   );
+}
+
+/** Les non-lus d'une vue — **ce qu'on a en mémoire**, comme Favoris. */
+export function selectVueUnread(s: MailState, vue: Vue): number {
+  const arbre = arbreDe(vue.q);
+  const folderId = dossiersDe(arbre)[0] ?? "inbox";
+  return s.threads.filter(
+    (t) => t.spaceId === s.spaceId && t.unread && threadMatchesFolder(t, folderId) && correspond(arbre, t),
+  ).length;
 }
 
 /**
@@ -1516,8 +1632,10 @@ export function useVisibleThreads(): Thread[] {
   const spaceId = useMail((s) => s.spaceId);
   const folderId = useMail((s) => s.folderId);
   const unreadOnly = useMail((s) => s.unreadOnly);
+  const vues = useMail((s) => s.vues);
+  const vueId = useMail((s) => s.vueId);
   return useMemo(
-    () => selectVisibleThreads({ threads, spaceId, folderId, unreadOnly } as MailState),
-    [threads, spaceId, folderId, unreadOnly],
+    () => selectVisibleThreads({ threads, spaceId, folderId, unreadOnly, vues, vueId } as MailState),
+    [threads, spaceId, folderId, unreadOnly, vues, vueId],
   );
 }

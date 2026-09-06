@@ -1,11 +1,11 @@
 "use client";
 
-import { Users } from "lucide-react";
+import { Users, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { FOLDER_ICON, FOLDER_SHORT } from "@/lib/folders";
-import { selectFolder, useMail, useSpace, useSpaces, useVisibleThreads } from "@/lib/store";
+import { selectListTitle, useMail, useSpace, useSpaces, useVisibleThreads } from "@/lib/store";
 import type { FolderId } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -33,7 +33,14 @@ export const EPINGLES = (["inbox", "starred", "sent", "trash"] as const).map((id
  * sans lui, son arrondi se perdait dans le dégradé.
  */
 export function ListHeader() {
-  const folder = useMail(selectFolder);
+  /* **Le titre dit ce qu'on regarde**, dossier ou vue : une liste filtrée sous
+     « Boîte de réception » cacherait du courrier sans le dire. Un seul
+     sélecteur pour les deux — la tête du bureau posait la question de son
+     côté. */
+  const titre = useMail(selectListTitle);
+  const vue = useMail((s) => s.vueId !== null);
+  const folderId = useMail((s) => s.folderId);
+  const setFolder = useMail((s) => s.setFolder);
   const space = useSpace();
   const threads = useVisibleThreads();
   const groupBy = useMail((s) => s.groupBy);
@@ -53,8 +60,21 @@ export function ListHeader() {
       <div className="px-5">
         <div className="flex items-center gap-2">
           <h1 className="min-w-0 flex-1 truncate text-[22px] leading-[1.2] font-bold tracking-[-0.015em]">
-            {folder.name}
+            {titre}
           </h1>
+          {/* La sortie de la vue, contre son titre : sur téléphone les quatre
+              pilules de dossiers sont l'autre chemin, mais aucune ne dit
+              « revenir à la boîte entière » — elles en proposent une autre. */}
+          {vue && (
+            <button
+              type="button"
+              onClick={() => setFolder(folderId)}
+              aria-label="Quitter la vue"
+              className="relative grid size-[30px] shrink-0 place-items-center rounded-full bg-[color-mix(in_oklch,var(--space-accent)_22%,transparent)] text-[var(--space-ink)] after:absolute after:-inset-1.5"
+            >
+              <X className="size-4" />
+            </button>
+          )}
           <Segmented />
         </div>
         <div className="mt-1 flex items-center gap-2">
@@ -126,11 +146,12 @@ function TuilesDossiers() {
   const folderId = useMail((s) => s.folderId);
   const setFolder = useMail((s) => s.setFolder);
   const setCorrespondent = useMail((s) => s.setCorrespondent);
+  const surUneVue = useMail((s) => s.vueId !== null);
 
   return (
     <nav aria-label="Dossiers épinglés" className="flex gap-2 px-5 pt-2.5 pb-3">
       {EPINGLES.map(({ id, label, icon: Icon }) => {
-        const active = id === folderId;
+        const active = id === folderId && !surUneVue;
         return (
           <button
             key={id}

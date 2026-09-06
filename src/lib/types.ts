@@ -146,6 +146,24 @@ export type Folder = {
   name: string;
 };
 
+/**
+ * Une **vue enregistrée** : une requête nommée, qui vit à côté des dossiers.
+ *
+ * Elle ne range rien et ne copie rien — c'est la question, gardée. Elle
+ * découle de l'arbre de recherche sans rien lui demander de plus : le même
+ * analyseur, le même compilateur mémoire que ⌘K.
+ *
+ * `q` est la requête **telle qu'elle a été tapée**, pas son arbre : un arbre
+ * sérialisé se périme dès que la grammaire gagne un mot-clé, la chaîne se
+ * réanalyse toujours.
+ */
+export type Vue = {
+  id: string;
+  /** Ce qu'on lit dans la barre. Par défaut la requête elle-même. */
+  nom: string;
+  q: string;
+};
+
 /** The live state of the composer; also what a draft thread is built from. */
 export type ComposeDraft = {
   /** Set when editing an existing thread from the Drafts folder. */

@@ -1,4 +1,4 @@
-import { Archive, Clock, FileText, Inbox, Send, Star, Trash2, type LucideIcon } from "lucide-react";
+import { Archive, Clock, FileText, Inbox, ListFilter, Send, Star, Trash2, type LucideIcon } from "lucide-react";
 
 import type { FolderId } from "./types";
 
@@ -32,6 +32,14 @@ export const FOLDER_ICON: Record<FolderId, LucideIcon> = {
   archive: Archive,
   trash: Trash2,
 };
+
+/**
+ * L'icône d'une **vue enregistrée**, ici parce qu'elle se pose à côté des
+ * dossiers et doit en parler la grammaire : un trait, la même taille, la même
+ * rangée. Un entonnoir plutôt qu'un signet — une vue ne met rien de côté, elle
+ * filtre un dossier ; c'est ce que `ouvrirVue` fait vraiment.
+ */
+export const VUE_ICON = ListFilter;
 
 /**
  * Ce qu'on dit **après** avoir rangé un fil : « Archivé », pas « Déplacé vers

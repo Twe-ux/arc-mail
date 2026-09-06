@@ -2,6 +2,31 @@
 
 Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérification.
 
+## 6 septembre 2026 — les vues enregistrées, sans rien ajouter à la recherche
+
+C'est la preuve de ce que l'audit appelait « une mécanique qui porte le reste ». Une requête nommée
+qui vit à côté des dossiers, dans les quatre écrans, et **pas une ligne de code de recherche
+nouvelle** : l'analyseur et le compilateur mémoire de la veille font tout le travail. La fonction
+tient dans deux champs de store (`vues` persisté, `vueId` non), trois actions, et une rangée dans
+la barre, le rail, la tête de liste et la feuille du téléphone.
+
+Deux décisions font le reste. **Une vue est une question posée à un dossier** — celui que `dans:`
+nomme, la réception sinon —, la même règle que côté serveur ; sans elle une vue ramasserait ce que
+les dossiers déjà visités ont laissé en mémoire, et rendrait autre chose selon l'endroit d'où on
+l'ouvre. Et **elles sont communes aux espaces** : « est:non-lu avec:piece » est une question, pas
+un rangement, et la même copiée trois fois dérive à la première correction.
+
+On n'en fabrique pas dans un écran de réglages : ⌘K propose de garder la requête là où elle vient
+d'être tapée et de rendre ce qu'on voulait, et son nom est la requête elle-même. Dans la palette,
+une vue se cherche sur **le texte tapé** et non sur ses mots nus — taper « avec:piece » et ne pas
+voir la vue qui s'appelle « avec:piece » la cacherait au moment précis où on la nomme.
+
+Vérifié dans le navigateur : « est:non-lu » rend 7 des 19 conversations de la réception, le compte
+du badge ; choisir un dossier quitte la vue, la rouvrir la rétablit, un rechargement garde les vues
+et pas la vue ouverte ; sept requêtes de contrôle tombent juste, une requête déjà gardée ne se
+garde pas deux fois. Huit largeurs de 768 à 1800 px, barre masquée : aucun débordement, aucun nom
+de dossier coupé. Zéro erreur de console.
+
 ## 6 septembre 2026 — un mot nu ne cherche plus notre propre nom
 
 « Si je mets Thierry il y a des mails proposés mais sans Thierry. » La palette rendait presque toute

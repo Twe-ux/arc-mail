@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Archive, Clock, Columns2, FileText, Globe, Inbox, Loader2, Moon, PanelLeft, PenSquare, Send, Star, Trash2, type LucideIcon } from "lucide-react";
+import { Archive, BookmarkPlus, Clock, Columns2, FileText, Globe, Inbox, Loader2, Moon, PanelLeft, PenSquare, Send, Star, Trash2, type LucideIcon } from "lucide-react";
 
 import {
   CommandDialog,
@@ -13,6 +13,7 @@ import {
   CommandSeparator,
   CommandShortcut,
 } from "@/components/ui/command";
+import { VUE_ICON } from "@/lib/folders";
 import { FOLDERS } from "@/lib/mock-data";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { nommeUnDossier, texteLibre } from "@/lib/search/ast";
@@ -61,6 +62,9 @@ export function CommandPalette() {
   const toggleDark = useMail((s) => s.toggleDark);
   const sidebarMode = useMail((s) => s.sidebarMode);
   const cycleSidebarMode = useMail((s) => s.cycleSidebarMode);
+  const vues = useMail((s) => s.vues);
+  const enregistrerVue = useMail((s) => s.enregistrerVue);
+  const ouvrirVue = useMail((s) => s.ouvrirVue);
   const searchOnServer = useMail((s) => s.searchOnServer);
   const serverResults = useMail((s) => s.serverResults);
   const serverQuery = useMail((s) => s.serverQuery);
@@ -112,6 +116,21 @@ export function CommandPalette() {
   };
   const desActions = Object.values(actions).some(Boolean);
   const dossiers = FOLDERS.filter((f) => garde(f.name));
+  /* **Une vue se cherche sur le texte tapé, pas sur ses mots nus.** `garde()`
+     ne regarde que les mots nus — c'est la bonne règle pour une action ou un
+     dossier, que `de:claire` ne concerne pas. Mais une vue *est* une requête :
+     taper « avec:piece » et ne pas voir la vue qui s'appelle « avec:piece »
+     serait la cacher au moment précis où on la nomme. Elle se retrouve donc par
+     son nom **ou** par sa requête, mot à mot. */
+  const brut = laver(requete.trim());
+  const motsBruts = brut.split(" ").filter(Boolean);
+  const vuesTrouvees = vues.filter((v) => {
+    const cible = laver(`${v.nom} ${v.q}`);
+    return motsBruts.every((m) => cible.includes(m));
+  });
+  /* On ne propose de garder que ce qui n'est pas déjà gardé — et jamais une
+     requête vide, qui ne serait une question sur rien. */
+  const aGarder = cherche && !vues.some((v) => v.q === requete.trim());
   /* Le rang vient de la liste **entière** : ⌘2 reste ⌘2 quand le filtre ne
      garde que le second espace. */
   const espaces = spaces
@@ -344,6 +363,46 @@ export function CommandPalette() {
               </CommandItem>
             )}
           </CommandGroup>
+        )}
+
+        {/* **Garder la question, là où elle est écrite.** Une vue ne se
+            fabrique pas dans un écran de réglages : elle se fabrique au moment
+            où la requête vient d'être tapée et qu'elle rend ce qu'on voulait.
+            Son nom est la requête elle-même — c'est ce qu'on reconnaîtra. */}
+        {aGarder && (
+          <>
+            <CommandSeparator />
+            <CommandGroup heading="Vue">
+              <CommandItem
+                value="__garder"
+                onSelect={() =>
+                  run(() => {
+                    const vue = enregistrerVue(requete.trim(), requete);
+                    ouvrirVue(vue.id);
+                  })
+                }
+              >
+                <BookmarkPlus />
+                <span className="min-w-0 flex-1">Garder « {requete.trim()} » comme vue</span>
+              </CommandItem>
+            </CommandGroup>
+          </>
+        )}
+
+        {vuesTrouvees.length > 0 && (
+          <>
+            <CommandSeparator />
+            <CommandGroup heading="Vues">
+              {vuesTrouvees.map((v) => (
+                <CommandItem key={v.id} value={`vue ${v.nom} ${v.q}`} onSelect={() => run(() => ouvrirVue(v.id))}>
+                  <VUE_ICON />
+                  <span className="min-w-0 flex-1 truncate">
+                    <Surligne texte={v.nom} requete={brut} />
+                  </span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </>
         )}
 
         {dossiers.length > 0 && <CommandSeparator />}

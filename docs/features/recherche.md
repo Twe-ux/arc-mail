@@ -224,3 +224,81 @@ filtre ne garde que le second.
 il ne peut pas ignorer notre propre adresse, et un mot nu qui est notre prénom lui fera rendre toute
 la boîte. Les résultats serveur ne repassent pas par `correspond()` — ils n'ont pas de corps, on les
 rejetterait à tort. À vérifier sur une vraie boîte ; la mémoire, elle, est juste.
+
+---
+
+## Les vues enregistrées (6 sept. 2026)
+
+C'est ce que « l'arbre porte le reste » voulait dire : **rien de neuf n'a été écrit pour chercher**.
+Une vue garde la requête, l'analyseur et le compilateur mémoire font le travail, et la fonction
+tient dans un état de plus (`vues`, `vueId`) et une rangée dans quatre écrans.
+
+### Ce qu'une vue est
+
+Un nom, une requête. `q` est la requête **telle qu'elle a été tapée**, jamais son arbre : un arbre
+sérialisé se périme dès que la grammaire gagne un mot-clé, la chaîne se réanalyse toujours.
+
+**Une question posée à un dossier.** `ouvrirVue` choisit la boîte que la requête nomme (`dans:`,
+par `dossiersDe`) et la réception sinon, puis filtre dedans — la même règle que côté serveur, où
+`dans:` sélectionne une boîte et n'est pas un critère. Sans elle, une vue ramasserait ce que les
+dossiers déjà visités ont laissé en mémoire : le résultat dépendrait de l'endroit d'où on l'a
+ouverte, ce qu'aucune question ne devrait faire. Corollaire assumé : `dans:archive OU
+dans:corbeille` ouvre **Archive**, la première nommée. Une liste lit un dossier ; ⌘K, lui, en
+interroge plusieurs.
+
+**Communes aux espaces**, pas rangées par boîte : une question est une question. « est:non-lu
+avec:piece » se pose aussi bien dans Perso que dans Pro, et la même question copiée trois fois
+dérive à la première correction.
+
+**Gardées, mais pas ouvertes au retour** : `vues` est persisté, `vueId` non — comme `folderId`.
+Rouvrir l'app sur une liste filtrée sans l'avoir demandé, c'est une boîte qui ment sur ce qu'elle
+contient.
+
+**Choisir un dossier quitte la vue.** Les deux occupent la même liste ; et comme une vue pose un
+dossier, sans ce témoin (`vueId !== null`) deux lignes seraient allumées à la fois — le dossier
+n'est que l'endroit où la vue cherche.
+
+### Où elles vivent
+
+**On n'en fabrique pas depuis un écran de réglages** : ⌘K propose « Garder « … » comme vue » dès
+que la requête n'est pas vide et pas déjà gardée, là où elle vient d'être tapée et de rendre ce
+qu'on voulait. Son nom **est** la requête : c'est ce qu'on reconnaîtra, quand « Vue 3 » ne se
+distingue de rien — et une requête déjà gardée n'en fabrique pas une seconde.
+
+Dans ⌘K, une vue se cherche sur **le texte tapé**, pas sur ses mots nus : `garde()` est la bonne
+règle pour une action ou un dossier, que `de:claire` ne concerne pas, mais une vue *est* une
+requête — taper « avec:piece » et ne pas voir la vue qui s'appelle « avec:piece » serait la cacher
+au moment précis où on la nomme.
+
+Ailleurs, elles suivent la règle des dossiers — **elles n'apparaissent qu'une fois** :
+
+- **barre attachée** : un groupe « Vues » sous les dossiers, jamais parmi eux — un dossier est un
+  endroit, une vue une question posée dessus ; mêlés, on ne saurait plus lesquels se vident quand
+  on archive. Croix au survol pour oublier, **sœur du bouton et jamais sa fille** ;
+- **rail** : après un filet, l'entonnoir et un point ; le nom passe en infobulle, comme les boîtes ;
+- **barre masquée** : une puce dans la tête de liste (accent à 22 %, encre `--space-ink`), avec la
+  croix qui rend la boîte entière — c'est le seul état où plus rien d'autre ne nomme la vue ;
+- **téléphone** : un groupe « Vues » dans la feuille Dossiers, croix en `suffixe`, et le **titre de
+  la liste** porte le nom de la vue avec sa croix à côté. `selectListTitle` répond pour les deux
+  têtes : une liste filtrée sous « Boîte de réception » cacherait du courrier sans le dire.
+
+Le groupe n'existe pas tant qu'aucune vue n'est gardée — un intitulé ne se pose jamais au-dessus de
+rien.
+
+**Le compteur est celui de la mémoire**, comme Favoris et « En pause » : aucun `STATUS` ne sait
+compter une requête, et le dire vaut mieux que de ne rien montrer.
+
+### Vérifié
+
+Le chemin entier, piloté dans le navigateur : « est:non-lu » gardée depuis ⌘K rend 7 conversations
+sur les 19 de la réception — le compte du badge —, la vue s'allume et aucun dossier ne l'est ;
+choisir Archive la quitte (3 conversations), la rouvrir la rétablit ; un rechargement garde les
+vues et pas la vue ouverte. `dans:archive` → 3, `de:claire` → 2, `avec:piece` → 2,
+`objet:facture` → 1, `dans:favoris` → 3, `dans:envoyes` → 1, `de:claire ET avec:piece` → 1 ; une
+requête déjà gardée ne se garde pas deux fois. La croix n'a d'opacité qu'au survol (0 → 1), oublier
+la vue ouverte rend la boîte, oublier la dernière retire le groupe.
+
+Largeurs, barre masquée, vue ouverte, sur une requête longue (« est:non-lu OU objet:facture ») :
+768, 820, 900, 1000, 1100, 1280, 1440 et 1800 px — la puce reste à 207 px, aucun nom de dossier
+coupé, aucun débordement. Captures téléphone (393×852, insets 59/34) et bureau (1280×800), clair et
+sombre, dans les quatre états ; **zéro erreur de console** partout.

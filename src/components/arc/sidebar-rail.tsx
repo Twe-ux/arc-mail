@@ -5,9 +5,10 @@ import { Settings2 } from "lucide-react";
 import { AccountMenu } from "@/components/auth/account-menu";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { VUE_ICON } from "@/lib/folders";
 import { FOLDERS } from "@/lib/mock-data";
-import { selectUnreadCount, useMail, useSpaces } from "@/lib/store";
-import type { FolderId } from "@/lib/types";
+import { selectUnreadCount, selectVueUnread, useMail, useSpaces } from "@/lib/store";
+import type { FolderId, Vue } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { FOLDER_ICONS, TN } from "./sidebar-content";
 import { SpaceTile } from "./space-icon";
@@ -34,6 +35,9 @@ export function SidebarRail() {
   const setSpace = useMail((s) => s.setSpace);
   const folderId = useMail((s) => s.folderId);
   const setFolder = useMail((s) => s.setFolder);
+  const vues = useMail((s) => s.vues);
+  const vueId = useMail((s) => s.vueId);
+  const ouvrirVue = useMail((s) => s.ouvrirVue);
 
   return (
     <aside className="hidden w-[52px] shrink-0 flex-col items-center gap-2 py-2 text-[var(--side-ink)] md:flex">
@@ -62,11 +66,36 @@ export function SidebarRail() {
 
       <Separator className={cn("w-6", TN.sep)} />
 
-      <nav className="flex min-h-0 flex-1 flex-col items-center gap-0.5" aria-label="Dossiers">
+      <nav className="flex flex-col items-center gap-0.5" aria-label="Dossiers">
         {FOLDERS.map((f) => (
-          <RailFolder key={f.id} id={f.id} name={f.name} active={f.id === folderId} onClick={() => setFolder(f.id)} />
+          <RailFolder
+            key={f.id}
+            id={f.id}
+            name={f.name}
+            active={f.id === folderId && vueId === null}
+            onClick={() => setFolder(f.id)}
+          />
         ))}
       </nav>
+
+      {/* Les vues, après un filet : elles ne sont pas des dossiers, et sur
+          52 px où toutes les icônes se ressemblent, c'est la séparation qui le
+          dit. Le nom passe en infobulle — il n'y a pas de place pour lui, comme
+          pour les boîtes juste au-dessus. */}
+      {vues.length > 0 && (
+        <>
+          <Separator className={cn("w-6", TN.sep)} />
+          <nav className="flex flex-col items-center gap-0.5" aria-label="Vues">
+            {vues.map((v) => (
+              <RailVue key={v.id} vue={v} active={v.id === vueId} onClick={() => ouvrirVue(v.id)} />
+            ))}
+          </nav>
+        </>
+      )}
+
+      {/* Le vide qui pousse le bas de la barre en bas : il était porté par la
+          liste des dossiers (`flex-1`), qui n'est plus la dernière. */}
+      <div className="min-h-0 flex-1" />
 
       {/* **Le même bas que la barre attachée**, empilé sur 52 px : les réglages
           et le compte. « Nouveau message » n'y est plus — il vit dans la tête de
@@ -127,6 +156,33 @@ function RailFolder({
       </TooltipTrigger>
       <TooltipContent side="right">
         {name}
+        {count > 0 && ` · ${count}`}
+      </TooltipContent>
+    </Tooltip>
+  );
+}
+
+function RailVue({ vue, active, onClick }: { vue: Vue; active: boolean; onClick: () => void }) {
+  const count = useMail((s) => selectVueUnread(s, vue));
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button
+          type="button"
+          onClick={onClick}
+          aria-label={`Vue ${vue.nom}`}
+          aria-current={active ? "page" : undefined}
+          className={cn(
+            "relative flex size-9 items-center justify-center rounded-lg transition-colors",
+            active ? TN.itemActive : TN.item,
+          )}
+        >
+          <VUE_ICON className="size-[18px]" />
+          {count > 0 && <span className="absolute top-1.5 right-1.5 size-1.5 rounded-full bg-current" />}
+        </button>
+      </TooltipTrigger>
+      <TooltipContent side="right">
+        {vue.nom}
         {count > 0 && ` · ${count}`}
       </TooltipContent>
     </Tooltip>

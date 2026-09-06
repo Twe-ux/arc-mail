@@ -461,6 +461,13 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - Une rangée **dit pourquoi elle est là** : quand le mot n'est ni dans l'objet ni dans l'expéditeur,
   `extrait()` ajoute une troisième ligne autour de lui, la source la plus riche l'emportant.
 - La corbeille est écartée **sauf si la requête la nomme**.
+- Une **vue enregistrée** est une requête nommée, gardée depuis ⌘K (« Garder « … » comme vue »,
+  nommée par la requête) : elle vit dans le store (`vues` persisté, `vueId` non), pose **une
+  question à un dossier** — celui que `dans:` nomme, la réception sinon — et se retrouve dans la
+  palette **sur le texte tapé**, pas sur ses mots nus. Elle n'apparaît **qu'une fois** : groupe sous
+  les dossiers en barre attachée, après un filet dans le rail, en puce de tête barre masquée, groupe
+  de la feuille sur téléphone ; choisir un dossier la quitte, et le titre de la liste la nomme
+  (`selectListTitle`).
 
 ## Où on en est, où on va
 

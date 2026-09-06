@@ -1,10 +1,11 @@
 "use client";
 
-import { PanelLeft, PanelLeftDashed, Search, Square, SquarePen, type LucideIcon } from "lucide-react";
+import { PanelLeft, PanelLeftDashed, Search, Square, SquarePen, X, type LucideIcon } from "lucide-react";
 
 import { Kbd } from "@/components/ui/kbd";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { selectFolder, selectUnreadCount, useMail, useSpace, useSpaces, useVisibleThreads, type SidebarMode } from "@/lib/store";
+import { VUE_ICON } from "@/lib/folders";
+import { selectFolder, selectUnreadCount, selectVue, useMail, useSpace, useSpaces, useVisibleThreads, type SidebarMode } from "@/lib/store";
 import type { FolderId } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { EPINGLES, GroupByToggle, plural, Segmented } from "./list-header";
@@ -65,6 +66,7 @@ export function ListHeaderDesktop() {
   const setCommandOpen = useMail((s) => s.setCommandOpen);
   const openCompose = useMail((s) => s.openCompose);
   const folder = useMail(selectFolder);
+  const vue = useMail(selectVue);
   const threads = useVisibleThreads();
 
   return (
@@ -167,12 +169,15 @@ export function ListHeaderDesktop() {
       </div>
 
       {/* Masquée : la tête reprend les quatre dossiers **et la boîte courante**,
-          puisque plus rien d'autre ne les porte. */}
+          puisque plus rien d'autre ne les porte — les vues avec, sous la même
+          règle : la barre et le rail les portent, et ce n'est qu'une fois les
+          deux partis que la tête doit dire ce qu'on regarde. */}
       {mode === "hidden" && (
         <div className="flex items-center gap-2 md:group-data-[large=true]/liste:order-7 md:group-data-[large=true]/liste:shrink-0">
+          {vue ? <PuceVue nom={vue.nom} /> : null}
           <nav aria-label="Dossiers épinglés" className="grid flex-1 grid-cols-4 gap-2">
             {EPINGLES.map(({ id, label }) => (
-              <TuileBureau key={id} id={id} label={label} active={id === folder.id} />
+              <TuileBureau key={id} id={id} label={label} active={id === folder.id && !vue} />
             ))}
           </nav>
           <CaseEspace />
@@ -233,6 +238,33 @@ function CaseEspace() {
         <span className="block text-center opacity-70">Passer à la boîte suivante</span>
       </TooltipContent>
     </Tooltip>
+  );
+}
+
+/**
+ * La vue ouverte, barre masquée — le seul état où rien d'autre ne la nomme.
+ *
+ * Une liste filtrée qui ne dit pas qu'elle l'est est une boîte qui cache du
+ * courrier. Barre attachée ou en rail, c'est la ligne allumée qui le dit ;
+ * masquée, il ne restait que le titre d'un dossier qu'on ne regarde pas
+ * vraiment. La croix rend la boîte entière — le dossier que la vue interroge.
+ */
+function PuceVue({ nom }: { nom: string }) {
+  const folderId = useMail((s) => s.folderId);
+  const setFolder = useMail((s) => s.setFolder);
+  return (
+    <span className="flex h-[34px] min-w-0 shrink items-center gap-1.5 rounded-[9px] bg-[color-mix(in_oklch,var(--space-accent)_22%,transparent)] pr-1 pl-2.5 text-xs font-medium text-[var(--space-ink)]">
+      <VUE_ICON className="size-3.5 shrink-0" />
+      <span className="min-w-0 max-w-[14rem] truncate">{nom}</span>
+      <button
+        type="button"
+        onClick={() => setFolder(folderId)}
+        aria-label="Quitter la vue"
+        className="grid size-6 shrink-0 place-items-center rounded-md transition-colors hover:bg-black/10 dark:hover:bg-white/10"
+      >
+        <X className="size-3.5" />
+      </button>
+    </span>
   );
 }
 

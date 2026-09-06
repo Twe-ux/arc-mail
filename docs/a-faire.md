@@ -133,8 +133,12 @@ qui suivent.
       même mécanique portera : la **file hors ligne** (garder et rejouer les écritures) et l'**envoi
       différé** (une tâche qui porte son heure), celui-ci derrière la décision d'hébergement.
 - [x] **Arbre de recherche** (6 sept.) — l'analyseur et **les deux** compilateurs, mémoire et
-      `SEARCH` IMAP, branchés sur ⌘K → [fiche](features/recherche.md). **Restent** les **vues
-      enregistrées**, qui découlent de l'arbre sans rien demander de plus.
+      `SEARCH` IMAP, branchés sur ⌘K → [fiche](features/recherche.md).
+- [x] **Vues enregistrées** (6 sept.) — une requête nommée à côté des dossiers, gardée depuis ⌘K,
+      dans les quatre écrans → [fiche](features/recherche.md). Elles n'ont rien demandé à l'arbre
+      qu'il ne savait déjà faire : c'est ce que « une mécanique qui porte le reste » voulait dire.
+      **Restent** deux affinements, dans « à améliorer » : renommer une vue, et une vue sur
+      plusieurs dossiers.
 
 ### Fonctions à instruire
 
@@ -160,6 +164,13 @@ qui suivent.
 ## À améliorer
 
 Ça marche ; ça mérite mieux.
+
+### Recherche
+
+- [ ] **Renommer une vue** : son nom est sa requête, ce qui la fait reconnaître mais se lit comme du
+      code dans la barre. Un champ dans la rangée, ou au moment de la garder.
+- [ ] **Une vue sur plusieurs dossiers** : `dans:archive OU dans:corbeille` ouvre Archive, la
+      première nommée — une liste lit un dossier. ⌘K, lui, sait déjà interroger les deux.
 
 ### Lecture
 
@@ -187,6 +198,10 @@ qui suivent.
 
 ### Code
 
+- [ ] **`command-palette.tsx` passe 300 lignes** (484) : la palette est un composant et une fonction
+      de surlignage, à découper en groupes (conversations, serveur, vues, actions, dossiers). Fait
+      pour `mobile-menu.tsx`, coupé en deux le 6 sept. avec la feuille « Personnaliser »
+      (`mobile-settings.tsx`) — 262 et 259 lignes.
 - [ ] Un seul `createTouchDrag` pour les trois hooks de geste.
 - [ ] Icônes de dossiers dans `src/lib/folders.ts` ; `replyDraft` dans le store.
 - [ ] `@property --space-accent` pour que le changement d'espace s'interpole vraiment.

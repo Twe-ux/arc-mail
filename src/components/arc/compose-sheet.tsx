@@ -115,6 +115,26 @@ export function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
            le navigateur n'a jamais à faire défiler le document pour le
            révéler : c'est aussi ce qui règle « l'écran derrière se lève ».
 
+           **Le haut est un `top: 0` et une marge**, pas un `top: var(…)`.
+           Signalé : « à la première ouverture la page est trop grande, du coup
+           on ne voit pas le haut ». Une position qui dépend d'une variable
+           peut ne pas résoudre ; une marge sur un `top: 0` ne le peut pas — au
+           pire la feuille commence au bord de l'écran, jamais au-dessus.
+           `max-h-[100svh]` en second garde-fou : `svh` est le viewport qui ne
+           bouge pas, celui que WebKit ne re-résout pas sous nos pieds.
+
+           **Et elle n'entre plus de tout en bas.** Le glissement de 100 % la
+           posait à 800 px de sa place pendant 400 ms, or c'est là que le champ
+           « À » prend le focus : iOS décalait le viewport visuel pour révéler
+           un champ qui était encore en bas de l'écran, et la feuille — qui est
+           `fixed`, donc posée dans le viewport de mise en page — se retrouvait
+           dessinée d'autant trop haut, tête coupée. Elle monte maintenant de
+           32 px en 300 ms : le champ visé est à sa place dès la première
+           frame, le navigateur n'a rien à révéler. C'est un **écart assumé** à
+           la recette d'entrée des cartes (400 ms, glissement plein) ; une
+           feuille plein écran qui traverse l'écran n'a pas les mêmes
+           contraintes qu'une carte de 400 px.
+
            **Le coussin vaut zéro en app installée, et c'est voulu** : iOS y
            rétrécit *aussi* le viewport de mise en page, donc `bottom: 0`
            s'arrête déjà au-dessus des touches. `--keyboard-inset` mesure ce
@@ -134,7 +154,7 @@ export function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
            lecteurs de la même mesure, une seule condition — sinon la barre
            rendait ses 34 px pendant le fantôme et sautait de 26 px à
            l'ouverture. */
-        className="inset-x-0 top-[var(--safe-top)] bottom-0 flex h-auto w-auto max-w-none flex-col gap-0 rounded-t-[36px] border-0 p-0 pb-[var(--clavier)] shadow-[0_-8px_40px_rgb(0_0_0/0.28)] transition-none [--bas:max(0.5rem,env(safe-area-inset-bottom))] [--clavier:0px] [&:has(:is(input,textarea):focus)]:[--bas:0.5rem] [&:has(:is(input,textarea):focus)]:[--clavier:var(--keyboard-inset,0px)] dark:bg-[#26262a] dark:ring-1 dark:ring-white/12"
+        className="inset-x-0 top-0 bottom-0 mt-[var(--safe-top)] flex h-auto max-h-[100svh] w-auto max-w-none flex-col gap-0 rounded-t-[36px] border-0 p-0 pb-[var(--clavier)] shadow-[0_-8px_40px_rgb(0_0_0/0.28)] transition-none data-[state=open]:slide-in-from-bottom-8 data-[state=open]:duration-300 [--bas:max(0.5rem,env(safe-area-inset-bottom))] [--clavier:0px] [&:has(:is(input,textarea):focus)]:[--bas:0.5rem] [&:has(:is(input,textarea):focus)]:[--clavier:var(--keyboard-inset,0px)] dark:bg-[#26262a] dark:ring-1 dark:ring-white/12"
       >
         {/* Le voile de l'espace, en haut de la feuille et lui seul : c'est ce
             qui la rattache à Arc Mail plutôt qu'à la feuille grise d'iOS. Une

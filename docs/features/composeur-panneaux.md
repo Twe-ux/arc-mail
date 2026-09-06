@@ -162,6 +162,31 @@ bords ; sur une feuille qui touche déjà l'écran, son coin bas passait dessous
 **ancré sur la case qui l'ouvre** — au-dessus de la barre d'outils, aligné à droite, 19 rem au
 plus. Le voile qui le referme appartient à la feuille, pas au menu : c'est elle qu'il doit couvrir.
 
+### Le haut ne peut plus passer au-dessus de l'encoche
+
+« À la première ouverture la page est trop grande, du coup on ne voit pas le haut. »
+
+Deux causes, deux remèdes.
+
+**La feuille entrait de tout en bas.** Le glissement de 100 % la posait à 800 px de sa place
+pendant 400 ms — et c'est pendant ces 400 ms que le champ « À » prend le focus. iOS décalait alors
+le **viewport visuel** pour révéler un champ qui était encore en bas de l'écran ; la feuille, qui
+est `fixed` donc posée dans le viewport de *mise en page*, se retrouvait dessinée d'autant trop
+haut, tête coupée. Fermer puis rouvrir le clavier remettait tout d'aplomb, ce qui est exactement la
+signature d'un décalage de viewport.
+
+Elle monte maintenant de **32 px en 300 ms**. Mesuré : à la première frame la feuille est à 87 (au
+lieu de 852) et le champ visé à 163 — le navigateur n'a rien à révéler. C'est un **écart assumé** à
+la recette d'entrée des cartes (400 ms, glissement plein) : une feuille plein écran qui traverse
+l'écran n'a pas les mêmes contraintes qu'une carte de 400 px, et le focus au montage est ce qui
+lève le clavier — le retarder d'une tâche, sur iOS, c'est ne plus le lever du tout.
+
+**Et le haut est posé par un `top: 0` et une marge**, plus par `top: var(--safe-top)`. Une position
+qui dépend d'une variable peut ne pas résoudre ; une marge sur un `top: 0` ne le peut pas — au pire
+la feuille commence au bord de l'écran, jamais au-dessus. `max-h: 100svh` en second garde-fou :
+`svh` est le viewport qui ne bouge pas, celui que WebKit ne re-résout pas sous nos pieds (la règle
+que Kairos écrit en toutes lettres : *« `svh`, never `dvh` »*).
+
 ## Un seul défilant, et rien qui se recouvre
 
 Les lignes et le champ vivaient dans le même conteneur défilant, et le champ portait `min-h-48` :

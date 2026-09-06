@@ -241,6 +241,11 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   l'encoche, bas au bord, et le clavier ne lui prend qu'un `padding-bottom`. La caler sur
   `--vv-top`/`--vv-height` la faisait se redessiner quand WebKit re-résout le viewport à
   l'ouverture d'un dialogue — l'écran qui monte derrière, puis les flashs.
+- Le haut est un **`top: 0` plus une marge** (jamais `top: var(…)`, qui peut ne pas résoudre) et un
+  `max-h-[100svh]` : au pire la feuille commence au bord de l'écran, jamais au-dessus.
+- Elle **entre de 32 px, pas de tout en bas** : le glissement plein la posait à 800 px de sa place
+  pendant que « À » prenait le focus, iOS décalait le viewport visuel pour le révéler, et la tête
+  se retrouvait coupée. Écart assumé à la recette d'entrée des cartes.
 - **Le coussin du clavier n'existe que si un champ a le focus** (`:has(:is(input,textarea):focus)`,
   qui garde `--clavier` pour la feuille et `--bas` pour l'encoche de la barre) : sinon 50 px
   fantômes poussent la tête de la feuille puis la lâchent.

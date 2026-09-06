@@ -2,6 +2,17 @@
 
 Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérification.
 
+## 6 septembre 2026 — la feuille n'entre plus de tout en bas
+
+« À la première ouverture la page est trop grande, du coup on ne voit pas le haut. » Le glissement
+de 100 % posait la feuille à 800 px de sa place pendant 400 ms — et c'est pendant ces 400 ms que le
+champ « À » prend le focus. iOS décalait le viewport visuel pour révéler un champ encore en bas de
+l'écran, et la feuille, qui est `fixed`, se retrouvait dessinée d'autant trop haut. Elle monte
+maintenant de 32 px en 300 ms : mesuré, à la première frame elle est à 87 et le champ visé à 163, il
+n'y a plus rien à révéler. Le haut est en outre posé par un `top: 0` et une marge plutôt que par une
+variable, avec `max-h: 100svh` en second garde-fou — au pire la feuille commence au bord de l'écran,
+jamais au-dessus.
+
 ## 6 septembre 2026 — la mesure du clavier va avec l'ancrage
 
 L'ancrage porté de Kairos ne suffisait pas : il fallait aussi sa **mesure**. `--keyboard-inset`

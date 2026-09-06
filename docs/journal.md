@@ -24,6 +24,15 @@ geste n'est plus écrit qu'une fois (`useSignOut`).
 Le registre shadcn n'étant pas joignable d'ici, le menu est un `Popover` avec un `role="menu"` —
 le motif du menu du `⋯` du composeur, déjà dans le dépôt.
 
+**Le rail suit dans la foulée**, et pas seulement par symétrie : il n'offrait aucun chemin vers
+l'apparence ni vers la sortie, et il fallait rouvrir la barre pour changer de thème. Il reçoit le
+même bas, empilé sur ses 52 px, et perd son bouton d'écriture comme les deux autres.
+
+Et la couleur du bouton d'écriture passe **sur le trait**. Le dégradé plein a tenu une heure : une
+pastille saturée au milieu de trois boîtes grises se lit comme un bouton d'une autre app, quand il
+s'agissait seulement de le distinguer de ses voisins. Il garde la boîte de tout le monde et prend
+`--space-ink` — jamais l'accent brut, la règle du thème.
+
 ## 6 septembre 2026 — la recherche devient un langage
 
 Seconde des deux mécaniques de l'audit, après l'annulation. Jusqu'ici cmdk comparait la requête au

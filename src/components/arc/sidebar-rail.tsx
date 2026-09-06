@@ -1,7 +1,8 @@
 "use client";
 
-import { SquarePen } from "lucide-react";
+import { Settings2 } from "lucide-react";
 
+import { AccountMenu } from "@/components/auth/account-menu";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { FOLDERS } from "@/lib/mock-data";
@@ -10,9 +11,10 @@ import type { FolderId } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { FOLDER_ICONS, TN } from "./sidebar-content";
 import { SpaceTile } from "./space-icon";
+import { AppearancePanel } from "./theme-picker";
 
 /**
- * La barre réduite : 52 px, les boîtes, les dossiers, l'écriture.
+ * La barre réduite : 52 px, les boîtes, les dossiers, les réglages et le compte.
  *
  * C'est l'état qui a fait ajouter un troisième mode. À 1440 px, barre attachée
  * + liste + conversation + troisième volet ne laissaient que **309 px** à la
@@ -32,7 +34,6 @@ export function SidebarRail() {
   const setSpace = useMail((s) => s.setSpace);
   const folderId = useMail((s) => s.folderId);
   const setFolder = useMail((s) => s.setFolder);
-  const openCompose = useMail((s) => s.openCompose);
 
   return (
     <aside className="hidden w-[52px] shrink-0 flex-col items-center gap-2 py-2 text-[var(--side-ink)] md:flex">
@@ -67,19 +68,32 @@ export function SidebarRail() {
         ))}
       </nav>
 
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <button
-            type="button"
-            onClick={() => openCompose()}
-            aria-label="Nouveau message"
-            className={cn("flex size-9 items-center justify-center rounded-lg transition-colors", TN.icon)}
-          >
-            <SquarePen className="size-[18px]" />
-          </button>
-        </TooltipTrigger>
-        <TooltipContent side="right">Nouveau message · ⌘N</TooltipContent>
-      </Tooltip>
+      {/* **Le même bas que la barre attachée**, empilé sur 52 px : les réglages
+          et le compte. « Nouveau message » n'y est plus — il vit dans la tête de
+          liste, dans les trois états, et le rail en faisait un second exemplaire
+          comme la barre attachée en faisait un troisième.
+
+          Ce n'est pas un simple retrait : le rail n'offrait **aucun** chemin
+          vers l'apparence ni vers la sortie, et il fallait rouvrir la barre
+          (⌘B) pour changer de thème. Ce que la rangée du bas a gagné, le rail
+          le gagne aussi. */}
+      <div className="flex shrink-0 flex-col items-center gap-0.5">
+        <AppearancePanel>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                aria-label="Apparence et réglages"
+                className={cn("flex size-9 items-center justify-center rounded-lg transition-colors", TN.icon)}
+              >
+                <Settings2 className="size-[18px]" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="right">Apparence et réglages</TooltipContent>
+          </Tooltip>
+        </AppearancePanel>
+        <AccountMenu className={cn("size-9", TN.icon)} />
+      </div>
     </aside>
   );
 }

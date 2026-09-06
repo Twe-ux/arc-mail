@@ -273,6 +273,19 @@ parmi cinq dans le panneau d'apparence ([thème](theme.md)), donc l'icône dit �
 joignable depuis l'environnement de travail, et le dépôt a déjà ce motif — le menu du `⋯` du
 composeur. Une primitive de moins à tenir.
 
-Mesuré à 1280 × 800, les deux thèmes : réglages et avatar à x = 194 et 228, 32 px chacun ; plus
-aucun bouton « Nouveau message » dans la barre ; celui de la tête porte bien
-`linear-gradient(135deg, …)` ; le menu rend ses deux entrées ; zéro erreur de console.
+**Le rail reçoit le même bas**, empilé sur ses 52 px : l'engrenage puis l'avatar. Ce n'est pas
+qu'une symétrie — le rail n'offrait **aucun** chemin vers l'apparence ni vers la sortie, et il
+fallait rouvrir la barre (⌘B) pour changer de thème. Son bouton d'écriture part avec les deux
+autres.
+
+**La couleur du bouton d'écriture est sur le trait, pas sous lui.** Il a porté le dégradé plein une
+heure : une pastille saturée au milieu de trois boîtes grises se lit comme un bouton d'une autre
+app, quand il s'agit seulement de le distinguer de ses voisins. Il garde donc la boîte de tout le
+monde (`bg-muted`, celle du segmenté et de la recherche) et prend **`--space-ink`** — jamais
+l'accent brut : la règle du thème, et le seul ton lisible dans les deux thèmes.
+
+Mesuré à 1280 × 800, les deux thèmes : barre attachée, réglages et avatar à x = 194 et 228, 32 px
+chacun ; rail à 52 px, réglages et avatar à y = 710 et 748, 36 px chacun ; **aucun** bouton
+« Nouveau message » dans la barre ni dans le rail ; celui de la tête rend `background-image: none`
+et une encre `oklch(0.389 0.144 304)` en clair, `rgb(168,85,247)` en sombre ; le menu rend ses deux
+entrées ; zéro erreur de console.

@@ -179,13 +179,15 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   l'objet des mails** (boîte du filtre à 188 px), et la ligne se replie plutôt que de serrer.
 - Le sélecteur de barre **ne montre pas l'état courant** : deux cases, les deux chemins possibles.
 - « Nouveau message » vit **contre le filtre, dans les trois états** (dans la boîte de 188 px, donc
-  l'alignement tient) et **nulle part ailleurs** — il a quitté la barre ; il porte le dégradé de
-  l'espace, seul de sa rangée : ce qui est une action garde la couleur vive. La case de boîte suit
-  les tuiles de dossiers, **pleine largeur seulement**, et change d'espace au clic — pas une
-  `SpaceTile`, ses variables sont celles de la barre.
+  l'alignement tient) et **nulle part ailleurs** — il a quitté la barre et le rail. Il garde la
+  boîte de ses voisins et prend l'encre de l'espace (`--space-ink`) : la couleur est **sur le
+  trait**, pas un pavé en dégradé — essayé, retiré, il se lisait comme un bouton d'une autre app.
+  La case de boîte suit les tuiles de dossiers, **pleine largeur seulement**, et change d'espace au
+  clic — pas une `SpaceTile`, ses variables sont celles de la barre.
 - Le bas de la barre est **une rangée** : les boîtes, puis l'engrenage du panneau d'apparence (plus
   une lune : le thème y est devenu un réglage parmi cinq) et **l'avatar du compte**, dont le menu
-  porte « Comptes et signatures » et « Se déconnecter ». La rangée nom + deux icônes a disparu.
+  porte « Comptes et signatures » et « Se déconnecter ». La rangée nom + deux icônes a disparu, et
+  le **rail reçoit le même bas** empilé — il n'avait aucun chemin vers l'apparence ni vers la sortie.
 - Le regroupement par correspondant enclenché **se remplit** (accent 22 %, encre `--space-ink`).
 - Ouvrir le troisième volet **réduit une barre attachée en rail** ; il fait 460 px à chaque
   ouverture, sa largeur a sa propre clé, et il porte un message **ou** un fichier.

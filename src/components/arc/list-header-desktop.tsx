@@ -139,15 +139,18 @@ export function ListHeaderDesktop() {
                 type="button"
                 onClick={() => openCompose()}
                 aria-label="Nouveau message"
-                /* **Il porte la couleur de l'espace**, seul de sa rangée. La
-                   règle du thème le dit : ce qui est une action garde
-                   `--space-gradient` vif — et écrire est la seule chose qu'on
-                   vienne faire dans une boîte sans y avoir été appelé. En gris
-                   contre le filtre et la recherche, il se lisait comme un
-                   troisième réglage. C'est aussi le seul bouton d'écriture de
-                   la fenêtre depuis que celui de la barre est parti : il n'a
-                   plus à se faire discret pour ne pas doubler. */
-                className="grid size-[30px] shrink-0 place-items-center rounded-lg text-white shadow-[0_1px_3px_rgb(0_0_0/0.18)] transition-[filter] hover:brightness-110 [background:var(--space-gradient)]"
+                /* **La couleur est sur le trait, pas sous lui.** Il a porté le
+                   dégradé plein une heure : une pastille saturée au milieu de
+                   trois boîtes grises se lisait comme un bouton d'une autre
+                   app, quand il fallait seulement le distinguer de ses voisins.
+                   Il garde donc la boîte de tout le monde (`bg-muted`, celle du
+                   segmenté et de la recherche) et prend l'encre de l'espace —
+                   `--space-ink`, jamais l'accent brut : la règle du thème, et le
+                   seul ton lisible dans les deux thèmes. En gris il se lisait
+                   comme un troisième réglage ; c'est le seul bouton d'écriture
+                   de la fenêtre depuis que la barre et le rail ont perdu le
+                   leur. */
+                className="grid size-[30px] shrink-0 place-items-center rounded-lg bg-muted text-[var(--space-ink)] transition-colors hover:bg-muted/70"
               >
                 <SquarePen className="size-4" />
               </button>

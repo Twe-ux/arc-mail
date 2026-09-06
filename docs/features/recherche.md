@@ -334,3 +334,46 @@ Vérifié : `de: claire` et `de:claire` rendent les deux mêmes fils ; « Garder
 sur six requêtes de contrôle ; la vue « chalet » (le mot n'est que dans un corps) rend une rangée
 qui affiche « …les dispos pour le **chalet**, il… », et « annecy » deux rangées surlignées sur
 l'objet et sur l'expéditeur. Zéro erreur de console.
+
+---
+
+## Deux portes, et une carte qui tient dans son cadre (6 sept. 2026)
+
+**« Garder une recherche… », à demeure sous les dossiers.** La fonction n'avait qu'une entrée : une
+ligne de ⌘K qui n'apparaît qu'après avoir tapé quelque chose. Elle était donc invisible tant qu'on
+ne s'en était pas déjà servi — « je ne comprends pas comment ça marche ». Le groupe **Vues existe
+maintenant même vide**, réduit à cette ligne : c'est la seule entorse à « un intitulé ne se pose pas
+au-dessus de rien », et elle est délibérée, c'est ce qu'on paie pour annoncer une fonction.
+
+La ligne **se change en champ sur place**, pas en boîte de dialogue : la vue qu'on fabrique va vivre
+là, elle s'y écrit. Même hauteur, même rayon que la rangée qu'elle remplace ; `Entrée` valide et
+ouvre la vue dans la foulée — on la fabrique pour la regarder —, `Échap` et le vide referment. Sur
+téléphone, même rangée en fin du groupe de la feuille, champ en **16 px** (sous ce seuil iOS zoome).
+Le rail n'en a pas : 52 px n'ont pas la place d'un champ, et il a les vues déjà gardées.
+
+**⌘K garde la sienne**, et ce n'est pas un doublon : ce sont deux moments. Dans la barre, « je veux
+fabriquer une vue » — il faut taper la requête. Dans la palette, « cette recherche-là, je la
+garde » — elle est déjà écrite, elle vient de rendre ce qu'on voulait, et la garder coûte un clic.
+Supprimer celle de ⌘K obligerait à retaper ce qu'on vient de taper.
+
+**La carte ne montre plus que six conversations.** Elle en montrait quarante, et tout ce qui vient
+après — la boîte entière, les actions, les vues, les dossiers, les espaces — tombait sous la ligne
+de flottaison : « il y a plusieurs options en bas de recherche qui ne sont pas visibles si on ne
+descend pas ». Les autres sont à une ligne (« Voir les N autres »), et la liste elle-même est là
+pour les lire toutes. **Quatre** sans requête : c'est l'écran où l'on découvre ce que ⌘K sait faire,
+et les récentes ont déjà leur liste dans la barre. L'état déplié est **la requête dépliée**, pas un
+booléen : une autre question se replie d'elle-même, sans effet qui remette un drapeau à zéro après
+coup — React 19 refuse le `setState` dans un effet, et il a raison, la carte se redessinait une fois
+de trop.
+
+**440 px de carte sur bureau, pas 300** : six conversations en font déjà 264 ; à 300 px tout ce qui
+les suit commençait sous le bord. La carte flotte au milieu d'une fenêtre de 800 px, elle a la
+place. Sur téléphone elle prend ce que la carte lui laisse, comme avant.
+
+### Vérifié
+
+La porte de la barre existe sans aucune vue gardée, crée « est:non-lu » et l'ouvre dans la foulée
+(7 conversations sur 19) ; `Échap` referme le champ. Depuis le téléphone, « avec:piece » crée la
+vue, ferme la feuille et pose le titre de la liste. Défilement de la palette : `facture` et
+`annecy` ne cachent **rien**, `claire` 86 px (seul « Toute la boîte » dépasse), et l'état vide fait
+apparaître « Actions » qui était sous la ligne. Zéro erreur de console.

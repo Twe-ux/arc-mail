@@ -1,6 +1,7 @@
 "use client";
 
-import { X } from "lucide-react";
+import { Plus, X } from "lucide-react";
+import { useState } from "react";
 
 import { FOLDER_ICON, VUE_ICON } from "@/lib/folders";
 import { FOLDERS } from "@/lib/mock-data";
@@ -38,6 +39,7 @@ export function MobileMenu() {
   const vueId = useMail((s) => s.vueId);
   const ouvrirVue = useMail((s) => s.ouvrirVue);
   const supprimerVue = useMail((s) => s.supprimerVue);
+  const enregistrerVue = useMail((s) => s.enregistrerVue);
   const selectedThreadId = useMail((s) => s.selectedThreadId);
   const selectThread = useMail((s) => s.selectThread);
   const setCorrespondent = useMail((s) => s.setCorrespondent);
@@ -82,27 +84,35 @@ export function MobileMenu() {
         {/* **Les vues, dans leur propre groupe.** Un dossier est un endroit, une
             vue une question posée dessus : mêlées aux sept boîtes, elles
             feraient une liste de onze choses dont on ne saurait plus lesquelles
-            se vident quand on archive. Le groupe n'existe pas tant qu'aucune
-            vue n'est gardée, et on n'en fabrique pas ici — c'est ⌘K qui les
-            crée, là où la requête est déjà écrite. */}
-        {vues.length > 0 && (
-          <Section title="Vues">
-            <SheetGroup>
-              {vues.map((v) => (
-                <VueRow
-                  key={v.id}
-                  vue={v}
-                  active={v.id === vueId}
-                  onClick={go(() => {
-                    ouvrirVue(v.id);
-                    setCorrespondent(null);
-                  })}
-                  onForget={() => supprimerVue(v.id)}
-                />
-              ))}
-            </SheetGroup>
-          </Section>
-        )}
+            se vident quand on archive.
+
+            Le groupe existe **même vide**, réduit à sa ligne « Garder une
+            recherche… » : sans elle la fonction n'avait qu'une porte, une ligne
+            de la palette qui n'apparaît qu'après avoir tapé quelque chose — donc
+            invisible tant qu'on ne s'en était pas déjà servi. */}
+        <Section title="Vues">
+          <SheetGroup>
+            {vues.map((v) => (
+              <VueRow
+                key={v.id}
+                vue={v}
+                active={v.id === vueId}
+                onClick={go(() => {
+                  ouvrirVue(v.id);
+                  setCorrespondent(null);
+                })}
+                onForget={() => supprimerVue(v.id)}
+              />
+            ))}
+            <NouvelleVue
+              onValider={(q) => {
+                ouvrirVue(enregistrerVue(q, q).id);
+                setCorrespondent(null);
+                setOpen(false);
+              }}
+            />
+          </SheetGroup>
+        </Section>
 
         <Section
           title="Aujourd'hui"
@@ -258,5 +268,50 @@ function VueRow({
         </span>
       )}
     </SheetRow>
+  );
+}
+
+/**
+ * « Garder une recherche… », dernière rangée du groupe des vues.
+ *
+ * Elle se change en champ sur place — la grammaire de la rangée, pas une boîte
+ * de dialogue par-dessus une feuille. `Entrée` valide et ouvre la vue dans la
+ * foulée : on la fabrique pour la regarder.
+ *
+ * Le clavier monte sous la feuille, qui est ancrée : il ne lui prend qu'un
+ * `padding-bottom` (fiche PWA), et le champ reste visible sans que rien ne
+ * bouge.
+ */
+function NouvelleVue({ onValider }: { onValider: (q: string) => void }) {
+  const [saisie, setSaisie] = useState(false);
+  const [q, setQ] = useState("");
+  if (!saisie) {
+    return (
+      <SheetRow onClick={() => setSaisie(true)}>
+        <Plus className="size-5 shrink-0" strokeWidth={1.75} />
+        <span className="min-w-0 flex-1 truncate text-[15px]">Garder une recherche…</span>
+      </SheetRow>
+    );
+  }
+  return (
+    <div className="flex h-[52px] items-center gap-3 px-4">
+      <Plus className="size-5 shrink-0 text-muted-foreground" strokeWidth={1.75} />
+      <input
+        autoFocus
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Escape") setSaisie(false);
+          if (e.key === "Enter" && q.trim()) onValider(q.trim());
+        }}
+        onBlur={() => !q.trim() && setSaisie(false)}
+        enterKeyHint="done"
+        placeholder="est:non-lu, de:claire…"
+        aria-label="Requête de la nouvelle vue"
+        /* 16 px au moins : sous ce seuil iOS zoome sur le champ à la mise au
+           point, et l'écran part de travers (fiche PWA). */
+        className="min-w-0 flex-1 bg-transparent text-[16px] outline-none placeholder:text-muted-foreground"
+      />
+    </div>
   );
 }

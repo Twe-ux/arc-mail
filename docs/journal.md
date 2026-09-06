@@ -2,6 +2,24 @@
 
 Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérification.
 
+## 6 septembre 2026 — deux portes pour les vues, et une palette qui tient dans son cadre
+
+Les vues n'avaient qu'une entrée : une ligne de ⌘K qui n'apparaît qu'après avoir tapé quelque
+chose. Autrement dit, la fonction était invisible tant qu'on ne s'en était pas déjà servi. Le
+groupe « Vues » existe maintenant **même vide**, réduit à sa ligne « Garder une recherche… », qui
+se change en champ sur place — barre du bureau et feuille du téléphone. C'est la seule entorse à
+« un intitulé ne se pose pas au-dessus de rien », et elle est le prix d'une fonction qui s'annonce.
+
+⌘K garde la sienne : ce ne sont pas deux boutons pour le même geste mais deux moments. Fabriquer
+une vue demande de taper la requête ; garder celle qu'on vient de taper ne demande qu'un clic, et
+la retirer de la palette obligerait à retaper ce qu'on vient d'écrire.
+
+Et la palette ne montre plus que six conversations — quatre quand rien n'est tapé. Elle en montrait
+quarante : la boîte entière, les actions, les vues, les dossiers et les espaces tombaient tous sous
+la ligne de flottaison. « Il y a plusieurs options en bas de recherche qui ne sont pas visibles si
+on ne descend pas. » Sur `facture` et `annecy`, plus rien ne dépasse ; sur `claire`, 86 px. La carte
+passe de 300 à 440 px sur bureau : six conversations en font déjà 264.
+
 ## 6 septembre 2026 — trois défauts que seule une vraie boîte pouvait montrer
 
 Les vues à peine posées, trois retours en usage réel. Aucun ne se voyait sur les données mock.

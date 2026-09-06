@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Archive, BookmarkPlus, Clock, Columns2, FileText, Globe, Inbox, Loader2, Moon, PanelLeft, PenSquare, Send, Star, Trash2, type LucideIcon } from "lucide-react";
+import { Archive, BookmarkPlus, ChevronDown, Clock, Columns2, FileText, Globe, Inbox, Loader2, Moon, PanelLeft, PenSquare, Send, Star, Trash2, type LucideIcon } from "lucide-react";
 
 import {
   CommandDialog,
@@ -88,12 +88,32 @@ export function CommandPalette() {
      pas par hasard sur ce qu'on a jeté, mais `dans:corbeille` n'est pas un
      hasard — et rendre zéro résultat à une question précise est pire que la
      précaution qu'on croyait prendre. */
-  const spaceThreads = useMemo(() => {
+  const tousLesFils = useMemo(() => {
     const jetees = nommeUnDossier(arbre);
     return sortByDate(threads.filter((t) => t.spaceId === spaceId && (jetees || t.folder !== "trash")))
       .filter((t) => correspond(arbre, t))
       .slice(0, 40);
   }, [threads, spaceId, arbre]);
+
+  /* **La palette ne montre que six conversations à la fois.**
+     Elles en montraient quarante, et tout ce qui vient après — la boîte entière,
+     les actions, les vues, les dossiers, les espaces — tombait sous la ligne de
+     flottaison : « il y a plusieurs options en bas de recherche qui ne sont pas
+     visibles si on ne descend pas ». Six tiennent dans la carte avec le reste ;
+     les autres sont à une ligne, et la liste elle-même est là pour les lire
+     toutes. **Sans requête aussi** : la carte s'ouvrait sur dix-neuf récentes et
+     rien d'autre, ce qui est pourtant l'écran où l'on découvre ce que ⌘K sait
+     faire — six suffisent, et les actions, les vues, les dossiers et les
+     espaces deviennent la carte de la maison — **quatre** dans cet état, parce
+     que c'est là qu'il faut faire de la place au reste, et que les récentes ont
+     déjà leur liste dans la barre (« Aujourd'hui »). */
+  /* L'état retenu est **la requête dépliée**, pas un booléen : une autre
+     question se replie d'elle-même, sans effet qui remette un drapeau à zéro
+     après coup — un `setState` dans un effet redessine la carte une fois de
+     trop, et React 19 le refuse. */
+  const [deplie, setDeplie] = useState<string | null>(null);
+  const spaceThreads = deplie === requete ? tousLesFils : tousLesFils.slice(0, cherche ? 6 : 4);
+  const caches = tousLesFils.length - spaceThreads.length;
 
   /* Une entrée qui n'est pas du courrier ne se montre que si **tous** les mots
      nus s'y trouvent — et pas du tout dès que la requête n'a plus que des
@@ -212,7 +232,12 @@ export function CommandPalette() {
       {/* Same fade as the menu's list, for the same reason: a row half-cut at
           the card's edge reads as a bar under the results. `pb-6` matches the
           fade so the last match stays opaque once scrolled to the end. */}
-      <CommandList className="max-h-none min-h-0 flex-1 pb-6 [mask-image:linear-gradient(to_bottom,#000_calc(100%-1.5rem),transparent)] sm:max-h-[300px] sm:flex-none">
+      {/* **440 px sur bureau, pas 300.** Six conversations en font déjà 264 :
+          à 300 px, tout ce qui vient après elles — la boîte entière, les vues,
+          les dossiers — commençait sous le bord de la carte. La carte flotte au
+          milieu d'une fenêtre de 800 px, elle a la place. Sur téléphone elle
+          prend ce que la carte lui laisse, comme avant. */}
+      <CommandList className="max-h-none min-h-0 flex-1 pb-6 [mask-image:linear-gradient(to_bottom,#000_calc(100%-1.5rem),transparent)] sm:max-h-[440px] sm:flex-none">
         <CommandEmpty>Aucun résultat.</CommandEmpty>
 
         {/* **La syntaxe s'annonce.** Un langage de recherche que rien ne
@@ -294,6 +319,14 @@ export function CommandPalette() {
               </CommandItem>
             );
           })}
+          {caches > 0 && (
+            <CommandItem value="__plus" onSelect={() => setDeplie(requete)}>
+              <ChevronDown />
+              <span className="min-w-0 flex-1">
+                Voir les {caches} autres {caches > 1 ? "conversations" : "conversation"}
+              </span>
+            </CommandItem>
+          )}
         </CommandGroup>
 
         {/* **La boîte entière, à la demande.** ⌘K filtre la mémoire à chaque

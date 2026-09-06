@@ -464,7 +464,14 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - Un champ accepte **l'espace après le deux-points** (`de: claire`) : c'est ce que la palette
   montre sous le champ, et sans ça la requête cherchait partout en ayant l'air de viser
   l'expéditeur. Ni un connecteur ni un autre champ ne se laissent avaler.
-- « Garder … comme vue » est la **première ligne** de la palette, jamais sous les conversations.
+- « Garder … comme vue » est la **première ligne** de la palette, jamais sous les conversations ; et
+  « Garder une recherche… » est une rangée **à demeure** sous les dossiers (barre et feuille), qui
+  se change en champ sur place — le groupe Vues existe donc même vide, seule entorse assumée à
+  « un intitulé ne se pose pas au-dessus de rien ». Deux portes, deux moments : fabriquer une vue,
+  ou garder celle qu'on vient de taper.
+- La palette ne montre que **six** conversations (quatre sans requête), le reste derrière « Voir
+  les N autres » : au-delà, la boîte entière, les actions, les vues et les dossiers tombaient sous
+  la ligne de flottaison. Carte à **440 px** sur bureau.
 - Vue ouverte, **la rangée de la liste dit pourquoi elle est là** comme la palette : mots nus
   surlignés (`surligne.tsx`, une seule définition pour les deux surfaces) et l'aperçu remplacé par
   `extrait()` quand le mot est dans une adresse ou un corps.

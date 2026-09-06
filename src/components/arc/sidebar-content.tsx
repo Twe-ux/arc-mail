@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 import {
   Archive,
   Clock,
@@ -8,6 +10,7 @@ import {
   Send,
   Settings2,
   Star,
+  Plus,
   Trash2,
   X,
   type LucideIcon,
@@ -182,16 +185,20 @@ export function SidebarContent() {
  * une vue une question posée dessus. Les mêler donnerait une liste de onze
  * choses dont on ne saurait plus lesquelles se vident quand on archive.
  *
- * Le groupe n'existe pas tant qu'aucune vue n'est gardée — un intitulé ne se
- * pose jamais au-dessus de rien —, et il n'y a pas de bouton « nouvelle vue » :
- * on en fabrique une depuis ⌘K, là où la requête est déjà écrite.
+ * **Le groupe existe même vide**, réduit à sa ligne « Garder une recherche… ».
+ * C'est la seule entorse à la règle « un intitulé ne se pose pas au-dessus de
+ * rien », et elle est délibérée : la fonction n'avait qu'une porte, une ligne de
+ * ⌘K qui n'apparaît qu'après avoir tapé quelque chose. Elle était donc invisible
+ * tant qu'on ne s'en était pas déjà servi — « je ne comprends pas comment ça
+ * marche ». Une ligne posée à demeure l'annonce ; c'est ce qu'elle coûte.
  */
 function Vues() {
   const vues = useMail((s) => s.vues);
   const vueId = useMail((s) => s.vueId);
   const ouvrirVue = useMail((s) => s.ouvrirVue);
   const supprimerVue = useMail((s) => s.supprimerVue);
-  if (vues.length === 0) return null;
+  const enregistrerVue = useMail((s) => s.enregistrerVue);
+  const [saisie, setSaisie] = useState(false);
 
   return (
     <nav className="flex shrink-0 flex-col gap-0.5" aria-label="Vues">
@@ -208,7 +215,58 @@ function Vues() {
           onForget={() => supprimerVue(v.id)}
         />
       ))}
+      {saisie ? (
+        <SaisieVue
+          onClose={() => setSaisie(false)}
+          onValider={(q) => {
+            setSaisie(false);
+            ouvrirVue(enregistrerVue(q, q).id);
+          }}
+        />
+      ) : (
+        <button
+          type="button"
+          onClick={() => setSaisie(true)}
+          className={cn("flex h-8 items-center gap-2.5 rounded-lg px-2.5 text-sm transition-colors", TN.item)}
+        >
+          <Plus className="size-4 shrink-0" />
+          <span className="min-w-0 flex-1 truncate text-left">Garder une recherche…</span>
+        </button>
+      )}
     </nav>
+  );
+}
+
+/**
+ * La requête, tapée dans la barre.
+ *
+ * **Un champ à la place de la ligne**, pas une boîte de dialogue : la vue qu'on
+ * fabrique va vivre ici, elle s'écrit ici. Le champ garde la boîte de la
+ * rangée qu'il remplace — même hauteur, même rayon —, prend le focus, et
+ * ressort au vide comme à `Échap`.
+ *
+ * `Entrée` valide, et ouvre la vue dans la foulée : on la fabrique pour la
+ * regarder, pas pour la ranger.
+ */
+function SaisieVue({ onClose, onValider }: { onClose: () => void; onValider: (q: string) => void }) {
+  const [q, setQ] = useState("");
+  return (
+    <input
+      autoFocus
+      value={q}
+      onChange={(e) => setQ(e.target.value)}
+      onKeyDown={(e) => {
+        if (e.key === "Escape") onClose();
+        if (e.key === "Enter" && q.trim()) onValider(q.trim());
+      }}
+      onBlur={() => !q.trim() && onClose()}
+      placeholder="est:non-lu, de:claire…"
+      aria-label="Requête de la nouvelle vue"
+      className={cn(
+        "h-8 w-full rounded-lg bg-[var(--side-fill-active)] px-2.5 text-sm outline-none",
+        "text-[var(--side-ink)] placeholder:text-[var(--side-ink-soft)]",
+      )}
+    />
   );
 }
 

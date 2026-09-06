@@ -134,6 +134,7 @@ typography:
     s18: "18px"
     s19: "19px"
     s20: "20px"
+    s22: "22px"
     s26: "26px"
     s30: "30px"
 rounded:
@@ -528,11 +529,12 @@ Deux échelles cohabitent : **téléphone** (15 / 13 / 17 / 19 / 30 px, les tail
 **bureau** (14 / 12 / 20 px, l'échelle shadcn), presque toujours sous la forme `text-[15px]
 md:text-sm`.
 
-- **Display** (700, 30px, 1.15, `-0.02em`) : le grand titre de dossier sur téléphone, sur le voile
-  (`list-header.tsx`).
-- **Objet en lecture** (700, 26px, 1.18, `-0.02em`, `text-pretty`) : le titre de la carte du mail
-  ouvert (`thread-view.tsx`). Il a remplacé le 19px de l'ancien en-tête : l'objet est descendu dans
-  la carte, où il est le titre de ce qu'on lit plutôt qu'une étiquette au-dessus.
+- **Display** (700, 22px, 1.2, `-0.015em`) : le titre de dossier sur téléphone, sur le voile
+  (`list-header.tsx`). Il valait 30px et tenait une ligne à lui ; à 22 il partage la sienne avec le
+  filtre « Tous / Non lus », et la tête a rendu 35 px à la liste.
+- **Objet en lecture** (600, 19px, 1.3, `-0.01em`, `text-pretty`) : **sous le nom de l'expéditeur**
+  du message ouvert (`message-card.tsx`). Il était au-dessus, en 26px : il se lisait comme le titre
+  de la page et le nom comme sa légende, alors qu'on décide de lire un mail dans l'autre sens.
 - **Headline** (700, 19px, 1.25, `-0.025em`) : l'objet du fil sur téléphone, deux lignes max, calé
   à `pt-[7px]` sur le centre optique de la flèche retour (`thread-view.tsx`). Sur bureau :
   **Headline-desktop** (600, 20px `text-xl`, `-0.025em`).

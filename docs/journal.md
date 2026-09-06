@@ -2,6 +2,19 @@
 
 Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérification.
 
+## 6 septembre 2026 — la tête maigrit, l'objet passe sous le nom
+
+Quatre maquettes rendues sur l'app réelle avant d'écrire une ligne, et c'est la troisième qui a été
+retenue, amendée. **La tête de liste passe de 175 à 140 px** : les tuiles de dossiers deviennent des
+pilules de 38 (icône et mot côte à côte, 24 px rendus), le titre tombe à 22 px et partage sa ligne
+avec `Tous / Non lus`, le regroupement termine la ligne de l'adresse. La première conversation
+commence à 199 px au lieu de 234.
+
+Et dans le mail ouvert, **l'objet passe sous le nom de l'expéditeur**, à 19 px semi-gras : au-dessus
+et en 26 px, il se lisait comme le titre de la page et le nom comme sa légende, alors qu'on décide
+de lire un mail dans l'autre sens. C'est l'ordre de Mail d'iOS, et le courrier commence 38 px plus
+haut.
+
 ## 6 septembre 2026 — le préheader, pour de bon
 
 Deux essais avaient échoué sur les vrais courriers, et chacun pour une raison différente. La marge

@@ -7,19 +7,41 @@ L'écran d'accueil d'Arc Mail, refondu d'après le handoff mobile du 5 septembre
 
 ## L'en-tête, sur le voile teinté
 
-De haut en bas : l'indicateur de pages, le grand titre, la ligne méta et le filtre, les tuiles de
-dossiers. Il vit **au-dessus de la carte**, sur le voile de l'espace : c'est le contraste entre ce
-fond coloré et la carte de la liste qui donne sa profondeur à l'écran.
+De haut en bas : l'indicateur de pages, une ligne titre + filtre, une ligne adresse + regroupement,
+les dossiers en pilules. Il vit **au-dessus de la carte**, sur le voile de l'espace : c'est le
+contraste entre ce fond coloré et la carte de la liste qui donne sa profondeur à l'écran.
 
-- **Grand titre** `30px / 1.15 / -0.02em / 700`, `px-5`.
+- **Titre** `22px / 1.2 / -0.015em / 700`, `px-5`, sur la même ligne que le filtre.
 - **Ligne méta** : `adresse · N conversations`, 13 px, `truncate` **obligatoire** — sur 390 px
   « thierry@coworkingcafe.fr · 12 conversations » ne tient pas. L'adresse complète vit dans le
   `title`. La queue « · N non lues » a été retirée : le filtre « Non lus » et les points de non-lu
-  la disaient déjà, et elle mangeait les caractères qui manquaient à l'adresse.
-- **Tuiles épinglées** : `grid-cols-4`, tuile de 62 px, `rounded-2xl`, icône 20 + libellé 11/500.
-  **Quatre, pas sept** — Réception, Favoris, Envoyés, Corbeille : ce sont ceux qu'on ouvre plusieurs
-  fois par jour. En pause, Brouillons et Archive restent dans la feuille Dossiers, à un appui de là ;
-  sept tuiles de 55 px n'auraient plus eu de libellé lisible.
+  la disaient déjà, et elle mangeait les caractères qui manquaient à l'adresse. Le **regroupement
+  par correspondant** (30 px) termine cette ligne : c'est la seule qui avait de la place.
+- **Pilules de dossiers** : rangée de quatre, 38 px de haut, `rounded-xl`, icône 16 et libellé 11/500
+  **côte à côte**. **Quatre, pas sept** — Réception, Favoris, Envoyés, Corbeille : ce sont ceux qu'on
+  ouvre plusieurs fois par jour. En pause, Brouillons et Archive restent dans la feuille Dossiers, à
+  un appui de là.
+
+## 175 px de tête, ramenés à 140
+
+Le titre tenait une ligne à lui en 30 px, l'adresse et le filtre une autre, les tuiles une troisième
+de 88 px : la première conversation commençait à **234 px** du haut de l'écran, sur 852. Trois
+gestes, mesurés :
+
+| | Gagné |
+|---|---|
+| Les tuiles carrées de 62 px deviennent des **pilules de 38**, icône et mot côte à côte | 24 |
+| Le **filtre monte à côté du titre**, qui passe de 30 à 22 px | 11 |
+| Les marges verticales se resserrent | 0 |
+| **Total** — la carte commence à 199 px | **35** |
+
+À 22 px, « Boîte de réception » et « Tous / Non lus » tiennent ensemble : 346 px sur les 353
+disponibles, mesuré, et aucun des quatre libellés de dossier n'est tronqué (« Corbeille », le plus
+long, occupe 70 px des 82 d'une pilule).
+
+Le regroupement aurait pu monter lui aussi sur la ligne du titre — 13 px de plus — mais la ligne de
+l'adresse serait alors tombée à la hauteur de son texte, et un écran dont chaque rangée a une
+hauteur différente se lit moins bien qu'un écran qui en a gagné treize.
 
 ## Le bord de la carte
 

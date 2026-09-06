@@ -25,8 +25,8 @@ Il y avait **trois cadres emboîtés** — la carte arrondie de l'écran, une ca
 puis le bloc blanc du HTML — et le texte finissait à quarante pixels des deux bords sur un écran
 qui en fait trois cent quatre-vingt-dix.
 
-Sur téléphone : objet `26px / 1.18 / -0.02em / 700` en `px-5 pt-6 pb-[18px]`, ligne expéditeur avec
-son retrait, puis le corps **pleine largeur** (`px-5 py-[22px]`, 15/1.7). Les messages d'un fil se
+Sur téléphone : ligne expéditeur, puis objet `19px / 1.3 / -0.01em / 600` en `px-5 pb-4`, puis le
+corps **pleine largeur** (`px-5 py-[22px]`, 15/1.7). Les messages d'un fil se
 séparent par un filet, pas par des cartes. Sur bureau la carte grise reste : la colonne y est large,
 et c'est elle qui distingue cinq messages les uns des autres.
 
@@ -37,8 +37,16 @@ expéditeur et message se suivaient sur la même surface blanche, sans rien pour
 et le message commençait donc par répéter son propre titre juste sous le nôtre. Trois corrections,
 mesurées sur la capture :
 
-1. **L'objet a sa zone.** 26 px au lieu de 22, 24 px d'air au-dessus et 18 en dessous. Il est le titre
-   de la page, pas une ligne de plus.
+1. **Qui, puis quoi.** L'objet était au-dessus de l'expéditeur, en 26 px : il se lisait comme le
+   titre de la page et le nom comme sa légende, alors qu'on décide de lire un mail dans l'autre
+   sens. Il est descendu **sous le nom**, à 19 px semi-gras — l'ordre de Mail d'iOS —, et c'est le
+   **premier message du fil** qui le porte (`premier` dans `MessageCard`). 39 px rendus au message,
+   mesuré : le courrier commence à 284 px au lieu de 322.
+
+   L'arbitrage : sur un fil à plusieurs messages, l'objet appartient au *fil*, pas au premier
+   message, et le descendre là le fait lire comme une propriété de celui-ci. Ça ne se voit que sur
+   un fil à réponses ; sur bureau la question ne se pose pas, l'objet est dans l'en-tête de la
+   conversation.
 2. **L'en-tête du message est un bloc**, clos par un filet : avatar 44, nom en 16 semi-gras, et
    **la date courte passe à droite du nom**. Elle terminait « à moi · dimanche 6 septembre à 01:49 »,
    une ligne qui prenait toute la largeur pour dire deux choses dont une seule se lit d'un coup

@@ -171,8 +171,9 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   le bloc ne peint pas la sienne derrière, seul l'en-tête porte la teinte.
 
 **Liste sur téléphone** → [docs/features/liste-telephone.md](docs/features/liste-telephone.md)
-- Grand titre 30/1.15/-0.02em, ligne méta tronquée, **quatre** tuiles épinglées ; la carte porte le
-  filet `.list-card` — sans lui son arrondi se perd dans le voile.
+- Titre 22/1.2/-0.015em **sur la ligne du filtre**, ligne méta tronquée qui se termine par le
+  regroupement, **quatre** dossiers en pilules de 38 ; la carte porte le filet `.list-card` — sans
+  lui son arrondi se perd dans le voile. Tête ramenée de 175 à 140 px (carte à 199 au lieu de 234).
 - **Deux lignes ou trois** au choix (`listDensity`, feuille « Personnaliser ») : le téléphone lit
   `data-lignes` derrière `max-md:`, jamais `data-densite` (forcé à « confort » par la pleine largeur).
 - Deux balayages sur le même axe : la **rangée** le prend partout et arrête la propagation ; celui
@@ -190,9 +191,10 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - En-tête à trois éléments (retour · « dossier · n sur N » / nom de la boîte · favori) ; l'objet vit
   dans la carte.
 - Corps **à bord perdu** : un seul cadre sur téléphone, pas trois ; « à moi », pas notre nom.
-- Trois blocs, pas une dalle : objet 26/1.18 avec son air, en-tête du message clos par un **filet**
-  (date courte à droite du nom, date longue dans les destinataires dépliés), puis la feuille du
-  courrier qui **remplit la carte** — anneau et rayon sur bureau seulement.
+- Trois blocs, pas une dalle : **le nom puis l'objet** (19/1.3 semi-gras, porté par le premier
+  message), le tout clos par un **filet** — date courte à droite du nom, date longue dans les
+  destinataires dépliés —, puis la feuille du courrier qui **remplit la carte** ; anneau et rayon
+  sur bureau seulement.
 - Le **préheader** qui répète l'objet est masqué : on part du **nœud de texte** et on remonte tant
   que le contenant n'ajoute rien (il vit aussi en texte nu dans l'enveloppe du message) ; jamais un
   titre (moins de 20 px, sans image), et le remplissage invisible est retiré avant de comparer.

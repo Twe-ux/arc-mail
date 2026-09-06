@@ -203,17 +203,17 @@ export function ThreadView({ className }: { className?: string }) {
                 titre de la carte, pas celui d'une sous-carte. */}
             {/* Sur bureau l'objet est déjà dans l'en-tête, à deux centimètres
                 au-dessus : l'écrire deux fois ne dit rien de plus. */}
-            {/* **Il est le titre de la page, pas une ligne de plus.** À 22 px
-                collé sous le bord de la carte et suivi sans respiration par
-                l'expéditeur, il se lisait comme un intitulé ; Mail d'iOS lui
-                donne sa propre zone. Ici : 26 px, 24 px d'air au-dessus, 18
-                en dessous, et le filet de l'en-tête du message pour clore le
-                bloc. */}
-            <h1 className="px-5 pt-6 pb-[18px] text-[26px] leading-[1.18] font-bold tracking-[-0.02em] text-pretty md:hidden">
-              {thread.subject}
-            </h1>
-            {thread.messages.map((m) => (
-              <MessageCard key={m.id} message={m} sujet={thread.subject} onReplyTo={aimReply} />
+            {/* L'objet est porté par le **premier message**, sous le nom de son
+                expéditeur : voir `MessageCard`. Il vivait ici, au-dessus de
+                tout, et se lisait comme le titre de la page. */}
+            {thread.messages.map((m, i) => (
+              <MessageCard
+                key={m.id}
+                message={m}
+                sujet={thread.subject}
+                premier={i === 0}
+                onReplyTo={aimReply}
+              />
             ))}
           </div>
         </ScrollArea>

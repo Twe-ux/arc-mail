@@ -42,9 +42,22 @@ export function ListHeader() {
   return (
     <div className="shrink-0 md:hidden">
       <PagesEspaces />
+      {/* **Deux rangées serrées plutôt qu'un titre seul.** Le titre tenait une
+          ligne à lui en 30 px, l'adresse et le filtre une autre, les dossiers
+          une troisième de 88 px : 175 px de tête avant la première
+          conversation, sur un écran qui en fait 852. Le filtre monte à côté du
+          titre — à 22 px « Boîte de réception » et « Tous / Non lus » tiennent
+          ensemble (mesuré : 346 px sur les 353 disponibles) — et le
+          regroupement descend au bout de la ligne de l'adresse, la seule qui
+          avait de la place. */}
       <div className="px-5">
-        <h1 className="truncate text-[30px] leading-[1.15] font-bold tracking-[-0.02em]">{folder.name}</h1>
-        <div className="mt-1.5 flex items-center gap-2">
+        <div className="flex items-center gap-2">
+          <h1 className="min-w-0 flex-1 truncate text-[22px] leading-[1.2] font-bold tracking-[-0.015em]">
+            {folder.name}
+          </h1>
+          <Segmented />
+        </div>
+        <div className="mt-1 flex items-center gap-2">
           {/* `truncate` sur la ligne entière, et l'adresse en toutes lettres dans
               le titre : sur 390 px « thierry@coworkingcafe.fr · 12 conversations »
               ne tient pas, et une adresse coupée ne dit plus de quelle boîte on
@@ -55,10 +68,7 @@ export function ListHeader() {
           >
             {space.email} · {plural(threads.length, "conversation")}
           </p>
-          <Segmented />
-          {/* 30 px, la hauteur exacte du segmenté : la rangée n'a pas de place
-              à perdre — une adresse et un compte de conversations la remplissent
-              déjà, et chaque pixel pris ici est du texte tronqué. */}
+          {/* 30 px, la hauteur exacte du segmenté qui vivait ici avant lui. */}
           <button
             type="button"
             onClick={() => setGroupBy(groupBy === "fil" ? "correspondant" : "fil")}
@@ -118,7 +128,7 @@ function TuilesDossiers() {
   const setCorrespondent = useMail((s) => s.setCorrespondent);
 
   return (
-    <nav aria-label="Dossiers épinglés" className="grid grid-cols-4 gap-2 px-5 pt-3.5 pb-3">
+    <nav aria-label="Dossiers épinglés" className="flex gap-2 px-5 pt-2.5 pb-3">
       {EPINGLES.map(({ id, label, icon: Icon }) => {
         const active = id === folderId;
         return (
@@ -130,14 +140,19 @@ function TuilesDossiers() {
               setCorrespondent(null);
             }}
             aria-current={active ? "page" : undefined}
+            /* **Des pilules, plus des tuiles carrées.** Les quatre dossiers
+               empilaient une icône sur un mot dans 62 px de haut ; côte à côte
+               ils tiennent dans 38, et les 24 px rendus sont une conversation
+               de plus à l'écran. Mesuré à 353 px de large : « Corbeille », le
+               plus long des quatre, occupe 70 px des 82 d'une pilule. */
             className={cn(
-              "flex h-[62px] flex-col items-center justify-center gap-1 rounded-2xl transition-[background-color,color,transform] duration-200 active:scale-[0.97] active:duration-0",
+              "flex h-[38px] flex-1 items-center justify-center gap-1.5 rounded-xl transition-[background-color,color,transform] duration-200 active:scale-[0.97] active:duration-0",
               active
                 ? "bg-foreground/[0.12] text-foreground"
                 : "bg-foreground/[0.05] text-muted-foreground",
             )}
           >
-            <Icon className="size-5" strokeWidth={active ? 2.25 : 1.75} />
+            <Icon className="size-4" strokeWidth={active ? 2.25 : 1.75} />
             <span className="text-[11px] font-medium">{label}</span>
           </button>
         );

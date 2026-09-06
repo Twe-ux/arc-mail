@@ -36,11 +36,14 @@ import { MessageBody } from "./message-body";
 export function MessageCard({
   message,
   sujet,
+  premier,
   onReplyTo,
 }: {
   message: Message;
   /** L'objet du fil, passé au corps : il masque le préheader qui le répète. */
   sujet: string;
+  /** Le premier message du fil : c'est lui qui porte l'objet, sur téléphone. */
+  premier?: boolean;
   onReplyTo: (to: Contact[]) => void;
 }) {
   /* Les destinataires ne sont dépliés qu'à la demande : « à moi » suffit dans
@@ -78,6 +81,9 @@ export function MessageCard({
       <div
         className={cn(
           "flex items-center gap-3 border-b border-black/[0.06] px-5 py-4 md:gap-2.5 md:border-0 md:py-0 dark:border-white/[0.08]",
+          /* Le premier message porte l'objet juste en dessous : c'est le bloc
+             entier — qui, puis quoi — que le filet doit clore, pas le nom seul. */
+          premier && "max-md:border-b-0 max-md:pb-2.5",
           estHtml
             ? cn(
                 "md:rounded-lg md:px-2 md:py-1.5 md:transition-colors",
@@ -164,6 +170,18 @@ export function MessageCard({
           <ChevronDown className={cn("size-4 transition-transform duration-200", deplie && "rotate-180")} />
         </button>
       </div>
+
+      {/* **Qui, puis quoi.** L'objet vivait au-dessus de l'expéditeur, en 26 px :
+          il se lisait comme le titre de la page et le nom comme sa légende,
+          alors qu'on décide de lire un mail dans l'autre sens. Descendu sous le
+          nom et ramené à 19 px semi-gras — c'est l'ordre de Mail d'iOS —, il
+          rend 39 px au message et cesse de disputer la vedette au corps.
+          Sur bureau il est déjà dans l'en-tête de la conversation. */}
+      {premier && (
+        <h1 className="border-b border-black/[0.06] px-5 pb-4 text-[19px] leading-[1.3] font-semibold tracking-[-0.01em] text-pretty md:hidden dark:border-white/[0.08]">
+          {sujet}
+        </h1>
+      )}
 
       {deplie && (
         <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 border-b border-black/[0.06] px-5 py-3.5 text-[13px] md:hidden dark:border-white/[0.08]">

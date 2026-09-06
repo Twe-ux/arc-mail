@@ -2,6 +2,21 @@
 
 Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérification.
 
+## 6 septembre 2026 — la feuille du composeur est ancrée, comme sur Kairos
+
+« Toujours le flash, regarde le projet Kairos car on n'a pas ça. » Kairos avait raison et la réponse
+était dans son `KeyboardInset` : *« `offsetTop` est délibérément laissé de côté »*, et *« la place
+laissée sous le dernier champ est ce qui empêche iOS de déplacer la page »*.
+
+Notre feuille était posée sur le rectangle visible, donc elle se redessinait à chaque frame où le
+navigateur bougeait le sien — et il en bouge un au pire moment : ouvrir un dialogue verrouille le
+défilement, WebKit re-résout le viewport en app installée, l'écart saute d'une cinquantaine de
+pixels qui n'ont rien d'un clavier. Elle est maintenant **ancrée**, et le clavier ne lui prend qu'un
+`padding-bottom`, **seulement quand un champ a le focus** — la garde de Kairos, sans laquelle les
+50 px fantômes poussent la tête de la feuille puis la lâchent. Le gel de page écrit la veille est
+retiré : il n'a plus rien à corriger, et se battre avec le navigateur pendant qu'il anime produisait
+les flashs qu'on voulait supprimer.
+
 ## 6 septembre 2026 — le composeur se dé-iOS-ise
 
 « Trop proche d'iOS, non ? » Quatre pistes rendues sur l'app réelle avant d'écrire une ligne —

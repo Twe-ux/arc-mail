@@ -68,6 +68,8 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   peinture ; `color-scheme` est déclaré dans `globals.css`.
 - `--keyboard-inset` se mesure contre la **plus grande hauteur visuelle vue**, jamais contre
   `innerHeight` (qui rétrécit aussi en app installée) ; seuil 200 px, remis à zéro à la rotation.
+  **`offsetTop` n'est pas publié** : une feuille se cale sur lui au prix d'un redessin à chaque
+  frame où le navigateur bouge son viewport. On ancre, on ne suit pas.
 - Les icônes de l'app sont des fichiers choisis ; seul `scripts/favicon.py` en dérive le `.ico`.
 - Sur bureau la fenêtre n'a **pas de bandeau** (`window-controls-overlay`) : c'est nous qui
   réservons la place des pastilles (`--titlebar`) et rendons la bande déplaçable ; changer
@@ -84,9 +86,8 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - L'en-tête est hors du défilant ; la carte garde `pb-3` sous le défilant ; les listes s'effacent
   en bas (`mask-image`) avec `pb-6` dedans.
 - Une seule surface par carte (`Command` en `bg-transparent`).
-- Le composeur occupe le **rectangle visible** (`--vv-top`, `--vv-height`), il ne compense pas le
-  clavier : c'est le défilement du navigateur qu'on annule, pas un décalage qu'on ajoute. Mais il
-  n'est **plus une carte flottante** : feuille plein écran → fiche composeur.
+- Le composeur n'est **plus une carte flottante** : feuille plein écran **ancrée**, le clavier ne
+  lui prend qu'un `padding-bottom` → fiche composeur.
 - Le composeur est en cinq fichiers (aiguillage, feuille, fenêtre, lignes, panneaux), aucun
   au-dessus de 300 lignes.
 - Sur bureau le composeur est **une fenêtre de 760 × 560 posée sur la boîte** (rayon 16, voile à
@@ -234,10 +235,13 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   `flex-1` avec plancher `min-h-16`, panneau `min-h-28` qui défile et s'efface en bas.
 - **Un panneau ouvert efface les lignes** (`hidden`, l'état est gardé) : sinon il se réduisait à son
   titre, et « le fond blanc n'est plus là ».
-- **La page derrière est figée** tant que la feuille est ouverte (`useFrozenPage`) : iOS fait
-  défiler le document pour révéler le champ visé, et l'app montait puis redescendait sous le voile.
-  Jamais d'`overflow: hidden` sur `html`/`body` pour ça — et **jamais un `scrollY` négatif** (il
-  l'est pendant l'élastique iOS) ni une cible inatteignable : c'était le « flash de page blanche ».
+- **La feuille est ancrée, jamais calée sur le viewport visuel** (mécanique de Kairos) : haut à
+  l'encoche, bas au bord, et le clavier ne lui prend qu'un `padding-bottom`. La caler sur
+  `--vv-top`/`--vv-height` la faisait se redessiner quand WebKit re-résout le viewport à
+  l'ouverture d'un dialogue — l'écran qui monte derrière, puis les flashs.
+- **Le coussin du clavier n'existe que si un champ a le focus** (`:has(:is(input,textarea):focus)`,
+  gardé une fois sur `--clavier`) : sinon 50 px fantômes poussent la tête de la feuille puis la
+  lâchent.
 - Le bandeau porte **l'objet dès qu'on l'écrit**, le nom sinon — comme la fenêtre du bureau.
 - Le menu du `⋯` est **ancré sur sa case**, au-dessus de la barre d'outils : posé à 8 px des trois
   bords, son coin bas se faisait couper par l'écran.

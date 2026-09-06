@@ -160,7 +160,11 @@ export function ComposeFields({
         className={cn(
           /* Un plancher, pas `min-h-0` : même sous un panneau, on garde une
              ligne ou deux de ce qu'on est en train d'écrire. */
-          "min-h-16 flex-1 resize-none overflow-y-auto overscroll-contain bg-transparent px-4 py-3.5 outline-none placeholder:text-muted-foreground",
+          /* `none`, pas `contain` : `contain` arrête la page derrière mais laisse
+             au champ son propre élastique, et cet élastique court contre la
+             transformation du glisser-fermer au moment précis où les deux se
+             passent la main — c'est le tremblement (mesuré sur Kairos). */
+          "min-h-16 flex-1 resize-none overflow-y-auto overscroll-none bg-transparent px-4 py-3.5 outline-none placeholder:text-muted-foreground",
           compact
             ? "text-[17px] leading-[1.5]"
             : "text-[15px] leading-relaxed sm:text-sm",

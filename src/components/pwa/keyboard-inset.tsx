@@ -11,10 +11,9 @@ import { useEffect } from "react";
 const SEUIL = 200;
 
 /**
- * Publie ce que le navigateur montre vraiment : la hauteur du clavier
- * (`--keyboard-inset`), et le rectangle visible (`--vv-top`, `--vv-height`).
+ * Publie la hauteur du clavier à l'écran, `--keyboard-inset`, et rien d'autre.
  *
- * **Le clavier ne se mesure plus contre `window.innerHeight`.** C'était la
+ * **Le clavier ne se mesure pas contre `window.innerHeight`.** C'était la
  * méthode classique — le viewport de mise en page ne rétrécit pas, le visuel
  * si, et l'écart est le clavier. Sauf que sur iOS récent, en app installée, le
  * viewport de mise en page rétrécit *aussi* : l'écart tombe à zéro, on croit
@@ -27,11 +26,15 @@ const SEUIL = 200;
  * viewport visuel à lui-même. Elle se remet à zéro quand l'écran tourne, sans
  * quoi la hauteur en paysage passerait pour un clavier en portrait.
  *
- * `--vv-top` est le défilement que le navigateur s'accorde pour révéler le
- * champ visé. Une carte `fixed` est posée dans le viewport de mise en page ; ce
- * défilement-là la fait glisser hors de l'écran sans qu'aucune de nos règles ne
- * l'ait bougée. La publier permet à la carte de rester dans le rectangle qu'on
- * voit — voir [Cartes flottantes](../../../docs/features/cartes-flottantes.md).
+ * **`offsetTop` est délibérément laissé de côté**, et avec lui le rectangle
+ * visible qu'on publiait ici jusqu'au 6 septembre. Une feuille calée sur ce
+ * rectangle se redessine à chaque frame où le navigateur bouge le sien, et il
+ * en bouge un au mauvais moment : ouvrir un dialogue verrouille le défilement
+ * de la page, WebKit re-résout le viewport en app installée, et l'écart saute
+ * d'une cinquantaine de pixels qui n'ont rien d'un clavier. Une feuille est
+ * **ancrée** et laisse le clavier lui prendre un `padding-bottom` — la
+ * mécanique de Kairos, à laquelle on est revenu →
+ * [composeur](../../../docs/features/composeur-panneaux.md).
  */
 export function KeyboardInset() {
   useEffect(() => {
@@ -48,12 +51,6 @@ export function KeyboardInset() {
       const ouvert = cache > SEUIL;
 
       root.style.setProperty("--keyboard-inset", `${ouvert ? Math.round(cache) : 0}px`);
-      root.style.setProperty("--vv-top", `${Math.round(visual.offsetTop)}px`);
-      root.style.setProperty("--vv-height", `${Math.round(visual.height)}px`);
-      /* Une classe en plus de la longueur, pour qu'une carte puisse abandonner
-         ce dont elle n'a pas besoin pendant qu'on écrit, et pas seulement
-         faire de la place aux touches. */
-      root.classList.toggle("keyboard-open", ouvert);
     };
 
     /* Tourner l'écran change la hauteur sans clavier : la garder ferait passer
@@ -65,16 +62,11 @@ export function KeyboardInset() {
 
     measure();
     visual.addEventListener("resize", measure);
-    visual.addEventListener("scroll", measure);
     window.addEventListener("orientationchange", reset);
     return () => {
       visual.removeEventListener("resize", measure);
-      visual.removeEventListener("scroll", measure);
       window.removeEventListener("orientationchange", reset);
       root.style.removeProperty("--keyboard-inset");
-      root.style.removeProperty("--vv-top");
-      root.style.removeProperty("--vv-height");
-      root.classList.remove("keyboard-open");
     };
   }, []);
   return null;

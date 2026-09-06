@@ -162,6 +162,6 @@ Ce qui va avec : `SheetScroller`, `SheetGroup` (le groupe encarté d'iOS, avec s
 dans le store ; sur le mail ouvert, un seul état `sheet`. Deux cartes de 36 px empilées sur 390 px
 ne se lisent plus.
 
-Le **composeur** garde le rectangle visible (`--vv-top` / `--vv-height`) et ses deux panneaux
-internes, qui s'excluent aussi, mais plus rien d'autre de cette fiche : feuille plein écran, poignée,
-outils à plat, envoi dans le bandeau du haut → [fiche](composeur-panneaux.md).
+Le **composeur** ne garde plus rien de cette fiche : feuille plein écran **ancrée** (le clavier ne
+lui prend qu'un `padding-bottom`, jamais une position), poignée, outils à plat, envoi dans le
+bandeau du haut → [fiche](composeur-panneaux.md).

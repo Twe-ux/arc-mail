@@ -10,7 +10,6 @@ import {
   SheetDescription,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { useFrozenPage } from "@/hooks/use-frozen-page";
 import { useSheetDismiss } from "@/hooks/use-sheet-dismiss";
 import { useMail } from "@/lib/store";
 import type { ComposeDraft } from "@/lib/types";
@@ -44,6 +43,11 @@ import { useComposeTools } from "./use-compose-tools";
  * 📎  Aa                                  ⋯    55  outils, à plat
  * ```
  *
+ * **La feuille est ancrée, pas calée sur le viewport visuel** : haut à
+ * l'encoche, bas au bord, et le clavier n'ajoute qu'un `padding-bottom`. La
+ * mécanique vient de Kairos ; s'en écarter avait coûté deux défauts, la page
+ * qui monte derrière et les flashs à l'ouverture.
+ *
  * **Pas de grand titre.** La feuille d'iOS pose son nom en 30 px sur une ligne
  * à lui : c'est elle qu'on reconnaissait, et elle coûtait 41 px au repos. Le
  * nom tient au centre du bandeau, et ce qui rattache la feuille à Arc Mail est
@@ -66,10 +70,6 @@ export function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
     draft?.subject.trim() || (draft?.draftId ? "Brouillon" : "Nouveau message");
   const sheetRef = useSheetDismiss(closeCompose);
   const t = useComposeTools(draft);
-  /* La page derrière ne suit pas le clavier : iOS fait défiler le document
-     pour révéler le champ visé, et l'app entière montait puis redescendait
-     sous le voile. */
-  useFrozenPage(draft !== null);
 
   return (
     <Sheet
@@ -96,24 +96,36 @@ export function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
            could have caught. */
         onPointerDownOutside={(e) => e.preventDefault()}
         onInteractOutside={(e) => e.preventDefault()}
-        /* **La carte occupe le rectangle qu'on voit**, pas celui que la page
-           croit avoir. Une carte `fixed` est posée dans le viewport de mise en
-           page ; quand le clavier sort, le navigateur fait glisser le viewport
-           visuel pour révéler le champ visé, et la carte part vers le haut —
-           l'en-tête et les destinataires hors de l'écran — sans qu'aucune de
-           nos règles ne l'ait bougée.
+        /* **La feuille ne bouge pas ; c'est un coussin qui grandit.** C'est la
+           mécanique de Kairos, et on y revient après deux versions passées à
+           la caler sur le rectangle visible (`--vv-top` / `--vv-height`).
 
-           On ne compense donc pas le clavier (deux compensations pour un même
-           problème, et la feuille finit au milieu : leçon de Kairos) : on se
-           cale sur ce que le navigateur montre. `--vv-top` et `--vv-height`
-           sont ce rectangle ; sans eux — premier rendu, pas de
-           `visualViewport` — les valeurs de repli redonnent exactement la
-           carte d'avant. */
-        /* Plein écran : la feuille touche les côtés et le bas du rectangle
-           visible, et ne s'arrête en haut qu'à l'encoche — qui obstrue
-           l'écran, pas la page, même quand le viewport visuel a défilé. Ses
-           coins hauts gardent les 36 px du dépôt ; les bas n'existent plus. */
-        className="inset-x-0 top-[calc(var(--vv-top,0px)+var(--safe-top))] h-[calc(var(--vv-height,100dvh)-var(--safe-top))] flex w-auto max-w-none flex-col gap-0 rounded-t-[36px] border-0 p-0 shadow-[0_-8px_40px_rgb(0_0_0/0.28)] transition-none dark:bg-[#26262a] dark:ring-1 dark:ring-white/12"
+           Une feuille dont la hauteur suit le viewport visuel se redessine à
+           chaque frame où le navigateur bouge le sien — et il en bouge un au
+           mauvais moment : **ouvrir un dialogue verrouille le défilement de la
+           page, WebKit re-résout alors le viewport en app installée**, et
+           l'écart entre les deux viewports saute d'une cinquantaine de pixels
+           qui n'ont rien d'un clavier. La feuille prenait une hauteur, puis
+           une autre, la page réapparaissait derrière : les « flashs » signalés
+           à l'ouverture.
+
+           Elle est donc **ancrée** — haut à l'encoche, bas au bord — et c'est
+           son `padding-bottom` qui prend la hauteur du clavier. Le champ visé
+           se retrouve au-dessus des touches sans que rien ne se déplace, donc
+           le navigateur n'a jamais à faire défiler le document pour le
+           révéler : c'est aussi ce qui règle « l'écran derrière se lève ».
+
+           **Et le coussin ne s'applique que si un champ a le focus**
+           (`:has(:is(input,textarea):focus)`) : sans cette garde, les 50 px
+           fantômes de la re-résolution poussaient la tête de la feuille puis
+           la lâchaient. Pas de champ visé, pas de clavier, pas de coussin.
+
+           La garde est posée **une fois**, sur `--clavier` : la feuille en
+           prend son coussin, et la barre du bas en retire l'encoche. Deux
+           lecteurs de la même mesure, une seule condition — sinon la barre
+           rendait ses 34 px pendant le fantôme et sautait de 26 px à
+           l'ouverture. */
+        className="inset-x-0 top-[var(--safe-top)] bottom-0 flex h-auto w-auto max-w-none flex-col gap-0 rounded-t-[36px] border-0 p-0 pb-[var(--clavier)] shadow-[0_-8px_40px_rgb(0_0_0/0.28)] transition-none [--clavier:0px] [&:has(:is(input,textarea):focus)]:[--clavier:var(--keyboard-inset,0px)] dark:bg-[#26262a] dark:ring-1 dark:ring-white/12"
       >
         {/* Le voile de l'espace, en haut de la feuille et lui seul : c'est ce
             qui la rattache à Arc Mail plutôt qu'à la feuille grise d'iOS. Une
@@ -198,11 +210,11 @@ export function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
             dessous — c'est le bord de la feuille, et juste au-dessus du
             clavier.
 
-            Le coussin du bas est l'encoche **moins le clavier** : clavier
-            sorti, la feuille s'arrête sur les touches et 34 px de vide y
-            seraient un trou ; clavier rangé, elle descend jusqu'au bord et
-            l'indicateur d'accueil passerait sur les cases. Une seule
-            expression pour les deux, plutôt qu'une classe conditionnelle. */}
+            Le coussin du bas est l'encoche **moins le clavier** (`--clavier`,
+            la mesure gardée par le focus) : clavier sorti, la feuille s'arrête
+            sur les touches et 34 px de vide y seraient un trou ; clavier
+            rangé, elle descend jusqu'au bord et l'indicateur d'accueil
+            passerait sur les cases. Une seule expression pour les deux. */}
         <div className="relative shrink-0">
           {t.menu && draft && (
             <DraftMenu
@@ -235,7 +247,7 @@ export function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
               }}
             />
           )}
-          <footer className="relative z-20 flex items-center gap-1 border-t border-black/[0.06] bg-background px-2.5 pt-1.5 pb-[max(0.5rem,calc(env(safe-area-inset-bottom)-var(--keyboard-inset,0px)))] dark:border-white/[0.08] dark:bg-[#26262a]">
+          <footer className="relative z-20 flex items-center gap-1 border-t border-black/[0.06] bg-background px-2.5 pt-1.5 pb-[max(0.5rem,calc(env(safe-area-inset-bottom)-var(--clavier)))] dark:border-white/[0.08] dark:bg-[#26262a]">
             <ToolCase
               label="Pièce jointe"
               active={t.panneau === "pieces"}

@@ -90,24 +90,44 @@ et **sans deux-points** : `À :` est la ponctuation d'iOS, pas la nôtre. La lig
 
 Trois défauts que l'émulation ne montrait pas.
 
-**La page derrière suivait le clavier.** Elle montait à l'ouverture, redescendait au repli. Ce n'est
-pas la feuille qui bougeait — elle se cale sur `--vv-top` — c'est le **document** : iOS le fait
-défiler pour révéler le champ visé, et l'app entière glissait sous le voile.
-[`useFrozenPage`](../../src/hooks/use-frozen-page.ts) note la position à l'ouverture et y ramène la
-page à chaque défilement qu'on n'a pas demandé — sans `overflow: hidden` sur `html` ni `body`, la
-règle du dépôt.
+**La feuille ne se cale plus sur le viewport visuel : elle est ancrée.** Deux défauts n'en faisaient
+qu'un, et le remède vient de **Kairos**, dont ce dépôt tient déjà ses gestes.
 
-Il a fallu **deux gardes** pour qu'il ne se batte pas avec le navigateur, et le second défaut
-signalé — « des flashs bizarres à l'ouverture, comme si la fenêtre poussait une page blanche » —
-venait de leur absence :
+- « Quand la feuille s'ouvre avec le clavier, l'écran derrière se lève aussi, et si le clavier se
+  ferme il redescend. »
+- « Des flashs bizarres à l'ouverture, comme si la fenêtre poussait une page blanche. »
 
-- **la position notée n'est jamais négative.** Sur iOS `scrollY` l'est pendant l'élastique de fin
-  de course ; ouvrir le composeur juste après un rebond figeait la page à un défilement négatif,
-  l'app se retrouvait poussée vers le bas et le fond du document apparaissait au-dessus ;
-- **la cible se borne à ce que le document peut atteindre**, mesuré à chaque correction : le
-  clavier raccourcit le viewport de mise en page en app installée, et viser une position devenue
-  inatteignable relançait la correction à chaque frame. Une correction par frame au plus
-  (`requestAnimationFrame`), et seulement au-delà d'un pixel d'écart.
+La feuille était posée sur `--vv-top` / `--vv-height`, le rectangle que le navigateur montre. Une
+feuille dont la hauteur suit ce rectangle **se redessine à chaque frame où le navigateur bouge le
+sien** — et il en bouge un au pire moment : *ouvrir un dialogue verrouille le défilement de la page,
+WebKit re-résout alors le viewport en app installée*, et l'écart entre les deux viewports saute
+d'une cinquantaine de pixels qui n'ont rien d'un clavier. La feuille prenait une hauteur, puis une
+autre ; la page réapparaissait derrière.
+
+Kairos ne fait rien de tout ça, et le dit dans son `KeyboardInset` : *« `offsetTop` est
+délibérément laissé de côté »*, et *« la place laissée sous le dernier champ est ce qui empêche iOS
+de déplacer la page »*. La feuille est **ancrée** — haut à l'encoche, bas au bord — et le clavier ne
+lui prend qu'un **`padding-bottom`**. Le champ visé se retrouve au-dessus des touches sans que rien
+ne se déplace : le navigateur n'a jamais à faire défiler le document pour le révéler.
+
+**Le coussin ne s'applique que si un champ a le focus** — `:has(:is(input, textarea):focus)`, la
+garde de Kairos mot pour mot. Sans elle, les 50 px fantômes de la re-résolution poussaient la tête
+de la feuille puis la lâchaient. La garde est posée **une fois**, sur une variable `--clavier` que
+la feuille lit pour son coussin et la barre du bas pour retirer l'encoche : deux lecteurs, une
+condition — sinon la barre rendait ses 34 px pendant le fantôme et sautait de 26 px à l'ouverture.
+
+Un `useFrozenPage` avait été écrit entre-temps pour ramener la page en place à chaque défilement
+qu'on n'avait pas demandé. Il est **retiré** : se battre avec le navigateur pendant qu'il anime
+produit exactement les flashs qu'on voulait supprimer, et il n'a plus rien à corriger.
+
+Mesuré à 393×852, insets 59/34, `--keyboard-inset` forcé :
+
+| | Feuille | Corps | Outils |
+|---|---|---|---|
+| Repos | 59 → 852 | 512 | 81 de haut, contre le bord |
+| Clavier (336) + champ visé | **59 → 852, inchangée** | 202 | 55, bas à **516** = 852 − 336 |
+| Fantôme de 50 px, aucun champ visé | inchangée | 512 | 81 — **rien ne bouge** |
+| Panneau + clavier tenu | inchangée | 64 | 55, panneau 270 |
 
 **Un panneau rouvert n'avait plus de fond.** Il se réduisait à sa ligne de titre : les lignes de
 destinataires gardaient leurs 132 px, le message son plancher, et il ne restait rien au panneau —

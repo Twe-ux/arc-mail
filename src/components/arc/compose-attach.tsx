@@ -30,7 +30,6 @@ const POIDS_MAX = 10 * 1024 * 1024;
 type Source = {
   label: string;
   icon: LucideIcon;
-  tint: string;
   accept?: string;
   /** `capture` demande l'appareil photo plutôt que la photothèque, sur mobile. */
   capture?: boolean;
@@ -38,10 +37,10 @@ type Source = {
 };
 
 const SOURCES: Source[] = [
-  { label: "Photothèque", icon: ImageIcon, tint: "bg-blue-500", accept: "image/*,video/*", multiple: true },
-  { label: "Prendre une photo", icon: Camera, tint: "bg-purple-500", accept: "image/*", capture: true },
-  { label: "Fichiers", icon: FileText, tint: "bg-teal-500", multiple: true },
-  { label: "Numériser un document", icon: ScanLine, tint: "bg-amber-500", accept: "image/*", capture: true },
+  { label: "Photothèque", icon: ImageIcon, accept: "image/*,video/*", multiple: true },
+  { label: "Prendre une photo", icon: Camera, accept: "image/*", capture: true },
+  { label: "Fichiers", icon: FileText, multiple: true },
+  { label: "Numériser un document", icon: ScanLine, accept: "image/*", capture: true },
 ];
 
 /**
@@ -85,14 +84,14 @@ export function AttachPanel({
       <SheetGroup>
         {SOURCES.map((source) => (
           <SheetRow key={source.label} onClick={() => ouvrir(source)}>
-            <SheetTile tint={source.tint}>
+            <SheetTile>
               <source.icon />
             </SheetTile>
             <span className="min-w-0 flex-1 text-[15px]">{source.label}</span>
           </SheetRow>
         ))}
         <SheetRow onClick={onSignature}>
-          <SheetTile tint="bg-neutral-500">
+          <SheetTile>
             <PenLine />
           </SheetTile>
           <span className="min-w-0 flex-1 text-[15px]">

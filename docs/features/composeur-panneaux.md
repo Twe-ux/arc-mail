@@ -47,11 +47,22 @@ sur une ligne à lui ; on l'a montée telle quelle, puis retirée : « trop proc
 au centre du bandeau en 15/600, et la mise en page ne change plus selon que le clavier est sorti ou
 non — le titre s'effaçait sous `html.keyboard-open`, il n'y a plus rien à effacer.
 
-**Ce qui rattache la feuille à Arc Mail est le voile teinté de l'espace** qui la coiffe : c'est le
-**dégradé de l'espace lui-même**, d'un bord à l'autre, effacé vers le bas au masque, à 18 %. Un halo
-radial posé à 18 % de la gauche l'a précédé et laissait le côté droit gris — « la couleur ne fait
-pas un dégradé vers la droite », signalé sur l'appareil. La dose reste celle d'un bandeau : la
-couleur franche appartient à l'action, le bouton d'envoi.
+**Ce qui rattache la feuille à Arc Mail est le voile teinté de l'espace** qui la coiffe : d'un bord
+à l'autre, effacé vers le bas au masque. Un halo radial posé à 18 % de la gauche l'a précédé et
+laissait le côté droit gris — « la couleur ne fait pas un dégradé vers la droite », signalé sur
+l'appareil. La dose reste celle d'un bandeau : la couleur franche appartient à l'action, le bouton
+d'envoi.
+
+**C'est la couleur de la boîte, pas le dégradé** (6 sept. 2026). Le dégradé de l'espace balaie
+trois teintes sur 80° : posé ici il donnait du rose là où la réception donne de la lavande, et
+« la couleur en haut de la carte » n'était pas celle qu'on venait de quitter. Le bandeau prend
+`--wash-compose`, réglée avec les autres doses du voile dans `globals.css` : **28 % en clair, 8 %
+en sombre**. Ces deux nombres sont mesurés, pas choisis — à 393 × 852, le haut de la réception rend
+`(230,211,254)` en clair et 28 % d'accent à plat rendent `(233,212,253)`. En sombre on ne peut pas
+égaler la valeur, le voile de la boîte étant posé sur `--card`, plus sombre que la feuille
+(`#26262a`) : on égalise **l'écart** — la boîte ajoute `+(6,1,11)` à son fond, 8 % en ajoutent
+`+(9,3,14)` au sien. Et le bandeau est **plat**, pas radial : la géométrie du halo (140 % × 55 %
+d'un écran entier) n'a pas de sens sur 144 px.
 
 Quatre pistes ont été rendues sur l'app réelle avant d'écrire une ligne (bandeau compact · tuile et
 grand titre · onglet de verre · tranche colorée) ; c'est le **bandeau compact** qui a été retenu,

@@ -8,11 +8,11 @@ import type { FolderId, Thread } from "@/lib/types";
 import { BottomSheet, SheetGroup, SheetRow, SheetScroller, SheetTile } from "./bottom-sheet";
 
 /** Où l'on range depuis « Déplacer vers » : quatre destinations, pas sept. */
-const DESTINATIONS: { id: FolderId; name: string; icon: LucideIcon; tint: string }[] = [
-  { id: "starred", name: "Favoris", icon: Star, tint: "bg-amber-400" },
-  { id: "snoozed", name: "En pause", icon: Clock, tint: "bg-purple-500" },
-  { id: "archive", name: "Archive", icon: Archive, tint: "bg-teal-500" },
-  { id: "trash", name: "Corbeille", icon: Trash2, tint: "bg-red-500" },
+const DESTINATIONS: { id: FolderId; name: string; icon: LucideIcon }[] = [
+  { id: "starred", name: "Favoris", icon: Star },
+  { id: "snoozed", name: "En pause", icon: Clock },
+  { id: "archive", name: "Archive", icon: Archive },
+  { id: "trash", name: "Corbeille", icon: Trash2 },
 ];
 
 /**
@@ -53,9 +53,9 @@ export function ThreadSheets({
       >
         <SheetScroller>
           <SheetGroup>
-            {DESTINATIONS.map(({ id, name, icon: Icon, tint }) => (
+            {DESTINATIONS.map(({ id, name, icon: Icon }) => (
               <SheetRow key={id} active={thread.folder === id} onClick={() => onRanger(id, name)}>
-                <SheetTile tint={tint}>
+                <SheetTile>
                   <Icon />
                 </SheetTile>
                 <span className="min-w-0 flex-1 truncate text-[15px]">{name}</span>
@@ -75,7 +75,7 @@ export function ThreadSheets({
           <SheetGroup>
             {canReplyAll && (
               <SheetRow onClick={onReplyAll}>
-                <SheetTile tint="bg-blue-500">
+                <SheetTile>
                   <ReplyAll />
                 </SheetTile>
                 <span className="min-w-0 flex-1 text-[15px]">Répondre à tous</span>
@@ -87,7 +87,7 @@ export function ThreadSheets({
                 onForward();
               }}
             >
-              <SheetTile tint="bg-indigo-500">
+              <SheetTile>
                 <Forward />
               </SheetTile>
               <span className="min-w-0 flex-1 text-[15px]">Transférer</span>
@@ -99,13 +99,13 @@ export function ThreadSheets({
                 toast(thread.unread ? "Marqué comme lu" : "Marqué comme non lu");
               }}
             >
-              <SheetTile tint="bg-sky-500">{thread.unread ? <MailOpen /> : <Mail />}</SheetTile>
+              <SheetTile>{thread.unread ? <MailOpen /> : <Mail />}</SheetTile>
               <span className="min-w-0 flex-1 text-[15px]">
                 {thread.unread ? "Marquer comme lu" : "Marquer comme non lu"}
               </span>
             </SheetRow>
             <SheetRow onClick={() => onRanger("snoozed", "En pause")}>
-              <SheetTile tint="bg-purple-500">
+              <SheetTile>
                 <Clock />
               </SheetTile>
               <span className="min-w-0 flex-1 text-[15px]">Mettre en pause</span>
@@ -117,7 +117,7 @@ export function ThreadSheets({
                   setPreview(premierePiece.id);
                 }}
               >
-                <SheetTile tint="bg-teal-500">
+                <SheetTile>
                   <Paperclip />
                 </SheetTile>
                 <span className="min-w-0 flex-1 truncate text-[15px]">Pièces jointes</span>

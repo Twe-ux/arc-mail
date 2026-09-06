@@ -141,6 +141,8 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   une piste `bg-black/[0.06] dark:bg-white/[0.07]`) : `bg-background` y vaut presque noir.
 - La feuille **Personnaliser** est **un seul groupe de quatre lignes**, sans titre en capitales ni
   tuile arc-en-ciel, le contrôle à droite de son nom ; le filet d'une ligne se pose après le `pl-4`.
+- `SheetTile` n'a **plus qu'une teinte**, celle de l'espace (accent 22 %, encre `--space-ink`) :
+  l'arc-en-ciel d'iOS ne voulait rien dire dans « Déplacer vers », « Plus » et « Pièces jointes ».
 - Les préférences ne s'enregistrent qu'**après** avoir été relues (stockage `preferences` du
   store) : un `set` pendant le rendu écrasait sinon la teinte et le thème sombre.
 - Un groupe blanc a un bord (`shadow 0 0 0 1px`) ; un rail horizontal rogne aussi verticalement,
@@ -237,9 +239,11 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   `Cc/Cci · De`, les outils **à plat** en bas (le composeur est sorti de
   [pill-actions](docs/features/pill-actions.md), qui n'a plus que deux emplois). 202 px de message
   clavier sorti (192 avant), 512 au repos.
-- Ce qui la rattache à Arc Mail est le **dégradé de l'espace** qui la coiffe, d'un bord à l'autre,
-  effacé vers le bas au masque (18 %) — pas un halo radial, qui laissait le côté droit gris ; et pas
-  une tuile à côté du titre : essayée, retirée — la ligne repliée donne déjà l'adresse.
+- Ce qui la rattache à Arc Mail est le voile de l'espace qui la coiffe, d'un bord à l'autre, effacé
+  vers le bas au masque — pas un halo radial, qui laissait le côté droit gris ; et pas une tuile à
+  côté du titre : essayée, retirée — la ligne repliée donne déjà l'adresse. C'est **la couleur de la
+  boîte** (`--wash-compose` : 28 % en clair, 8 % en sombre, deux doses mesurées), pas le dégradé,
+  qui balaie trois teintes et donnait du rose là où la réception donne de la lavande.
 - Les filets des lignes sont **en retrait** (`inset-x-4`), les labels suivent leur texte sur
   téléphone et **sans deux-points** (`À`, pas `À :`) — la colonne de 56 px reste une mise en page de
   fenêtre.

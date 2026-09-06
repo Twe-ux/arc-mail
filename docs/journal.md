@@ -2,6 +2,28 @@
 
 Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérification.
 
+## 6 septembre 2026 — l'arc-en-ciel d'iOS s'en va, et le composeur revient de la bonne boîte
+
+Deux demandes en une : finir ce que la grille Dossiers avait commencé, et faire que la tête du
+composeur ait la couleur de la boîte qu'on vient de quitter.
+
+`SheetTile` n'a **plus qu'une teinte**. Le carré de 28 px portait la couleur qu'iOS donne à chaque
+action — bleu, indigo, violet, ambre —, et elles ne voulaient rien dire : le violet de « Mettre en
+pause » n'était pas celui de l'espace. Il reste trois feuilles à en porter (« Déplacer vers »,
+« Plus », « Pièces jointes ») ; elles prennent l'accent à 22 % et l'encre `--space-ink`, comme la
+case active de la pill. Un prop et deux tables de couleurs en moins.
+
+Le **bandeau du composeur** portait le dégradé de l'espace, qui balaie trois teintes sur 80° : il
+donnait du rose là où la réception donne de la lavande. Il prend l'accent à plat, à une dose posée
+avec les autres du voile — `--wash-compose`, 28 % en clair et 8 % en sombre. Les deux nombres sont
+mesurés : à 393 × 852 le haut de la réception rend (230,211,254) en clair, et 28 % rendent
+(233,212,253). En sombre la valeur ne peut pas s'égaler — le voile de la boîte est posé sur `--card`,
+plus sombre que la feuille —, alors c'est l'écart qui s'égalise : la boîte ajoute +(6,1,11) à son
+fond, 8 % en ajoutent +(9,3,14) au sien. Le bandeau reste **plat** : la géométrie du halo, 140 % sur
+55 % d'un écran entier, n'a pas de sens sur 144 px.
+
+Vérifié aux deux thèmes sur les trois feuilles et sur le composeur, zéro erreur de console.
+
 ## 6 septembre 2026 — la feuille « Personnaliser » dit enfin la vérité
 
 Trois défauts, tous mesurés sur une capture d'iPhone plutôt que devinés.

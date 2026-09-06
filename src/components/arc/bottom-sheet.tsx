@@ -163,15 +163,22 @@ export function SheetRow({
   );
 }
 
-/** Le carré coloré qu'iOS met devant une ligne. */
-export function SheetTile({ tint, children }: { tint: string; children: ReactNode }) {
+/**
+ * Le carré devant une ligne — **à la teinte de l'espace**, pas à celle d'iOS.
+ *
+ * iOS Mail donne une couleur par action : bleu, indigo, violet, ambre. Ici
+ * elles ne veulent rien dire — le violet de « Mettre en pause » n'est pas le
+ * violet de l'espace, et sur trois feuilles voisines l'arc-en-ciel finissait
+ * par être la seule chose qu'on voyait. La tuile prend l'accent à 22 % et
+ * l'encre `--space-ink`, comme la case active de la pill et la tuile de la
+ * grille Dossiers : ce qui est une action porte la couleur de la boîte où on
+ * est.
+ */
+export function SheetTile({ children }: { children: ReactNode }) {
   return (
     <span
       aria-hidden
-      className={cn(
-        "flex size-7 shrink-0 items-center justify-center rounded-[7px] text-white [&_svg]:size-4",
-        tint,
-      )}
+      className="flex size-7 shrink-0 items-center justify-center rounded-[7px] bg-[color-mix(in_oklch,var(--space-accent)_22%,transparent)] text-[var(--space-ink)] [&_svg]:size-4"
     >
       {children}
     </span>

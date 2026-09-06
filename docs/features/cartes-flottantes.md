@@ -156,7 +156,8 @@ défilant, `pb-3` sous le défilant, masque en bas avec `pb-6` dedans, pas de cl
 
 Ce qui va avec : `SheetScroller`, `SheetGroup` (le groupe encarté d'iOS, avec son bord — blanc sur
 `#f2f2f7` ne se voit pas), `SheetRow` (50 px au moins, séparateur sauf la dernière) et `SheetTile`
-(le carré coloré de 28 px). Mesuré aux quatre : marges 8 / 8 / 8, rayon 36 px.
+(le carré de 28 px, **à la teinte de l'espace** depuis le 6 sept. — voir
+[thème](theme.md)). Mesuré aux quatre : marges 8 / 8 / 8, rayon 36 px.
 
 **Une feuille à la fois.** Sur la liste, `sidebarOpen` et `settingsOpen` se ferment l'une l'autre
 dans le store ; sur le mail ouvert, un seul état `sheet`. Deux cartes de 36 px empilées sur 390 px

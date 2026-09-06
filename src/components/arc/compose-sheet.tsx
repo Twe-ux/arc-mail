@@ -187,14 +187,16 @@ export function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
         {/* Le voile de l'espace, en haut de la feuille et lui seul : c'est ce
             qui la rattache à Arc Mail plutôt qu'à la feuille grise d'iOS.
 
-            C'est **le dégradé de l'espace lui-même**, d'un bord à l'autre, que
-            l'on efface vers le bas au masque. Un halo radial posé à 18 % de la
-            gauche laissait le côté droit gris — la couleur ne traversait pas,
-            et c'est ce qui se voyait. La dose reste celle d'un bandeau : la
-            couleur franche appartient à l'action. */}
+            C'est **la couleur du voile de la boîte** (`--wash-compose`, réglée
+            avec les autres doses du voile), d'un bord à l'autre, que l'on
+            efface vers le bas au masque. Le dégradé de l'espace en balaie trois
+            teintes sur 80° : posé ici il donnait du rose là où la réception
+            donne de la lavande, et la feuille n'avait pas l'air de venir de la
+            même boîte. Un halo radial, lui, laissait le côté droit gris — la
+            couleur ne traversait pas. */}
         <span
           aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-0 h-36 rounded-t-[36px] opacity-[0.18] [background:var(--space-gradient)] [mask-image:linear-gradient(to_bottom,#000,transparent)]"
+          className="pointer-events-none absolute inset-x-0 top-0 h-36 rounded-t-[36px] [background:color-mix(in_oklch,var(--space-accent)_var(--wash-compose),transparent)] [mask-image:linear-gradient(to_bottom,#000,transparent)]"
         />
         {/* La poignée : le glisser-fermer existe depuis le lot mobile, et rien
             ne le disait. Sur une feuille qui touche les bords, c'est elle qui

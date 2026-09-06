@@ -254,3 +254,24 @@ gauche (mesuré : x = 24 au lieu de 40).
 
 Mesuré à 393 × 852 (insets 59/34) : feuille de 366 px, groupe de 242 (92 · 50 · 50 · 50), marges
 8 / 8 / 8, rayon 36, zéro erreur de console.
+
+---
+
+## Une tuile de feuille n'a plus qu'une teinte (6 sept. 2026)
+
+`SheetTile` — le carré de 28 px devant une ligne — portait la couleur qu'iOS Mail donne à chaque
+action : bleu, indigo, violet, ambre, sarcelle. Elles ne voulaient rien dire ici. Le violet de
+« Mettre en pause » n'était pas le violet de l'espace ; sur trois feuilles voisines (« Déplacer
+vers », « Plus », « Pièces jointes ») l'arc-en-ciel finissait par être la seule chose qu'on voyait,
+et il restait seul de son espèce après le passage de la grille Dossiers et de « Personnaliser ».
+
+Une teinte : **l'accent à 22 %, l'encre `--space-ink`** — celle de la case active de la pill et de
+la tuile de dossier ouverte. Un prop en moins (`tint`), deux tables de couleurs en moins
+(`DESTINATIONS`, `SOURCES`).
+
+## Le bandeau du composeur prend la couleur de la boîte
+
+Signalé : « la couleur en haut de la card nouveau message, utilise la même que boîte de réception ».
+Le bandeau portait `--space-gradient`, qui balaie trois teintes sur 80° : il donnait du rose là où
+la réception donne de la lavande. Il prend maintenant l'accent à plat, à une dose posée avec les
+autres (`--wash-compose` : **28 % en clair, 8 % en sombre**) → [fiche composeur](composeur-panneaux.md).

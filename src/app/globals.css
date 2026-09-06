@@ -360,14 +360,25 @@
  * qui donne sa profondeur à cet écran-là, et trop teinter le voile l'efface.
  *
  * Le sombre ne bouge pas — sa base reste `--card`.
+ *
+ * `--wash-compose` est **la même couleur pour la tête du composeur**, à plat :
+ * la feuille n'est pas un écran, son bandeau ne peut pas porter la géométrie du
+ * halo (140 % × 55 % d'un écran entier) sur 144 px. On égalise donc ce qu'on
+ * voit. Mesuré à 393 × 852 : la boîte rend (230,211,254) en clair, et 28 %
+ * d'accent à plat rendent (233,212,253). En sombre on ne peut pas égaler la
+ * valeur — le voile de la boîte est posé sur `--card`, plus sombre que la
+ * feuille (#26262a) —, alors on égalise **l'écart** : la boîte ajoute +(6,1,11)
+ * à son fond, 8 % en ajoutent +(9,3,14) au sien.
  */
 :root {
   --wash-mix: 10%;
   --wash-halo: 55%;
+  --wash-compose: 28%;
 }
 .dark {
   --wash-mix: 0%;
   --wash-halo: 26%;
+  --wash-compose: 8%;
 }
 @utility space-wash {
   --wash-teinte: color-mix(in oklch, var(--space-accent) var(--wash-mix), var(--wash-base));

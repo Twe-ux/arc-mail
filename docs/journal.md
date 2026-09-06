@@ -2,6 +2,26 @@
 
 Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérification.
 
+## 6 septembre 2026 — le toast redevient une carte
+
+« Annuler » sortait en rectangle blanc vide sur l'appareil, et le bandeau pleine largeur en dégradé
+faisait « bannière système » au milieu d'une app qui pose des cartes discrètes.
+
+La cause du rectangle est nette : Sonner écrit son bouton d'action
+`color: var(--normal-bg); background: var(--normal-text)` — il **réutilise les deux variables du
+toast, inversées**. On mettait un dégradé dans `--normal-bg` : fond blanc, couleur de texte
+`linear-gradient(…)`, invalide. Blanc sur blanc. Le défaut dormait depuis le lot couleur du
+5 septembre et ne s'est vu que le jour où un toast a porté un bouton.
+
+La surface devient celle des menus (`--popover`, filet, ombre), le titre repasse à gauche — un toast
+avec un bouton à droite a deux éléments, pas un —, et « Annuler » s'écrit en `--space-ink`. Pas en
+rouge, bien que proposé : le rouge dit « ceci détruit » partout ailleurs, et « Annuler » défait
+justement une suppression.
+
+Et il sort **par le bas** sur téléphone : il porte une action, et le pouce qui vient d'archiver est
+en bas, pas sous l'encoche. Au-dessus de la pill, jamais dessous — mesuré, bas du toast à 764, haut
+de la pill à 772.
+
 ## 6 septembre 2026 — le bas de la barre se range
 
 Le compte prenait une rangée entière juste au-dessus des boîtes : visage, nom, engrenage, sortie —

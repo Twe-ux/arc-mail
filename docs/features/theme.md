@@ -179,7 +179,10 @@ d'autant la marge qu'il remplace pour que rien ne bouge (mesuré : le chip garde
 
 ---
 
-## Le toast porte la couleur de l'espace (5 sept. 2026)
+## Le toast a porté la couleur de l'espace (5 sept. 2026, revu le 6)
+
+> **Revu le 6 septembre** — le bandeau en dégradé est parti, voir plus bas. Ce qui suit reste vrai
+> de la mécanique (les variables de Sonner gagnent la cascade), plus du dessin.
 
 Sur une carte neutre il se confondait avec les feuilles et les cartes, et on ratait le seul mot qui
 disait ce qui venait de se passer. Il prend donc le même habillage que les actions primaires — le
@@ -318,3 +321,42 @@ Un défaut trouvé à la capture, et il ne se voyait qu'en sombre : la tuile de 
 sombre — glyphe invisible dans son propre fond. Elle passe à la dose de la pill : accent à 22 %,
 encre `--space-ink`. La règle « l'accent se remplit, il ne s'écrit pas » vaut aussi pour le fond :
 **il remplit à 22 %, il n'est pas l'aplat.**
+
+---
+
+## Le toast redevient une carte, et il sort par le bas (6 sept. 2026)
+
+Signalé sur l'appareil, avec la capture : « Annuler » sortait en **rectangle blanc vide**, et le
+bandeau pleine largeur en dégradé faisait « bannière système » là où le reste de l'app pose des
+cartes discrètes.
+
+**La cause du rectangle blanc**, et elle est nette. Sonner écrit son bouton d'action ainsi :
+
+```css
+[data-sonner-toast] [data-button] { color: var(--normal-bg); background: var(--normal-text); }
+```
+
+Il **réutilise les deux variables du toast, inversées**. On mettait un `linear-gradient(…)` dans
+`--normal-bg` : le fond du bouton devenait `#fff` — notre `--normal-text` — et sa couleur de texte
+un dégradé, invalide comme couleur. Blanc sur blanc. Le défaut était là depuis le lot couleur du
+5 septembre ; il ne s'est vu que le jour où un toast a porté un bouton. **Ces deux variables doivent
+rester des couleurs.**
+
+**La surface est désormais celle des menus** — `--popover`, `--popover-foreground`, `--border` :
+une carte, un filet, une ombre, comme le menu du compte et le panneau d'apparence. Le titre repasse
+**à gauche** : un toast qui porte un bouton à droite a deux éléments, pas un, et un titre centré
+entre le bord et « Annuler » ne l'est plus par rapport à rien.
+
+**« Annuler » s'écrit, il ne se remplit pas** : `--space-ink`, la seule façon d'écrire en accent
+(règle plus haut). **Pas rouge**, bien que proposé : le rouge dit « ceci détruit » dans toute l'app
+— « Supprimer le brouillon » le porte —, et « Annuler » défait justement une suppression. Le teindre
+en rouge lui donnerait le sens contraire du sien.
+
+**Il sort par le bas sur téléphone**, en haut sur bureau. Le toast porte une action : il faut
+pouvoir l'atteindre, et sous l'encoche il est à l'autre bout de l'écran du pouce qui vient
+d'archiver. Sur bureau il reste en haut, où est la liste et où le curseur revient. `position` n'est
+pas responsive chez Sonner, d'où la mesure de largeur.
+
+Et il passe **au-dessus de la pill**, jamais dessous : elle est posée par-dessus la liste et fait
+`--nav-height` de haut. Mesuré à 393 × 852 (insets 59/34) : bas du toast à 764, haut de la pill à
+772 — huit pixels, la marge des cartes.

@@ -134,8 +134,14 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - La sidebar bureau n'a pas de fond : une seule encre secondaire (85 %), mesurée à l'endroit où
   elle est dessinée ; les surfaces `glass` sont pour les cibles, pas pour le texte.
 - L'accent se remplit, il ne s'écrit pas : texte et icônes en accent lisent `--space-ink`.
-- Le toast porte le dégradé de l'espace, texte blanc centré, posé par les **variables de Sonner**
-  (`--normal-bg`…) : sa feuille est injectée après Tailwind et gagne la cascade.
+- Le toast est **une carte de menu** (`--popover`), titre à gauche, « Annuler » écrit en
+  `--space-ink` — pas un bandeau en dégradé, pas de rouge (le rouge dit « ceci détruit », or
+  « Annuler » défait une suppression). Sa feuille est injectée après Tailwind et gagne la cascade :
+  ce qui doit forcer passe par `!`.
+- `--normal-bg` et `--normal-text` **restent des couleurs** : Sonner les réutilise inversées pour
+  son bouton d'action (`color: var(--normal-bg)`), et un dégradé dedans le rendait blanc sur blanc.
+- Sur téléphone le toast sort **par le bas**, au-dessus de la pill (`--nav-height` + 8) : il porte
+  une action, et le pouce qui vient d'archiver est en bas. En haut sur bureau.
 - Les espaces de la barre du bas sont des pastilles nues : le nom est dans l'infobulle, pas écrit à
   côté — tronqué il ne dit plus rien. Même règle pour l'adresse du compte connecté.
 - La **pastille de teinte porte l'accent à plat**, pas le dégradé : un rond de 34 px lit le milieu

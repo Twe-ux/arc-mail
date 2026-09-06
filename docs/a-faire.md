@@ -24,10 +24,10 @@ est argumenté dans l'[audit du 6 septembre](audits/2026-09-06-clients-mail.md).
       visité. `LIST` + `STATUS` en un aller-retour, lancé en parallèle de la liste ; le dossier
       ouvert garde le compte local (l'optimiste doit se voir), les autres lisent le serveur.
       **Reste à voir sur une vraie boîte** : c'est dans « à tester ».
-- [ ] Appliquer `supabase/migrations/20260904140000_espaces.sql` à la base (les précédentes le
-      sont ; sans elle, `/comptes` n'affiche pas la section Espaces), **puis**
-      `20260906180000_icones_24.sql` — sans elle, choisir un des seize glyphes nouveaux échoue à
-      l'enregistrement, la contrainte `check` n'en connaissant que huit.
+- [x] **Migrations appliquées** (6 sept.) — `20260904140000_espaces.sql` et
+      `20260906180000_icones_24.sql`. La section Espaces de `/comptes` a de quoi s'afficher, et les
+      vingt-quatre glyphes sont acceptés à l'enregistrement. **Reste à voir sur une vraie boîte** :
+      c'est passé dans « à tester ».
 - [ ] Mode `filter` des espaces : `INBOX` filtrée par destinataire, pour se passer d'une règle
       côté iCloud.
 
@@ -82,6 +82,10 @@ correctif.
       courrier qui n'est pas notre mock.
 - [ ] **Deux comptes en même temps** — le cache par empreinte d'identifiants, le changement
       d'espace, les espaces-vues sur le compte à domaines.
+- [ ] **Ce que les migrations viennent d'ouvrir** (appliquées le 6 sept.) : la section Espaces de
+      `/comptes` s'affiche et sait créer une vue ; renommer un espace fabriqué écrit sa ligne et
+      **change son identifiant** — fils, teinte et récents doivent suivre ; et les seize glyphes
+      nouveaux s'enregistrent au lieu d'être refusés par la contrainte `check`.
 - [ ] **La PWA installée sur l'iPhone** — après un déploiement : la version se rafraîchit-elle au
       tirage, et l'écran ne reste-t-il pas figé.
 - [ ] Tests automatiques, une fois le manuel passé : contrat `MailProvider`, écritures optimistes,

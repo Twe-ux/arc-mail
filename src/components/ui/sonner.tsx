@@ -50,7 +50,18 @@ function Toaster(props: ToasterProps) {
         {
           "--normal-bg": "var(--popover)",
           "--normal-text": "var(--popover-foreground)",
-          "--normal-border": "var(--border)",
+          /* **Le filet est teinté, à 35 %.** Deux raisons. En clair le toast est
+             une carte blanche posée sur une liste blanche : un filet neutre y
+             est invisible, et seule l'ombre le détachait. Et depuis que le
+             bandeau en dégradé est parti, un toast **sans bouton** — « Annulé »,
+             « Brouillon enregistré » — n'avait plus aucune trace de l'espace ;
+             le filet la lui rend.
+
+             35 % et pas 100 % : l'accent plein fait un cadre d'alerte, et il se
+             dispute avec « Annuler » juste à côté. Essayées aussi, écartées : la
+             tranche colorée à gauche, qui est l'idiome de la bannière système —
+             celui qu'on venait justement de retirer. */
+          "--normal-border": "color-mix(in oklch, var(--space-accent) 35%, var(--border))",
           /* Un échec ne se dit pas dans la couleur de l'espace : il se lirait
              comme une réussite. */
           "--error-bg": "var(--destructive)",

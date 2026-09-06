@@ -134,10 +134,12 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - La sidebar bureau n'a pas de fond : une seule encre secondaire (85 %), mesurée à l'endroit où
   elle est dessinée ; les surfaces `glass` sont pour les cibles, pas pour le texte.
 - L'accent se remplit, il ne s'écrit pas : texte et icônes en accent lisent `--space-ink`.
-- Le toast est **une carte de menu** (`--popover`), titre à gauche, « Annuler » écrit en
-  `--space-ink` — pas un bandeau en dégradé, pas de rouge (le rouge dit « ceci détruit », or
-  « Annuler » défait une suppression). Sa feuille est injectée après Tailwind et gagne la cascade :
-  ce qui doit forcer passe par `!`.
+- Le toast est **une carte de menu** (`--popover`) au **filet teinté à 35 %**, titre à gauche,
+  « Annuler » écrit en `--space-ink` — pas un bandeau en dégradé, pas d'accent plein (cadre
+  d'alerte), pas de tranche à gauche (bannière système), pas de rouge (le rouge dit « ceci
+  détruit », or « Annuler » défait une suppression). Le filet est ce qui rend la couleur de l'espace
+  aux toasts **sans bouton**. Sa feuille est injectée après Tailwind et gagne la cascade : ce qui
+  doit forcer passe par `!`.
 - `--normal-bg` et `--normal-text` **restent des couleurs** : Sonner les réutilise inversées pour
   son bouton d'action (`color: var(--normal-bg)`), et un dégradé dedans le rendait blanc sur blanc.
 - Sur téléphone le toast sort **par le bas**, au-dessus de la pill (`--nav-height` + 8) : il porte

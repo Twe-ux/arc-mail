@@ -360,3 +360,19 @@ pas responsive chez Sonner, d'où la mesure de largeur.
 Et il passe **au-dessus de la pill**, jamais dessous : elle est posée par-dessus la liste et fait
 `--nav-height` de haut. Mesuré à 393 × 852 (insets 59/34) : bas du toast à 764, haut de la pill à
 772 — huit pixels, la marge des cartes.
+
+### Et son filet est teinté, à 35 %
+
+Demandé après coup : « la bordure en couleur du thème, ça ferait trop ? » Non, à cette dose — et
+elle règle deux choses.
+
+En **clair**, le toast est une carte blanche posée sur une liste blanche : un filet neutre y est
+invisible, et seule l'ombre le détachait. Et depuis que le bandeau en dégradé est parti, un toast
+**sans bouton** — « Annulé », « Brouillon enregistré », « 3 fichiers joints » — n'avait plus aucune
+trace de l'espace ; le filet la lui rend.
+
+Quatre doses rendues sur le vrai toast avant de choisir : filet neutre, teinté à 35 %, accent plein,
+et teinté plus une tranche colorée à gauche. **L'accent plein fait un cadre d'alerte** et se dispute
+avec « Annuler » juste à côté ; **la tranche à gauche est l'idiome de la bannière système**, celui
+qu'on venait justement de retirer. Reste 35 %, mesuré à `oklch(0.819 0.081 304)` en clair et
+`oklch(0.685 0.196 304 / 0.415)` en sombre.

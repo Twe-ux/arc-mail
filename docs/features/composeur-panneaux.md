@@ -57,6 +57,10 @@ Quatre pistes ont été rendues sur l'app réelle avant d'écrire une ligne (ban
 grand titre · onglet de verre · tranche colorée) ; c'est le **bandeau compact** qui a été retenu,
 sans sa tuile.
 
+**Et le nom cède la place à l'objet** dès qu'on l'écrit, comme la fenêtre du bureau et comme un
+onglet d'Arc : le bandeau dit ce qu'on écrit, pas la catégorie de ce qu'on écrit. Un brouillon
+rouvert sans objet se dit « Brouillon ».
+
 **L'expéditeur est sur la ligne repliée**, comme chez Apple : `Cc/Cci, De : adresse`. Il a été une
 ligne à lui (5 sept.), puis une pastille au centre du bandeau (6 sept. au matin) ; les deux
 coûtaient une place que la ligne de Cc/Cci offrait gratuitement. Un appui l'ouvre avec Cc et Cci, et
@@ -92,6 +96,18 @@ défiler pour révéler le champ visé, et l'app entière glissait sous le voile
 [`useFrozenPage`](../../src/hooks/use-frozen-page.ts) note la position à l'ouverture et y ramène la
 page à chaque défilement qu'on n'a pas demandé — sans `overflow: hidden` sur `html` ni `body`, la
 règle du dépôt.
+
+Il a fallu **deux gardes** pour qu'il ne se batte pas avec le navigateur, et le second défaut
+signalé — « des flashs bizarres à l'ouverture, comme si la fenêtre poussait une page blanche » —
+venait de leur absence :
+
+- **la position notée n'est jamais négative.** Sur iOS `scrollY` l'est pendant l'élastique de fin
+  de course ; ouvrir le composeur juste après un rebond figeait la page à un défilement négatif,
+  l'app se retrouvait poussée vers le bas et le fond du document apparaissait au-dessus ;
+- **la cible se borne à ce que le document peut atteindre**, mesuré à chaque correction : le
+  clavier raccourcit le viewport de mise en page en app installée, et viser une position devenue
+  inatteignable relançait la correction à chaque frame. Une correction par frame au plus
+  (`requestAnimationFrame`), et seulement au-delà d'un pixel d'écart.
 
 **Un panneau rouvert n'avait plus de fond.** Il se réduisait à sa ligne de titre : les lignes de
 destinataires gardaient leurs 132 px, le message son plancher, et il ne restait rien au panneau —

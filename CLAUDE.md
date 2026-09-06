@@ -236,7 +236,9 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   titre, et « le fond blanc n'est plus là ».
 - **La page derrière est figée** tant que la feuille est ouverte (`useFrozenPage`) : iOS fait
   défiler le document pour révéler le champ visé, et l'app montait puis redescendait sous le voile.
-  Jamais d'`overflow: hidden` sur `html`/`body` pour ça.
+  Jamais d'`overflow: hidden` sur `html`/`body` pour ça — et **jamais un `scrollY` négatif** (il
+  l'est pendant l'élastique iOS) ni une cible inatteignable : c'était le « flash de page blanche ».
+- Le bandeau porte **l'objet dès qu'on l'écrit**, le nom sinon — comme la fenêtre du bureau.
 - Le menu du `⋯` est **ancré sur sa case**, au-dessus de la barre d'outils : posé à 8 px des trois
   bords, son coin bas se faisait couper par l'écran.
 - Le focus va à « À » pour un message neuf, au **corps (curseur au début)** dès que le destinataire

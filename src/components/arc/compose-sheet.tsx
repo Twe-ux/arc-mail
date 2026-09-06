@@ -62,6 +62,8 @@ export function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
   const update = useMail((s) => s.updateCompose);
   const deleteDraft = useMail((s) => s.deleteDraft);
   const canSend = (draft?.to.length ?? 0) > 0;
+  const titre =
+    draft?.subject.trim() || (draft?.draftId ? "Brouillon" : "Nouveau message");
   const sheetRef = useSheetDismiss(closeCompose);
   const t = useComposeTools(draft);
   /* La page derrière ne suit pas le clavier : iOS fait défiler le document
@@ -140,8 +142,11 @@ export function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
               seul — la tuile de l'espace a été essayée là et retirée : le voile
               teinté dit déjà la boîte, et la ligne repliée en donne l'adresse.
               Deux fois la même chose sur 393 px, c'est une fois de trop. */}
+          {/* **L'objet prend la place du nom dès qu'on l'écrit** — comme la
+              fenêtre du bureau, et comme un onglet d'Arc : le bandeau dit ce
+              qu'on écrit, pas la catégorie de ce qu'on écrit. */}
           <SheetTitle className="min-w-0 flex-1 truncate text-center text-[15px] font-semibold tracking-[-0.01em]">
-            {draft?.draftId ? "Brouillon" : "Nouveau message"}
+            {titre}
           </SheetTitle>
           <SheetDescription className="sr-only">Rédiger un e-mail</SheetDescription>
           <RoundCase

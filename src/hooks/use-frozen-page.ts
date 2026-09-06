@@ -19,14 +19,33 @@ import { useEffect } from "react";
 export function useFrozenPage(active: boolean) {
   useEffect(() => {
     if (!active) return;
-    const depart = window.scrollY;
+    /* **Jamais une valeur négative.** Sur iOS, `scrollY` l'est pendant
+       l'élastique de fin de course : ouvrir le composeur juste après un
+       rebond figeait la page à un défilement négatif, l'app se retrouvait
+       poussée vers le bas et le fond du document apparaissait au-dessus —
+       le « flash de page blanche » à l'ouverture. */
+    const depart = Math.max(0, window.scrollY);
+    /* Un seuil et une frame : corriger au pixel près, à chaque événement de
+       défilement, c'est se battre avec le navigateur pendant qu'il anime. */
+    let prevu = 0;
     const remettre = () => {
-      if (window.scrollY !== depart) window.scrollTo(0, depart);
+      if (prevu) return;
+      prevu = requestAnimationFrame(() => {
+        prevu = 0;
+        /* La cible se borne à ce que le document peut vraiment atteindre : le
+           clavier raccourcit le viewport de mise en page en app installée, et
+           viser une position devenue inatteignable relançait la correction à
+           chaque frame — la boucle qu'on voyait clignoter. */
+        const max = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+        const cible = Math.min(depart, max);
+        if (Math.abs(window.scrollY - cible) > 1) window.scrollTo(0, cible);
+      });
     };
     remettre();
     window.addEventListener("scroll", remettre, { passive: true });
     window.visualViewport?.addEventListener("resize", remettre);
     return () => {
+      if (prevu) cancelAnimationFrame(prevu);
       window.removeEventListener("scroll", remettre);
       window.visualViewport?.removeEventListener("resize", remettre);
     };

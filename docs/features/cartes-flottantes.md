@@ -226,3 +226,21 @@ en sombre. Un groupe est une surface : il se borne, il ne compte pas sur ce qu'i
 
 Le panneau du composeur passe de `px-3` à `px-4` : son groupe commençait 4 px plus à gauche que
 celui des feuilles, pour la même rangée.
+
+---
+
+## Une seconde cible sur une rangée vit **à côté**, pas dedans (6 sept. 2026)
+
+Trouvé par la console pendant une autre vérification : les rangées d'« Aujourd'hui » posaient leur
+croix « Retirer » **à l'intérieur** du bouton de la rangée. Un `<button>` dans un `<button>` est du
+HTML invalide — React le signale à chaque rendu, et le navigateur est libre de démonter
+l'imbrication, donc de perdre la croix. Le `stopPropagation` qui empêchait la rangée de s'ouvrir
+n'était que le symptôme : deux cibles superposées demandent qu'on annule l'une des deux.
+
+`SheetRow` prend un **`suffixe`** : la rangée devient deux boutons côte à côte, le filet passant
+sous les deux, et plus personne n'a à arrêter la propagation de personne. La croix porte le sujet
+dans son libellé (`Retirer Week-end à Annecy`) — « Retirer » seul, répété sur cinq rangées, ne dit
+pas quoi.
+
+Vérifié : croix hors du bouton de rangée (lu au `closest`), cible de 32 px avec sa zone étendue,
+zéro erreur de console dans les deux thèmes — il y en avait deux.

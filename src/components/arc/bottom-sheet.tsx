@@ -137,21 +137,41 @@ export function SheetGroup({ className, children }: { className?: string; childr
   );
 }
 
-/** Une ligne de groupe : 50 px au moins, un séparateur sauf la dernière. */
+/**
+ * Une ligne de groupe : 50 px au moins, un séparateur sauf la dernière.
+ *
+ * **`suffixe` est un bouton, il vit donc à côté et non dedans.** Les rangées
+ * d'« Aujourd'hui » posaient leur croix « Retirer » à l'intérieur du bouton de
+ * la rangée : un `<button>` dans un `<button>` est du HTML invalide, React le
+ * signale à chaque rendu, et le navigateur est libre de démonter l'imbrication
+ * — donc de perdre la croix. La rangée devient deux cibles côte à côte, le
+ * filet passant sous les deux.
+ */
 export function SheetRow({
   active,
   checked,
   onClick,
+  suffixe,
   children,
 }: {
   active?: boolean;
   /** Fait de la ligne un interrupteur : le dessin dedans n'est plus que décor. */
   checked?: boolean;
   onClick: () => void;
+  /** Une seconde cible à droite — une croix, jamais du texte. */
+  suffixe?: ReactNode;
   children: ReactNode;
 }) {
+  const filet =
+    "border-b border-black/[0.07] group-last/row:border-0 dark:border-white/[0.09]";
   return (
-    <li className="group/row">
+    <li
+      className={cn(
+        "group/row",
+        suffixe && "flex items-stretch",
+        active && "bg-[color-mix(in_oklch,var(--space-accent)_12%,transparent)]",
+      )}
+    >
       <button
         type="button"
         onClick={onClick}
@@ -159,14 +179,22 @@ export function SheetRow({
         aria-checked={checked}
         aria-current={active ? "page" : undefined}
         className={cn(
-          "flex w-full items-center gap-3 pl-4 text-left transition-colors active:bg-muted",
-          active && "bg-[color-mix(in_oklch,var(--space-accent)_12%,transparent)]",
+          "flex items-center gap-3 pl-4 text-left transition-colors active:bg-muted",
+          suffixe ? "min-w-0 flex-1" : "w-full",
+          !suffixe && active && "bg-[color-mix(in_oklch,var(--space-accent)_12%,transparent)]",
         )}
       >
-        <span className="flex min-h-[50px] min-w-0 flex-1 items-center gap-3 border-b border-black/[0.07] py-1.5 pr-4 group-last/row:border-0 dark:border-white/[0.09]">
+        <span
+          className={cn(
+            "flex min-h-[50px] min-w-0 flex-1 items-center gap-3 py-1.5",
+            suffixe ? "pr-2" : "pr-4",
+            filet,
+          )}
+        >
           {children}
         </span>
       </button>
+      {suffixe && <span className={cn("flex shrink-0 items-center pr-4", filet)}>{suffixe}</span>}
     </li>
   );
 }

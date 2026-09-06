@@ -105,20 +105,25 @@ export function MobileMenu() {
               recentThreads.map((t) => {
                 const last = t.messages[t.messages.length - 1];
                 return (
-                  <SheetRow key={t.id} onClick={go(() => selectThread(t.id))} active={t.id === selectedThreadId}>
+                  <SheetRow
+                    key={t.id}
+                    onClick={go(() => selectThread(t.id))}
+                    active={t.id === selectedThreadId}
+                    /* Une seconde cible, **à côté** du bouton de la rangée : un
+                       bouton dans un bouton est du HTML invalide. */
+                    suffixe={
+                      <button
+                        type="button"
+                        onClick={() => removeRecent(t.id)}
+                        aria-label={`Retirer ${t.subject}`}
+                        className="relative flex size-8 items-center justify-center rounded-full text-muted-foreground after:absolute after:-inset-1.5 active:bg-muted"
+                      >
+                        <X className="size-4" />
+                      </button>
+                    }
+                  >
                     <ContactAvatar contact={last.from} className="size-8" />
                     <span className="min-w-0 flex-1 truncate text-[15px]">{t.subject}</span>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        removeRecent(t.id);
-                      }}
-                      aria-label="Retirer"
-                      className="relative -mr-2 flex size-8 items-center justify-center rounded-full text-muted-foreground after:absolute after:-inset-1.5 active:bg-muted"
-                    >
-                      <X className="size-4" />
-                    </button>
                   </SheetRow>
                 );
               })

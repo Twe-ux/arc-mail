@@ -100,6 +100,8 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - Sur bureau le composeur est **une fenêtre de 760 × 560 posée sur la boîte** (rayon 16, voile à
   35 %), pas une colonne : il ne prend aucune piste de la grille. En-tête discret — un filet et un
   titre, pas le dégradé ; la couleur de l'espace reste sur le bouton d'envoi. Le voile ne ferme pas.
+- Une **seconde cible sur une rangée passe par `suffixe`**, à côté du bouton, jamais dedans : un
+  `<button>` dans un `<button>` est du HTML invalide et le navigateur peut le démonter.
 - Pas de clic-en-dehors Radix ; la recherche a son bouton « Annuler » sur téléphone.
 
 **Gestes** → [docs/features/gestes.md](docs/features/gestes.md)

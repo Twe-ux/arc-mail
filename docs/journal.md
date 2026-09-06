@@ -2,6 +2,16 @@
 
 Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérification.
 
+## 6 septembre 2026 — le composeur se dé-iOS-ise
+
+« Trop proche d'iOS, non ? » Quatre pistes rendues sur l'app réelle avant d'écrire une ligne —
+bandeau compact, tuile et grand titre, onglet de verre, tranche colorée — et c'est le **bandeau
+compact** qui a été retenu, sans sa tuile. Le grand titre de 30 px sur une ligne à lui était la
+pièce qu'on reconnaissait : le nom tient maintenant au centre du bandeau en 15/600, la mise en page
+ne change plus selon que le clavier est sorti ou non, et le message gagne 44 px au repos (512).
+Ce qui rattache la feuille à Arc Mail est le voile teinté de l'espace qui la coiffe. Les
+deux-points des labels sont partis avec — `À :` est la ponctuation d'iOS.
+
 ## 6 septembre 2026 — le composeur passe en plein écran
 
 Deux captures d'iPhone ont montré ce que l'émulation ne disait pas : le clavier ne se ferme pas

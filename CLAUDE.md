@@ -218,13 +218,17 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 **Composeur** → [docs/features/composeur-panneaux.md](docs/features/composeur-panneaux.md)
 - Sur téléphone c'est une **feuille plein écran** (bord haut sûr, trois bords touchés, coins hauts
   à 36, poignée) : la carte flottante payait 8 px de marge quatre fois sur l'écran le plus
-  contraint. Bandeau à deux cases rondes de 44 — fermer en verre, **envoyer** au dégradé —, grand
-  titre 30/700 qui **s'efface sous `html.keyboard-open`**, expéditeur sur la ligne repliée
-  `Cc/Cci, De :`, outils **à plat** en bas (le composeur est sorti de
+  contraint. **Un bandeau, et rien d'autre** — deux cases rondes de 44 (fermer en verre, envoyer au
+  dégradé) et le nom en 15/600 au centre ; **pas de grand titre**, c'est la pièce qui faisait « feuille
+  d'iOS », et la mise en page ne change plus selon le clavier. L'expéditeur est sur la ligne repliée
+  `Cc/Cci · De`, les outils **à plat** en bas (le composeur est sorti de
   [pill-actions](docs/features/pill-actions.md), qui n'a plus que deux emplois). 202 px de message
-  clavier sorti, contre 192.
-- Les filets des lignes sont **en retrait** (`inset-x-4`), et les labels suivent leur texte sur
-  téléphone (`À :`) — la colonne de 56 px reste une mise en page de fenêtre.
+  clavier sorti (192 avant), 512 au repos.
+- Ce qui la rattache à Arc Mail est le **voile teinté de l'espace** qui la coiffe (16 %), pas une
+  tuile à côté du titre : essayée, retirée — la ligne repliée donne déjà l'adresse.
+- Les filets des lignes sont **en retrait** (`inset-x-4`), les labels suivent leur texte sur
+  téléphone et **sans deux-points** (`À`, pas `À :`) — la colonne de 56 px reste une mise en page de
+  fenêtre.
 - **Lignes et corps sont enfants directs de la feuille** : enfermés dans un `flex-1 min-h-0` ils se
   recouvraient dès qu'un panneau s'ouvrait sans que le clavier se ferme. Lignes `shrink-0`, corps
   `flex-1` avec plancher `min-h-16`, panneau `min-h-28` qui défile et s'efface en bas.

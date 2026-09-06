@@ -28,11 +28,10 @@ bords, et n'arrondit que ses coins hauts — 36 px, la mesure du dépôt. La rè
 
 ```
 ────  poignée : le glisser-fermer existait, rien ne le disait
-(✕)                                       (↑)   56
-Nouveau message                                 41   caché clavier ouvert
-À :  …                                          44
-Cc/Cci, De : thierry@icloud.com                 44
-Objet :                                         44
+(✕)         Nouveau message               (↑)   56   le bandeau, et rien d'autre
+À        …                                      44
+Cc/Cci · De thierry@icloud.com                  44
+Objet                                           44
 le message                                     202   seul défilant
 📎  Aa                                    ⋯     55   outils, à plat
 ```
@@ -41,12 +40,22 @@ le message                                     202   seul défilant
 |---|---|
 | Feuille clavier sorti | **457** (441 en carte flottante) |
 | Message | **202** px, huit lignes — 192 avant |
-| Message au repos | 471 px |
+| Message au repos | **512** px |
 
-**Le grand titre s'efface quand on écrit.** 30/1.1/-0.02em, il donne à l'écran sa tête d'éditeur au
-repos ; clavier sorti il retiendrait 41 px que le message réclame, et il disparaît par
-`html.keyboard-open` — la classe existe exactement pour ça (« abandonner ce dont une carte n'a pas
-besoin pendant qu'on écrit »).
+**Pas de grand titre — c'est la pièce qu'on reconnaissait.** La feuille d'iOS pose son nom en 30 px
+sur une ligne à lui ; on l'a montée telle quelle, puis retirée : « trop proche d'iOS ». Le nom tient
+au centre du bandeau en 15/600, et la mise en page ne change plus selon que le clavier est sorti ou
+non — le titre s'effaçait sous `html.keyboard-open`, il n'y a plus rien à effacer.
+
+**Ce qui rattache la feuille à Arc Mail est le voile teinté de l'espace** qui la coiffe : une base
+et un halo à `--space-accent`, dose de bandeau (16 %), la recette de la fiche
+[thème](theme.md). La **tuile de l'espace** a été essayée à côté du titre, et retirée : le voile dit
+déjà la boîte et la ligne repliée en donne l'adresse — deux fois la même chose sur 393 px, c'est une
+fois de trop.
+
+Quatre pistes ont été rendues sur l'app réelle avant d'écrire une ligne (bandeau compact · tuile et
+grand titre · onglet de verre · tranche colorée) ; c'est le **bandeau compact** qui a été retenu,
+sans sa tuile.
 
 **L'expéditeur est sur la ligne repliée**, comme chez Apple : `Cc/Cci, De : adresse`. Il a été une
 ligne à lui (5 sept.), puis une pastille au centre du bandeau (6 sept. au matin) ; les deux
@@ -68,9 +77,10 @@ rangé elle descend au bord, et l'indicateur d'accueil passerait sur les cases.
 
 **Les filets des lignes sont en retrait** (`after` à `inset-x-4`), pas d'un bord à l'autre : sur une
 feuille pleine largeur, un trait qui traverse découpe l'écran en bandes, alors qu'un trait qui
-commence où commence le texte range des lignes. Et les labels suivent leur texte (`À :`, `Objet :`)
-au lieu de tenir une colonne de 56 px — la colonne est une mise en page de fenêtre, elle reste sur
-bureau.
+commence où commence le texte range des lignes. Les labels suivent leur texte (`À`, `Objet`) au lieu
+de tenir une colonne de 56 px — la colonne est une mise en page de fenêtre, elle reste sur bureau —
+et **sans deux-points** : `À :` est la ponctuation d'iOS, pas la nôtre. La ligne repliée se lit
+`Cc/Cci · De adresse`, avec le point médian qui sépare partout ailleurs dans l'app.
 
 ## Ce que le vrai iPhone a corrigé
 

@@ -18,7 +18,6 @@ import { cn } from "@/lib/utils";
 import { AttachmentChips, AttachPanel } from "./compose-attach";
 import { ComposeFields, SendFailed } from "./compose-fields";
 import { DraftMenu, FormatPanel } from "./compose-panels";
-import { SpaceIcon } from "./space-icon";
 import { useComposeTools } from "./use-compose-tools";
 
 /**
@@ -37,18 +36,18 @@ import { useComposeTools } from "./use-compose-tools";
  *
  * ```
  * ────  poignée : le glisser-fermer existait, rien ne le disait
- * (✕)                                    (↑)   56
- * Nouveau message                              44  caché clavier ouvert
- * À :  …                                       45
- * Cc/Cci, De : thierry@icloud.com              44
- * Objet :                                      44
+ * (✕)       Nouveau message              (↑)   56  le bandeau, et rien d'autre
+ * À       …                                    44
+ * Cc/Cci · De thierry@icloud.com                44
+ * Objet                                        44
  * le message                                   ↕   seul défilant
  * 📎  Aa                                  ⋯    55  outils, à plat
  * ```
  *
- * **Le grand titre s'efface quand on écrit** (`html.keyboard-open`) : au repos
- * il donne à l'écran sa tête d'éditeur, clavier sorti il rendrait 44 px que le
- * message réclame. C'est exactement ce pour quoi la classe existe.
+ * **Pas de grand titre.** La feuille d'iOS pose son nom en 30 px sur une ligne
+ * à lui : c'est elle qu'on reconnaissait, et elle coûtait 41 px au repos. Le
+ * nom tient au centre du bandeau, et ce qui rattache la feuille à Arc Mail est
+ * le **voile teinté de l'espace** qui la coiffe, pas un titre de système.
  *
  * **L'envoi est en haut à droite**, où Mail d'iOS le met — arbitrage contre la
  * version du 5 septembre qui l'avait descendu « là où le pouce est » : clavier
@@ -120,7 +119,7 @@ export function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
             dose de bandeau — la couleur franche reste sur l'action. */}
         <span
           aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-0 h-44 rounded-t-[36px] opacity-[0.16] [background:radial-gradient(120%_100%_at_18%_0%,var(--space-accent),transparent_68%)]"
+          className="pointer-events-none absolute inset-x-0 top-0 h-36 rounded-t-[36px] opacity-[0.16] [background:radial-gradient(120%_100%_at_18%_0%,var(--space-accent),transparent_68%)]"
         />
         {/* La poignée : le glisser-fermer existe depuis le lot mobile, et rien
             ne le disait. Sur une feuille qui touche les bords, c'est elle qui
@@ -129,13 +128,19 @@ export function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
           aria-hidden
           className="relative mx-auto mt-2 h-1 w-9 shrink-0 rounded-full bg-foreground/15 dark:bg-white/20"
         />
-        <header className="relative flex h-14 shrink-0 items-center justify-between px-4">
+        <header className="relative flex h-14 shrink-0 items-center gap-2 px-4">
           {/* « Fermer », pas « Annuler » : fermer garde le texte en brouillon,
               et en français comme sur iOS « Annuler » promet de le jeter. */}
           <RoundCase label="Fermer (brouillon conservé)" onClick={closeCompose}>
             <X strokeWidth={2} />
           </RoundCase>
-          <SheetTitle className="sr-only">
+          {/* **Un bandeau, pas un grand titre.** La feuille d'iOS pose son nom
+              en 30 px sur une ligne à lui : c'est elle qu'on reconnaissait, et
+              elle coûtait 41 px au repos. Le nom tient au centre du bandeau,
+              seul — la tuile de l'espace a été essayée là et retirée : le voile
+              teinté dit déjà la boîte, et la ligne repliée en donne l'adresse.
+              Deux fois la même chose sur 393 px, c'est une fois de trop. */}
+          <SheetTitle className="min-w-0 flex-1 truncate text-center text-[15px] font-semibold tracking-[-0.01em]">
             {draft?.draftId ? "Brouillon" : "Nouveau message"}
           </SheetTitle>
           <SheetDescription className="sr-only">Rédiger un e-mail</SheetDescription>
@@ -148,18 +153,6 @@ export function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
             <ArrowUp strokeWidth={2.5} />
           </RoundCase>
         </header>
-        {/* **La tuile de l'espace tient le titre.** Un grand titre noir seul,
-            c'est la feuille d'iOS ; la tuile colorée est la façon dont Arc dit
-            « c'est cette boîte-là », et elle le dit avant qu'on lise
-            l'adresse. Le tout s'efface dès que le clavier prend l'écran : au
-            repos il donne sa tête d'éditeur, en écrivant il retiendrait 44 px
-            que le message réclame. */}
-        <div className="relative flex shrink-0 items-center gap-2.5 px-4 pb-3 [html.keyboard-open_&]:hidden">
-          {t.espace && <SpaceIcon space={t.espace} size="lg" />}
-          <h2 className="min-w-0 truncate text-[26px] leading-[1.1] font-bold tracking-[-0.02em]">
-            {draft?.draftId ? "Brouillon" : "Nouveau message"}
-          </h2>
-        </div>
 
         {sendError && <SendFailed detail={sendError} />}
         {draft && (

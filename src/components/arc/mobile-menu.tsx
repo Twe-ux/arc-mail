@@ -1,9 +1,10 @@
 "use client";
 
-import { ChevronRight, Moon, Palette, Rows3, Shapes, Sun, UserRound, X } from "lucide-react";
+import { ChevronRight, LogOut, Moon, Palette, Rows3, Shapes, Sun, UserRound, X } from "lucide-react";
 import Link from "next/link";
 
-import { SignOut } from "@/components/auth/sign-out";
+import { useSignOut } from "@/components/auth/use-sign-out";
+import { useSession } from "@/components/auth/session";
 import { FOLDER_ICON } from "@/lib/folders";
 import { FOLDERS } from "@/lib/mock-data";
 import { selectUnreadCount, useMail, useRecentThreads, useSpace } from "@/lib/store";
@@ -162,6 +163,8 @@ export function MobileSettings() {
   const density = useMail((s) => s.listDensity);
   const setDensity = useMail((s) => s.setListDensity);
   const renameSpace = useMail((s) => s.renameSpace);
+  const session = useSession();
+  const { partir, enCours } = useSignOut();
 
   return (
     <BottomSheet
@@ -354,11 +357,20 @@ export function MobileSettings() {
               </span>
             </Link>
           </li>
-        </SheetGroup>
 
-        {/* Le compte, tout en bas comme dans Réglages : ce qu'on vient y
-            chercher est rare, et une sortie ne se met pas sous le pouce. */}
-        <SignOut className="mt-4 px-4" />
+          {/* **La sortie est une rangée, comme le reste.** Elle vivait sous la
+              feuille en un bloc à part — visage, nom, deux icônes muettes —
+              qui redisait « Comptes et signatures » juste au-dessus, et posait
+              un second chemin vers la même page. Le bureau a perdu ce doublon
+              en descendant son compte dans un menu ; ici la rangée suffit.
+              L'adresse du compte, elle, se lit dans `/comptes`. */}
+          {session && (
+            <SheetRow onClick={() => void partir()}>
+              <LogOut className={cn("size-5 shrink-0", enCours && "opacity-50")} strokeWidth={1.75} />
+              <span className={cn("min-w-0 flex-1 text-[15px]", enCours && "opacity-50")}>Se déconnecter</span>
+            </SheetRow>
+          )}
+        </SheetGroup>
 
         <div className="mt-4">
           <InstallHint />

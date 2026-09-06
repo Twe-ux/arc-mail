@@ -2,6 +2,28 @@
 
 Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérification.
 
+## 6 septembre 2026 — le bas de la barre se range
+
+Le compte prenait une rangée entière juste au-dessus des boîtes : visage, nom, engrenage, sortie —
+et le nom faisait doublon avec l'espace courant écrit en dessous, pour deux portes qu'on prend
+rarement. Il descend dans la rangée du bas, réduit à son visage, ses deux portes dans un menu ; le
+nom et l'adresse sont dans l'en-tête du menu, là où ils répondent à la question qu'on pose en
+l'ouvrant.
+
+« Nouveau message » quitte la barre — il vit dans la tête de liste, contre le sélecteur, dans les
+trois états, et deux boutons pour le même geste dans la même fenêtre en font un de trop. Celui qui
+reste porte le **dégradé de l'espace** : en gris contre le filtre et la recherche, il se lisait
+comme un troisième réglage, alors qu'écrire est la seule chose qu'on vienne faire dans une boîte
+sans y avoir été appelé.
+
+La lune devient un engrenage : elle basculait le thème d'un coup, mais le thème est devenu un
+réglage parmi cinq dans le panneau d'apparence. Et le téléphone perd le même doublon — son bloc de
+compte redisait « Comptes et signatures » juste au-dessus de lui ; la sortie y est une rangée, et le
+geste n'est plus écrit qu'une fois (`useSignOut`).
+
+Le registre shadcn n'étant pas joignable d'ici, le menu est un `Popover` avec un `role="menu"` —
+le motif du menu du `⋯` du composeur, déjà dans le dépôt.
+
 ## 6 septembre 2026 — la recherche devient un langage
 
 Seconde des deux mécaniques de l'audit, après l'annulation. Jusqu'ici cmdk comparait la requête au

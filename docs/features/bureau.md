@@ -243,3 +243,36 @@ colonne → [cartes flottantes](cartes-flottantes.md).
 - **Le nom et l'icône restent dans le panneau d'apparence**, que le handoff ne mentionne pas :
   [`espaces.md`](espaces.md) en fait une règle, et les perdre retirait le seul chemin pour renommer
   un espace.
+
+---
+
+## Le bas de la barre : une rangée, pas deux (6 sept. 2026)
+
+Le compte occupait une **rangée entière** juste au-dessus des boîtes — visage, nom, engrenage,
+sortie —, et son nom faisait doublon avec l'espace courant écrit en dessous. Deux icônes muettes y
+demandaient une infobulle chacune pour dire où elles menaient, et ce pour deux portes qu'on prend
+rarement.
+
+Il descend dans la rangée du bas, **réduit à son visage**, ses deux portes dans un menu
+(`AccountMenu`) : le nom et l'adresse sont dans l'en-tête du menu, là où ils répondent enfin à la
+question qu'on pose en l'ouvrant — « quel compte ? ». Une ligne de 32 px rendue à la liste des
+dossiers.
+
+**« Nouveau message » quitte la barre.** Il vit dans la tête de liste, contre le sélecteur de barre,
+dans les trois états — deux boutons pour le même geste à deux endroits de la même fenêtre, c'est un
+de trop. Et celui qui reste **porte la couleur de l'espace** (`--space-gradient`, la règle du
+thème : ce qui est une action garde le dégradé vif) : en gris contre le filtre et la recherche, il
+se lisait comme un troisième réglage, alors qu'écrire est la seule chose qu'on vienne faire dans une
+boîte sans y avoir été appelé. Il n'a plus à se faire discret pour ne pas doubler.
+
+**La lune devient un engrenage.** Elle basculait le thème d'un coup ; le thème est devenu un réglage
+parmi cinq dans le panneau d'apparence ([thème](theme.md)), donc l'icône dit « réglages » et non
+« sombre ».
+
+`Popover` avec un `role="menu"` plutôt qu'un `DropdownMenu` de shadcn : son registre n'est pas
+joignable depuis l'environnement de travail, et le dépôt a déjà ce motif — le menu du `⋯` du
+composeur. Une primitive de moins à tenir.
+
+Mesuré à 1280 × 800, les deux thèmes : réglages et avatar à x = 194 et 228, 32 px chacun ; plus
+aucun bouton « Nouveau message » dans la barre ; celui de la tête porte bien
+`linear-gradient(135deg, …)` ; le menu rend ses deux entrées ; zéro erreur de console.

@@ -5,15 +5,14 @@ import {
   Clock,
   FileText,
   Inbox,
-  Moon,
   Send,
-  SquarePen,
+  Settings2,
   Star,
   Trash2,
   type LucideIcon,
 } from "lucide-react";
 
-import { SignOut } from "@/components/auth/sign-out";
+import { AccountMenu } from "@/components/auth/account-menu";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { FOLDERS } from "@/lib/mock-data";
@@ -82,7 +81,6 @@ export const TN = {
 export function SidebarContent() {
   const folderId = useMail((s) => s.folderId);
   const setFolder = useMail((s) => s.setFolder);
-  const openCompose = useMail((s) => s.openCompose);
   const inboxUnread = useMail((s) => selectUnreadCount(s, s.spaceId, "inbox"));
 
   return (
@@ -135,37 +133,38 @@ export function SidebarContent() {
 
       <SidebarRecents />
 
-      {/* Qui est connecté, et la sortie. Ne rend rien sans session. */}
-      <SignOut tone="clair" className="shrink-0 px-1.5" />
+      {/* **Une rangée, pas deux.** Le compte occupait la ligne au-dessus —
+          visage, nom, engrenage, sortie — pour deux portes qu'on prend
+          rarement, avec un nom en double avec l'espace courant juste en
+          dessous. Il descend ici, réduit à son visage, ses portes dans un menu.
 
-      {/* Rangée du bas : les boîtes à gauche, l'apparence et l'écriture à droite. */}
+          Et **« Nouveau message » n'y est plus** : il vit dans la tête de
+          liste, contre le sélecteur de barre, dans les trois états. Deux
+          boutons pour le même geste à deux endroits de la même fenêtre, c'est
+          un de trop — celui qui reste porte la couleur de l'espace, puisque
+          c'est la seule chose qu'on vienne faire dans une boîte sans y avoir
+          été appelé. */}
       <div className="relative flex shrink-0 items-center justify-between gap-1 pt-1">
         <SpaceSwitcher />
         <div className="flex items-center gap-0.5">
+          {/* La lune basculait le thème d'un coup. Le thème est devenu un
+              réglage parmi cinq, dans ce panneau : l'icône dit donc « réglages »
+              et non « sombre ». */}
           <AppearancePanel>
-            <button
-              type="button"
-              aria-label="Apparence"
-              className={cn("flex size-8 items-center justify-center rounded-lg transition-colors", TN.icon)}
-            >
-              <Moon className="size-4" />
-            </button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  aria-label="Apparence et réglages"
+                  className={cn("flex size-8 items-center justify-center rounded-lg transition-colors", TN.icon)}
+                >
+                  <Settings2 className="size-4" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="top">Apparence et réglages</TooltipContent>
+            </Tooltip>
           </AppearancePanel>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                type="button"
-                onClick={() => openCompose()}
-                aria-label="Nouveau message"
-                className={cn("flex size-8 items-center justify-center rounded-lg transition-colors", TN.icon)}
-              >
-                {/* `SquarePen`, la même que sur téléphone : écrire est le même
-                    geste des deux côtés, un `Plus` en aurait fait deux. */}
-                <SquarePen className="size-4" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="top">Nouveau message · ⌘N</TooltipContent>
-          </Tooltip>
+          <AccountMenu className={TN.icon} />
         </div>
       </div>
     </>

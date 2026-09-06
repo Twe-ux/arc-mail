@@ -157,3 +157,17 @@ L'**intégration Vercel** de Supabase pose `NEXT_PUBLIC_SUPABASE_URL`,
 L'**intégration GitHub** (répertoire de travail `.`) applique `supabase/migrations/` à la fusion
 sur `main` — donc une migration fausse part en production toute seule : elles se relisent.
 `ACCOUNTS_KEY` se pose à la main.
+
+---
+
+## Où l'on sort (6 sept. 2026)
+
+Deux surfaces, un seul geste, écrit une fois : `useSignOut()`. Il efface les cookies de session —
+ceux que lit le serveur —, rejoue le rendu serveur (`refresh()`, sinon la porte s'afficherait
+par-dessus une boîte encore montée) et **vide la liste** : les enveloppes gardées d'une session à
+l'autre sont des objets et des expéditeurs en clair sur l'appareil.
+
+Sur **bureau**, dans le menu de l'avatar, au bas de la barre ([fiche bureau](bureau.md)). Sur
+**téléphone**, une rangée de la feuille « Personnaliser », sous « Comptes et signatures ». Le bloc
+qui vivait sous la feuille — visage, nom, deux icônes — redisait cette même page juste au-dessus de
+lui : deux chemins vers `/comptes` sur un écran de 393 px.

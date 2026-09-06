@@ -139,7 +139,15 @@ export function ListHeaderDesktop() {
                 type="button"
                 onClick={() => openCompose()}
                 aria-label="Nouveau message"
-                className="grid size-[30px] shrink-0 place-items-center rounded-lg bg-muted text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground"
+                /* **Il porte la couleur de l'espace**, seul de sa rangée. La
+                   règle du thème le dit : ce qui est une action garde
+                   `--space-gradient` vif — et écrire est la seule chose qu'on
+                   vienne faire dans une boîte sans y avoir été appelé. En gris
+                   contre le filtre et la recherche, il se lisait comme un
+                   troisième réglage. C'est aussi le seul bouton d'écriture de
+                   la fenêtre depuis que celui de la barre est parti : il n'a
+                   plus à se faire discret pour ne pas doubler. */
+                className="grid size-[30px] shrink-0 place-items-center rounded-lg text-white shadow-[0_1px_3px_rgb(0_0_0/0.18)] transition-[filter] hover:brightness-110 [background:var(--space-gradient)]"
               >
                 <SquarePen className="size-4" />
               </button>

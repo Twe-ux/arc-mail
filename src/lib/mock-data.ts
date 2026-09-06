@@ -425,17 +425,41 @@ Pensez à apporter vos derniers résultats.`,
         hoursAgo: 6.5,
         body: `Celui dont je te parlais est encore dispo, à 15 min de chez toi. Je lui écris ou tu veux le voir d'abord ?`,
       },
+      /* **Les deux réponses portent leur citation**, comme toute réponse
+         écrite par un vrai client : c'est ce qui rendait un fil illisible
+         avant qu'on la replie, et sans elle ici le repli n'aurait rien à
+         montrer. */
       {
         from: ME.perso,
         to: [lucas],
         hoursAgo: 6,
-        body: `Écris-lui, je peux passer samedi matin.`,
+        body: `Écris-lui, je peux passer samedi matin.
+
+Le 6 septembre 2026 à 09:12, Lucas Berger <lucas@example.com> a écrit :
+> Celui dont je te parlais est encore dispo, à 15 min de chez toi. Je lui
+> écris ou tu veux le voir d'abord ?`,
       },
       {
         from: lucas,
         to: [ME.perso],
         hoursAgo: 5.5,
-        body: `Nickel, il propose samedi 10h. Je te confirme ce soir.`,
+        body: `Nickel, il propose samedi 10h. Je te confirme ce soir.
+
+Le 6 septembre 2026 à 09:42, Thierry Milone <thierry@example.com> a écrit :
+> Écris-lui, je peux passer samedi matin.`,
+      },
+      /* **La même réponse, mais en HTML**, telle qu'un webmail l'écrit :
+         `gmail_quote` autour de l'attribution et de la citation. C'est le seul
+         moyen de vérifier le repli **dans le cadre** — celui du texte simple se
+         fait dans la page, ce n'est pas le même chemin. Aucun tableau, aucune
+         couleur : elle passe donc en bulle (`enveloppe`), ce qui met à
+         l'épreuve le cadre transparent en même temps. */
+      {
+        from: ME.perso,
+        to: [lucas],
+        hoursAgo: 5.2,
+        body: `Parfait, note-moi ça. À samedi.`,
+        html: `<div dir="ltr">Parfait, note-moi ça. À samedi.</div><br><div class="gmail_quote"><div dir="ltr" class="gmail_attr">Le 6 septembre 2026 à 10:12, Lucas Perrin &lt;lucas@example.com&gt; a écrit :<br></div><blockquote class="gmail_quote" style="margin:0 0 0 .8ex;border-left:1px solid #ccc;padding-left:1ex"><div dir="ltr">Nickel, il propose samedi 10h. Je te confirme ce soir.</div></blockquote></div>`,
       },
     ],
     { labels: ["Amis"] },

@@ -105,6 +105,14 @@ correctif.
       nouveaux s'enregistrent au lieu d'être refusés par la contrainte `check`.
 - [ ] **La PWA installée sur l'iPhone** — après un déploiement : la version se rafraîchit-elle au
       tirage, et l'écran ne reste-t-il pas figé.
+- [ ] **Le regroupement en fils** — quatre envois de même objet à quatre personnes doivent faire
+      quatre fils, et une réponse doit rejoindre le bon exemplaire. La règle tient à `Re:` plus un
+      correspondant commun ; le mock ne peut pas la mettre à l'épreuve.
+- [ ] **Le repli de la citation sur du vrai courrier** — les classes varient selon le webmail
+      (`gmail_quote`, `blockquote[type=cite]`, Outlook), et le repli du cadre ne se prouve que sur
+      ce que les autres écrivent vraiment.
+- [ ] **Le mode discussion sur un fil réel** — ce qui passe en bulle et ce qui garde sa feuille
+      (`enveloppe`) est une heuristique de chaîne, pas une mesure.
 - [ ] Tests automatiques, une fois le manuel passé : contrat `MailProvider`, écritures optimistes,
       `loadSpace`, seuils de geste, e2e des cartes.
 

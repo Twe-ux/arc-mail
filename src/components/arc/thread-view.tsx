@@ -5,7 +5,7 @@ import { useState } from "react";
 
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { formatFullDate } from "@/lib/format";
-import { replyRecipients, selectFolder, useMail, useSpace, useVisibleThreads } from "@/lib/store";
+import { cestNous, replyRecipients, selectFolder, useMail, useSpace, useVisibleThreads } from "@/lib/store";
 import type { Contact, FolderId } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { ActionBar, Pill, PillCase, PillPrimary } from "./action-pill";
@@ -23,6 +23,7 @@ export function ThreadView({ className }: { className?: string }) {
   const toggleStar = useMail((s) => s.toggleStar);
   const moveThread = useMail((s) => s.moveThread);
   const openCompose = useMail((s) => s.openCompose);
+  const filStyle = useMail((s) => s.filStyle);
 
   /* À qui va la réponse. `null` = tout le monde sur le dernier message, ce que
      le store fait de lui-même ; une liste veut dire qu'on a restreint, par
@@ -39,6 +40,12 @@ export function ThreadView({ className }: { className?: string }) {
   const [replyOpen, setReplyOpen] = useState(false);
 
   const threadId = thread?.id;
+  /* **Une bulle seule n'est pas une conversation.** Un fil d'un message reste
+     donc en courrier dans les deux modes : le mettre en bulle ferait d'un mail
+     reçu une réplique adressée à personne, et rendrait 24 % de la largeur pour
+     rien. Le réglage dit comment on lit un échange, pas comment on lit un
+     message. */
+  const conversation = filStyle === "conversation" && (thread?.messages.length ?? 0) > 1;
   const aimed = aim?.threadId === threadId ? aim : null;
   const focusTick = aimed?.tick ?? 0;
 
@@ -206,16 +213,35 @@ export function ThreadView({ className }: { className?: string }) {
             {/* L'objet est porté par le **premier message**, sous le nom de son
                 expéditeur : voir `MessageCard`. Il vivait ici, au-dessus de
                 tout, et se lisait comme le titre de la page. */}
-            {thread.messages.map((m, i) => (
-              <MessageCard
-                key={m.id}
-                message={m}
-                threadId={thread.id}
-                sujet={thread.subject}
-                premier={i === 0}
-                onReplyTo={aimReply}
-              />
-            ))}
+            {/* **En discussion, l'objet appartient au fil.** Il était porté par
+                le premier message — un compromis assumé tant que le fil était
+                une pile de blocs —, et cette pièce-là tombe d'elle-même quand
+                les messages deviennent des bulles : le premier n'a plus rien
+                de particulier à dire sur l'échange entier. */}
+            {conversation && (
+              <h1 className="border-b border-black/[0.06] px-5 py-4 text-[19px] leading-[1.3] font-semibold tracking-[-0.01em] text-pretty md:hidden dark:border-white/[0.08]">
+                {thread.subject}
+              </h1>
+            )}
+            <div className={cn(conversation && "flex flex-col py-3 md:py-2")}>
+              {thread.messages.map((m, i) => (
+                <MessageCard
+                  key={m.id}
+                  message={m}
+                  threadId={thread.id}
+                  sujet={thread.subject}
+                  premier={i === 0}
+                  conversation={conversation}
+                  mien={cestNous(m.from.email)}
+                  /* Une grappe se ferme au changement de voix. On compare les
+                     adresses, pas les noms : le même correspondant peut écrire
+                     « Milone Thierry » une fois et « thierry » la suivante. */
+                  tete={i === 0 || thread.messages[i - 1].from.email !== m.from.email}
+                  queue={i === thread.messages.length - 1 || thread.messages[i + 1].from.email !== m.from.email}
+                  onReplyTo={aimReply}
+                />
+              ))}
+            </div>
           </div>
         </ScrollArea>
 

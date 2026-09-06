@@ -1,10 +1,12 @@
 "use client";
 
-import { ImageOff } from "lucide-react";
+import { ImageOff, MoreHorizontal } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import type { TouchRelaye } from "@/hooks/use-edge-swipe-back";
+import { couperCitation } from "@/lib/fil";
 import type { Message } from "@/lib/types";
+import { cn } from "@/lib/utils";
 import { useRelaisRetour } from "./back-swipe";
 
 /**
@@ -29,11 +31,22 @@ export function MessageBody({
   message,
   sujet,
   className,
+  bulle,
+  dark,
 }: {
   message: Message;
-  /** L'objet du fil : sert à masquer le préheader qui le répète (voir `SCRIPT`). */
+  /** L'objet du fil : sert à masquer le préheader qui le répète (voir `script`). */
   sujet?: string;
   className?: string;
+  /**
+   * Le message est posé **dans une bulle**, pas sur sa feuille : le cadre perd
+   * son fond blanc et prend l'encre de l'app. Réservé à ce qui n'apporte pas
+   * sa mise en page (`enveloppe`), sans quoi un courrier qui a écrit ses
+   * propres couleurs se retrouverait noir sur noir.
+   */
+  bulle?: boolean;
+  /** Le thème courant : un cadre est un autre document, nos variables n'y vont pas. */
+  dark?: boolean;
 }) {
   if (!message.html) {
     /* Ni corps ni HTML : il arrive. Une liste vient de dire ce que le message
@@ -41,9 +54,53 @@ export function MessageBody({
        on garde donc cette ligne, en gris, et le reste en attente dessous. Un
        message vraiment sans texte le dit lui-même, il ne passe pas par ici. */
     if (!message.body) return <Attente />;
-    return <p className={className}>{message.body}</p>;
+    return <CorpsTexte texte={message.body} className={className} />;
   }
-  return <CorpsHtml html={message.html} bloquees={message.blockedImages ?? 0} sujet={sujet ?? ""} />;
+  return (
+    <CorpsHtml
+      html={message.html}
+      bloquees={message.blockedImages ?? 0}
+      sujet={sujet ?? ""}
+      bulle={bulle}
+      dark={dark}
+    />
+  );
+}
+
+/**
+ * Un message en texte simple, **sa citation repliée**.
+ *
+ * Répondre recopie le message d'en face en dessous du sien : un fil de quatre
+ * échanges porte donc quatre fois le premier message, et on ne sait plus qui a
+ * répondu à quoi. Tous les clients replient cette part derrière trois points ;
+ * on n'en avait aucun.
+ *
+ * Le bouton **reste** une fois déplié : ce qu'on a ouvert doit pouvoir se
+ * refermer, et c'est aussi ce qui dit que le repli était le nôtre, pas une
+ * troncature du message.
+ */
+function CorpsTexte({ texte, className }: { texte: string; className?: string }) {
+  const { visible, citation } = useMemo(() => couperCitation(texte), [texte]);
+  const [ouverte, setOuverte] = useState(false);
+  if (!citation) return <p className={className}>{texte}</p>;
+  return (
+    <div className={className}>
+      {visible}
+      {"\n"}
+      <button
+        type="button"
+        onClick={() => setOuverte((v) => !v)}
+        aria-expanded={ouverte}
+        aria-label={ouverte ? "Masquer le message cité" : "Afficher le message cité"}
+        className="my-2 inline-flex h-[22px] items-center rounded-full bg-foreground/[0.08] px-2.5 align-middle text-[13px] leading-none font-semibold text-muted-foreground transition-colors hover:bg-foreground/[0.13] active:bg-foreground/[0.16]"
+      >
+        <MoreHorizontal className="size-4" strokeWidth={2.25} />
+      </button>
+      {ouverte && (
+        <span className="block border-l-2 border-foreground/15 pl-3 text-muted-foreground">{citation}</span>
+      )}
+    </div>
+  );
 }
 
 /**
@@ -74,9 +131,21 @@ function Attente() {
  */
 const MARGE = 16;
 
-const STYLE = `
-  :root { color-scheme: light; }
-  html, body { margin: 0; background: #fff; color: #111; }
+/**
+ * La feuille du cadre.
+ *
+ * **En bulle, elle n'est plus une feuille** : fond transparent, encre de
+ * l'app. Un cadre est un autre document — nos variables CSS n'y entrent pas —,
+ * donc le thème lui est dit, il ne se devine pas : `prefers-color-scheme`
+ * répondrait celui du système, et le nôtre est un réglage de l'app.
+ */
+const feuille = (bulle: boolean, dark: boolean) => `
+  :root { color-scheme: ${bulle && dark ? "dark" : "light"}; }
+  html, body {
+    margin: 0;
+    background: ${bulle ? "transparent" : "#fff"};
+    color: ${bulle && dark ? "#ededef" : "#111"};
+  }
   body {
     font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     overflow-wrap: anywhere;
@@ -96,7 +165,19 @@ const STYLE = `
      bordé avec « GoDaddy » écrit dedans, au milieu du courrier.
      (Pas d'accent grave ici : ce bloc vit dans un littéral gabarit.) */
   img:not([src]), img[src=""] { display: none; }
-  a { color: #0b57d0; }
+  a { color: ${bulle && dark ? "#7fabf5" : "#0b57d0"}; }
+  /* Le bouton de la citation, dessiné dans le cadre : c'est là que vit la
+     citation, et une réplique dans la page ne saurait pas où se poser. */
+  .arc-cit {
+    display: inline-flex; align-items: center; justify-content: center;
+    height: 22px; padding: 0 9px; margin: 6px 0;
+    border: 0; border-radius: 999px; cursor: pointer;
+    background: ${bulle && dark ? "rgba(255,255,255,0.13)" : "rgba(0,0,0,0.07)"};
+    color: ${bulle && dark ? "#b9b9be" : "#5c5c66"};
+    font: 700 15px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    letter-spacing: 1px;
+  }
+  .arc-cit:hover { background: ${bulle && dark ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.12)"}; }
 `;
 
 /**
@@ -114,10 +195,10 @@ const STYLE = `
  * et le fond du corps se propage quand même au canevas — un courrier à fond
  * coloré le garde jusqu'aux bords.
  */
-const GARDE = `
+const garde = (marge: number) => `
   html {
     box-sizing: border-box !important;
-    padding: ${MARGE}px !important;
+    padding: ${marge}px !important;
     /* Le cadre ne defile jamais : il est dimensionne sur son contenu et c'est
        la page qui defile. Sans cela, le contenu mis a l'echelle laisserait
        derriere lui la hauteur de sa mise en page, non reduite, en zone vide
@@ -139,9 +220,9 @@ const GARDE = `
    rapporter la hauteur (le cadre ne sait pas se dimensionner), rendre les
    images quand on les demande, et **relayer les touchers** — un cadre les garde
    pour lui, et le geste de retour n'existait donc pas sur un message HTML. */
-const SCRIPT = `
+const script = (marge: number) => `
   (function () {
-    var MARGE = ${MARGE};
+    var MARGE = ${marge};
     /* La page pour laquelle les courriers sont ecrits, depuis toujours. */
     var CANEVAS = 600;
     var SUJET = __SUJET__;
@@ -217,14 +298,27 @@ const SCRIPT = `
         naturel = Math.max(fit.scrollWidth, CANEVAS);
       }
       var echelle = naturel > dispo + 1 ? dispo / naturel : 1;
-      var h;
       if (echelle < 1) {
         fit.style.width = naturel + "px";
         fit.style.transform = "scale(" + echelle + ")";
-        h = Math.ceil(fit.getBoundingClientRect().height) + marge * 2;
-      } else {
-        h = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight);
       }
+      /* **On mesure l'enveloppe, jamais le document.** Le scrollHeight de
+         documentElement ne descend pas sous la hauteur de la fenetre du cadre :
+         un message plus court que le cadre courant rendait donc la hauteur du
+         cadre, et le cadre ne retrecissait plus jamais. Invisible tant qu'un
+         courrier etait long ; replier une citation le rend court d'un coup, et
+         la bulle gardait 220 px pour deux lignes (mesure : docSH 220,
+         bodySH 81, enveloppe 80,5).
+         L'enveloppe est en flow-root : sa boite *est* le contenu, marges des
+         enfants comprises. Le scrollHeight de body reste en garde-fou — lui
+         n'a pas de plancher — pour ce qui echapperait au flux.
+         (Pas d'accent grave ici : ce bloc vit dans un litteral gabarit.) */
+      var h = Math.ceil(fit.getBoundingClientRect().height) + marge * 2;
+      /* Le garde-fou ne vaut **qu'a l'echelle 1** : le rectangle de l'enveloppe
+         est transforme, le scrollHeight de body ne l'est pas. Les prendre au
+         maximum rendait la hauteur de mise en page d'une infolettre de 600 px
+         posee sur un telephone de 393 — 128 px de gris sous le message. */
+      if (echelle === 1) h = Math.max(h, document.body.scrollHeight);
       occupe = false;
       parent.postMessage({ type: "arc-mail-height", height: h }, "*");
     };
@@ -310,6 +404,81 @@ const SCRIPT = `
     };
     masquerRedite();
 
+    /* **La citation, repliee.**
+
+       Repondre a un mail en recopie l'integralite dessous : un fil de quatre
+       echanges porte quatre fois le premier message, et on ne sait plus qui a
+       repondu a quoi. Tous les clients replient cette part ; on n'en avait
+       aucun. Elle n'est jamais retiree — le bouton la rend, et il reste pour
+       pouvoir la refermer.
+
+       Le repli se fait **ici**, dans le cadre : la citation y vit, et un
+       bouton pose dans la page n'aurait pas su ou se placer. La hauteur est
+       redite a chaque bascule, sans quoi le cadre garderait celle du message
+       replie. (Pas d'accent dans ce bloc : il vit dans un litteral gabarit.) */
+    var SELECTEURS = [
+      ".gmail_quote",
+      "blockquote[type=cite]",
+      ".moz-cite-prefix",
+      ".yahoo_quoted",
+      "#divRplyFwdMsg",
+      ".protonmail_quote",
+      "#appendonsend",
+    ].join(",");
+    /* « Le dim. 6 sept. 2026 a 22:10, X a ecrit : » — on ancre sur la fin,
+       seule part que les clients ecrivent tous pareil. */
+    var ATTRIBUTION = /(?:a \u00e9crit|wrote|schrieb|escribi\u00f3|ha scritto)\s*:\s*$/i;
+
+    /* Y a-t-il du texte **avant** ce noeud chez son parent ? C'est la question
+       qui dit jusqu'ou remonter : on monte tant que le contenant n'ajoute rien
+       devant, et on s'arrete des qu'il y a un message au-dessus. Rien nulle
+       part : le message *est* une citation, on ne replie pas. */
+    var avant = function (n) {
+      var s = n.previousSibling, t = "";
+      while (s) { t += s.textContent || ""; s = s.previousSibling; }
+      return t.replace(/[\s\u00a0]/g, "").length > 0;
+    };
+
+    var trouverCitation = function () {
+      var q = fit.querySelector(SELECTEURS);
+      if (!q) {
+        /* Aucune classe connue : l'attribution est alors du texte nu, dans un
+           bloc a elle (Mail d'iOS) ou au milieu du message. */
+        var blocs = fit.querySelectorAll("div,p,span");
+        for (var i = 0; i < blocs.length; i++) {
+          var t = (blocs[i].textContent || "").trim();
+          if (t.length > 0 && t.length <= 200 && ATTRIBUTION.test(t)) { q = blocs[i]; break; }
+        }
+      }
+      if (!q) return null;
+      var n = q;
+      while (n.parentElement && n.parentElement !== fit && !avant(n)) n = n.parentElement;
+      return avant(n) ? n : null;
+    };
+
+    var replierCitation = function () {
+      var debut = trouverCitation();
+      if (!debut || !debut.parentNode) return;
+      var caches = [];
+      var n = debut;
+      while (n) { caches.push(n); n = n.nextElementSibling; }
+      var ouverte = false;
+      var poserEtat = function () {
+        for (var i = 0; i < caches.length; i++) caches[i].style.display = ouverte ? "" : "none";
+        bouton.setAttribute("aria-expanded", ouverte ? "true" : "false");
+        bouton.setAttribute("aria-label", ouverte ? "Masquer le message cite" : "Afficher le message cite");
+        dire();
+      };
+      var bouton = document.createElement("button");
+      bouton.type = "button";
+      bouton.className = "arc-cit";
+      bouton.textContent = "\u00b7\u00b7\u00b7";
+      bouton.addEventListener("click", function () { ouverte = !ouverte; poserEtat(); });
+      debut.parentNode.insertBefore(bouton, debut);
+      poserEtat();
+    };
+    replierCitation();
+
     addEventListener("load", masquerRedite);
     addEventListener("load", dire);
     addEventListener("resize", dire);
@@ -356,7 +525,19 @@ const SCRIPT = `
   })();
 `;
 
-function CorpsHtml({ html, bloquees, sujet }: { html: string; bloquees: number; sujet: string }) {
+function CorpsHtml({
+  html,
+  bloquees,
+  sujet,
+  bulle,
+  dark,
+}: {
+  html: string;
+  bloquees: number;
+  sujet: string;
+  bulle?: boolean;
+  dark?: boolean;
+}) {
   const cadre = useRef<HTMLIFrameElement>(null);
   const [hauteur, setHauteur] = useState(220);
   const [montrees, setMontrees] = useState(false);
@@ -371,18 +552,22 @@ function CorpsHtml({ html, bloquees, sujet }: { html: string; bloquees: number; 
     () =>
       `<!doctype html><html><head><meta charset="utf-8">` +
       `<meta name="viewport" content="width=device-width,initial-scale=1">` +
-      `<style>${STYLE}</style></head><body><div id="arc-fit">${html}</div>` +
+      `<style>${feuille(Boolean(bulle), Boolean(dark))}</style></head>` +
+      `<body><div id="arc-fit">${html}</div>` +
       /* Après le message, pas avant : le `<style>` d'une infolettre est dans le
          corps, et à importance égale c'est l'ordre qui tranche. */
       /* Le sujet entre dans le script comme une **donnée**, pas comme du code :
          `JSON.stringify` échappe les guillemets, et la séquence `</` est
          coupée pour qu'un objet contenant `</script>` ne referme pas la
          balise. */
-      `<style>${GARDE}</style><script>${SCRIPT.replace(
+      /* En bulle, la marge du cadre est **zero** : c'est la bulle qui la donne,
+         et deux rembourrages l'un dans l'autre feraient un message perdu au
+         milieu de sa propre pastille. */
+      `<style>${garde(bulle ? 0 : MARGE)}</style><script>${script(bulle ? 0 : MARGE).replace(
         "__SUJET__",
         JSON.stringify(sujet).replace(/<\//g, "<\\/"),
       )}<\/script></body></html>`,
-    [html, sujet],
+    [html, sujet, bulle, dark],
   );
 
   useEffect(() => {
@@ -429,11 +614,26 @@ function CorpsHtml({ html, bloquees, sujet }: { html: string; bloquees: number; 
        fiche interdit. Sur bureau elle garde son anneau et son rayon : elle y
        flotte sur le fond sombre du volet, et sans bord elle n'aurait plus de
        tranche. */
-    <div className="overflow-hidden bg-white md:mt-4 md:rounded-xl md:ring-1 md:ring-black/[0.08]">
+    <div
+      className={cn(
+        "overflow-hidden",
+        /* **En bulle, plus de feuille** : la bulle est la surface, et une
+           feuille blanche dedans redonnerait le cadre dans le cadre que la
+           fiche interdit depuis le premier jour. */
+        bulle ? "" : "bg-white md:mt-4 md:rounded-xl md:ring-1 md:ring-black/[0.08]",
+      )}
+    >
       {bloquees > 0 && !montrees && (
         /* Dire ce qui est retenu, et pourquoi, plutôt que d'afficher un
            message troué sans explication. */
-        <div className="flex items-center gap-2 border-b border-black/[0.06] bg-[#f6f6f7] px-3 py-2 text-[13px] text-[#444]">
+        <div
+          className={cn(
+            "flex items-center gap-2 border-b px-3 py-2 text-[13px]",
+            bulle
+              ? "border-foreground/10 text-muted-foreground"
+              : "border-black/[0.06] bg-[#f6f6f7] text-[#444]",
+          )}
+        >
           <ImageOff className="size-4 shrink-0" />
           <span className="min-w-0 flex-1">
             {bloquees} image{bloquees > 1 ? "s" : ""} distante{bloquees > 1 ? "s" : ""} retenue
@@ -442,7 +642,12 @@ function CorpsHtml({ html, bloquees, sujet }: { html: string; bloquees: number; 
           <button
             type="button"
             onClick={montrer}
-            className="shrink-0 rounded-full bg-white px-3 py-1 font-medium text-[#0b57d0] shadow-[0_0_0_1px_rgb(0_0_0/0.08)]"
+            className={cn(
+              "shrink-0 rounded-full px-3 py-1 font-medium",
+              bulle
+                ? "bg-foreground/[0.08] text-foreground hover:bg-foreground/[0.13]"
+                : "bg-white text-[#0b57d0] shadow-[0_0_0_1px_rgb(0_0_0/0.08)]",
+            )}
           >
             Afficher
           </button>

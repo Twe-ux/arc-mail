@@ -75,6 +75,94 @@ destinataires et une date longue sur 390 px : nommer le lecteur au milieu mangea
 la seule chose qu'on vienne y chercher. Notre adresse devient « moi », les autres se comptent
 (« moi et 2 autres »). Le chevron rond de 36 px déplie la liste réelle — De, À, Cc — à la demande.
 
+## Deux lectures d'un fil : courrier, ou discussion
+
+Le 6 septembre, capture à l'appui : « j'aime pas la présentation, pas compréhensible entre le
+message reçu et le répondu, lequel en premier, qui a répondu à quoi ? »
+
+Trois défauts se cumulaient, et le premier portait les deux autres.
+
+1. **La citation était dépliée.** Répondre à un mail en recopie l'intégralité en dessous : un fil de
+   quatre échanges portait donc quatre fois le premier message, et l'ordre *à l'intérieur* d'un
+   bloc était inversé — la réponse d'abord, la question citée ensuite. Aucun client ne fait ça.
+2. **Rien ne disait le sens.** Reçu et envoyé avaient le même avatar à gauche, le même alignement,
+   la même feuille blanche pleine largeur.
+3. **La feuille blanche faisait document.** Un rectangle blanc bord à bord se lit comme une page,
+   pas comme une réplique.
+
+### La citation, repliée
+
+`couperCitation` ([`src/lib/fil.ts`](../../src/lib/fil.ts)) pour le texte simple, un repli **dans le
+cadre** pour le HTML ([`message-body.tsx`](../../src/components/arc/message-body.tsx)). Deux chemins
+parce que la citation vit dans deux endroits : la page pour l'un, un document en bac à sable pour
+l'autre — un bouton posé dans la page n'aurait pas su où se placer dans le second.
+
+Le texte se coupe sur trois signes : une ligne qui **finit** par « a écrit : » (on ancre sur la fin,
+seule part que tous les clients écrivent pareil, et on remonte au début de son paragraphe si
+l'attribution tient sur deux lignes), un séparateur de transfert, ou un chevron. Le HTML se coupe
+sur les classes connues (`gmail_quote`, `blockquote[type=cite]`, `moz-cite-prefix`, `yahoo_quoted`,
+`divRplyFwdMsg`, `protonmail_quote`) et, à défaut, sur le premier bloc court dont le texte finit par
+l'attribution. Dans les deux cas on remonte **tant que le contenant n'ajoute rien devant** : si l'on
+arrive en haut sans avoir trouvé de texte avant, le message *est* une citation et on ne replie pas —
+replier tout un message ne laisserait qu'un bouton à l'écran.
+
+Rien n'est retiré : le bouton `···` rend la citation, et il **reste** une fois déplié — ce qu'on a
+ouvert doit pouvoir se refermer, et sa présence dit que le repli était le nôtre, pas une troncature.
+
+### Le côté, la teinte, le groupement
+
+Le réglage `filStyle` (feuille « Personnaliser » sur téléphone, panneau d'apparence sur bureau,
+rangée « Fil », deux cases **Discussion · Courrier**) commande la présentation, et
+`conversation` est le défaut.
+
+En discussion, [`message-bubble.tsx`](../../src/components/arc/message-bubble.tsx) : les nôtres à
+droite, les autres à gauche, bulle à rayon 18 (coin coupé à 6 du côté de qui parle, sur la
+**dernière** bulle de la grappe seulement — la grammaire d'iMessage), accent de l'espace à 22 %
+contre `foreground/6 %`, largeur maximale 76 % et, sur bureau, `min(76 %, 54ch)` : à 1000 px de
+volet, 76 % font 140 caractères par ligne et la bulle redevient la dalle qu'on venait de quitter.
+
+L'en-tête pesait deux lignes et un avatar de 44 px pour dire un nom et une date ; il en reste **une
+ligne de 22 px**, et elle ne revient **qu'au changement de voix** (avatar, nom ou « Vous », heure
+courte). Les grappes respirent une fois — 2 px entre deux messages du même auteur, 14 quand la
+parole change. C'est la troisième pièce, et il fallait les trois : deux suffisaient à distinguer, la
+troisième est ce qui fait qu'on n'a plus à lire pour savoir.
+
+### Ce qui ne rentre pas dans une bulle
+
+`enveloppe` ([`src/lib/fil.ts`](../../src/lib/fil.ts)) : un courrier qui apporte sa mise en page —
+un tableau, une balise `font`, un `bgcolor`, un fond, une couleur de texte, une largeur à trois
+chiffres, ou plus de 20 ko — **garde sa feuille blanche et toute la largeur, dans les deux modes**.
+Une infolettre écrasée dans 76 % de la colonne, sa feuille blanche à l'intérieur d'une pastille
+teintée, c'est le cadre dans le cadre que cette fiche interdit depuis le premier jour ; et c'est un
+document, pas une réplique.
+
+Ce qui passe en bulle voit son cadre devenir **transparent**, avec l'encre de l'app : un cadre est un
+autre document, nos variables CSS n'y entrent pas, donc le thème lui est **dit** — `prefers-color-scheme`
+répondrait celui du système, et le nôtre est un réglage de l'app. Les couleurs écrites en dur dans
+la feuille du cadre (`#ededef`, `#7fabf5`, `#b9b9be`, `#5c5c66`, comme `#fff` et `#0b57d0` avant
+elles) sont l'exception assumée aux tokens : elles vivent là où les tokens n'existent pas. Le
+détecteur les signale, et c'est cette ligne qui répond.
+
+Deux règles tombent d'elles-mêmes en discussion : **un fil d'un seul message reste en courrier**
+(une bulle seule n'est pas une conversation, et elle rendrait 24 % de la largeur pour rien), et
+**l'objet remonte au fil** — il était porté par le premier message, compromis assumé tant que le fil
+était une pile de blocs ; une fois les messages en bulles, le premier n'a plus rien de particulier à
+dire sur l'échange entier.
+
+### Un cadre qui ne rétrécissait jamais
+
+Trouvé en mesurant la première bulle HTML : deux lignes de texte dans un cadre de 220 px.
+`documentElement.scrollHeight` ne descend pas sous la hauteur de la fenêtre du cadre, donc le cadre
+rendait **sa propre hauteur** dès que son contenu devenait plus court qu'elle — mesuré `docSH 220`,
+`bodySH 81`, enveloppe `80,5`. Invisible tant qu'un courrier était long ; replier une citation le
+rend court d'un coup.
+
+On mesure donc l'**enveloppe** (`#arc-fit`, en `flow-root` : sa boîte *est* le contenu), plus la
+marge, et `body.scrollHeight` ne sert plus que de garde-fou **à l'échelle 1** — le rectangle de
+l'enveloppe est transformé, lui ne l'est pas, et les prendre au maximum rendait la hauteur de mise
+en page d'une infolettre de 600 px posée sur un téléphone de 393 : 128 px de gris sous le message,
+mesurés et corrigés dans la même passe.
+
 ## Les marges, alignées sur la liste
 
 C'est le décalage qu'on voyait sur un vrai téléphone : la barre du bas était collée aux trois

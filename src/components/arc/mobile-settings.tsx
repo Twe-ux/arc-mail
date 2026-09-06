@@ -1,6 +1,16 @@
 "use client";
 
-import { ChevronRight, LogOut, Moon, Palette, Rows3, Shapes, Sun, UserRound } from "lucide-react";
+import {
+  ChevronRight,
+  LogOut,
+  MessagesSquare,
+  Moon,
+  Palette,
+  Rows3,
+  Shapes,
+  Sun,
+  UserRound,
+} from "lucide-react";
 import Link from "next/link";
 
 import { useSignOut } from "@/components/auth/use-sign-out";
@@ -39,6 +49,8 @@ export function MobileSettings() {
   const dark = useMail((s) => s.dark);
   const toggleDark = useMail((s) => s.toggleDark);
   const density = useMail((s) => s.listDensity);
+  const fil = useMail((s) => s.filStyle);
+  const setFil = useMail((s) => s.setFilStyle);
   const setDensity = useMail((s) => s.setListDensity);
   const renameSpace = useMail((s) => s.renameSpace);
   const session = useSession();
@@ -194,6 +206,30 @@ export function MobileSettings() {
                   onChange={(v) => {
                     if ((v === "sombre") !== dark) toggleDark();
                   }}
+                />
+              </div>
+            </div>
+          </li>
+
+          {/* **Deux lectures d'un fil.** « Discussion » met les messages
+              échangés en bulles, les nôtres à droite, la citation repliée ;
+              « Courrier » garde la suite de blocs pleine largeur. Le réglage ne
+              décide pas seul : un courrier qui apporte sa mise en page garde sa
+              feuille dans les deux modes, et un fil d'un seul message se lit en
+              courrier — une bulle seule n'est pas une conversation. */}
+          <li className="group/row">
+            <div className="pl-4">
+              <div className="flex min-h-[50px] items-center gap-3 border-b border-black/[0.07] py-1.5 pr-4 group-last/row:border-0 dark:border-white/[0.09]">
+                <MessagesSquare className="size-5 shrink-0" strokeWidth={1.75} />
+                <span className="min-w-0 flex-1 truncate text-[15px]">Fil</span>
+                <Segmented
+                  label="Présentation d'un fil"
+                  options={[
+                    ["conversation", "Discussion"],
+                    ["courrier", "Courrier"],
+                  ]}
+                  value={fil}
+                  onChange={setFil}
                 />
               </div>
             </div>

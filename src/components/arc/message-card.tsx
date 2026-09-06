@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { formatFullDate, formatShortDate } from "@/lib/format";
+import { enveloppe } from "@/lib/fil";
 import { useMail, useSpace } from "@/lib/store";
 import type { Contact, Message } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -13,6 +14,7 @@ import { AttachmentRow } from "./attachment";
 import { Desabonner } from "./desabonner";
 import { ContactAvatar } from "./contact-avatar";
 import { MessageBody } from "./message-body";
+import { MessageBubble } from "./message-bubble";
 
 /**
  * Un message dans un fil.
@@ -39,6 +41,10 @@ export function MessageCard({
   threadId,
   sujet,
   premier,
+  conversation,
+  mien,
+  tete,
+  queue,
   onReplyTo,
 }: {
   message: Message;
@@ -48,6 +54,14 @@ export function MessageCard({
   sujet: string;
   /** Le premier message du fil : c'est lui qui porte l'objet, sur téléphone. */
   premier?: boolean;
+  /** Le fil se lit en discussion (`filStyle`) — voir `MessageBubble`. */
+  conversation?: boolean;
+  /** Nous l'avons écrit. */
+  mien?: boolean;
+  /** Premier de sa grappe. */
+  tete?: boolean;
+  /** Dernier de sa grappe. */
+  queue?: boolean;
   onReplyTo: (to: Contact[]) => void;
 }) {
   /* Les destinataires ne sont dépliés qu'à la demande : « à moi » suffit dans
@@ -55,6 +69,7 @@ export function MessageCard({
      une fois sur vingt. */
   const [deplie, setDeplie] = useState(false);
   const space = useSpace();
+  const dark = useMail((s) => s.dark);
   const bureau = useMediaQuery("(min-width: 768px)");
   const openThird = useMail((s) => s.openThird);
   const detache = useMail((s) => s.third?.kind === "message" && s.third.messageId === message.id);
@@ -65,6 +80,25 @@ export function MessageCard({
      détache le message. */
   const estHtml = Boolean(message.html);
   const aQui = destinataires(message.to, space.identity.email);
+
+  /* **La règle qui tient tout le mode discussion** : un courrier qui apporte
+     sa mise en page ne rentre pas dans une bulle. Une infolettre écrasée dans
+     76 % de la colonne, avec sa feuille blanche à l'intérieur d'une pastille
+     teintée, c'est le cadre dans le cadre — et c'est un document, pas une
+     réplique. Il garde donc exactement ce qu'il a aujourd'hui. */
+  if (conversation && enveloppe(message.html) === "bulle") {
+    return (
+      <MessageBubble
+        message={message}
+        threadId={threadId}
+        mien={Boolean(mien)}
+        tete={Boolean(tete)}
+        queue={Boolean(queue)}
+        dark={dark}
+        onReplyTo={onReplyTo}
+      />
+    );
+  }
 
   return (
     <div
@@ -181,7 +215,7 @@ export function MessageCard({
           nom et ramené à 19 px semi-gras — c'est l'ordre de Mail d'iOS —, il
           rend 39 px au message et cesse de disputer la vedette au corps.
           Sur bureau il est déjà dans l'en-tête de la conversation. */}
-      {premier && (
+      {premier && !conversation && (
         <h1 className="border-b border-black/[0.06] px-5 pb-4 text-[19px] leading-[1.3] font-semibold tracking-[-0.01em] text-pretty md:hidden dark:border-white/[0.08]">
           {sujet}
         </h1>

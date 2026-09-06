@@ -17,6 +17,22 @@ instantanée, et c'est la dérive dont ce projet est né :
 Mais « qu'est-ce que cette personne m'a écrit » est une vraie question, à laquelle le courrier ne
 répond pas de lui-même. D'où cette vue, **à côté** du rangement par fil, jamais à la place.
 
+## Une présentation n'est pas un rangement (6 sept. 2026)
+
+Le mail ouvert a gagné un mode **discussion** — bulles, nôtres à droite, citation repliée
+→ [mail ouvert](mail-ouvert.md). La question s'est posée telle quelle : est-ce la dérive
+d'`arc-messenger` qui revient par la fenêtre ?
+
+Non, et la ligne est nette. Ce que cette fiche interdit, c'est de **ranger** le courrier comme une
+messagerie : regrouper par adresse, fondre deux échanges sans rapport, laisser l'objet cesser
+d'être l'identité du fil. Le mode discussion ne touche à rien de tout ça — l'objet, le dossier, le
+fil et son ordre restent exactement ce qu'ils sont. Il ne change que la **peinture d'un fil qui est
+déjà un fil**.
+
+Deux garde-fous le disent dans le code plutôt que dans un commentaire : un fil d'un seul message
+n'entre pas en bulles, et un courrier qui apporte sa mise en page garde sa feuille blanche dans les
+deux modes.
+
 ## Ce qu'elle fait
 
 **Deux niveaux.** Les gens d'abord — avatar, nom, adresse, nombre de conversations, non-lus, date du

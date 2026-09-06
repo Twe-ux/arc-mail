@@ -2,6 +2,45 @@
 
 Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérification.
 
+## 6 septembre 2026 — l'objet seul ne fait plus un fil
+
+Quatre fiches de salaire, envoyées le même jour à quatre personnes différentes, dans **un seul fil**
+sous le nom du dernier destinataire. La reprise par objet de `groupIntoThreads` était
+inconditionnelle : deux messages de même objet fusionnaient, quoi qu'ils soient.
+
+Deux conditions désormais, et il faut les deux : l'un des deux se présente comme une **réponse**
+(`Re:`, `Fwd:`), et ils ont un **correspondant en commun, nous exclus** — on est des deux côtés de
+tout notre courrier, notre adresse ne prouve donc aucun lien. La route passe `moi: account.email`
+pour ça. La reprise se fait par paires dans un seau, plus par un nœud commun qui unissait tout le
+seau d'un coup.
+
+Ce qu'on y perd, et c'est assumé : une réponse sans `References` **et** sans `Re:` ne s'attache
+plus — elle est indistinguable d'un message neuf.
+
+## 6 septembre 2026 — deux lectures d'un fil, et la citation repliée
+
+« J'aime pas la présentation, pas compréhensible entre le message reçu et le répondu, lequel en
+premier, qui a répondu à quoi ? » Trois défauts, et le premier portait les deux autres : la citation
+était **dépliée** — un fil de quatre échanges portait quatre fois le premier message, l'ordre à
+l'intérieur d'un bloc inversé —, rien ne disait le **sens**, et la feuille blanche faisait document.
+
+La citation se replie maintenant derrière un `···`, par deux chemins parce qu'elle vit dans deux
+endroits : `couperCitation` pour le texte, un repli **dans le cadre** pour le HTML. Puis le mode
+`filStyle`, deux cases **Discussion · Courrier** dans les deux panneaux, discussion par défaut :
+bulles, les nôtres à droite, une tête par grappe.
+
+Ce n'est pas la dérive d'`arc-messenger` : elle rangeait par adresse, celui-ci ne change que la
+peinture d'un fil qui est déjà un fil — l'objet, le dossier et l'ordre ne bougent pas. Deux
+garde-fous le disent dans le code : un fil d'un seul message n'entre pas en bulles, et un courrier
+qui apporte sa mise en page garde sa feuille dans les deux modes.
+
+Trouvé à la mesure, et corrigé dans la même passe : **le cadre ne rétrécissait jamais**.
+`documentElement.scrollHeight` ne descend pas sous la hauteur de la fenêtre du cadre — deux lignes
+de texte tenaient dans 220 px (mesuré : docSH 220, bodySH 81, enveloppe 80,5). Invisible tant qu'un
+courrier était long ; replier une citation le rend court d'un coup. On mesure l'enveloppe, et
+`body.scrollHeight` ne garde que l'échelle 1 — il n'est pas transformé, et le prendre au maximum
+posait 128 px de gris sous l'infolettre.
+
 ## 6 septembre 2026 — un fil rendait un seul de ses messages
 
 « Pourquoi je n'ai pas tous les messages de la conversation ? », capture à l'appui : le premier

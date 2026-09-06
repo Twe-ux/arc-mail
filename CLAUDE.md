@@ -158,7 +158,8 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   ligne, son icône, son contrôle à droite ; pas de titre en capitales ; 268 px.
 - L'accent **remplit à 22 %, il n'est pas l'aplat** : en `bg-[var(--space-accent)]` sous une encre
   `--space-ink`, qui vaut l'accent en sombre, le glyphe disparaît dans son propre fond.
-- La feuille **Personnaliser** est **un seul groupe de quatre lignes**, sans titre en capitales,
+- La feuille **Personnaliser** est **un seul groupe de cinq lignes** (« Fil » s'est ajoutée), sans
+  titre en capitales,
   chacune avec son icône en trait et son contrôle à droite ; le filet se pose après le `pl-4`. Les
   pastilles de teinte prennent **toute** la largeur sous leur titre — indentées de l'icône, il ne
   restait plus qu'un pixel de gouttière.
@@ -266,6 +267,24 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   et l'objet réclamé est repris tel quel — il porte le jeton de l'abonné) ; un lien `https` seul
   ouvre la page de l'expéditeur en `noreferrer`. Le clic unique de la RFC 8058 attend son garde-fou
   SSRF. La rangée disparaît à l'envoi et revient si l'envoi échoue.
+- **La citation se replie** derrière un `···` : `couperCitation` (`src/lib/fil.ts`) pour le texte,
+  un repli **dans le cadre** pour le HTML (classes connues, sinon le bloc court qui finit par
+  « a écrit : ») — on remonte tant que le contenant n'ajoute rien devant, et un message qui n'est
+  *que* citation ne se replie pas. Rien n'est retiré ; le bouton reste pour refermer.
+- **Deux lectures d'un fil** (`filStyle`, rangée « Fil » des deux panneaux, `conversation` par
+  défaut) : bulles — nôtres à droite, accent 22 %, une tête par grappe, 76 % et `min(76%,54ch)` sur
+  bureau — ou la pile de blocs d'avant. Ce n'est **pas un rangement** : objet, dossier et fil ne
+  bougent pas → [vue par correspondant](docs/features/vue-correspondant.md).
+- Un courrier qui **apporte sa mise en page** (`enveloppe` : table, `font`, `bgcolor`, fond,
+  couleur, largeur à trois chiffres, > 20 ko) garde sa **feuille blanche et toute la largeur dans
+  les deux modes** ; un fil d'**un seul message** reste en courrier, et l'objet remonte au fil dès
+  qu'on est en discussion.
+- En bulle le cadre est **transparent** et le thème lui est **dit** (`prefers-color-scheme` répond
+  celui du système, pas le nôtre) ; ses couleurs en dur sont l'exception assumée aux tokens — les
+  variables n'entrent pas dans un autre document.
+- Le cadre mesure **son enveloppe** (`#arc-fit`, `flow-root`), jamais `documentElement.scrollHeight`
+  qui ne descend pas sous sa propre hauteur — sans quoi il ne rétrécit jamais ; `body.scrollHeight`
+  ne garde que l'échelle 1, il n'est pas transformé.
 - L'en-tête **ne se replie pas** : essayé, retiré — le repli suit le sens du défilement, et
   l'élastique du bas d'un message le faisait sauter en fin de course.
 - Une `iframe` de message HTML avale tous les touchers : le cadre les **relaie**
@@ -398,6 +417,10 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   retour), lancé en parallèle de la liste : le dossier ouvert compte en local — l'optimiste doit se
   voir —, les autres lisent le serveur, Favoris et « En pause » n'y sont pas (un drapeau, pas de
   dossier). Un déplacement ajuste le compteur d'arrivée **s'il existe déjà** ; rien n'est persisté.
+- **L'objet seul ne fait pas un fil** : la reprise par objet demande qu'**un des deux se présente
+  comme une réponse** (`Re:`/`Fwd:`) **et** qu'ils aient un correspondant en commun, nous exclus
+  (`moi` vient de la route) — sinon quatre envois de même objet à quatre personnes fusionnaient. Par
+  paires dans un seau, jamais par un nœud commun.
 - La liste ne rapporte que des enveloppes ; le corps arrive par `getThread` à l'ouverture, et
   l'hydratation complète le fil au lieu de le remplacer.
 - `getThread` reçoit les **identifiants des messages** et lit **tous** leurs UID en un `FETCH` :

@@ -73,6 +73,9 @@ const OPENERS = {
   compose: `document.querySelector('nav[aria-label="Navigation"] button[aria-label="Écrire"]')?.click()`,
   search: `document.querySelector('nav[aria-label="Navigation"] button[aria-label="Rechercher"]')?.click()`,
   fil: [CLICK_TEXT("Photos de l'anniversaire")],
+  /* Le fil qui porte des citations : c'est celui qui montre le repli et, en
+     mode discussion, l'alternance des deux côtés. */
+  discussion: [CLICK_TEXT("Tu as vu le vélo sur leboncoin ?")],
   "piece-jointe": [
     CLICK_TEXT("Photos de l'anniversaire"),
     `document.querySelector('button[aria-pressed] img')?.closest('button')?.click()`,
@@ -113,7 +116,7 @@ const OPENERS = {
 };
 
 /** Les écrans qui ne sont pas des cartes flottantes : rien à mesurer, mais à capturer partout. */
-const BOTH_SIZES = new Set(["fil", "infolettre", "piece-jointe", "rail", "masquee", "volet-message", "composeur", "html-large", "correspondants", "correspondants-large"]);
+const BOTH_SIZES = new Set(["fil", "discussion", "infolettre", "piece-jointe", "rail", "masquee", "volet-message", "composeur", "html-large", "correspondants", "correspondants-large"]);
 
 const CARD = `(() => {
   const el = document.querySelector('[data-slot="sheet-content"], [data-slot="dialog-content"]');

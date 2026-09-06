@@ -69,6 +69,21 @@ export type MailState = {
    * voile ; l'un sans l'autre serait illisible.
    */
   fondBureau: "degrade" | "voile";
+  /**
+   * Comment un fil se présente — **deux lectures, pas deux rangements**.
+   *
+   * `conversation` (le défaut) : les messages échangés prennent la forme d'une
+   * discussion — les nôtres à droite, ceux d'en face à gauche, la citation
+   * repliée. `courrier` : la suite de blocs pleine largeur d'avant, celle de
+   * Mail d'iOS.
+   *
+   * Ce n'est **jamais** un rangement : l'objet, les dossiers et le fil restent
+   * ce qu'ils sont, seule leur peinture change. Et le réglage ne décide pas
+   * seul — un courrier qui apporte sa mise en page garde sa feuille blanche
+   * dans les deux modes (`enveloppe`), et un fil d'un seul message se lit en
+   * courrier : une bulle unique n'est pas une conversation.
+   */
+  filStyle: "conversation" | "courrier";
   /** Largeur de la liste en vue partagée, sur bureau, en pixels. */
   listWidth: number;
   /** The attachment being looked at, `null` when none; it lives in the open thread. */
@@ -214,6 +229,7 @@ export type MailState = {
   setSidebarMode: (mode: SidebarMode) => void;
   setListDensity: (d: MailState["listDensity"]) => void;
   setFondBureau: (f: MailState["fondBureau"]) => void;
+  setFilStyle: (f: MailState["filStyle"]) => void;
   /** ⌘B : attachée → rail → masquée → attachée. */
   cycleSidebarMode: () => void;
   toggleDark: () => void;
@@ -811,6 +827,7 @@ export const useMail = create<MailState>()(
   sidebarMode: "full",
   listDensity: "confort",
   fondBureau: "degrade",
+  filStyle: "conversation",
   listWidth: LISTE_DEFAUT,
   groupBy: "fil",
   vues: [],
@@ -1232,6 +1249,7 @@ export const useMail = create<MailState>()(
   setSidebarMode: (sidebarMode) => set({ sidebarMode }),
   setListDensity: (listDensity) => set({ listDensity }),
   setFondBureau: (fondBureau) => set({ fondBureau }),
+  setFilStyle: (filStyle) => set({ filStyle }),
   cycleSidebarMode: () =>
     set((s) => ({
       sidebarMode: s.sidebarMode === "full" ? "rail" : s.sidebarMode === "rail" ? "hidden" : "full",
@@ -1644,6 +1662,7 @@ export const useMail = create<MailState>()(
           | "sidebarMode"
           | "listDensity"
           | "fondBureau"
+          | "filStyle"
           | "listWidth"
           | "thirdWidth"
           | "groupBy"
@@ -1661,6 +1680,7 @@ export const useMail = create<MailState>()(
         sidebarMode: s.sidebarMode,
         listDensity: s.listDensity,
         fondBureau: s.fondBureau,
+        filStyle: s.filStyle,
         listWidth: s.listWidth,
         thirdWidth: s.thirdWidth,
         groupBy: s.groupBy,

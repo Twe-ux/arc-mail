@@ -25,19 +25,44 @@ export type SpaceTheme = {
 /**
  * Les glyphes qu'un espace peut porter.
  *
- * Huit, pas trois : « maison, mallette, fiole » couvrait trois espaces
- * d'exemple, pas les boîtes de quelqu'un. Huit tiennent sur une rangée de
- * pastilles et laissent le choix sans le noyer.
+ * Vingt-quatre, en trois rangées de huit. Il y en a eu trois — « maison,
+ * mallette, fiole » —, qui couvraient trois espaces d'exemple et pas les
+ * boîtes de quelqu'un, puis huit. Vingt-quatre parce qu'on a demandé « plus de
+ * choix » : ils disent l'**usage** d'une boîte — travail, société, achats,
+ * voyages, banque, études —, pas un fournisseur.
+ *
+ * **Pas de logo de marque.** Ni Gmail ni Apple : `lucide-react` n'en fournit
+ * plus, et le nom d'un fournisseur se lit déjà sur l'adresse de l'espace,
+ * juste sous son nom. Une boîte se reconnaît à ce qu'on y range.
+ *
+ * Toute addition ici demande une migration : la colonne `icon` de
+ * `mail_spaces` porte la liste en contrainte `check`.
  */
 export type SpaceIconName =
   | "house"
   | "briefcase"
+  | "building"
   | "flask"
+  | "code"
   | "globe"
+  | "at"
+  | "mail"
   | "heart"
-  | "sparkles"
+  | "users"
+  | "shopping"
+  | "plane"
+  | "bank"
+  | "school"
+  | "camera"
   | "book"
-  | "tag";
+  | "music"
+  | "leaf"
+  | "sparkles"
+  | "tag"
+  | "bell"
+  | "coffee"
+  | "rocket"
+  | "star";
 
 export type Space = {
   id: SpaceId;

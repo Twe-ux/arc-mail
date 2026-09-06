@@ -2,6 +2,25 @@
 
 Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérification.
 
+## 6 septembre 2026 — vingt-quatre glyphes, et le choix descend sur le téléphone
+
+Deux demandes : le choix de l'icône n'existait que dans le panneau du bureau — on pouvait donc
+choisir la couleur d'un espace depuis son téléphone mais pas son glyphe, alors que c'est le glyphe
+qu'on voit dans la barre du bas —, et huit ne suffisaient pas.
+
+Vingt-quatre, qui disent **l'usage** d'une boîte : maison, mallette, société, fiole, code, web,
+alias, courrier, cœur, équipe, achats, voyages, banque, études, photo, lecture, musique, nature,
+étincelles, étiquette, cloche, café, fusée, étoile. **Pas de logo de marque** — Gmail et Apple
+étaient demandés : `lucide-react` n'en fournit plus, un logo engage la marque de quelqu'un d'autre,
+et surtout le fournisseur se lit déjà sur l'adresse écrite sous le nom de l'espace.
+
+Six colonnes sur téléphone contre huit sur bureau : sur 313 px utiles, huit tuiles font 34 px quand
+le doigt en demande 44 ; six en font 46, mesuré, et vingt-quatre tombent juste en quatre rangées.
+La feuille passe à 629 px, sous les 86 dvh qui la bornent.
+
+Une migration va avec (`20260906180000_icones_24.sql`) : la colonne `icon` porte la liste en
+contrainte, et seize noms lui étaient inconnus.
+
 ## 6 septembre 2026 — le bureau rattrape le téléphone, et le thème se dit en deux mots
 
 « Il faut aligner sur desktop » : le panneau d'apparence traînait tout ce que la feuille venait de

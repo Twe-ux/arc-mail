@@ -389,8 +389,11 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   restent les dossiers SPECIAL-USE du compte.
 - Le dossier se choisit dans une liste rendue par le serveur, jamais tapé à la main ; la première
   vue crée aussi celle d'`INBOX`, sinon la réception du compte disparaît.
-- Le nom et l'icône se règlent depuis la boîte (`ThemePicker`) ; le nom se valide au blur, pas à la
-  frappe. Renommer un espace fabriqué crée sa ligne et **change son identifiant** : fils, teinte et
+- Le nom et l'icône se règlent depuis la boîte (`ThemePicker`) **et depuis la feuille du
+  téléphone** ; le nom se valide au blur, pas à la frappe. **24 glyphes** qui disent l'usage d'une
+  boîte, jamais un logo de marque (lucide n'en a plus, et l'adresse dit déjà le fournisseur) — 8
+  colonnes sur bureau, **6 sur téléphone** pour que la tuile fasse 46 et non 34. Toute addition
+  demande une migration : la colonne `icon` porte la liste en `check`. Renommer un espace fabriqué crée sa ligne et **change son identifiant** : fils, teinte et
   récents suivent.
 - `loadSpace` ne lit **qu'un dossier**, celui qu'on regarde ; Favoris se fond au lieu de remplacer.
 

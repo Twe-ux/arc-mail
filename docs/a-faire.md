@@ -25,7 +25,9 @@ est argumenté dans l'[audit du 6 septembre](audits/2026-09-06-clients-mail.md).
       ouvert garde le compte local (l'optimiste doit se voir), les autres lisent le serveur.
       **Reste à voir sur une vraie boîte** : c'est dans « à tester ».
 - [ ] Appliquer `supabase/migrations/20260904140000_espaces.sql` à la base (les précédentes le
-      sont ; sans elle, `/comptes` n'affiche pas la section Espaces).
+      sont ; sans elle, `/comptes` n'affiche pas la section Espaces), **puis**
+      `20260906180000_icones_24.sql` — sans elle, choisir un des seize glyphes nouveaux échoue à
+      l'enregistrement, la contrainte `check` n'en connaissant que huit.
 - [ ] Mode `filter` des espaces : `INBOX` filtrée par destinataire, pour se passer d'une règle
       côté iCloud.
 
@@ -42,7 +44,7 @@ est argumenté dans l'[audit du 6 septembre](audits/2026-09-06-clients-mail.md).
 
 ### Interface
 
-- [ ] Créer, renommer un espace ; choisir son icône (la couleur se choisit déjà).
+- [ ] Créer un espace (renommer et choisir son icône se font des deux côtés depuis le 6 sept.).
 - [ ] **Corps HTML du message** : c'est ce qui manque au panneau de mise en forme, dont tous les
       boutons de style sont désactivés faute de destination (`composeur-panneaux.md`). Il faut un
       champ riche, `html` dans `OutgoingMessage`, et `MailComposer` qui envoie les deux parties.

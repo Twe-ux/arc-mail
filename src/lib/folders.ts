@@ -32,3 +32,22 @@ export const FOLDER_ICON: Record<FolderId, LucideIcon> = {
   archive: Archive,
   trash: Trash2,
 };
+
+/**
+ * Ce qu'on dit **après** avoir rangé un fil : « Archivé », pas « Déplacé vers
+ * Archive ».
+ *
+ * C'est le libellé du toast qui porte « Annuler », et il se lit au passé : il
+ * raconte ce qui vient d'arriver, pas la destination. Trois dossiers ont leur
+ * verbe — archiver, jeter, mettre en pause —, les autres n'en ont pas et
+ * nomment donc leur dossier.
+ */
+export const FOLDER_DONE: Record<FolderId, string> = {
+  inbox: "Remis en réception",
+  starred: "Ajouté aux favoris",
+  snoozed: "Mis en pause",
+  sent: "Déplacé vers Envoyés",
+  drafts: "Déplacé vers Brouillons",
+  archive: "Archivé",
+  trash: "Mis à la corbeille",
+};

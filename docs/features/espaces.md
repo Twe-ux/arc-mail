@@ -119,3 +119,32 @@ et ses fils vivent ailleurs. On les fond dans ce qu'on a plutôt que de remplace
 n'existe pas — sans quoi ouvrir Favoris effacerait la réception. Côté IMAP ils gardent `inbox`
 comme dossier, pour la même raison : les marquer « starred » les ferait disparaître de la
 réception, puisque `threadMatchesFolder` lit `t.folder`.
+
+---
+
+## Vingt-quatre glyphes, et le choix passe aussi sur le téléphone (6 sept. 2026)
+
+Demandé : « ajoute le choix des icônes sur mobile », puis « on peut en avoir d'autres ? Gmail,
+Apple, ou plus de choix ».
+
+**Pas de logo de marque, et ce n'est pas un oubli.** `lucide-react` n'en fournit plus — les marques
+ont été sorties de la bibliothèque —, et un logo posé dans un client de mail engage la marque de
+quelqu'un d'autre. Surtout : le fournisseur d'une boîte se lit déjà sur **son adresse**, écrite sous
+son nom dans la tête du panneau comme dans celle de la feuille. Un glyphe qui redirait « iCloud »
+ne dirait rien de plus.
+
+Ce que les vingt-quatre disent, c'est **l'usage** : maison, mallette, société, fiole, code, web,
+alias (`@`), courrier, cœur, équipe, achats, voyages, banque, études, photo, lecture, musique,
+nature, étincelles, étiquette, cloche, café, fusée, étoile. Une boîte se reconnaît à ce qu'on y
+range.
+
+Le choix **existe désormais sur téléphone** : il ne vivait que dans le panneau du bureau, et on
+pouvait donc choisir la couleur d'un espace depuis son téléphone mais pas son glyphe — alors que
+c'est le glyphe qu'on voit dans la barre du bas. **Six colonnes et non huit** : sur 313 px utiles,
+huit tuiles font 34 px quand le doigt en demande 44 ; six en font 46 (mesuré), et vingt-quatre
+tombent juste en quatre rangées. La feuille passe à 629 px, sous les 86 dvh qui la bornent.
+
+**Toute addition demande une migration.** La colonne `icon` de `mail_spaces` porte la liste en
+contrainte `check` : ajouter un nom dans `SpaceIconName` sans passer par
+`supabase/migrations/20260906180000_icones_24.sql` ferait échouer l'enregistrement côté serveur,
+avec une erreur que l'écran ne sait pas traduire.

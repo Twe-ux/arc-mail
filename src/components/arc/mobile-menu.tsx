@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronRight, Moon, Palette, Rows3, Sun, UserRound, X } from "lucide-react";
+import { ChevronRight, Moon, Palette, Rows3, Shapes, Sun, UserRound, X } from "lucide-react";
 import Link from "next/link";
 
 import { SignOut } from "@/components/auth/sign-out";
@@ -8,11 +8,12 @@ import { FOLDER_ICON } from "@/lib/folders";
 import { FOLDERS } from "@/lib/mock-data";
 import { selectUnreadCount, useMail, useRecentThreads, useSpace } from "@/lib/store";
 import { PRESET_HUES, themeFromHue } from "@/lib/theme";
-import type { FolderId } from "@/lib/types";
+import type { FolderId, Space } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { BottomSheet, SheetCloseButton, SheetGroup, SheetRow, SheetScroller } from "./bottom-sheet";
 import { ContactAvatar } from "./contact-avatar";
 import { Segmented } from "./segmented";
+import { SPACE_ICONS } from "./space-icon";
 import { InstallHint } from "./install-hint";
 import { SpaceIcon } from "./space-icon";
 
@@ -155,6 +156,7 @@ export function MobileSettings() {
   const toggleDark = useMail((s) => s.toggleDark);
   const density = useMail((s) => s.listDensity);
   const setDensity = useMail((s) => s.setListDensity);
+  const renameSpace = useMail((s) => s.renameSpace);
 
   return (
     <BottomSheet
@@ -175,6 +177,54 @@ export function MobileSettings() {
     >
       <SheetScroller>
         <SheetGroup className="mt-1">
+          {/* **Le choix de l'icône, sur téléphone aussi** (6 sept.). Il n'existait
+              que dans le panneau du bureau : on pouvait choisir la couleur d'un
+              espace depuis son téléphone mais pas son glyphe, alors que c'est
+              lui qu'on voit dans la barre du bas.
+
+              **Six colonnes, pas huit** comme sur bureau : sur 313 px utiles,
+              huit tuiles font 34 px quand le doigt en demande 44. Six en font
+              46, et vingt-quatre glyphes tombent juste en quatre rangées. La
+              colonne est une adaptation de largeur, pas une autre grammaire. */}
+          <li className="group/row">
+            <div className="pl-4">
+              <div className="border-b border-black/[0.07] py-3 pr-4 group-last/row:border-0 dark:border-white/[0.09]">
+                <div className="flex items-center gap-3">
+                  <Shapes className="size-5 shrink-0" strokeWidth={1.75} />
+                  <p className="text-[15px]">Icône</p>
+                </div>
+                <div className="mt-2.5 grid grid-cols-6 gap-2" role="radiogroup" aria-label="Icône de l'espace">
+                  {(Object.keys(SPACE_ICONS) as Space["icon"][]).map((cle) => {
+                    const Glyphe = SPACE_ICONS[cle];
+                    const choisi = space.icon === cle;
+                    return (
+                      <button
+                        key={cle}
+                        type="button"
+                        role="radio"
+                        aria-checked={choisi}
+                        aria-label={`Icône ${cle}`}
+                        onClick={() => void renameSpace(space.id, { name: space.name, icon: cle })}
+                        /* L'accent **remplit** à 22 %, il n'est pas l'aplat : en
+                           fond plein sous une encre `--space-ink`, qui vaut
+                           l'accent en thème sombre, le glyphe choisi disparaît
+                           dans sa propre pastille. */
+                        className={cn(
+                          "flex aspect-square items-center justify-center rounded-xl transition-colors active:scale-95 active:duration-0",
+                          choisi
+                            ? "bg-[color-mix(in_oklch,var(--space-accent)_22%,transparent)] text-[var(--space-ink)]"
+                            : "text-muted-foreground",
+                        )}
+                      >
+                        <Glyphe className="size-5" strokeWidth={1.75} />
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </li>
+
           {/* La teinte a besoin de toute la largeur : son libellé est au-dessus
               de ses huit pastilles, pas à côté. Les trois autres réglages
               tiennent leur contrôle à droite de leur nom.

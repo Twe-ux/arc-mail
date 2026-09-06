@@ -47,11 +47,11 @@ sur une ligne à lui ; on l'a montée telle quelle, puis retirée : « trop proc
 au centre du bandeau en 15/600, et la mise en page ne change plus selon que le clavier est sorti ou
 non — le titre s'effaçait sous `html.keyboard-open`, il n'y a plus rien à effacer.
 
-**Ce qui rattache la feuille à Arc Mail est le voile teinté de l'espace** qui la coiffe : une base
-et un halo à `--space-accent`, dose de bandeau (16 %), la recette de la fiche
-[thème](theme.md). La **tuile de l'espace** a été essayée à côté du titre, et retirée : le voile dit
-déjà la boîte et la ligne repliée en donne l'adresse — deux fois la même chose sur 393 px, c'est une
-fois de trop.
+**Ce qui rattache la feuille à Arc Mail est le voile teinté de l'espace** qui la coiffe : c'est le
+**dégradé de l'espace lui-même**, d'un bord à l'autre, effacé vers le bas au masque, à 18 %. Un halo
+radial posé à 18 % de la gauche l'a précédé et laissait le côté droit gris — « la couleur ne fait
+pas un dégradé vers la droite », signalé sur l'appareil. La dose reste celle d'un bandeau : la
+couleur franche appartient à l'action, le bouton d'envoi.
 
 Quatre pistes ont été rendues sur l'app réelle avant d'écrire une ligne (bandeau compact · tuile et
 grand titre · onglet de verre · tranche colorée) ; c'est le **bandeau compact** qui a été retenu,

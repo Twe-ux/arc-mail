@@ -157,12 +157,16 @@ export function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
         className="inset-x-0 top-0 bottom-0 mt-[var(--safe-top)] flex h-auto max-h-[100svh] w-auto max-w-none flex-col gap-0 rounded-t-[36px] border-0 p-0 pb-[var(--clavier)] shadow-[0_-8px_40px_rgb(0_0_0/0.28)] transition-none data-[state=open]:slide-in-from-bottom-8 data-[state=open]:duration-300 [--bas:max(0.5rem,env(safe-area-inset-bottom))] [--clavier:0px] [&:has(:is(input,textarea):focus)]:[--bas:0.5rem] [&:has(:is(input,textarea):focus)]:[--clavier:var(--keyboard-inset,0px)] dark:bg-[#26262a] dark:ring-1 dark:ring-white/12"
       >
         {/* Le voile de l'espace, en haut de la feuille et lui seul : c'est ce
-            qui la rattache à Arc Mail plutôt qu'à la feuille grise d'iOS. Une
-            base teintée très basse et un halo, la recette du dépôt, mais à
-            dose de bandeau — la couleur franche reste sur l'action. */}
+            qui la rattache à Arc Mail plutôt qu'à la feuille grise d'iOS.
+
+            C'est **le dégradé de l'espace lui-même**, d'un bord à l'autre, que
+            l'on efface vers le bas au masque. Un halo radial posé à 18 % de la
+            gauche laissait le côté droit gris — la couleur ne traversait pas,
+            et c'est ce qui se voyait. La dose reste celle d'un bandeau : la
+            couleur franche appartient à l'action. */}
         <span
           aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-0 h-36 rounded-t-[36px] opacity-[0.16] [background:radial-gradient(120%_100%_at_18%_0%,var(--space-accent),transparent_68%)]"
+          className="pointer-events-none absolute inset-x-0 top-0 h-36 rounded-t-[36px] opacity-[0.18] [background:var(--space-gradient)] [mask-image:linear-gradient(to_bottom,#000,transparent)]"
         />
         {/* La poignée : le glisser-fermer existe depuis le lot mobile, et rien
             ne le disait. Sur une feuille qui touche les bords, c'est elle qui

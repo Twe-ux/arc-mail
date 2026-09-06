@@ -227,8 +227,9 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   `Cc/Cci · De`, les outils **à plat** en bas (le composeur est sorti de
   [pill-actions](docs/features/pill-actions.md), qui n'a plus que deux emplois). 202 px de message
   clavier sorti (192 avant), 512 au repos.
-- Ce qui la rattache à Arc Mail est le **voile teinté de l'espace** qui la coiffe (16 %), pas une
-  tuile à côté du titre : essayée, retirée — la ligne repliée donne déjà l'adresse.
+- Ce qui la rattache à Arc Mail est le **dégradé de l'espace** qui la coiffe, d'un bord à l'autre,
+  effacé vers le bas au masque (18 %) — pas un halo radial, qui laissait le côté droit gris ; et pas
+  une tuile à côté du titre : essayée, retirée — la ligne repliée donne déjà l'adresse.
 - Les filets des lignes sont **en retrait** (`inset-x-4`), les labels suivent leur texte sur
   téléphone et **sans deux-points** (`À`, pas `À :`) — la colonne de 56 px reste une mise en page de
   fenêtre.

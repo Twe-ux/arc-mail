@@ -120,8 +120,11 @@ correctif.
 - [ ] **Le repli de la citation sur du vrai courrier** — les classes varient selon le webmail
       (`gmail_quote`, `blockquote[type=cite]`, Outlook), et le repli du cadre ne se prouve que sur
       ce que les autres écrivent vraiment.
-- [ ] **Le mode discussion sur un fil réel** — ce qui passe en bulle et ce qui garde sa feuille
-      (`enveloppe`) est une heuristique de chaîne, pas une mesure.
+- [ ] **Les deux surfaces sur un fil réel** — ce qui prend le cadre transparent et ce qui garde sa
+      feuille (`enveloppe`) est une heuristique de chaîne, pas une mesure.
+- [ ] **La citation rebâtie à l'envoi** — elle ne s'affiche plus nulle part avant de partir : il
+      faut vérifier chez le destinataire qu'elle est là, au bon niveau de chevrons, et que le HTML
+      ne s'invite pas dans un message tapé en texte simple.
 - [ ] Tests automatiques, une fois le manuel passé : contrat `MailProvider`, écritures optimistes,
       `loadSpace`, seuils de geste, e2e des cartes.
 

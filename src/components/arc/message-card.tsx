@@ -7,44 +7,45 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { formatFullDate, formatShortDate } from "@/lib/format";
 import { enveloppe } from "@/lib/fil";
-import { useMail, useSpace } from "@/lib/store";
+import { useMail } from "@/lib/store";
 import type { Contact, Message } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { AttachmentRow } from "./attachment";
-import { Desabonner } from "./desabonner";
 import { ContactAvatar } from "./contact-avatar";
+import { Desabonner } from "./desabonner";
 import { MessageBody } from "./message-body";
-import { MessageBubble } from "./message-bubble";
 
 /**
- * Un message dans un fil.
+ * Un message dans un fil — **à plat**.
  *
- * **À bord perdu sur téléphone.** Il y avait là trois cadres emboîtés — la
- * carte arrondie de l'écran, une carte grise par message, puis le bloc blanc
- * du HTML — et le texte finissait à quarante pixels des deux bords sur un
- * écran qui en fait trois cent quatre-vingt-dix. Seul l'en-tête de
- * l'expéditeur garde son retrait ; le corps prend toute la largeur.
+ * Les bulles ont vécu une journée. Elles réglaient une vraie question — « on ne
+ * sait pas qui a répondu à quoi » —, mais elles la réglaient **deux fois** : la
+ * cause était la citation dépliée, qui recopiait tout l'échange dans chaque
+ * message. Une fois la citation repliée (`couperCitation`), un fil plat avec un
+ * nom par message se lit très bien, et il se lit comme du **courrier** — ce que
+ * ce projet est. « Ça fait chip », et c'était juste.
  *
- * **Sur bureau c'est un bloc cliquable, pas une carte.** Rayon 10 et encart
- * comme les rangées de la liste, sans fond au repos : un fil est une suite de
- * messages, et cinq cartes grises empilées le faisaient lire comme cinq
- * documents. Le bloc se teinte au survol, et reste teinté quand son message est
- * ouvert dans le troisième volet.
+ * Ce qui reste de la refonte, parce que c'est ce qui marchait :
  *
- * **Son en-tête détache le message** (troisième volet) ; c'est le bouton
- * « Répondre » du survol qui vise la réponse sur cette personne seule. Les deux
- * gestes étaient sur le même clic : viser la réponse était le seul, et on ne
- * pouvait plus lire un message à côté du fil.
+ * - **une ligne d'en-tête, pas un bloc** : avatar, nom, heure. Plus de « à moi »,
+ *   qui prenait une ligne entière pour dire ce qu'on sait déjà ;
+ * - **une tête par grappe** : deux messages de suite du même auteur n'ont qu'un
+ *   en-tête, et c'est la respiration qui les sépare — plus de filet entre les
+ *   messages, il découpait le fil en tranches ;
+ * - **« Vous »** à la place de notre nom ;
+ * - et **un filet d'accent** dans la marge de nos messages : le seul signal de
+ *   direction qui reste, deux pixels au lieu d'un côté et d'un fond.
+ *
+ * Le corps s'aligne **sous le nom**, jamais sous l'avatar. Seul un courrier qui
+ * apporte sa mise en page (`enveloppe` → `document`) reprend toute la largeur :
+ * une infolettre n'a pas à payer la gouttière d'une conversation.
  */
 export function MessageCard({
   message,
   threadId,
   sujet,
-  premier,
-  conversation,
   mien,
   tete,
-  queue,
   onReplyTo,
 }: {
   message: Message;
@@ -52,184 +53,108 @@ export function MessageCard({
   threadId: string;
   /** L'objet du fil, passé au corps : il masque le préheader qui le répète. */
   sujet: string;
-  /** Le premier message du fil : c'est lui qui porte l'objet, sur téléphone. */
-  premier?: boolean;
-  /** Le fil se lit en discussion (`filStyle`) — voir `MessageBubble`. */
-  conversation?: boolean;
-  /** Nous l'avons écrit. */
+  /** Nous l'avons écrit : il porte le filet d'accent et s'appelle « Vous ». */
   mien?: boolean;
-  /** Premier de sa grappe. */
+  /** Premier de sa grappe : c'est lui qui porte l'en-tête. */
   tete?: boolean;
-  /** Dernier de sa grappe. */
-  queue?: boolean;
   onReplyTo: (to: Contact[]) => void;
 }) {
-  /* Les destinataires ne sont dépliés qu'à la demande : « à moi » suffit dans
-     l'immense majorité des cas, et la liste complète est ce qu'on va vérifier
-     une fois sur vingt. */
+  /* Les destinataires ne sont dépliés qu'à la demande : la liste complète est
+     ce qu'on va vérifier une fois sur vingt. */
   const [deplie, setDeplie] = useState(false);
-  const space = useSpace();
   const dark = useMail((s) => s.dark);
   const bureau = useMediaQuery("(min-width: 768px)");
   const openThird = useMail((s) => s.openThird);
   const detache = useMail((s) => s.third?.kind === "message" && s.third.messageId === message.id);
-  /* Un courrier HTML apporte **sa propre feuille blanche**. Le bloc ne peint
-     donc pas la sienne derrière : trois cadres emboîtés — le volet sombre, le
-     bloc teinté, la feuille — c'est le défaut qu'on avait déjà corrigé sur
-     téléphone. Ici c'est l'en-tête seul qui porte la teinte, et c'est lui qui
-     détache le message. */
-  const estHtml = Boolean(message.html);
-  const aQui = destinataires(message.to, space.identity.email);
 
-  /* **La règle qui tient tout le mode discussion, et c'est la largeur qui la
-     dit.** Seul un courrier qui apporte une vraie mise en page reste pleine
-     largeur : une infolettre écrasée dans 76 % de la colonne n'est plus une
-     infolettre. Un message qui n'a que des couleurs — toute signature
-     professionnelle en a — passe en bulle, avec sa feuille blanche pour peau
-     (`enveloppe`). */
   const forme = enveloppe(message.html);
-  if (conversation && forme !== "document") {
-    return (
-      <MessageBubble
-        message={message}
-        threadId={threadId}
-        mien={Boolean(mien)}
-        tete={Boolean(tete)}
-        queue={Boolean(queue)}
-        forme={forme}
-        dark={dark}
-        onReplyTo={onReplyTo}
-      />
-    );
-  }
+  /* **Deux surfaces, pas trois.** Un message sans couleurs à lui prend l'encre
+     de l'app, dans la gouttière. Tout le reste garde la feuille blanche du
+     courrier, parce que ces couleurs ont été écrites pour du blanc ; et un
+     document la garde **en pleine largeur**. */
+  const feuille = forme !== "bulle";
+  const pleineLargeur = forme === "document";
 
   return (
     <div
       className={cn(
-        "group/msg border-t border-black/[0.06] first-of-type:border-0 dark:border-white/[0.08]",
-        "md:rounded-xl md:border-0 md:transition-colors",
-        estHtml
-          ? "md:px-2 md:py-2"
-          : cn("md:px-4 md:py-3.5", detache ? "md:bg-foreground/[0.07]" : "md:hover:bg-foreground/[0.04]"),
+        "group/msg relative px-5 md:px-4",
+        /* 24 px quand la parole change, 6 entre deux messages du même auteur :
+           c'est la respiration qui sépare, plus un filet. */
+        tete ? "mt-6 first:mt-0" : "mt-1.5",
+        /* Le filet d'accent, dans la marge de gauche et sur toute la hauteur du
+           message : deux pixels suffisent à dire « c'est nous », là où un côté
+           et un fond en faisaient une messagerie instantanée. */
+        mien &&
+          "before:absolute before:inset-y-0 before:left-2 before:w-[2px] before:rounded-full before:bg-[var(--space-accent)] before:opacity-60 md:before:left-1.5",
       )}
     >
-      {/* **L'en-tête du message est un bloc, et le corps commence après un
-          filet.** Tout vivait sur la même dalle blanche — objet, expéditeur,
-          message — sans rien pour dire où l'un finissait ; c'est ce que Mail
-          d'iOS sépare d'un trait, et c'est ce qui manquait ici. Le filet est
-          rendu par le bloc lui-même (`border-b`) et disparaît sur bureau, où
-          l'en-tête est déjà une pastille teintée au survol. */}
-      <div
-        className={cn(
-          "flex items-center gap-3 border-b border-black/[0.06] px-5 py-4 md:gap-2.5 md:border-0 md:py-0 dark:border-white/[0.08]",
-          /* Le premier message porte l'objet juste en dessous : c'est le bloc
-             entier — qui, puis quoi — que le filet doit clore, pas le nom seul. */
-          premier && "max-md:border-b-0 max-md:pb-2.5",
-          estHtml
-            ? cn(
-                "md:rounded-lg md:px-2 md:py-1.5 md:transition-colors",
-                detache ? "md:bg-foreground/[0.07]" : "md:group-hover/msg:bg-foreground/[0.04]",
-              )
-            : "md:px-0",
-        )}
-      >
-        {/* **Sur bureau** l'en-tête détache le message dans le troisième
-            volet : lire un message à côté du fil est ce qu'on vient y faire, et
-            la réponse ciblée garde son bouton juste à droite.
-
-            **Sur téléphone il déplie les destinataires**, comme le chevron qui
-            le termine. Viser la réponse d'ici y ouvrait le clavier : le clic
-            fantôme d'iOS retombait sur cette rangée juste après l'ouverture du
-            fil, et on arrivait sur un message déjà à moitié caché par les
-            touches. Lire d'abord ; « Répondre » est en bas, et c'est lui qui
-            lève le clavier. */}
-        <button
-          type="button"
-          onClick={() => (bureau ? openThird({ kind: "message", messageId: message.id }) : setDeplie((v) => !v))}
-          aria-expanded={bureau ? undefined : deplie}
-          aria-pressed={bureau ? detache : undefined}
-          aria-label={
-            bureau
-              ? `Ouvrir le message de ${message.from.name} dans le volet`
-              : deplie
-                ? "Masquer les destinataires"
-                : "Voir les destinataires"
-          }
-          className="flex min-w-0 flex-1 items-center gap-3 rounded-xl text-left outline-none focus-visible:ring-2 focus-visible:ring-ring/50 md:gap-2.5"
-        >
-          <ContactAvatar contact={message.from} className="size-11 md:size-7" />
-          <span className="min-w-0 flex-1 leading-tight">
-            {/* **La date passe à droite du nom sur téléphone**, en court. Elle
-                terminait la ligne « à moi · dimanche 6 septembre à 01:49 », qui
-                prenait toute la largeur pour dire deux choses dont une seule se
-                lit d'un coup d'œil ; la date longue reste, dépliée avec les
-                destinataires. */}
-            <span className="flex items-baseline gap-2">
-              <span className="min-w-0 flex-1 truncate text-[16px] font-semibold md:text-sm">{message.from.name}</span>
-              <time
-                dateTime={message.date}
-                suppressHydrationWarning
-                className="shrink-0 text-[13px] font-normal text-muted-foreground tabular-nums md:hidden"
-              >
-                {formatShortDate(message.date)}
-              </time>
+      {tete && (
+        <div className="flex items-center gap-3 md:gap-2.5">
+          {/* **Sur bureau** l'en-tête détache le message dans le troisième
+              volet — lire un message à côté du fil est ce qu'on vient y faire.
+              **Sur téléphone il déplie les destinataires**, comme le chevron
+              qui le termine : viser la réponse d'ici y ouvrait le clavier, le
+              clic fantôme d'iOS retombant sur la vue qui venait de s'ouvrir. */}
+          <button
+            type="button"
+            onClick={() => (bureau ? openThird({ kind: "message", messageId: message.id }) : setDeplie((v) => !v))}
+            aria-expanded={bureau ? undefined : deplie}
+            aria-pressed={bureau ? detache : undefined}
+            aria-label={
+              bureau
+                ? `Ouvrir le message de ${message.from.name} dans le volet`
+                : deplie
+                  ? "Masquer les destinataires"
+                  : "Voir les destinataires"
+            }
+            className="flex min-w-0 flex-1 items-baseline gap-3 rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-ring/50 md:gap-2.5"
+          >
+            <ContactAvatar contact={message.from} className="size-8 self-center md:size-7" />
+            <span className="min-w-0 truncate text-[15px] font-semibold md:text-sm">
+              {mien ? "Vous" : message.from.name}
             </span>
-            <span className="mt-0.5 block truncate text-[13px] text-muted-foreground">
-              à {aQui}
-              <span className="hidden md:inline">
-                {" · "}
-                <time dateTime={message.date} suppressHydrationWarning>
-                  {formatFullDate(message.date)}
-                </time>
-              </span>
-            </span>
-          </span>
-        </button>
-        {/* Viser la réponse sur cette personne seule : au survol du bloc, là
-            où l'en-tête l'avait avant de servir à le détacher. Toujours dans le
-            DOM pour rester atteignable au clavier. */}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button
-              type="button"
-              onClick={() => onReplyTo([message.from])}
-              aria-label={`Répondre à ${message.from.name} seulement`}
-              className="hidden size-7 shrink-0 place-items-center rounded-md text-muted-foreground opacity-0 transition-opacity hover:bg-muted hover:text-foreground focus-visible:opacity-100 group-hover/msg:opacity-100 md:grid"
+            <time
+              dateTime={message.date}
+              suppressHydrationWarning
+              className="shrink-0 text-[13px] text-muted-foreground tabular-nums md:text-xs"
             >
-              <Reply className="size-4" />
-            </button>
-          </TooltipTrigger>
-          <TooltipContent side="bottom">Répondre à {message.from.name}</TooltipContent>
-        </Tooltip>
-        <button
-          type="button"
-          onClick={() => setDeplie((v) => !v)}
-          aria-expanded={deplie}
-          aria-label={deplie ? "Masquer les destinataires" : "Voir les destinataires"}
-          className="relative grid size-9 shrink-0 place-items-center rounded-full bg-black/[0.05] text-muted-foreground after:absolute after:-inset-1 active:bg-black/10 md:hidden dark:bg-white/10 dark:active:bg-white/20"
-        >
-          <ChevronDown className={cn("size-4 transition-transform duration-200", deplie && "rotate-180")} />
-        </button>
-      </div>
-
-      {/* **Qui, puis quoi.** L'objet vivait au-dessus de l'expéditeur, en 26 px :
-          il se lisait comme le titre de la page et le nom comme sa légende,
-          alors qu'on décide de lire un mail dans l'autre sens. Descendu sous le
-          nom et ramené à 19 px semi-gras — c'est l'ordre de Mail d'iOS —, il
-          rend 39 px au message et cesse de disputer la vedette au corps.
-          Sur bureau il est déjà dans l'en-tête de la conversation. */}
-      {premier && !conversation && (
-        <h1 className="border-b border-black/[0.06] px-5 pb-4 text-[19px] leading-[1.3] font-semibold tracking-[-0.01em] text-pretty md:hidden dark:border-white/[0.08]">
-          {sujet}
-        </h1>
+              {formatShortDate(message.date)}
+            </time>
+          </button>
+          {/* Viser la réponse sur cette personne seule. Toujours dans le DOM
+              pour rester atteignable au clavier. */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                onClick={() => onReplyTo([message.from])}
+                aria-label={`Répondre à ${message.from.name} seulement`}
+                className="hidden size-7 shrink-0 place-items-center rounded-md text-muted-foreground opacity-0 transition-opacity hover:bg-muted hover:text-foreground focus-visible:opacity-100 group-hover/msg:opacity-100 md:grid"
+              >
+                <Reply className="size-4" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">Répondre à {message.from.name}</TooltipContent>
+          </Tooltip>
+          <button
+            type="button"
+            onClick={() => setDeplie((v) => !v)}
+            aria-expanded={deplie}
+            aria-label={deplie ? "Masquer les destinataires" : "Voir les destinataires"}
+            className="relative grid size-8 shrink-0 place-items-center rounded-full text-muted-foreground after:absolute after:-inset-1 active:bg-black/10 md:hidden dark:active:bg-white/20"
+          >
+            <ChevronDown className={cn("size-4 transition-transform duration-200", deplie && "rotate-180")} />
+          </button>
+        </div>
       )}
 
       {deplie && (
-        <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 border-b border-black/[0.06] px-5 py-3.5 text-[13px] md:hidden dark:border-white/[0.08]">
+        <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 rounded-xl bg-foreground/[0.04] px-3 py-2.5 text-[13px] md:hidden">
           <Ligne label="De" value={`${message.from.name} <${message.from.email}>`} />
           <Ligne label="À" value={message.to.map((c) => `${c.name} <${c.email}>`).join(", ")} />
-          {/* La date longue vit ici depuis qu'elle a quitté la ligne d'en-tête :
-              elle n'est pas perdue, elle est rangée là où on la cherche. */}
+          {/* La date longue vit ici : elle n'est pas perdue, elle est rangée là
+              où on la cherche. */}
           <Ligne label="Date" value={formatFullDate(message.date)} />
           {message.cc && message.cc.length > 0 && (
             <Ligne label="Cc" value={message.cc.map((c) => `${c.name} <${c.email}>`).join(", ")} />
@@ -237,58 +162,41 @@ export function MessageCard({
         </dl>
       )}
 
-      <MessageBody
-        message={message}
-        sujet={sujet}
-        /* Sur bureau le texte s'aligne sous le nom, pas sous l'avatar : 28 px
-           de tuile plus 10 de gouttière. */
-        className={cn(
-          /* Téléphone : le texte respire — 20 px de côté comme tout l'écran,
-             22 de haut et de bas, et un interligne de 1,7. Il était à 18 px et
-             1,6, collé sous l'expéditeur ; c'est le « trop compact » qu'on
-             corrige. */
-          "block px-5 py-[22px] text-[15px] leading-[1.7] whitespace-pre-wrap md:mt-2.5 md:px-0 md:py-0 md:text-sm md:leading-[1.65]",
-          /* Le texte simple borne **sa propre longueur de ligne** : la colonne
-             ne le fait plus, et 200 caractères par ligne ne se lisent pas. Le
-             HTML, lui, garde toute la largeur — il porte la sienne. */
-          estHtml ? "md:mt-2" : "md:ms-[38px] md:max-w-[68ch]",
+      <div className={cn(!pleineLargeur && "ms-[44px] md:ms-[38px]")}>
+        <MessageBody
+          message={message}
+          sujet={sujet}
+          dark={dark}
+          /* `bulle` rend le cadre transparent et lui donne l'encre de l'app ;
+             sans forme, il garde la feuille blanche du courrier. */
+          forme={feuille ? undefined : "bulle"}
+          className={cn(
+            "mt-1.5 block text-[15px] leading-[1.65] whitespace-pre-wrap md:text-sm md:leading-[1.6]",
+            /* Le texte simple borne **sa propre longueur de ligne** : la colonne
+               ne le fait plus, et 200 caractères par ligne ne se lisent pas. */
+            !feuille && "max-w-[68ch]",
+          )}
+        />
+        {message.attachments && message.attachments.length > 0 && (
+          <div className="mt-2.5">
+            <AttachmentRow attachments={message.attachments} />
+          </div>
         )}
-      />
-      {message.attachments && message.attachments.length > 0 && (
-        <div className={cn("px-5 pb-4 md:px-0 md:pb-0", !estHtml && "md:ms-[38px]")}>
-          <AttachmentRow attachments={message.attachments} />
-        </div>
-      )}
-      {/* **Sous le message, jamais dedans.** Le bandeau des images distantes vit
-          dans la feuille blanche du courrier parce qu'il parle de ce qui y est
-          retenu ; le désabonnement, lui, parle de la **liste**, pas du message,
-          et une infolettre en texte simple n'a pas de feuille blanche. Il prend
-          donc l'encre de l'app, en fin de message, là où le lien minuscule
-          qu'on cherchait se trouvait. */}
-      {message.desabonnement && (
-        <div className={cn("px-5 pb-4 md:px-0 md:pb-0", !estHtml && "md:ms-[38px]")}>
-          <Desabonner message={message} threadId={threadId} icone={<MailMinus className="size-4 shrink-0" strokeWidth={1.75} />} />
-        </div>
-      )}
+        {/* **Sous le message, jamais dedans.** Le désabonnement parle de la
+            liste, pas du message, et une infolettre en texte simple n'a pas de
+            feuille blanche où le poser. */}
+        {message.desabonnement && (
+          <div className="mt-2.5">
+            <Desabonner
+              message={message}
+              threadId={threadId}
+              icone={<MailMinus className="size-4 shrink-0" strokeWidth={1.75} />}
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
-}
-
-/**
- * « à moi », et pas « à Thierry Milone, Claire Dubois ».
- *
- * La ligne d'en-tête a un objet, un nom et une date longue à faire tenir sur
- * 390 px : nommer le lecteur au milieu de tout ça mange la date, qui est la
- * seule information qu'on vienne y chercher. Notre adresse devient donc
- * « moi », et les autres se comptent.
- */
-function destinataires(to: Contact[], moi: string): string {
-  if (to.length === 0) return "personne";
-  const nous = to.some((c) => c.email.toLowerCase() === moi.toLowerCase());
-  const autres = to.filter((c) => c.email.toLowerCase() !== moi.toLowerCase());
-  if (!nous) return autres.map((c) => c.name).join(", ");
-  if (autres.length === 0) return "moi";
-  return `moi et ${autres.length} autre${autres.length > 1 ? "s" : ""}`;
 }
 
 function Ligne({ label, value }: { label: string; value: string }) {

@@ -343,46 +343,43 @@ l'écart entre le bord du bouton et celui de la colonne ne bouge jamais. Vérifi
 long — « noreply-dmarc-support@google.com — rapport quotidien » se coupe à 313, écart zéro — et les
 deux alignements tiennent : objet et champ de recherche à 357 tous les deux.
 
-## Écrire va là où est le contexte (7 sept. 2026)
+## Écrire se pose sur la conversation (7 sept. 2026)
 
-Le composeur du bureau était une fenêtre posée sur la boîte, et une seule. Mais répondre dans un
-fil, c'est écrire **à propos de ce qu'on a sous les yeux** : la fenêtre recouvrait précisément ce
-qu'on venait citer.
+Le composeur du bureau a eu trois formes en deux jours, et les deux premières avaient le même
+défaut, venu du même endroit.
 
-Trois gestes, trois réponses, et c'est le contexte qui décide :
+- **La fenêtre centrée de 760 × 560** *recouvrait* ce à quoi on répond. Répondre dans un fil, c'est
+  écrire à propos de ce qu'on a sous les yeux, et elle le cachait.
+- **La colonne du volet** ne le cachait pas, mais elle *réagençait toute la boîte* : la barre passait
+  en rail, la liste s'effaçait sous 1400 px. Écrire trois mots coûtait un déménagement.
 
-| Ce qu'on fait | Où ça s'ouvre |
-| --- | --- |
-| Trois mots en réponse | la barre du bas de la conversation, inchangée |
-| Une vraie réponse (↩ à côté d'un message) | **le volet de droite** (`compose-pane.tsx`), 620 px |
-| « Nouveau message » | la fenêtre posée de 760 × 560, inchangée |
+**Un volet qui se pose ne fait ni l'un ni l'autre.** 620 px, ancré à droite **dans la boîte** —
+`<main>` porte `relative`, donc la barre latérale et le troisième volet restent à l'air libre —,
+voile à 25 % qui ne ferme pas, entrée par la droite à la recette des cartes. Rien ne bouge derrière
+lui.
 
-**Le formulaire n'existe qu'une fois.** La fenêtre et le volet ne diffèrent que par leur châssis —
-une fenêtre a un voile, une taille et un agrandissement ; un volet a une colonne et une croix. Les
-lignes, la barre du bas, la mise en forme et le glisser-déposer sont partagés
-(`compose-corps.tsx`), et c'était la condition : deux copies de cette barre auraient divergé au
-premier réglage ajouté, comme la mise en forme avait divergé entre le téléphone et le bureau.
+**Un seul contenant, pour une réponse comme pour un message neuf.** La fenêtre posée a disparu ;
+« Nouveau message » ouvre le même volet, qui se pose alors sur la liste. Une forme de moins.
 
-**620 px et non 460** : lire un message à côté du fil demande une colonne, écrire en demande une
-plus large — 460 moins les marges laissent quarante caractères par ligne, et on écrit un mail.
+### Le message cité est en tête, et la citation quitte le champ
 
-### Le volet ne porte qu'une chose, et c'est la seule règle
+Le volet montre en haut, **en lecture**, le message auquel on répond — nom, date, corps, borné à
+38 % de la hauteur et défilant. C'est ce qui permet à la citation de sortir du champ d'écriture :
+on écrit dans du vide, avec sous les yeux ce qu'on commente.
 
-Réclamer le volet pendant qu'on écrit — une pièce jointe, un message détaché — **promeut le
-brouillon dans la fenêtre posée**. Il ne se ferme pas, il change de contenant ; fermer le volet fait
-de même. La promotion n'a aucun état à elle : c'est `third.kind` qui dit où le composeur vit, et
-`ComposeDialog` rend la fenêtre dès que le volet n'est plus à lui. Une seule règle, dans un seul
-sens, et rien à retenir de plus.
+Elle part quand même. `sendMail` la rebâtit à l'envoi depuis `citeMessage` — **un identifiant
+épinglé à l'ouverture**, pas « le dernier message » : si quelqu'un répond pendant qu'on écrit, on
+citerait un message qu'on n'a pas lu. Le destinataire reçoit un message conforme ; on n'en lit
+jamais les chevrons.
 
-Le volet réduit une barre attachée en rail, comme toute ouverture du troisième volet ; et sous
-1400 px c'est la liste qui s'efface le temps qu'on écrit — la règle qui existait déjà pour l'aperçu
-d'une pièce jointe.
+### Le volet, lui, est pour lire
+
+Le troisième volet garde son rôle : un message détaché, une pièce jointe, un PDF. Les deux ne se
+disputent plus rien — écrire est *par-dessus*, lire est *à côté* — et la règle de promotion du
+brouillon, écrite la veille, n'a plus lieu d'être : elle réglait un conflit qui n'existe plus.
 
 ### Ce qui n'a pas bougé
 
-**Le clic dans une bulle reste une sélection de texte.** Un clic qui ouvre un composeur pendant
-qu'on essaie de copier une adresse, on le subit dix fois par jour. La cible est le **↩ au survol, à
-côté de la bulle** — hors du bloc de texte, jamais dedans. L'en-tête d'une grappe continue de
-détacher le message dans le volet.
-
-Sur téléphone il n'y a pas de volet : le ↩ y vise la barre du bas, comme avant.
+Le clic dans un message reste une sélection de texte. La cible pour répondre est le **↩ au survol**,
+à côté de l'en-tête. L'en-tête d'une grappe détache toujours le message dans le volet. Sur téléphone
+il n'y a pas de volet : le ↩ y vise la barre du bas.

@@ -2,7 +2,6 @@
 
 import {
   ChevronRight,
-  MessagesSquare,
   Moon,
   Palette,
   RotateCcw,
@@ -76,8 +75,6 @@ export function AppearancePanel({
   const dark = useMail((s) => s.dark);
   const toggleDark = useMail((s) => s.toggleDark);
   const density = useMail((s) => s.listDensity);
-  const fil = useMail((s) => s.filStyle);
-  const setFil = useMail((s) => s.setFilStyle);
   const setDensity = useMail((s) => s.setListDensity);
   const fond = useMail((s) => s.fondBureau);
   const setFond = useMail((s) => s.setFondBureau);
@@ -248,24 +245,6 @@ export function AppearancePanel({
             />
           </Ligne>
         )}
-
-        {/* **Deux lectures d'un fil**, les mêmes mots que sur la feuille du
-            téléphone. Le réglage ne décide pas seul : un courrier qui apporte
-            sa mise en page garde sa feuille dans les deux modes, et un fil d'un
-            seul message se lit en courrier — une bulle seule n'est pas une
-            conversation. */}
-        <Ligne icon={MessagesSquare} label="Fil">
-          <Segmented
-            size="sm"
-            label="Présentation d'un fil"
-            options={[
-              ["conversation", "Discussion"],
-              ["courrier", "Courrier"],
-            ]}
-            value={fil}
-            onChange={setFil}
-          />
-        </Ligne>
 
         <Ligne icon={Rows3} label="Densité">
           <Segmented

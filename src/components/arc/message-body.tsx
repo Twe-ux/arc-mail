@@ -615,7 +615,12 @@ function CorpsHtml({
         y?: number;
       };
       if (data?.type === "arc-mail-height" && typeof data.height === "number") {
-        setHauteur(Math.min(Math.max(Math.ceil(data.height), 80), 20000));
+        /* **Plancher à 24, pas à 80.** Il datait du cadre à marge de 16 px, où
+           rien ne pouvait légitimement être plus court. Un message court dans
+           un fil à plat, lui, fait 57 px de contenu : les 80 imposés lui
+           ajoutaient 23 px de vide, que le filet d'accent soulignait jusqu'en
+           bas (mesuré : cadre 80, enveloppe 57,25). */
+        setHauteur(Math.min(Math.max(Math.ceil(data.height), 24), 20000));
         if (typeof data.width === "number" && data.width > 0) {
           setLargeur(Math.min(Math.ceil(data.width), 20000));
         }

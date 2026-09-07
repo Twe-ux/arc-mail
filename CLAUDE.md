@@ -97,11 +97,11 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   épinglés de la tête de liste, où il n'y a que 84 px.
 - Le composeur n'est **plus une carte flottante** : feuille plein écran **ancrée**, le clavier ne
   lui prend qu'un `padding-bottom` → fiche composeur.
-- Le composeur est en cinq fichiers (aiguillage, feuille, fenêtre, lignes, panneaux), aucun
-  au-dessus de 300 lignes.
-- Sur bureau le composeur est **une fenêtre de 760 × 560 posée sur la boîte** (rayon 16, voile à
-  35 %), pas une colonne : il ne prend aucune piste de la grille. En-tête discret — un filet et un
-  titre, pas le dégradé ; la couleur de l'espace reste sur le bouton d'envoi. Le voile ne ferme pas.
+- Le composeur est en six fichiers (aiguillage, feuille, volet, corps partagé, lignes, panneaux),
+  aucun au-dessus de 300 lignes.
+- Sur bureau le composeur est **un volet posé sur la conversation** (620 px, ancré à droite dans la
+  boîte) — pas une fenêtre centrée, pas une colonne de la grille. En-tête discret, un filet et un
+  titre ; la couleur de l'espace reste sur le bouton d'envoi. Le voile ne ferme pas.
 - Une **seconde cible sur une rangée passe par `suffixe`**, à côté du bouton, jamais dedans : un
   `<button>` dans un `<button>` est du HTML invalide et le navigateur peut le démonter.
 - Pas de clic-en-dehors Radix ; la recherche a son bouton « Annuler » sur téléphone.
@@ -160,8 +160,7 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   ligne, son icône, son contrôle à droite ; pas de titre en capitales ; 268 px.
 - L'accent **remplit à 22 %, il n'est pas l'aplat** : en `bg-[var(--space-accent)]` sous une encre
   `--space-ink`, qui vaut l'accent en sombre, le glyphe disparaît dans son propre fond.
-- La feuille **Personnaliser** est **un seul groupe de cinq lignes** (« Fil » s'est ajoutée), sans
-  titre en capitales,
+- La feuille **Personnaliser** est **un seul groupe de quatre lignes**, sans titre en capitales,
   chacune avec son icône en trait et son contrôle à droite ; le filet se pose après le `pl-4`. Les
   pastilles de teinte prennent **toute** la largeur sous leur titre — indentées de l'icône, il ne
   restait plus qu'un pixel de gouttière.
@@ -207,14 +206,14 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - Le regroupement par correspondant enclenché **se remplit** (accent 22 %, encre `--space-ink`).
 - Ouvrir le troisième volet **réduit une barre attachée en rail** ; il fait 460 px à chaque
   ouverture, sa largeur a sa propre clé, et il porte un message **ou** un fichier.
-- **Écrire va là où est le contexte** : trois mots → la barre du bas ; le ↩ d'un message →
-  **le composeur dans le volet** (620 px) ; « Nouveau message » → la fenêtre posée. Le formulaire
-  n'existe qu'**une fois** (`compose-corps.tsx`), les châssis n'ont que leur enveloppe.
-- Le volet ne porte **qu'une chose** : le lui réclamer pendant qu'on écrit **promeut le brouillon
-  dans la fenêtre** — pas d'état de plus, c'est `third.kind` qui dit où le composeur vit. Fermer le
-  volet fait pareil.
-- **Le clic dans une bulle reste une sélection de texte** : la cible pour répondre est le ↩ du
-  survol, à côté d'elle, jamais dedans.
+- **Écrire se pose sur la conversation** : un seul contenant sur bureau, un volet de 620 px ancré à
+  droite **dans la boîte** (`<main>` est `relative`), voile à 25 %, entrée par la droite. La fenêtre
+  centrée recouvrait ce à quoi on répond ; la colonne réagençait tout — barre en rail, liste effacée
+  sous 1400 px. Un volet posé ne fait ni l'un ni l'autre.
+- **Le message auquel on répond est en tête du volet**, en lecture, borné à 38 % de hauteur : c'est
+  ce qui permet à la citation de quitter le champ. Elle est rebâtie à l'envoi (`citeMessage`).
+- Le troisième volet **est pour lire** — un message, un fichier. Les deux ne se disputent plus rien,
+  et ouvrir une pièce jointe pendant qu'on écrit ne déplace plus de brouillon.
 - La révélation au survol part de la **bande du bord**, jamais du rail ; son voile est en
   `pointer-events: none`, sinon quitter la barre ne la retire jamais.
 - Les boîtes sont des tuiles de verre (`SpaceTile`) à **point d'accent** ; nom, adresse et raccourci
@@ -280,28 +279,23 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   un repli **dans le cadre** pour le HTML (classes connues, sinon le bloc court qui finit par
   « a écrit : ») — on remonte tant que le contenant n'ajoute rien devant, et un message qui n'est
   *que* citation ne se replie pas. Rien n'est retiré ; le bouton reste pour refermer.
-- **Deux lectures d'un fil** (`filStyle`, rangée « Fil » des deux panneaux, `conversation` par
-  défaut) : bulles — nôtres à droite, accent 22 %, une tête par grappe, 76 % et `min(76%,68ch)` sur
-  bureau (68ch, la mesure du texte simple) — ou la pile de blocs d'avant. Ce n'est **pas un rangement** : objet, dossier et fil ne
-  bougent pas → [vue par correspondant](docs/features/vue-correspondant.md).
-- **Trois formes, et c'est la largeur qui tranche** (`enveloppe`) : `bulle` (teintée, cadre
-  transparent), `feuille` (même bulle, fond blanc du courrier gardé — ses couleurs ont été écrites
-  pour du blanc), `document` (pleine largeur, dans les deux modes : largeur ≥ 500, fond peint,
-  > 20 ko, ou trois tableaux). **La couleur ne décide plus de la forme, seulement du fond** — sinon
-  toute signature professionnelle devenait une dalle. Un fil d'**un seul message** reste en
-  courrier, et l'objet remonte au fil dès qu'on est en discussion.
-- **La rangée d'une bulle prend toute la colonne** (`w-full`, le côté vient de `flex-row-reverse`) :
-  avec un `items-end` sur la colonne, elle se dimensionnait sur son contenu et les 76 % se
-  résolvaient contre une largeur qui en dépendait — six mots se repliaient dans 215 px sur 460
-  offerts.
-- Une bulle **ne passe pas par le canevas de 600 px** (0,38 d'échelle sur 230 px de bulle) et prend
-  **la largeur que le message demande** — le cadre la mesure en `max-content` et la rend avec sa
-  hauteur, sinon la bulle se verrouille aux 300 px par défaut d'un cadre.
-- Une bulle `feuille` a **un bord à 11 % et une ombre courte** en clair : blanc sur la carte
-  blanche, un filet à 8 % la faisait disparaître.
-- En bulle le cadre est **transparent** et le thème lui est **dit** (`prefers-color-scheme` répond
-  celui du système, pas le nôtre) ; ses couleurs en dur sont l'exception assumée aux tokens — les
-  variables n'entrent pas dans un autre document.
+- **Le fil se lit à plat** : une ligne d'en-tête (avatar, nom, heure), une tête par grappe, la
+  respiration qui sépare — plus de filet entre les messages, plus de « à moi ». Les **bulles ont
+  vécu une journée** : elles réglaient « on ne sait pas qui a répondu à quoi » une seconde fois,
+  alors que la cause était la citation dépliée. « Ça fait chip », et c'était juste.
+- **Un filet d'accent dans la marge de nos messages**, deux pixels : le seul signal de direction qui
+  reste, là où un côté et un fond faisaient une messagerie instantanée.
+- Le corps s'aligne **sous le nom** (44 px sur téléphone, 38 sur bureau) ; seul un `document`
+  reprend toute la largeur — une infolettre n'a pas à payer la gouttière d'une conversation.
+- **Deux surfaces** (`enveloppe`) : un message sans couleurs à lui prend l'encre de l'app dans un
+  cadre transparent ; tout le reste garde la **feuille blanche** du courrier, parce que ces couleurs
+  ont été écrites pour du blanc. La couleur ne décide que du fond, jamais de la place.
+- L'objet **appartient au fil**, plus à son premier message.
+- Le plancher de hauteur d'un cadre est **24 px, pas 80** : il datait de la marge de 16, et il
+  ajoutait 23 px de vide sous un message court (mesuré : cadre 80, enveloppe 57).
+- En cadre transparent le thème lui est **dit** (`prefers-color-scheme` répond celui du système, pas
+  le nôtre) ; ses couleurs en dur sont l'exception assumée aux tokens — les variables n'entrent pas
+  dans un autre document.
 - Le cadre mesure **son enveloppe** (`#arc-fit`, `flow-root`), jamais `documentElement.scrollHeight`
   qui ne descend pas sous sa propre hauteur — sans quoi il ne rétrécit jamais ; `body.scrollHeight`
   ne garde que l'échelle 1, il n'est pas transformé.
@@ -360,14 +354,16 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   bords, son coin bas se faisait couper par l'écran.
 - Le focus va à « À » pour un message neuf, au **corps (curseur au début)** dès que le destinataire
   est déjà là.
-- Le composeur connaît **trois contenants** : la feuille du téléphone, la fenêtre du bureau et le
-  volet de droite. `ComposeDraft.replyTo` porte `In-Reply-To`/`References` — sans lui une réponse
-  écrite dans le volet ouvrait un fil neuf ; il ne voyage pas avec un brouillon. La réponse rapide
-  de la barre du bas le porte aussi : **c'est une réponse, pas un message neuf**.
-- Une réponse ne cite que **ce que le dernier message dit** (`couperCitation(...).visible`), jamais
-  la pile : un chevron par tour donnait `> >> ` au quatrième échange. Un seul niveau de `>` dans le
-  texte, et un vrai `blockquote` dans le HTML — dans le champ d'écriture une citation se reconnaît
-  à **son filet**, pas à une ponctuation qu'il faut décoder.
+- Le composeur a **deux contenants** : la feuille du téléphone et le volet posé du bureau ; le
+  formulaire n'est écrit qu'une fois (`compose-corps.tsx`), les châssis n'ont que leur enveloppe.
+  `ComposeDraft.replyTo` porte `In-Reply-To`/`References` — sans lui une réponse ouvrait un fil neuf
+  ; il ne voyage pas avec un brouillon. La réponse rapide de la barre du bas le porte aussi :
+  **c'est une réponse, pas un message neuf**.
+- **La citation n'est jamais dans le champ** : le message cité est en tête du volet, et `sendMail`
+  la rebâtit à l'envoi depuis `citeMessage` — un identifiant épinglé, pas « le dernier message », qui
+  citerait ce qui est arrivé pendant qu'on écrivait. On ne cite que ce que ce message *dit*
+  (`couperCitation`), un seul niveau de `>` dans le texte, un `blockquote` dans le HTML, et le HTML
+  ne la reçoit que s'il existait déjà.
 - Les trois panneaux s'excluent et referment le clavier ; le menu du brouillon (`⋯`) a sa **clé
   d'état à part** — il se superpose au composeur, le partager le démontait.
 - Les pièces jointes voyagent en **base64** (`OutgoingAttachment`), 10 Mo par message, refusés à la
@@ -378,7 +374,7 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   calculent la **même chaîne**, sinon il se récrit à chaque frappe et le curseur repart au début. Le
   collage entre en **texte simple** (laver appartient au serveur), `execCommand` est assumé, une case
   de panneau empêche son `mousedown` (sinon la sélection part), le lien n'accepte que `https` et
-  `mailto`, et l'invite s'écrit en CSS. La **fenêtre du bureau porte le panneau du téléphone** dans
+  `mailto`, et l'invite s'écrit en CSS. Le **volet du bureau porte le panneau du téléphone** dans
   une bulle (`FormatControls`, une définition pour les deux ; `onOpenAutoFocus` **et**
   `onFocusOutside` retenus, sinon la sélection part ou la bulle se ferme au premier gras) et le
   confort d'écriture s'y applique aussi. La feuille reconnaît le clavier par

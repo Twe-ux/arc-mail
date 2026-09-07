@@ -212,6 +212,15 @@ export type ComposeDraft = {
    * Absent pour un message d'origine.
    */
   replyTo?: string;
+  /**
+   * Le message qu'on cite, épinglé à l'ouverture.
+   *
+   * La citation n'est **pas** dans le corps : elle est montrée en tête du volet
+   * et rebâtie à l'envoi. On épingle l'identifiant plutôt que de reprendre « le
+   * dernier message » au moment d'envoyer — si quelqu'un répond pendant qu'on
+   * écrit, on citerait un message qu'on n'a pas lu.
+   */
+  citeMessage?: string;
   /** Les fichiers joints, déjà lus et encodés — voir `OutgoingAttachment`. */
   attachments?: import("./mail/provider").OutgoingAttachment[];
 };

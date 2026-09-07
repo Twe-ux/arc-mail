@@ -2,6 +2,39 @@
 
 Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérification.
 
+## 7 septembre 2026 — le fil à plat, et le volet qui se pose
+
+Trois captures d'un autre client, et deux décisions : « les bulles bof bof, ça fait chip », et
+« pour écrire un mail je verrais plus juste un volet qui se superpose sur la conversation ».
+
+**Les bulles sont parties.** Elles avaient un jour. Elles réglaient une vraie question — « on ne
+sait pas qui a répondu à quoi » — mais elles la réglaient une **seconde** fois : la cause était la
+citation dépliée, et elle était déjà corrigée. Le fil est plat maintenant : une ligne d'en-tête
+(avatar, nom, heure), une tête par grappe, la respiration qui sépare — plus de filet entre les
+messages, plus de « à moi », plus de côté ni de fond. Il reste **un filet d'accent de deux pixels**
+dans la marge de nos messages, décidé explicitement, et c'est le seul signal de direction. Le
+réglage `filStyle` disparaît avec elles : un réglage qu'on n'aime pas est un réglage qu'on
+entretient pour rien.
+
+**Le composeur se pose.** Il a eu trois formes en deux jours : une fenêtre centrée, qui recouvrait
+ce à quoi on répond ; une colonne du volet, qui réagençait toute la boîte — barre en rail, liste
+effacée sous 1400 px. Un volet posé ne fait ni l'un ni l'autre : 620 px ancrés à droite *dans* la
+boîte, voile qui ne ferme pas, rien qui bouge derrière. Un seul contenant, pour une réponse comme
+pour un message neuf.
+
+**Et la citation quitte le champ.** Le message auquel on répond est montré en tête du volet, en
+lecture ; on écrit dans du vide avec lui sous les yeux. Elle part quand même — `sendMail` la
+rebâtit à l'envoi depuis un identifiant **épinglé à l'ouverture**, pas « le dernier message », qui
+citerait ce qui est arrivé pendant qu'on écrivait.
+
+Deux conséquences qui tombent d'elles-mêmes : le troisième volet redevient ce qu'il est, un endroit
+pour **lire** — et la règle de promotion du brouillon, écrite la veille, disparaît avec le conflit
+qu'elle réglait.
+
+Mesuré à la capture : le plancher de hauteur d'un cadre était à **80 px**, hérité de la marge de 16
+où rien ne pouvait être plus court. Un message court dans un fil à plat fait 57 px de contenu — les
+23 px de vide en trop, le filet d'accent les soulignait jusqu'en bas.
+
 ## 7 septembre 2026 — des bulles à leur largeur, et une citation qui se lit
 
 « On peut les allonger que tout soit sur une ligne jusqu'à une certaine limite ? » Deux causes

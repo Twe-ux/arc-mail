@@ -38,18 +38,7 @@ export type SidebarMode = "full" | "rail" | "hidden";
  */
 export type Third =
   | { kind: "message"; messageId: string }
-  | { kind: "file"; attachmentId: string }
-  /**
-   * **Le composeur, dans le volet.** Répondre dans un fil se fait là où le fil
-   * est : ce qu'on cite reste à gauche, sous les yeux. « Nouveau message », qui
-   * n'a aucun contexte à garder, continue d'ouvrir la fenêtre posée.
-   *
-   * Le volet ne porte qu'une chose : réclamer le volet pour une pièce jointe
-   * pendant qu'on écrit **promeut le brouillon dans la fenêtre** — il ne se
-   * ferme pas, il change de contenant, et fermer le volet fait de même. Une
-   * seule règle, dans un seul sens.
-   */
-  | { kind: "compose" };
+  | { kind: "file"; attachmentId: string };
 
 export type MailState = {
   spaceId: SpaceId;
@@ -82,21 +71,6 @@ export type MailState = {
    * voile ; l'un sans l'autre serait illisible.
    */
   fondBureau: "degrade" | "voile";
-  /**
-   * Comment un fil se présente — **deux lectures, pas deux rangements**.
-   *
-   * `conversation` (le défaut) : les messages échangés prennent la forme d'une
-   * discussion — les nôtres à droite, ceux d'en face à gauche, la citation
-   * repliée. `courrier` : la suite de blocs pleine largeur d'avant, celle de
-   * Mail d'iOS.
-   *
-   * Ce n'est **jamais** un rangement : l'objet, les dossiers et le fil restent
-   * ce qu'ils sont, seule leur peinture change. Et le réglage ne décide pas
-   * seul — un courrier qui apporte sa mise en page garde sa feuille blanche
-   * dans les deux modes (`enveloppe`), et un fil d'un seul message se lit en
-   * courrier : une bulle unique n'est pas une conversation.
-   */
-  filStyle: "conversation" | "courrier";
   /** Largeur de la liste en vue partagée, sur bureau, en pixels. */
   listWidth: number;
   /** The attachment being looked at, `null` when none; it lives in the open thread. */
@@ -242,7 +216,6 @@ export type MailState = {
   setSidebarMode: (mode: SidebarMode) => void;
   setListDensity: (d: MailState["listDensity"]) => void;
   setFondBureau: (f: MailState["fondBureau"]) => void;
-  setFilStyle: (f: MailState["filStyle"]) => void;
   /** ⌘B : attachée → rail → masquée → attachée. */
   cycleSidebarMode: () => void;
   toggleDark: () => void;
@@ -253,9 +226,9 @@ export type MailState = {
    */
   reply: (threadId: string, body: string, to?: Contact[]) => Promise<boolean>;
 
-  openCompose: (initial?: Partial<ComposeDraft>, dans?: "volet") => void;
-  /** Répondre à un fil **dans le volet**, avec la citation — bureau seulement. */
-  repondreDansVolet: (threadId: string, to: Contact[]) => void;
+  openCompose: (initial?: Partial<ComposeDraft>) => void;
+  /** Répondre à un fil : le composeur s'ouvre, et le message cité s'affiche en tête. */
+  repondre: (threadId: string, to: Contact[]) => void;
   openDraft: (threadId: string) => void;
   updateCompose: (patch: Partial<ComposeDraft>) => void;
   /** Closes the composer, keeping the text as a draft unless it is blank. */
@@ -511,6 +484,29 @@ const ajouterPage = (threads: Thread[], fresh: Thread[]) => {
   return [...threads, ...fresh.filter((t) => !connus.has(t.id))];
 };
 
+/**
+ * La citation d'une réponse, **rebâtie à l'envoi**.
+ *
+ * Deux versions, et elles ne disent pas la même chose de la même façon : le
+ * texte porte un niveau de chevrons — la convention que tous les clients lisent
+ * et que `couperCitation` sait replier —, le HTML porte un `blockquote`. On ne
+ * cite que **ce que le message dit**, pas la pile qu'il traîne : un chevron par
+ * tour donnait `> >> ` au quatrième échange.
+ */
+function citationDe(threads: Thread[], d: ComposeDraft): { texte: string; html: string } | null {
+  if (!d.replyTo || !d.citeMessage) return null;
+  const t = threads.find((x) => x.id === d.replyTo);
+  const m = t?.messages.find((x) => x.id === d.citeMessage);
+  if (!m) return null;
+  const dit = couperCitation(m.body).visible;
+  if (!dit.trim()) return null;
+  const attribution = `Le ${formatFullDate(m.date)}, ${m.from.name} <${m.from.email}> a écrit :`;
+  return {
+    texte: `${attribution}\n${dit.split("\n").map((l) => `> ${l}`).join("\n")}`,
+    html: `<div><br></div><div>${echapper(attribution)}</div><blockquote>${htmlDe(dit)}</blockquote>`,
+  };
+}
+
 const describe = (err: unknown) => (err instanceof Error ? err.message : String(err));
 
 const isBlank = (d: ComposeDraft) => {
@@ -605,14 +601,6 @@ export const LISTE_DEFAUT = 360;
 
 /** Le troisième volet : 460 à l'ouverture, 320 au plancher. */
 export const TIERS_DEFAUT = 460;
-/**
- * Le volet quand c'est le composeur qui l'occupe.
- *
- * 620 et non 460 : lire un message à côté du fil demande une colonne, écrire en
- * demande une plus large — 460 px moins les marges laissent 40 caractères par
- * ligne, et on écrit un mail, pas un SMS. La poignée reste libre de la changer.
- */
-export const TIERS_COMPOSE = 620;
 export const TIERS_MIN = 320;
 /** Ce qu'on garde à la conversation, quoi qu'il arrive. */
 export const LECTURE_MIN = 420;
@@ -850,7 +838,6 @@ export const useMail = create<MailState>()(
   sidebarMode: "full",
   listDensity: "confort",
   fondBureau: "degrade",
-  filStyle: "conversation",
   listWidth: LISTE_DEFAUT,
   groupBy: "fil",
   vues: [],
@@ -1272,7 +1259,6 @@ export const useMail = create<MailState>()(
   setSidebarMode: (sidebarMode) => set({ sidebarMode }),
   setListDensity: (listDensity) => set({ listDensity }),
   setFondBureau: (fondBureau) => set({ fondBureau }),
-  setFilStyle: (filStyle) => set({ filStyle }),
   cycleSidebarMode: () =>
     set((s) => ({
       sidebarMode: s.sidebarMode === "full" ? "rail" : s.sidebarMode === "rail" ? "hidden" : "full",
@@ -1347,20 +1333,16 @@ export const useMail = create<MailState>()(
      est une surprise ; la mémoire sert pendant la session, pas d'un objet à
      l'autre. Et si la barre était attachée, elle passe en rail : trois
      colonnes utiles, pas quatre colonnes serrées. */
-  /* **Le volet ne porte qu'une chose.** Réclamer le volet pendant qu'on écrit
-     ne ferme donc pas le brouillon : il reste dans le store, et `ComposeDialog`
-     le rend dans la fenêtre posée dès que le volet n'est plus à lui. La
-     promotion n'a pas d'état à elle — c'est `third.kind` qui dit où le
-     composeur vit, et rien d'autre. */
+  /* **Le volet est pour lire.** Écrire se pose *par-dessus* la conversation
+     (`compose-pane.tsx`) : les deux ne se disputent donc plus rien, et ouvrir
+     une pièce jointe pendant qu'on écrit n'a plus à déplacer le brouillon. */
   openThird: (third) =>
     set((s) => ({
       third,
-      thirdWidth: third.kind === "compose" ? TIERS_COMPOSE : TIERS_DEFAUT,
+      thirdWidth: TIERS_DEFAUT,
       sidebarMode: s.sidebarMode === "full" ? "rail" : s.sidebarMode,
     })),
 
-  /* Fermer le volet **promeut** le brouillon au lieu de le perdre : même règle,
-     même sens. */
   closeThird: () => set({ third: null }),
 
   setThirdWidth: (px) => set({ thirdWidth: Math.max(TIERS_MIN, Math.round(px)) }),
@@ -1408,7 +1390,7 @@ export const useMail = create<MailState>()(
 
   // ───────────── Composer ─────────────
 
-  openCompose: (initial, dans) =>
+  openCompose: (initial) =>
     set((s) => {
       const spaceId = initial?.spaceId ?? s.spaceId;
       const signature = s.spaces.find((sp) => sp.id === spaceId)?.signature ?? "";
@@ -1425,52 +1407,35 @@ export const useMail = create<MailState>()(
         sidebarOpen: false,
         settingsOpen: false,
         commandOpen: false,
-        /* Le volet réduit une barre attachée en rail, comme toute ouverture du
-           troisième volet — la règle est déjà celle d'`openThird`. */
-        ...(dans === "volet"
-          ? { third: { kind: "compose" } as Third, thirdWidth: TIERS_COMPOSE, sidebarMode: s.sidebarMode === "full" ? ("rail" as SidebarMode) : s.sidebarMode }
-          : null),
       };
     }),
 
   /**
-   * **Répondre là où est le fil.**
+   * **Répondre, sans recopier ce à quoi on répond.**
    *
-   * La barre du bas garde la réponse courte — trois mots, sans quitter la
-   * lecture. Celle-ci est l'autre moitié : un vrai message, avec ses champs,
-   * sa mise en forme et ses pièces jointes, dans le volet de droite pendant
-   * que la conversation reste visible à gauche.
+   * La citation ne va plus dans le champ : le message auquel on répond est
+   * **montré en tête du volet**, en lecture. On écrit donc dans un champ vide,
+   * avec le message sous les yeux — ce que le chevron ne donnait jamais, lui
+   * qui empilait `> >> ` un niveau par tour.
+   *
+   * Elle part quand même : `sendMail` la rebâtit depuis `citeMessage` au moment
+   * de l'envoi. Le destinataire reçoit un message conforme, on n'en lit jamais
+   * les chevrons.
    */
-  repondreDansVolet: (threadId, to) => {
+  repondre: (threadId, to) => {
     const t = get().threads.find((x) => x.id === threadId);
     if (!t) return;
     const dernier = t.messages[t.messages.length - 1];
-    /* **On ne cite que ce que le dernier message dit, pas la pile.** Son corps
-       porte déjà la citation du précédent, qui portait celle d'avant : citer le
-       tout ajoutait un chevron par tour, et une réponse au quatrième échange
-       s'ouvrait sur `> >> ` — illisible dans le composeur, et sans rien
-       apporter. Le fil est tenu par `References`, pas par la profondeur des
-       chevrons. */
-    const dit = couperCitation(dernier.body).visible;
-    const attribution = `Le ${formatFullDate(dernier.date)}, ${dernier.from.name} <${dernier.from.email}> a écrit :`;
-    get().openCompose(
-      {
-        spaceId: t.spaceId,
-        to: to.map((c) => c.email),
-        subject: /^re\s*:/i.test(t.subject) ? t.subject : `Re: ${t.subject}`,
-        replyTo: threadId,
-        /* Le texte garde **un** niveau de chevrons : c'est la convention que
-           tous les clients lisent, et c'est elle que `couperCitation` sait
-           replier chez le destinataire. */
-        body: `\n\n${attribution}\n${dit.split("\n").map((l) => `> ${l}`).join("\n")}`,
-        /* Le HTML dit la même chose avec **un filet au lieu des chevrons** :
-           c'est un `blockquote`, ce que tout client comprend, et c'est ce qu'on
-           voit en écrivant — une citation se reconnaît à sa marge, pas à une
-           ponctuation qu'il faut décoder. */
-        html: `<div><br></div><div><br></div><div>${echapper(attribution)}</div><blockquote>${htmlDe(dit)}</blockquote><div><br></div>`,
-      },
-      "volet",
-    );
+    get().openCompose({
+      spaceId: t.spaceId,
+      to: to.map((c) => c.email),
+      subject: /^re\s*:/i.test(t.subject) ? t.subject : `Re: ${t.subject}`,
+      replyTo: threadId,
+      /* **L'identifiant, pas le contenu.** Si quelqu'un répond pendant qu'on
+         écrit, citer « le dernier message » à l'envoi cite un message qu'on n'a
+         pas lu. On épingle celui qu'on avait sous les yeux. */
+      citeMessage: dernier.id,
+    });
   },
 
   openDraft: (threadId) => {
@@ -1498,8 +1463,6 @@ export const useMail = create<MailState>()(
   updateCompose: (patch) => set((s) => (s.compose ? { compose: { ...s.compose, ...patch } } : {})),
 
   closeCompose: () => {
-    /* Le composeur s'en va : le volet qu'il occupait s'en va avec lui. */
-    if (get().third?.kind === "compose") set({ third: null });
     const d = get().compose;
     if (!d) return;
     const before = get().threads;
@@ -1607,6 +1570,12 @@ export const useMail = create<MailState>()(
     const book = contactBook(before);
     const draft = d.draftId ? before.find((t) => t.id === d.draftId) : undefined;
     set({ compose: null, sendError: null, threads: draft ? before.filter((t) => t.id !== draft.id) : before });
+    /* **La citation n'existe qu'à l'envoi.** On ne la montre jamais dans le
+       champ — le message cité est en tête du volet —, mais le destinataire doit
+       la recevoir : son client la replie, et sans elle une réponse arrive nue.
+       Le HTML ne la reçoit **que s'il existe déjà** : un message tapé sans mise
+       en forme part en texte simple, comme le veut la règle. */
+    const cite = citationDe(before, d);
     provider
       .send(account, {
         from: identityOf(d.spaceId),
@@ -1614,14 +1583,14 @@ export const useMail = create<MailState>()(
         cc: d.cc.length ? toContacts(d.cc, book) : undefined,
         bcc: d.bcc.length ? toContacts(d.bcc, book) : undefined,
         subject: d.subject,
-        body: d.body,
+        body: cite ? `${d.body}\n\n${cite.texte}` : d.body,
         /* Le fil suit le brouillon : une réponse écrite dans le volet doit
            arriver **dans sa conversation**, pas en ouvrir une neuve. */
         replyTo: d.replyTo,
         /* Les deux parties suivent le brouillon comme elles suivent l'envoi :
            un message mis en forme, refermé puis rouvert, doit revenir tel
            qu'on l'a laissé. */
-        html: d.html,
+        html: d.html && cite ? `${d.html}${cite.html}` : d.html,
         attachments: d.attachments?.length ? d.attachments : undefined,
       })
       .then(
@@ -1742,7 +1711,6 @@ export const useMail = create<MailState>()(
           | "sidebarMode"
           | "listDensity"
           | "fondBureau"
-          | "filStyle"
           | "listWidth"
           | "thirdWidth"
           | "groupBy"
@@ -1760,7 +1728,6 @@ export const useMail = create<MailState>()(
         sidebarMode: s.sidebarMode,
         listDensity: s.listDensity,
         fondBureau: s.fondBureau,
-        filStyle: s.filStyle,
         listWidth: s.listWidth,
         thirdWidth: s.thirdWidth,
         groupBy: s.groupBy,

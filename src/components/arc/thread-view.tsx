@@ -24,8 +24,7 @@ export function ThreadView({ className }: { className?: string }) {
   const toggleStar = useMail((s) => s.toggleStar);
   const moveThread = useMail((s) => s.moveThread);
   const openCompose = useMail((s) => s.openCompose);
-  const filStyle = useMail((s) => s.filStyle);
-  const repondreDansVolet = useMail((s) => s.repondreDansVolet);
+  const repondre = useMail((s) => s.repondre);
   const bureau = useMediaQuery("(min-width: 768px)");
 
   /* À qui va la réponse. `null` = tout le monde sur le dernier message, ce que
@@ -43,12 +42,6 @@ export function ThreadView({ className }: { className?: string }) {
   const [replyOpen, setReplyOpen] = useState(false);
 
   const threadId = thread?.id;
-  /* **Une bulle seule n'est pas une conversation.** Un fil d'un message reste
-     donc en courrier dans les deux modes : le mettre en bulle ferait d'un mail
-     reçu une réplique adressée à personne, et rendrait 24 % de la largeur pour
-     rien. Le réglage dit comment on lit un échange, pas comment on lit un
-     message. */
-  const conversation = filStyle === "conversation" && (thread?.messages.length ?? 0) > 1;
   const aimed = aim?.threadId === threadId ? aim : null;
   const focusTick = aimed?.tick ?? 0;
 
@@ -68,13 +61,12 @@ export function ThreadView({ className }: { className?: string }) {
 
   /* **Deux réponses, deux gestes.** La barre du bas garde la réponse courte —
      trois mots sans quitter la lecture, et c'est elle que vise `aimReply`. Le
-     ↩ à côté d'un message ouvre, lui, un vrai composeur **dans le volet de
-     droite** : champs, mise en forme, pièces jointes, et la conversation reste
-     à gauche pendant qu'on écrit. Sur téléphone il n'y a pas de volet : le ↩ y
-     vise la barre, comme avant. */
+     ↩ à côté d'un message ouvre, lui, un vrai composeur — le volet qui se pose
+     sur la conversation, avec le message cité en tête. Sur téléphone il n'y a
+     pas de volet : le ↩ y vise la barre, comme avant. */
   const viserOuOuvrir = (to: Contact[]) => {
     if (!threadId) return;
-    if (bureau) repondreDansVolet(threadId, to);
+    if (bureau) repondre(threadId, to);
     else aimReply(to);
   };
 
@@ -228,31 +220,27 @@ export function ThreadView({ className }: { className?: string }) {
             {/* L'objet est porté par le **premier message**, sous le nom de son
                 expéditeur : voir `MessageCard`. Il vivait ici, au-dessus de
                 tout, et se lisait comme le titre de la page. */}
-            {/* **En discussion, l'objet appartient au fil.** Il était porté par
-                le premier message — un compromis assumé tant que le fil était
-                une pile de blocs —, et cette pièce-là tombe d'elle-même quand
-                les messages deviennent des bulles : le premier n'a plus rien
-                de particulier à dire sur l'échange entier. */}
-            {conversation && (
-              <h1 className="border-b border-black/[0.06] px-5 py-4 text-[19px] leading-[1.3] font-semibold tracking-[-0.01em] text-pretty md:hidden dark:border-white/[0.08]">
-                {thread.subject}
-              </h1>
-            )}
-            <div className={cn(conversation && "flex flex-col py-3 md:py-2")}>
+            {/* **L'objet appartient au fil, pas à son premier message.** Il a
+                été porté par lui tant que le fil était une pile de blocs — un
+                compromis assumé, écrit dans la fiche. Le fil est plat
+                maintenant : le premier message n'a plus rien de particulier à
+                dire sur l'échange entier. Sur bureau l'objet est déjà dans
+                l'en-tête de la conversation. */}
+            <h1 className="border-b border-black/[0.06] px-5 py-4 text-[19px] leading-[1.3] font-semibold tracking-[-0.01em] text-pretty md:hidden dark:border-white/[0.08]">
+              {thread.subject}
+            </h1>
+            <div className="flex flex-col py-4 md:py-3">
               {thread.messages.map((m, i) => (
                 <MessageCard
                   key={m.id}
                   message={m}
                   threadId={thread.id}
                   sujet={thread.subject}
-                  premier={i === 0}
-                  conversation={conversation}
                   mien={cestNous(m.from.email)}
                   /* Une grappe se ferme au changement de voix. On compare les
                      adresses, pas les noms : le même correspondant peut écrire
                      « Milone Thierry » une fois et « thierry » la suivante. */
                   tete={i === 0 || thread.messages[i - 1].from.email !== m.from.email}
-                  queue={i === thread.messages.length - 1 || thread.messages[i + 1].from.email !== m.from.email}
                   onReplyTo={viserOuOuvrir}
                 />
               ))}

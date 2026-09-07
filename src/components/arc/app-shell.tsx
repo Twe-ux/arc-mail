@@ -148,7 +148,10 @@ export function AppShell() {
         <div aria-hidden className="titlebar-drag" />
         <Sidebar />
         <main
-          className="fenetre-carte flex min-h-0 min-w-0 flex-1 overflow-hidden text-foreground md:grid md:grid-rows-1 md:rounded-xl md:bg-background"
+          /* `relative` : le composeur du bureau se pose **dans** la boîte, pas
+             sur toute la fenêtre — la barre latérale et le troisième volet
+             restent à l'air libre (`compose-pane.tsx`). */
+          className="fenetre-carte relative flex min-h-0 min-w-0 flex-1 overflow-hidden text-foreground md:grid md:grid-rows-1 md:rounded-xl md:bg-background"
           style={{ gridTemplateColumns: `${gauche} ${partage ? "11px" : "0px"} ${droite}` }}
         >
           {/* **Pleine largeur tant qu'aucun message n'est ouvert** : la liste
@@ -183,6 +186,10 @@ export function AppShell() {
               <ThreadView className="flex" />
             </BackSwipe>
           </div>
+          {/* Feuille plein écran sur téléphone (rendue hors du flux, sa place
+              dans l'arbre n'y change rien), volet posé sur la boîte sur
+              bureau — d'où sa présence **ici** et non à la racine. */}
+          <ComposeDialog />
         </main>
         {/* Le troisième volet est **une fenêtre à part** : le dégradé passe
             entre lui et la boîte, et sa poignée mange les deux gouttières de la
@@ -196,10 +203,6 @@ export function AppShell() {
         {/* Laid over the list, not beside it: the rows pass under the frosted
             pill, which is what gives the material something to blur. */}
         <MobileNav className={cn("absolute inset-x-0 bottom-0 z-30", hasSelection && "hidden")} />
-        {/* Carte flottante sur téléphone, fenêtre posée sur la boîte sur
-            bureau : les deux se rendent hors du flux, leur place dans l'arbre
-            n'y change rien. */}
-        <ComposeDialog />
         <MobileMenu />
         <MobileSettings />
         <CommandPalette />

@@ -464,32 +464,35 @@ cas ; le détecteur ne signale que les quatre couleurs déjà connues.
 **Reste à voir sur une vraie boîte** : le `multipart/alternative` tel qu'il arrive chez le
 destinataire, et la copie dans « Envoyés ».
 
-## Un troisième contenant (7 sept. 2026)
+## Deux contenants, un formulaire (7 sept. 2026)
 
-Le composeur en connaissait deux — la feuille du téléphone, la fenêtre du bureau. Il en connaît
-trois : **le volet de droite**, où s'ouvre une réponse → [bureau](bureau.md).
+La feuille du téléphone et **le volet posé du bureau** → [bureau](bureau.md). La fenêtre centrée de
+760 × 560 a vécu deux jours de plus que la colonne du volet, et les deux sont parties pour la même
+raison.
 
 Le partage a demandé une extraction, faite dans le même passage : tout ce qui n'est pas le châssis
 (les lignes, l'erreur d'envoi, les puces de pièces jointes, la barre du bas avec sa bulle de mise en
-forme, le glisser-déposer, la case d'en-tête) vit dans `compose-corps.tsx`, et les deux châssis de
-bureau n'ont plus que leur enveloppe — 89 lignes pour la fenêtre, 56 pour le volet. Aucun fichier
-du composeur ne dépasse 300 lignes.
+forme, le glisser-déposer, la case d'en-tête) vit dans `compose-corps.tsx`. Les châssis n'ont plus
+que leur enveloppe, et aucun fichier du composeur ne dépasse 300 lignes.
 
-`ComposeDraft` gagne `replyTo` : il porte `In-Reply-To` et `References` jusqu'au serveur. Sans lui,
-une réponse écrite dans le volet ouvrait un fil neuf chez le destinataire. Il ne voyage pas avec un
-brouillon — `DraftInput` l'exclut, et un brouillon n'est pas encore une réponse.
+`ComposeDraft` gagne deux champs :
 
-### La citation qu'on écrit, et celle qu'on lit
+- **`replyTo`** — le fil. Il porte `In-Reply-To` et `References` jusqu'au serveur ; sans lui, une
+  réponse ouvre un fil neuf chez le destinataire. Il ne voyage pas avec un brouillon (`DraftInput`
+  l'exclut : un brouillon n'est pas encore une réponse).
+- **`citeMessage`** — le message qu'on cite, épinglé à l'ouverture.
 
-`repondreDansVolet` ne cite que **ce que le dernier message dit** — `couperCitation(...).visible`,
-pas son corps entier. Son corps porte déjà la citation du précédent, qui portait celle d'avant :
-citer le tout ajoutait un chevron par tour, et une réponse au quatrième échange s'ouvrait sur
-`> >> `. Le fil est tenu par `References`, pas par la profondeur des chevrons.
+### La citation qu'on n'écrit pas
 
-Le brouillon porte les deux versions, et elles ne disent pas la même chose de la même façon :
+**Elle n'est jamais dans le champ.** Le message cité est montré en tête du volet, en lecture, et
+`sendMail` rebâtit la citation au moment d'envoyer (`citationDe`). Ce qui a été essayé avant :
 
-- **le texte** garde **un** niveau de `>` — la convention que tous les clients lisent, et celle que
-  `couperCitation` sait replier chez le destinataire ;
-- **le HTML** met la même citation dans un `blockquote`, rendu par le champ d'écriture avec un filet
-  et une encre sourde. Une citation se reconnaît à sa marge, pas à une ponctuation qu'il faut
-  décoder — et le bouton « Citation » du panneau de mise en forme gagne le même dessin.
+1. citer le corps entier du dernier message — mais son corps porte déjà la citation du précédent,
+   qui portait celle d'avant : un chevron de plus par tour, `> >> ` au quatrième échange ;
+2. ne citer que ce que ce message *dit* (`couperCitation(...).visible`), avec un `blockquote` dans
+   le HTML pour remplacer les chevrons par un filet. Mieux, mais la citation occupait encore le
+   champ et poussait ce qu'on écrit vers le bas.
+
+La règle finale garde le 2 pour la **construction** — un seul niveau de `>` dans le texte, un
+`blockquote` dans le HTML, et le HTML ne la reçoit **que s'il existe déjà**, sans quoi un message
+tapé sans mise en forme partirait en HTML pour rien — et le sort du champ.

@@ -75,132 +75,77 @@ destinataires et une date longue sur 390 px : nommer le lecteur au milieu mangea
 la seule chose qu'on vienne y chercher. Notre adresse devient « moi », les autres se comptent
 (« moi et 2 autres »). Le chevron rond de 36 px déplie la liste réelle — De, À, Cc — à la demande.
 
-## Deux lectures d'un fil : courrier, ou discussion
+## Le fil se lit à plat
 
-Le 6 septembre, capture à l'appui : « j'aime pas la présentation, pas compréhensible entre le
-message reçu et le répondu, lequel en premier, qui a répondu à quoi ? »
+Deux passages, à un jour d'intervalle, et le second corrige le premier.
 
-Trois défauts se cumulaient, et le premier portait les deux autres.
+**Le 6 septembre**, capture à l'appui : « j'aime pas la présentation, pas compréhensible entre le
+message reçu et le répondu, lequel en premier, qui a répondu à quoi ? » Trois défauts, et le
+premier portait les deux autres :
 
-1. **La citation était dépliée.** Répondre à un mail en recopie l'intégralité en dessous : un fil de
-   quatre échanges portait donc quatre fois le premier message, et l'ordre *à l'intérieur* d'un
-   bloc était inversé — la réponse d'abord, la question citée ensuite. Aucun client ne fait ça.
-2. **Rien ne disait le sens.** Reçu et envoyé avaient le même avatar à gauche, le même alignement,
-   la même feuille blanche pleine largeur.
-3. **La feuille blanche faisait document.** Un rectangle blanc bord à bord se lit comme une page,
-   pas comme une réplique.
+1. **La citation était dépliée.** Répondre recopie l'intégralité du message en dessous : un fil de
+   quatre échanges portait donc quatre fois le premier message, et l'ordre *à l'intérieur* d'un bloc
+   était inversé — la réponse d'abord, la question citée ensuite.
+2. **Rien ne disait le sens** : reçu et envoyé avaient le même avatar à gauche, le même alignement.
+3. **La feuille blanche faisait document**, pas réplique.
 
-### La citation, repliée
+On a répondu par des bulles. **Le 7 septembre elles sont parties** : « les bulles bof bof, ça fait
+chip ». C'était juste, et la raison est structurelle — elles réglaient le point 2 une **seconde**
+fois. La cause était le point 1, et il était déjà corrigé. Un fil plat avec un nom par message se
+lit très bien, et il se lit comme du **courrier**, ce que ce projet est.
 
-`couperCitation` ([`src/lib/fil.ts`](../../src/lib/fil.ts)) pour le texte simple, un repli **dans le
-cadre** pour le HTML ([`message-body.tsx`](../../src/components/arc/message-body.tsx)). Deux chemins
-parce que la citation vit dans deux endroits : la page pour l'un, un document en bac à sable pour
-l'autre — un bouton posé dans la page n'aurait pas su où se placer dans le second.
+### Ce que le fil garde
 
-Le texte se coupe sur trois signes : une ligne qui **finit** par « a écrit : » (on ancre sur la fin,
-seule part que tous les clients écrivent pareil, et on remonte au début de son paragraphe si
-l'attribution tient sur deux lignes), un séparateur de transfert, ou un chevron. Le HTML se coupe
-sur les classes connues (`gmail_quote`, `blockquote[type=cite]`, `moz-cite-prefix`, `yahoo_quoted`,
-`divRplyFwdMsg`, `protonmail_quote`) et, à défaut, sur le premier bloc court dont le texte finit par
-l'attribution. Dans les deux cas on remonte **tant que le contenant n'ajoute rien devant** : si l'on
-arrive en haut sans avoir trouvé de texte avant, le message *est* une citation et on ne replie pas —
-replier tout un message ne laisserait qu'un bouton à l'écran.
+- **Une ligne d'en-tête, pas un bloc** : avatar (32 sur téléphone, 28 sur bureau), nom, heure
+  courte. La ligne « à moi » a disparu — elle prenait une ligne entière pour dire ce qu'on sait.
+- **Une tête par grappe** : deux messages de suite du même auteur n'en ont qu'une, et la
+  respiration sépare — 24 px quand la parole change, 6 sinon. **Plus de filet entre les messages** :
+  il découpait le fil en tranches.
+- **« Vous »** à la place de notre nom.
+- **La citation repliée** derrière un `···`, qui reste la pièce qui portait tout.
+- **Un filet d'accent** dans la marge de nos messages, deux pixels à 60 % : le seul signal de
+  direction qui subsiste. Décidé explicitement — « filet d'accent : oui ».
 
-Rien n'est retiré : le bouton `···` rend la citation, et il **reste** une fois déplié — ce qu'on a
-ouvert doit pouvoir se refermer, et sa présence dit que le repli était le nôtre, pas une troncature.
+Le corps s'aligne **sous le nom**, jamais sous l'avatar : 44 px de gouttière sur téléphone, 38 sur
+bureau. Le texte simple borne sa ligne à 68ch ; seul un `document` reprend toute la largeur.
 
-### Le côté, la teinte, le groupement
+### Deux surfaces, plus trois formes
 
-Le réglage `filStyle` (feuille « Personnaliser » sur téléphone, panneau d'apparence sur bureau,
-rangée « Fil », deux cases **Discussion · Courrier**) commande la présentation, et
-`conversation` est le défaut.
+`enveloppe()` ([`src/lib/fil.ts`](../../src/lib/fil.ts)) rend toujours trois valeurs, mais le fil
+plat n'en distingue plus que deux :
 
-En discussion, [`message-bubble.tsx`](../../src/components/arc/message-bubble.tsx) : les nôtres à
-droite, les autres à gauche, bulle à rayon 18 (coin coupé à 6 du côté de qui parle, sur la
-**dernière** bulle de la grappe seulement — la grammaire d'iMessage), accent de l'espace à 22 %
-contre `foreground/6 %`, largeur maximale 76 % et, sur bureau, `min(76 %, 54ch)` : à 1000 px de
-volet, 76 % font 140 caractères par ligne et la bulle redevient la dalle qu'on venait de quitter.
-
-L'en-tête pesait deux lignes et un avatar de 44 px pour dire un nom et une date ; il en reste **une
-ligne de 22 px**, et elle ne revient **qu'au changement de voix** (avatar, nom ou « Vous », heure
-courte). Les grappes respirent une fois — 2 px entre deux messages du même auteur, 14 quand la
-parole change. C'est la troisième pièce, et il fallait les trois : deux suffisaient à distinguer, la
-troisième est ce qui fait qu'on n'a plus à lire pour savoir.
-
-### Trois formes, et c'est la largeur qui tranche
-
-La première version en avait deux, et elle disqualifiait un message dès qu'il portait un
-`<table>`, une couleur de texte ou un `bgcolor`. Or **toute signature professionnelle** coche ces
-cases : un logo, un nom en couleur, quatre icônes sociales, le tout dans un petit tableau. Un mot
-d'une personne à une autre devenait donc une dalle pleine largeur au milieu d'une conversation —
-« pourquoi certains mails ne sont pas présentés pareil ? », capture d'un transfert Anticafé à
-l'appui. Deux messages voisins n'avaient pas la même forme sans qu'on comprenne pourquoi.
-
-Le bon discriminant est la **largeur** : une signature tient dans 400 px, une infolettre est
-écrite pour 600 et plus. `enveloppe()` ([`src/lib/fil.ts`](../../src/lib/fil.ts)) rend donc trois
-valeurs :
-
-| Ce que le message porte | Sa forme |
+| Ce que le message porte | Sa surface |
 | --- | --- |
-| Du texte, ou du HTML sans couleurs à lui | **`bulle`** — teintée, cadre transparent, encre de l'app |
-| Ses couleurs, mais pas de mise en page | **`feuille`** — même bulle, mais elle garde le fond blanc du courrier |
-| Une largeur ≥ 500, un fond peint, > 20 ko, ou trois tableaux | **`document`** — pleine largeur, dans les deux modes |
+| Du texte, ou du HTML sans couleurs à lui | Le **cadre transparent**, encre de l'app, dans la gouttière |
+| Ses couleurs (`feuille`) | La **feuille blanche** du courrier, dans la gouttière |
+| Une vraie mise en page (`document`) | La feuille blanche, **pleine largeur** |
 
-**La feuille blanche n'est pas un choix de style, c'est une contrainte du contenu.** Ces couleurs
-ont été écrites pour du blanc : le rouge d'une signature sur une teinte à 22 %, ou son noir sur un
-fond sombre, ne se lit plus. Elle garde donc sa feuille — mais le **même rayon, la même largeur, le
-même côté et le même coin de queue** qu'une bulle ordinaire : c'est le même objet, avec une autre
-peau. Sur la carte blanche du thème clair, un blanc sur du blanc à un filet de 8 % disparaissait
-complètement : bord à 11 % **et** ombre courte, pour la poser *sur* la carte.
+La règle qui les sépare est la **largeur**, jamais la couleur : une signature tient dans 400 px, une
+infolettre est écrite pour 600 et plus. La première version disqualifiait un message dès qu'il
+portait un tableau ou un `color:` — c'est-à-dire dès qu'il avait une signature professionnelle, et
+un transfert d'une personne à une autre devenait une dalle au milieu d'une conversation.
 
-Deux mesures ont dû suivre, toutes deux prises à la capture :
+Les couleurs écrites en dur dans la feuille du cadre (`#ededef`, `#7fabf5`, `#b9b9be`, `#5c5c66`,
+comme `#fff` et `#0b57d0` avant elles) sont l'exception assumée aux tokens : elles vivent là où les
+tokens n'existent pas — un cadre est un autre document. Le thème lui est donc **dit** :
+`prefers-color-scheme` répondrait celui du système, et le nôtre est un réglage de l'app.
 
-- **Pas de canevas de 600 px dans une bulle.** Le cadre pose un courrier mis en page sur le
-  canevas des e-mails puis le réduit, comme Mail d'iOS — mais une bulle fait 230 px sur un
-  téléphone, et la signature de Sophie s'y retrouvait à 0,38 d'échelle, illisible. Ce qui rentre
-  dans une bulle n'a pas de mise en page à préserver, par définition.
-- **La bulle prend la largeur que le message demande.** Un cadre vaut 300 px par défaut, et une
-  bulle qui épouse son cadre s'y verrouille : une phrase de dix mots se repliait sur trois lignes à
-  côté d'une bulle de texte qui en prenait une. Le cadre mesure en `max-content`, rend la mesure
-  avec sa hauteur, et la page en borne la bulle — bornée à son tour par les 76 % de la colonne.
+**L'objet appartient au fil**, plus à son premier message : il le portait tant que le fil était une
+pile de blocs, un compromis assumé écrit ici même. Il est remonté dans `thread-view`.
 
-Et deux fois encore, la même question — « on peut les allonger que tout soit sur une ligne ? » —, à
-laquelle deux causes distinctes répondaient :
+### Trois mesures prises au cadre
 
-- **Le plafond était à 54ch, il est à 68.** Mesuré : la bulle demandait 515 px, on lui en accordait
-  410. 68ch est la mesure que le projet donne déjà au texte simple ; ce n'est pas un nombre de plus.
-- **La rangée prend toute la colonne** (`w-full`), et c'est `flex-row-reverse` qui range la bulle à
-  droite. Avec un `items-end` sur la colonne, la rangée se dimensionnait sur son contenu et les
-  76 % de la bulle se résolvaient contre une largeur qui dépendait d'eux — circulaire, et six mots
-  se repliaient dans 215 px sur 460 offerts.
-
-Le cadre d'une bulle **teintée** devient transparent et prend l'encre de l'app ; celui d'une
-**feuille** garde son blanc et son encre. Un cadre est un autre document : nos variables CSS n'y
-entrent pas, donc le thème lui est **dit** — `prefers-color-scheme` répondrait celui du système, et
-le nôtre est un réglage de l'app. Les couleurs écrites en dur dans la feuille du cadre (`#ededef`,
-`#7fabf5`, `#b9b9be`, `#5c5c66`, comme `#fff` et `#0b57d0` avant elles) sont l'exception assumée aux
-tokens : elles vivent là où les tokens n'existent pas. Le détecteur les signale, et c'est cette
-ligne qui répond.
-
-Deux règles tombent d'elles-mêmes en discussion : **un fil d'un seul message reste en courrier**
-(une bulle seule n'est pas une conversation, et elle rendrait 24 % de la largeur pour rien), et
-**l'objet remonte au fil** — il était porté par le premier message, compromis assumé tant que le fil
-était une pile de blocs ; une fois les messages en bulles, le premier n'a plus rien de particulier à
-dire sur l'échange entier.
-
-### Un cadre qui ne rétrécissait jamais
-
-Trouvé en mesurant la première bulle HTML : deux lignes de texte dans un cadre de 220 px.
-`documentElement.scrollHeight` ne descend pas sous la hauteur de la fenêtre du cadre, donc le cadre
-rendait **sa propre hauteur** dès que son contenu devenait plus court qu'elle — mesuré `docSH 220`,
-`bodySH 81`, enveloppe `80,5`. Invisible tant qu'un courrier était long ; replier une citation le
-rend court d'un coup.
-
-On mesure donc l'**enveloppe** (`#arc-fit`, en `flow-root` : sa boîte *est* le contenu), plus la
-marge, et `body.scrollHeight` ne sert plus que de garde-fou **à l'échelle 1** — le rectangle de
-l'enveloppe est transformé, lui ne l'est pas, et les prendre au maximum rendait la hauteur de mise
-en page d'une infolettre de 600 px posée sur un téléphone de 393 : 128 px de gris sous le message,
-mesurés et corrigés dans la même passe.
+- **Il ne rétrécissait jamais.** `documentElement.scrollHeight` ne descend pas sous la hauteur de la
+  fenêtre du cadre : un message plus court que le cadre courant rendait *sa propre hauteur*, et le
+  cadre restait grand pour toujours (mesuré `docSH 220`, `bodySH 81`, enveloppe `80,5`). On mesure
+  l'**enveloppe** (`#arc-fit`, en `flow-root` : sa boîte *est* le contenu) ; `body.scrollHeight` ne
+  garde que l'échelle 1 — le rectangle de l'enveloppe est transformé, lui ne l'est pas, et les
+  prendre au maximum posait 128 px de gris sous une infolettre.
+- **Le plancher est passé de 80 à 24.** Il datait du cadre à marge de 16 px, où rien ne pouvait
+  légitimement être plus court. Un message court dans un fil à plat fait 57 px : les 80 imposés lui
+  ajoutaient 23 px de vide, que le filet d'accent soulignait jusqu'en bas.
+- **Le cadre rend sa largeur naturelle** (`max-content`), mesurée à chaque passe : un cadre vaut
+  300 px par défaut, et sans cette mesure un message de dix mots se repliait sur trois lignes.
 
 ## Les marges, alignées sur la liste
 

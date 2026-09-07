@@ -85,7 +85,7 @@ Deux pièges, tous deux mesurés :
 
 **La fenêtre prend le filet de la carte du téléphone** (`.fenetre-carte`, bureau seulement) : sans
 tranche, un rectangle presque noir sur un fond presque noir fondait dans le décor. Bord haut deux
-fois plus clair que les côtés — c'est là que la lumière frappe — et lisieré intérieur en reflet, la
+fois plus clair que les côtés — c'est là que la lumière frappe — et liseré intérieur en reflet, la
 recette de `.list-card`. Le troisième volet la partage.
 
 ## Le fond du bureau, dégradé (`[data-fond="degrade"]`, le défaut)
@@ -255,7 +255,7 @@ nom, une valeur à droite.
 La ligne de la couleur est la seule à deux niveaux — l'icône appartient à son **titre**, et les huit
 pastilles reprennent toute la largeur de la rangée en dessous. Indentées des 32 px de l'icône, elles
 ne laissaient plus qu'un pixel de gouttière (mesuré : 329 px de place, 8 × 34 = 272, sept
-goutttières de 8).
+gouttières de 8).
 
 Le libellé de la densité est **« Densité »**, pas « Densité de la liste » : avec l'icône et le
 segmenté de 147 px, le nom long demandait 135 px pour 138 disponibles à 393 — trois pixels de

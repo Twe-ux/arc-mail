@@ -105,6 +105,12 @@ lit très bien, et il se lit comme du **courrier**, ce que ce projet est.
 - **La citation repliée** derrière un `···`, qui reste la pièce qui portait tout.
 - **Un filet d'accent** dans la marge de nos messages, deux pixels à 60 % : le seul signal de
   direction qui subsiste. Décidé explicitement — « filet d'accent : oui ».
+- **Un survol par message**, rayon 12 et `foreground/4 %` — la même encre que les rangées de la
+  liste, parce qu'un fil et une liste sont la même matière. Il tient **le message entier**,
+  en-tête et corps : c'est lui l'objet qu'on désigne, et sans filet entre les messages c'est le
+  survol qui les sépare au pointeur. La colonne prend 4 px de gouttière pour que le bloc arrondi ne
+  touche pas les bords du volet ; le message garde sa verticale à 20 px, celle de l'objet.
+  Bureau seulement : un bloc de lecture n'est pas une cible, il n'a pas d'`active:`.
 
 Le corps s'aligne **sous le nom**, jamais sous l'avatar : 44 px de gouttière sur téléphone, 38 sur
 bureau. Le texte simple borne sa ligne à 68ch ; seul un `document` reprend toute la largeur.

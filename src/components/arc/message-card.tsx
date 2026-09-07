@@ -78,7 +78,14 @@ export function MessageCard({
   return (
     <div
       className={cn(
-        "group/msg relative px-5 md:px-4",
+        "group/msg relative rounded-xl px-4 md:px-3",
+        /* **Le survol tient le message entier**, en-tête et corps : c'est lui
+           l'objet qu'on désigne, et c'est ce qui sépare deux messages dans un
+           fil qui n'a plus de filet entre eux. La même encre que les rangées de
+           la liste — un fil et une liste sont la même matière.
+           Bureau seulement : sur téléphone il n'y a pas de pointeur, et le
+           retour à l'appui appartient aux cibles, pas à un bloc de lecture. */
+        "md:transition-colors md:hover:bg-foreground/[0.04]",
         /* 24 px quand la parole change, 6 entre deux messages du même auteur :
            c'est la respiration qui sépare, plus un filet. */
         tete ? "mt-6 first:mt-0" : "mt-1.5",

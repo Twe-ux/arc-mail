@@ -2,6 +2,17 @@
 
 Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérification.
 
+## 7 septembre 2026 — un survol par message
+
+« Mets un hover lorsque je passe sur les messages pour les différencier. » Le fil plat a perdu ses
+filets entre les messages — c'est la respiration qui sépare —, et au pointeur il manquait de quoi
+dire lequel on désigne.
+
+Un bloc arrondi qui tient **le message entier**, en-tête et corps, à `foreground/4 %` : l'encre des
+rangées de la liste, parce qu'un fil et une liste sont la même matière. Il révèle le ↩ qui était
+déjà là. La colonne prend 4 px de gouttière pour que le bloc ne touche pas les bords du volet, et
+le message garde sa verticale à 20 px. Bureau seulement : un bloc de lecture n'est pas une cible.
+
 ## 7 septembre 2026 — le fil à plat, et le volet qui se pose
 
 Trois captures d'un autre client, et deux décisions : « les bulles bof bof, ça fait chip », et

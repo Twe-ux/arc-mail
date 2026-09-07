@@ -229,7 +229,10 @@ export function ThreadView({ className }: { className?: string }) {
             <h1 className="border-b border-black/[0.06] px-5 py-4 text-[19px] leading-[1.3] font-semibold tracking-[-0.01em] text-pretty md:hidden dark:border-white/[0.08]">
               {thread.subject}
             </h1>
-            <div className="flex flex-col py-4 md:py-3">
+            {/* Un pixel de gouttière de chaque côté : le survol d'un message est un
+                bloc arrondi, et sans elle il touche les bords du volet. Le
+                message garde sa verticale — 4 + 16 = 20 px, comme l'objet. */}
+            <div className="flex flex-col px-1 py-4 md:py-3">
               {thread.messages.map((m, i) => (
                 <MessageCard
                   key={m.id}

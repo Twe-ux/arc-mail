@@ -285,6 +285,9 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   alors que la cause était la citation dépliée. « Ça fait chip », et c'était juste.
 - **Un filet d'accent dans la marge de nos messages**, deux pixels : le seul signal de direction qui
   reste, là où un côté et un fond faisaient une messagerie instantanée.
+- **Le survol tient le message entier** (en-tête et corps), rayon 12, `foreground/4 %` — l'encre des
+  rangées de la liste : sans filet entre les messages, c'est lui qui les sépare au pointeur. Bureau
+  seulement ; un bloc de lecture n'est pas une cible, il n'a donc pas d'`active:`.
 - Le corps s'aligne **sous le nom** (44 px sur téléphone, 38 sur bureau) ; seul un `document`
   reprend toute la largeur — une infolettre n'a pas à payer la gouttière d'une conversation.
 - **Deux surfaces** (`enveloppe`) : un message sans couleurs à lui prend l'encre de l'app dans un

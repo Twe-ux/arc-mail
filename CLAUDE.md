@@ -157,7 +157,10 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   l'état se lit au lieu de se déduire. L'icône suit le thème **courant** (soleil, lune) — elle
   décrit, elle ne promet pas.
 - Le **panneau d'apparence du bureau dit la même chose que la feuille**, avec les mêmes mots : une
-  ligne, son icône, son contrôle à droite ; pas de titre en capitales ; 268 px.
+  ligne, son icône, son contrôle à droite ; pas de titre en capitales. Il fait **260 px, la largeur
+  de la barre**, et s'aligne **par sa fin** (`align="end"`, `collisionPadding` 8) comme le menu du
+  compte à côté : aligné par son début il partait de l'engrenage, à droite de la rangée du bas, et
+  déroulait tout son corps sur la liste.
 - L'accent **remplit à 22 %, il n'est pas l'aplat** : en `bg-[var(--space-accent)]` sous une encre
   `--space-ink`, qui vaut l'accent en sombre, le glyphe disparaît dans son propre fond.
 - La feuille **Personnaliser** est **un seul groupe de quatre lignes**, sans titre en capitales,

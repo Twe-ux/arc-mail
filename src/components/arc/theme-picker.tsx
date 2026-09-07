@@ -104,18 +104,32 @@ export function AppearancePanel({
         <PopoverTrigger asChild>{children}</PopoverTrigger>
       )}
       <PopoverContent
-        align="start"
+        /* **Par la fin, comme le menu du compte juste à côté.** Aligné par son
+           début, le panneau partait du bouton — qui vit à droite de la rangée
+           du bas — et déroulait ses 268 px **par-dessus la liste** : il ne
+           tenait plus à la barre, alors qu'il ne parle que d'elle. Aligné par
+           sa fin il vient buter à gauche, Radix le repose contre le bord, et il
+           se pose exactement dessus, puisqu'il en a la largeur. */
+        align="end"
         /* Vers le haut : le bouton vit tout en bas de la barre, et un panneau
            qui descendrait sortirait de la fenêtre. */
         side="top"
         sideOffset={8}
+        /* La marge que Radix garde au bord quand il repose le panneau : la
+           même que celle de la barre elle-même (`px-2`), sinon il flotte à
+           trois pixels du bord de la fenêtre. */
+        collisionPadding={8}
         /* Sans cela Radix met le champ du nom au premier plan à l'ouverture :
            ouvrir l'apparence lèverait le clavier sur un écran tactile. */
         onOpenAutoFocus={(e) => e.preventDefault()}
-        /* 268 et non 244 : une ligne porte maintenant son libellé **et** son
-           segmenté, et « Densité » contre « Confort · Compact » ne tenait pas
-           dans 220 px utiles. */
-        className="w-[268px] rounded-xl p-3"
+        /* **La largeur de la barre, exactement** (260 px) : reposé contre le
+           bord, le panneau couvre alors la barre d'un trait et rien de plus —
+           à 268 il la débordait de huit pixels sur la liste, ce qui se voit
+           d'autant plus que le reste est aligné. Toujours pas 244 : une ligne
+           porte son libellé **et** son segmenté, et « Densité » contre
+           « Confort · Compact » ne tenait pas dans 220 px utiles ; à 236, si
+           (mesuré, rien ne déborde). */
+        className="w-[260px] rounded-xl p-3"
       >
         <div className="flex items-center gap-2.5">
           <SpaceIcon space={space} size="lg" />

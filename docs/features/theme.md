@@ -322,6 +322,28 @@ sombre — glyphe invisible dans son propre fond. Elle passe à la dose de la pi
 encre `--space-ink`. La règle « l'accent se remplit, il ne s'écrit pas » vaut aussi pour le fond :
 **il remplit à 22 %, il n'est pas l'aplat.**
 
+### Il se pose sur la barre, il ne déborde plus sur la liste (7 sept. 2026)
+
+Signalé sur capture, à côté de celle du menu du compte : le panneau s'ouvrait **par-dessus la
+liste**. La cause n'était pas sa largeur mais son **ancrage** — `align="start"` sur un bouton qui
+vit à droite de la rangée du bas : le panneau partait de l'engrenage et déroulait ses 268 px vers
+la droite, mesuré de 218 à 486 px, c'est-à-dire presque entièrement hors de la barre dont il ne
+parle pourtant que d'elle. Le menu du compte, juste à côté, était déjà en `align="end"` et se
+lisait comme posé sur la barre ; c'est ce qu'on demandait.
+
+Deux mesures, dans cet ordre :
+
+- **`align="end"` plus `collisionPadding={8}`** — la fin du panneau sur la fin du bouton, donc un
+  panneau qui vient buter à gauche ; Radix le repose alors contre le bord de la fenêtre, à la marge
+  de la barre elle-même (`px-2`).
+- **260 px, la largeur de la barre exactement** — reposé contre le bord, un panneau de 268 la
+  débordait encore de huit pixels, et ces huit-là se voient d'autant plus que tout le reste est
+  aligné. Ce n'est toujours pas 244 : le libellé plus son segmenté ne tiennent pas dans 220 px
+  utiles. À 236, si — mesuré, aucun enfant ne déborde (`scrollWidth` 258 pour 260).
+
+Mesure après : panneau `8 → 268`, barre `8 → 268`. Le rail garde le même ancrage — il n'a pas la
+place de contenir quoi que ce soit, et son menu de compte se pose déjà là.
+
 ---
 
 ## Le toast redevient une carte, et il sort par le bas (6 sept. 2026)

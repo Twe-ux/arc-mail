@@ -2,41 +2,19 @@
 
 import { useState } from "react";
 
-import {
-  Archive,
-  Clock,
-  FileText,
-  Inbox,
-  Send,
-  Settings2,
-  Star,
-  Plus,
-  Trash2,
-  X,
-  type LucideIcon,
-} from "lucide-react";
+import { Settings2, Plus, X, type LucideIcon } from "lucide-react";
 
 import { AccountMenu } from "@/components/auth/account-menu";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { VUE_ICON } from "@/lib/folders";
+import { FOLDER_ICON, VUE_ICON } from "@/lib/folders";
 import { FOLDERS } from "@/lib/mock-data";
-import { selectUnreadCount, selectVueUnread, useMail } from "@/lib/store";
+import { selectUnreadCount, selectVueUnread, useMail, useFolders } from "@/lib/store";
 import type { FolderId, Vue } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { AppearancePanel } from "./theme-picker";
 import { SidebarRecents } from "./sidebar-recents";
 import { SpaceSwitcher } from "./space-switcher";
-
-export const FOLDER_ICONS: Record<FolderId, LucideIcon> = {
-  inbox: Inbox,
-  starred: Star,
-  snoozed: Clock,
-  sent: Send,
-  drafts: FileText,
-  archive: Archive,
-  trash: Trash2,
-};
 
 /** The four "favorite" tiles under the address bar, like Arc's pinned favorites. */
 export const PINNED: FolderId[] = ["inbox", "starred", "sent", "drafts"];
@@ -84,6 +62,7 @@ export const TN = {
  * qu'elle est seule à savoir faire : les dossiers.
  */
 export function SidebarContent() {
+  const folders = useFolders();
   const folderId = useMail((s) => s.folderId);
   const setFolder = useMail((s) => s.setFolder);
   const inboxUnread = useMail((s) => selectUnreadCount(s, s.spaceId, "inbox"));
@@ -98,7 +77,9 @@ export function SidebarContent() {
       {/* Pinned favorites */}
       <div className="grid shrink-0 grid-cols-4 gap-1.5">
         {PINNED.map((id) => {
-          const Icon = FOLDER_ICONS[id];
+          const Icon = FOLDER_ICON[id];
+          /* Le nom long, cherché dans la table **complète** : les épinglés sont
+             quatre boîtes fixes, dont aucune n'est conditionnelle. */
           const name = FOLDERS.find((f) => f.id === id)?.name ?? id;
           const active = id === folderId && !surUneVue;
           const dot = id === "inbox" && inboxUnread > 0;
@@ -127,10 +108,10 @@ export function SidebarContent() {
 
       {/* Folders */}
       <nav className="flex shrink-0 flex-col gap-0.5" aria-label="Dossiers">
-        {FOLDERS.map((f) => (
+        {folders.map((f) => (
           <FolderRow
             key={f.id}
-            icon={FOLDER_ICONS[f.id]}
+            icon={FOLDER_ICON[f.id]}
             name={f.name}
             active={f.id === folderId && !surUneVue}
             folderId={f.id}

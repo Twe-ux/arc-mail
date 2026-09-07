@@ -190,6 +190,7 @@ export function ThreadView({ className }: { className?: string }) {
         onReplyAll={() => aimReply(everyone)}
         onArchive={() => ranger("archive")}
         onTrash={() => (inTrash ? ranger("inbox") : ranger("trash"))}
+        onRanger={ranger}
         onSnooze={() => ranger("snoozed")}
       />
 

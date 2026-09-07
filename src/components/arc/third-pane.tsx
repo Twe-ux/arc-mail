@@ -1,26 +1,13 @@
 "use client";
 
-import {
-  AlignLeft,
-  Archive,
-  Bold,
-  Clock,
-  Italic,
-  Link as LinkIcon,
-  MailOpen,
-  Paperclip,
-  Send,
-  Trash2,
-  Underline,
-  X,
-  type LucideIcon,
-} from "lucide-react";
+import { AlignLeft, Archive, Bold, Clock, Italic, Link as LinkIcon, type LucideIcon, MailOpen, Paperclip, Send, ShieldAlert, Trash2, Underline, X } from "lucide-react";
 import { useState } from "react";
 
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { formatFullDate } from "@/lib/format";
-import { useMail, usePreview, useThirdMessage } from "@/lib/store";
+import { signalement } from "@/lib/folders";
+import { selectAJunk, useMail, usePreview, useThirdMessage } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { AttachmentBody, AttachmentHead } from "./attachment";
 import { ContactAvatar } from "./contact-avatar";
@@ -72,18 +59,22 @@ function ModeFichier() {
 /**
  * Les actions du message.
  *
- * **Quatre, pas sept.** Le handoff en dessine sept ; trois n'ont rien derrière
- * elles dans ce dépôt — « Indésirable » demande un dossier Junk qui n'existe
- * pas dans `FolderId`, « Étiqueter » un moyen d'ajouter une étiquette qu'aucun
- * écran n'offre, « Marquer comme traité » un état qui n'existe pas. Des icônes
- * qui s'allument sans rien faire sont pires que des icônes absentes ; les trois
- * sont entrées dans `docs/a-faire.md`.
+ * **Cinq, pas sept.** Le handoff en dessine sept ; deux n'ont toujours rien
+ * derrière elles — « Étiqueter » demande un moyen d'ajouter une étiquette
+ * qu'aucun écran n'offre, « Marquer comme traité » un état qui n'existe pas.
+ * Des icônes qui s'allument sans rien faire sont pires que des icônes
+ * absentes ; les deux restent dans `docs/a-faire.md`.
+ *
+ * « Indésirable » était la troisième et elle revient : le dossier existe
+ * maintenant. Elle n'est posée que si **cette boîte** en a un, et elle se
+ * retourne depuis le dossier lui-même (`signalement`).
  */
 const ACTIONS: { id: string; icon: LucideIcon; label: string }[] = [
   { id: "archive", icon: Archive, label: "Archiver · e" },
   { id: "trash", icon: Trash2, label: "Supprimer · #" },
   { id: "unread", icon: MailOpen, label: "Marquer comme non lu · u" },
   { id: "snooze", icon: Clock, label: "Mettre en pause" },
+  { id: "junk", icon: ShieldAlert, label: "Signaler comme indésirable" },
 ];
 
 function ModeMessage() {
@@ -91,14 +82,17 @@ function ModeMessage() {
   const close = useMail((s) => s.closeThird);
   const moveThread = useMail((s) => s.moveThread);
   const toggleUnread = useMail((s) => s.toggleUnread);
+  const aJunk = useMail(selectAJunk);
 
   if (!trouve) return null;
   const { thread, message } = trouve;
+  const signaler = signalement(thread.folder);
 
   const agir = (id: string) => {
     if (id === "archive") moveThread(thread.id, "archive");
     else if (id === "trash") moveThread(thread.id, "trash");
     else if (id === "snooze") moveThread(thread.id, "snoozed");
+    else if (id === "junk") moveThread(thread.id, signaler.vers);
     else if (id === "unread") return toggleUnread(thread.id);
     close();
   };
@@ -113,8 +107,15 @@ function ModeMessage() {
       </header>
 
       <div className="flex shrink-0 items-center gap-0.5 border-b px-3 pb-2.5">
-        {ACTIONS.map(({ id, icon: Icon, label }) => (
-          <Case key={id} label={label} danger={id === "trash"} onClick={() => agir(id)}>
+        {ACTIONS.filter((a) => a.id !== "junk" || aJunk).map(({ id, icon: Icon, label }) => (
+          <Case
+            key={id}
+            /* Une seule ligne à dire deux choses selon l'endroit : c'est la
+               même case, pas deux cases dont une serait toujours éteinte. */
+            label={id === "junk" ? signaler.label : label}
+            danger={id === "trash"}
+            onClick={() => agir(id)}
+          >
             <Icon />
           </Case>
         ))}

@@ -5,12 +5,11 @@ import { Settings2 } from "lucide-react";
 import { AccountMenu } from "@/components/auth/account-menu";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { VUE_ICON } from "@/lib/folders";
-import { FOLDERS } from "@/lib/mock-data";
-import { selectUnreadCount, selectVueUnread, useMail, useSpaces } from "@/lib/store";
+import { FOLDER_ICON, VUE_ICON } from "@/lib/folders";
+import { selectUnreadCount, selectVueUnread, useMail, useSpaces, useFolders } from "@/lib/store";
 import type { FolderId, Vue } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { FOLDER_ICONS, TN } from "./sidebar-content";
+import { TN } from "./sidebar-content";
 import { SpaceTile } from "./space-icon";
 import { AppearancePanel } from "./theme-picker";
 
@@ -33,6 +32,7 @@ export function SidebarRail() {
   const spaces = useSpaces();
   const spaceId = useMail((s) => s.spaceId);
   const setSpace = useMail((s) => s.setSpace);
+  const folders = useFolders();
   const folderId = useMail((s) => s.folderId);
   const setFolder = useMail((s) => s.setFolder);
   const vues = useMail((s) => s.vues);
@@ -67,7 +67,7 @@ export function SidebarRail() {
       <Separator className={cn("w-6", TN.sep)} />
 
       <nav className="flex flex-col items-center gap-0.5" aria-label="Dossiers">
-        {FOLDERS.map((f) => (
+        {folders.map((f) => (
           <RailFolder
             key={f.id}
             id={f.id}
@@ -133,7 +133,7 @@ function RailFolder({
   active: boolean;
   onClick: () => void;
 }) {
-  const Icon = FOLDER_ICONS[id];
+  const Icon = FOLDER_ICON[id];
   const count = useMail((s) => selectUnreadCount(s, s.spaceId, id));
   return (
     <Tooltip>

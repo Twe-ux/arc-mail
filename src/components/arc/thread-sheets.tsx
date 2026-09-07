@@ -1,16 +1,35 @@
 "use client";
 
-import { Archive, Clock, Forward, Mail, MailOpen, Paperclip, ReplyAll, Star, Trash2, type LucideIcon } from "lucide-react";
+import {
+  Archive,
+  Clock,
+  Forward,
+  Mail,
+  MailOpen,
+  Paperclip,
+  ReplyAll,
+  ShieldAlert,
+  Star,
+  Trash2,
+  type LucideIcon,
+} from "lucide-react";
 
-import { useMail } from "@/lib/store";
+import { FOLDER_ICON, signalement } from "@/lib/folders";
+import { selectAJunk, useMail } from "@/lib/store";
 import type { FolderId, Thread } from "@/lib/types";
 import { BottomSheet, SheetGroup, SheetRow, SheetScroller } from "./bottom-sheet";
 
-/** Où l'on range depuis « Déplacer vers » : quatre destinations, pas sept. */
+/**
+ * Où l'on range depuis « Déplacer vers » : quatre destinations, pas sept.
+ *
+ * « Indésirable » s'y ajoute quand la boîte en a un — cinquième et dernière,
+ * juste avant la corbeille comme dans la liste des dossiers.
+ */
 const DESTINATIONS: { id: FolderId; name: string; icon: LucideIcon }[] = [
   { id: "starred", name: "Favoris", icon: Star },
   { id: "snoozed", name: "En pause", icon: Clock },
   { id: "archive", name: "Archive", icon: Archive },
+  { id: "junk", name: "Indésirable", icon: FOLDER_ICON.junk },
   { id: "trash", name: "Corbeille", icon: Trash2 },
 ];
 
@@ -39,6 +58,9 @@ export function ThreadSheets({
 }) {
   const toggleUnread = useMail((s) => s.toggleUnread);
   const setPreview = useMail((s) => s.setPreview);
+  /* Sans dossier d'indésirables, ni la destination ni l'action n'ont où aller. */
+  const aJunk = useMail(selectAJunk);
+  const signaler = signalement(thread.folder);
   /* La première pièce jointe du fil : ce que « Pièces jointes » ouvre. */
   const premierePiece = thread.messages.flatMap((m) => m.attachments ?? [])[0];
 
@@ -52,7 +74,7 @@ export function ThreadSheets({
       >
         <SheetScroller>
           <SheetGroup>
-            {DESTINATIONS.map(({ id, name, icon: Icon }) => (
+            {DESTINATIONS.filter((d) => d.id !== "junk" || aJunk).map(({ id, name, icon: Icon }) => (
               <SheetRow key={id} active={thread.folder === id} onClick={() => onRanger(id)}>
                 <Icon className="size-5 shrink-0" strokeWidth={1.75} />
                 <span className="min-w-0 flex-1 truncate text-[15px]">{name}</span>
@@ -101,6 +123,18 @@ export function ThreadSheets({
               <Clock className="size-5 shrink-0" strokeWidth={1.75} />
               <span className="min-w-0 flex-1 text-[15px]">Mettre en pause</span>
             </SheetRow>
+            {/* **L'action nommée, à côté du rangement qui la double.** « Mettre
+                en pause » est déjà dans les deux feuilles pour la même raison :
+                « Déplacer vers » range, « Plus » agit, et un geste qu'on nomme
+                se trouve mieux qu'une destination qu'il faut deviner. Depuis
+                les indésirables la même ligne dit le contraire — c'est le
+                filtre qu'on corrige, pas son propre geste. */}
+            {aJunk && (
+              <SheetRow onClick={() => onRanger(signaler.vers)}>
+                <ShieldAlert className="size-5 shrink-0" strokeWidth={1.75} />
+                <span className="min-w-0 flex-1 text-[15px]">{signaler.label}</span>
+              </SheetRow>
+            )}
             {premierePiece && (
               <SheetRow
                 onClick={() => {

@@ -13,6 +13,16 @@ export type FolderId =
   | "sent"
   | "drafts"
   | "archive"
+  /**
+   * Le dossier du courrier filtré (`\\Junk` en SPECIAL-USE).
+   *
+   * **Le seul dossier qui peut ne pas exister.** Les six autres sont montrés
+   * quoi qu'il arrive — « un dossier absent est une liste vide », la règle de
+   * la fiche IMAP. Celui-ci se cache quand le serveur ne l'annonce pas :
+   * c'est le seul où l'on va chercher ce qui *ne devrait pas y être*, et une
+   * porte vers un dossier qui n'existe pas ne mène nulle part.
+   */
+  | "junk"
   | "trash";
 
 export type SpaceTheme = {

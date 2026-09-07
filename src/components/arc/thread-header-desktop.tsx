@@ -1,25 +1,14 @@
 "use client";
 
-import {
-  Archive,
-  Clock,
-  Forward,
-  Mail,
-  MailOpen,
-  MoreHorizontal,
-  ReplyAll,
-  Star,
-  Trash2,
-  X,
-  type LucideIcon,
-} from "lucide-react";
+import { Archive, Clock, Forward, type LucideIcon, Mail, MailOpen, MoreHorizontal, ReplyAll, ShieldAlert, Star, Trash2, X } from "lucide-react";
 import { useState } from "react";
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
-import { useMail } from "@/lib/store";
-import type { Thread } from "@/lib/types";
+import { signalement } from "@/lib/folders";
+import { selectAJunk, useMail } from "@/lib/store";
+import type { FolderId, Thread } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { ContactAvatar } from "./contact-avatar";
 import { ThreadDetails } from "./thread-details";
@@ -47,6 +36,7 @@ export function ThreadHeaderDesktop({
   onArchive,
   onTrash,
   onSnooze,
+  onRanger,
 }: {
   thread: Thread;
   onForward: () => void;
@@ -54,10 +44,14 @@ export function ThreadHeaderDesktop({
   onArchive: () => void;
   onTrash: () => void;
   onSnooze: () => void;
+  /** Ranger ailleurs que dans les trois destinations qui ont leur bouton. */
+  onRanger: (to: FolderId) => void;
 }) {
   const selectThread = useMail((s) => s.selectThread);
   const toggleUnread = useMail((s) => s.toggleUnread);
   const toggleStar = useMail((s) => s.toggleStar);
+  const aJunk = useMail(selectAJunk);
+  const signaler = signalement(thread.folder);
   const [menu, setMenu] = useState(false);
 
   const inTrash = thread.folder === "trash";
@@ -148,6 +142,19 @@ export function ThreadHeaderDesktop({
               onSnooze();
             }}
           />
+          {/* Même ligne que sur téléphone, mêmes mots : depuis une boîte elle
+              accuse, depuis les indésirables elle corrige le filtre. Absente
+              quand le compte n'a pas de dossier où l'envoyer. */}
+          {aJunk && (
+            <Rangee
+              icon={ShieldAlert}
+              label={signaler.label}
+              onClick={() => {
+                setMenu(false);
+                onRanger(signaler.vers);
+              }}
+            />
+          )}
         </PopoverContent>
       </Popover>
 

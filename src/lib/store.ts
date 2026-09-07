@@ -15,7 +15,7 @@ import { texteLibre } from "./search/ast";
 import { dossiersDe } from "./search/imap";
 import { correspond } from "./search/match";
 import { parse } from "./search/parse";
-import type { Attachment, ComposeDraft, Contact, FolderId, Message, Space, SpaceId, Thread, Vue } from "./types";
+import type { Attachment, ComposeDraft, Contact, Folder, FolderId, Message, Space, SpaceId, Thread, Vue } from "./types";
 
 /** Partiel : un espace nouveau n'a pas encore de clé, et `?? []` est la lecture. */
 type RecentMap = Partial<Record<SpaceId, string[]>>;
@@ -117,6 +117,30 @@ export type MailState = {
    * `selectUnreadCount` s'en sert pour ceux qu'on ne regarde pas.
    */
   folderCounts: Partial<Record<SpaceId, FolderUnread>>;
+  /**
+   * Quelles **boîtes** cet espace possède vraiment, par espace.
+   *
+   * Un dossier absent n'est pas un dossier vide : `\Junk` peut ne pas exister,
+   * et « Indésirable » est le seul dossier qui se cache dans ce cas plutôt que
+   * de s'afficher vide (voir `FolderId`). La réponse vient de `listFolders` —
+   * les clés de ses comptes *sont* la liste des boîtes, parce qu'elles sont
+   * bâties sur le `LIST` du serveur et non sur ce qu'on a en mémoire.
+   *
+   * **Persisté, à la différence des comptes.** Un compte périme en une minute
+   * et le garder serait un mensonge ; l'existence d'un dossier, non. Ce qu'il
+   * évite, c'est **d'attendre le réseau** à chaque visite : sur un vrai compte
+   * la réponse vaut un `LIST` + `STATUS`.
+   *
+   * Ce qu'il n'évite pas, et c'est mesuré : la rangée n'est pas là à la
+   * première peinture. Le store se réhydrate **après le montage**
+   * (`skipHydration`, pour que le premier rendu client soit celui du serveur),
+   * donc elle arrive un battement plus tard — 380 ms au lieu de 490 sur le
+   * mock, dont la lecture est pourtant instantanée. C'est le même battement
+   * que toutes les préférences persistées (densité, état de la barre) ; seul
+   * le thème est posé avant, par le script inline de `layout.tsx`, parce qu'un
+   * écran blanc qui devient noir coûte plus qu'une rangée qui s'ajoute.
+   */
+  boites: Partial<Record<SpaceId, FolderId[]>>;
   /** The last failed read of a space, for the list to show with a retry; cleared by the next successful read. */
   error: string | null;
   /**
@@ -849,6 +873,7 @@ export const useMail = create<MailState>()(
   threads: [],
   loading: {},
   folderCounts: {},
+  boites: {},
   serverResults: [],
   serverQuery: "",
   searching: false,
@@ -907,7 +932,11 @@ export const useMail = create<MailState>()(
         .listFolders(account, { inboxPath: spaceOf(spaceId).inboxPath })
         .then((counts) => {
           if (loadTokens.get(spaceId) !== token) return;
-          set((s) => ({ folderCounts: { ...s.folderCounts, [spaceId]: counts } }));
+          set((s) => ({
+            folderCounts: { ...s.folderCounts, [spaceId]: counts },
+            /* Les clés, pas les valeurs : c'est la liste des boîtes. */
+            boites: { ...s.boites, [spaceId]: Object.keys(counts) as FolderId[] },
+          }));
         })
         .catch(() => {});
 
@@ -1083,8 +1112,11 @@ export const useMail = create<MailState>()(
         : s.folderCounts,
     }));
     const account = accountOf(t.spaceId);
-    const undone = { archive: "Archivage impossible, la conversation est de retour", trash: "Suppression impossible, la conversation est de retour" }[folder as string]
-      ?? "Déplacement impossible, la conversation est de retour";
+    const undone = {
+      archive: "Archivage impossible, la conversation est de retour",
+      trash: "Suppression impossible, la conversation est de retour",
+      junk: "Signalement impossible, la conversation est de retour",
+    }[folder as string] ?? "Déplacement impossible, la conversation est de retour";
     const ecriture = commit(
       t,
       () => providerFor(account).modify(account, id, { folder }),
@@ -1688,7 +1720,10 @@ export const useMail = create<MailState>()(
          barre repliée revient en **rail** et non masquée : c'est ce que le
          bouton de repli fait désormais, et personne ne perd ses dossiers au
          rechargement. */
-      version: 4,
+      /* 5 : `boites` — quelles boîtes chaque espace possède. Rien à migrer, un
+            install plus ancien repart d'un objet vide et la première lecture le
+            remplit ; c'est la version qui est bumpée, pas la forme. */
+      version: 5,
       migrate: (persisted, version) => {
         const avant = persisted as Partial<MailState> & {
           sidebarCollapsed?: boolean;
@@ -1733,6 +1768,7 @@ export const useMail = create<MailState>()(
         groupBy: s.groupBy,
         vues: s.vues,
         recent: s.recent,
+        boites: s.boites,
         threads: enMemoire(s.threads),
       }),
       /* Rehydrated from `AppShell` after mount so the server and first client
@@ -1897,6 +1933,28 @@ export function useSpace(): Space {
   return spaces.find((sp) => sp.id === spaceId) ?? spaces[0];
 }
 export const selectFolder = (s: MailState) => FOLDERS.find((f) => f.id === s.folderId) ?? FOLDERS[0];
+
+/**
+ * Est-ce que cette boîte a un dossier d'indésirables ?
+ *
+ * Tant que `listFolders` n'a pas répondu **et** que rien n'a été gardé d'une
+ * visite précédente, la réponse est non : mieux vaut une rangée qui arrive
+ * qu'une rangée qui s'en va. C'est le seul dossier à poser la question — les
+ * six autres se montrent toujours, un dossier absent y étant simplement une
+ * liste vide (fiche IMAP).
+ */
+export const selectAJunk = (s: MailState) => (s.boites[s.spaceId] ?? []).includes("junk");
+
+/**
+ * Les dossiers **de cette boîte**, dans l'ordre de la liste.
+ *
+ * Mémoïsé, comme tout sélecteur qui construit un tableau : rendu à neuf à
+ * chaque appel, `useSyncExternalStore` boucle sans fin.
+ */
+export function useFolders(): Folder[] {
+  const aJunk = useMail(selectAJunk);
+  return useMemo(() => (aJunk ? FOLDERS : FOLDERS.filter((f) => f.id !== "junk")), [aJunk]);
+}
 
 /** La vue ouverte, ou `undefined` quand on regarde un dossier. */
 export const selectVue = (s: MailState) => s.vues.find((v) => v.id === s.vueId);

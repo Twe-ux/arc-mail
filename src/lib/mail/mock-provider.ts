@@ -1,5 +1,5 @@
 import { firstLine } from "../format";
-import { THREADS } from "../mock-data";
+import { FOLDERS, THREADS } from "../mock-data";
 import { dossiersDe } from "../search/imap";
 import { correspond } from "../search/match";
 import { parse } from "../search/parse";
@@ -51,7 +51,18 @@ export class MockProvider implements MailProvider {
      Favoris compris — ce qui, chez lui, ne coûte rien. */
   async listFolders(account: AccountRef): Promise<FolderUnread> {
     const spaceId = spaceOf(account);
+    /* **Une clé présente veut dire « ce dossier existe », pas « il a des
+       non-lus ».** C'est le contrat que la lecture IMAP tient déjà — elle
+       construit ses comptes depuis le `LIST` du serveur, donc un dossier réel
+       et vide y vaut zéro, un dossier absent n'y est pas du tout. Le mock ne
+       comptait que les non-lus : « Indésirable » y aurait disparu dès qu'on
+       l'avait lu, ce qu'aucune vraie boîte ne fait. */
     const comptes: FolderUnread = {};
+    /* Favoris et « En pause » restent dehors : ce sont un drapeau et un état,
+       pas des boîtes — la lecture IMAP ne les annonce pas davantage. */
+    for (const f of FOLDERS) {
+      if (f.id !== "starred" && f.id !== "snoozed") comptes[f.id] = 0;
+    }
     for (const t of this.threads) {
       if (t.spaceId !== spaceId || !t.unread) continue;
       comptes[t.folder] = (comptes[t.folder] ?? 0) + 1;

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Archive, BookmarkPlus, ChevronDown, Clock, Columns2, FileText, Globe, Inbox, Loader2, Moon, PanelLeft, PenSquare, Send, Star, Trash2, type LucideIcon } from "lucide-react";
+import { BookmarkPlus, ChevronDown, Columns2, Globe, Loader2, Moon, PanelLeft, PenSquare } from "lucide-react";
 
 import {
   CommandDialog,
@@ -13,27 +13,16 @@ import {
   CommandSeparator,
   CommandShortcut,
 } from "@/components/ui/command";
-import { VUE_ICON } from "@/lib/folders";
-import { FOLDERS } from "@/lib/mock-data";
+import { FOLDER_ICON, VUE_ICON } from "@/lib/folders";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { nommeUnDossier, texteLibre } from "@/lib/search/ast";
+import type { Thread } from "@/lib/types";
 import { correspond, extrait } from "@/lib/search/match";
 import { laver, parse } from "@/lib/search/parse";
-import { sortByDate, useMail, useSpace, useSpaces, type SidebarMode } from "@/lib/store";
-import type { FolderId } from "@/lib/types";
+import { sortByDate, useFolders, useMail, useSpace, useSpaces, type SidebarMode } from "@/lib/store";
 import { ContactAvatar } from "./contact-avatar";
 import { Surligne } from "./surligne";
 import { SpaceIcon } from "./space-icon";
-
-const FOLDER_ICONS: Record<FolderId, LucideIcon> = {
-  inbox: Inbox,
-  starred: Star,
-  snoozed: Clock,
-  sent: Send,
-  drafts: FileText,
-  archive: Archive,
-  trash: Trash2,
-};
 
 /** Ce que ⌘B fera au prochain appui : l'entrée dit sa destination, pas son état. */
 const MODE_SUIVANT: Record<SidebarMode, string> = {
@@ -48,6 +37,9 @@ export function CommandPalette() {
   const setCommandOpen = useMail((s) => s.setCommandOpen);
   const spaces = useSpaces();
   const space = useSpace();
+  /* Les dossiers **de cette boîte** : « Indésirable » n'y est que si le
+     serveur l'annonce, ici comme dans la barre et dans la feuille. */
+  const folders = useFolders();
   const desktop = useMediaQuery("(min-width: 768px)");
   /* La requête est tenue ici pour pouvoir **surligner** ce qui a été trouvé :
      cmdk filtre tout seul, mais il ne dit pas où. Un résultat qui ne montre
@@ -85,13 +77,16 @@ export function CommandPalette() {
   const libre = useMemo(() => texteLibre(arbre), [arbre]);
   const cherche = requete.trim().length > 0;
 
-  /* La corbeille est écartée **sauf si la requête la nomme** : on ne retombe
-     pas par hasard sur ce qu'on a jeté, mais `dans:corbeille` n'est pas un
-     hasard — et rendre zéro résultat à une question précise est pire que la
-     précaution qu'on croyait prendre. */
+  /* La corbeille **et les indésirables** sont écartés sauf si la requête les
+     nomme : on ne retombe pas par hasard sur ce qu'on a jeté ni sur ce que le
+     filtre a retenu — chercher « facture » ramènerait sinon toute la pêche du
+     spam. Mais `dans:corbeille` et `dans:indésirable` ne sont pas des hasards,
+     et rendre zéro résultat à une question précise est pire que la précaution
+     qu'on croyait prendre. */
   const tousLesFils = useMemo(() => {
-    const jetees = nommeUnDossier(arbre);
-    return sortByDate(threads.filter((t) => t.spaceId === spaceId && (jetees || t.folder !== "trash")))
+    const nomme = nommeUnDossier(arbre);
+    const ecarte = (t: Thread) => t.folder === "trash" || t.folder === "junk";
+    return sortByDate(threads.filter((t) => t.spaceId === spaceId && (nomme || !ecarte(t))))
       .filter((t) => correspond(arbre, t))
       .slice(0, 40);
   }, [threads, spaceId, arbre]);
@@ -144,7 +139,7 @@ export function CommandPalette() {
     theme: garde("Basculer le thème"),
   };
   const desActions = Object.values(actions).some(Boolean);
-  const dossiers = FOLDERS.filter((f) => garde(f.name));
+  const dossiers = folders.filter((f) => garde(f.name));
   /* **Une vue se cherche sur le texte tapé, pas sur ses mots nus.** `garde()`
      ne regarde que les mots nus — c'est la bonne règle pour une action ou un
      dossier, que `de:claire` ne concerne pas. Mais une vue *est* une requête :
@@ -468,7 +463,7 @@ export function CommandPalette() {
         {dossiers.length > 0 && (
           <CommandGroup heading="Aller à">
             {dossiers.map((f) => {
-              const Icon = FOLDER_ICONS[f.id];
+              const Icon = FOLDER_ICON[f.id];
               return (
                 <CommandItem key={f.id} value={`dossier ${f.name}`} onSelect={() => run(() => setFolder(f.id))}>
                   <Icon /> {f.name}

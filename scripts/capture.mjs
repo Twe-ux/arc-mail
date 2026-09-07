@@ -60,10 +60,38 @@ const SIZES = {
 const CLICK_TEXT = (text) =>
   `[...document.querySelectorAll('button')].find((b) => b.textContent?.includes(${JSON.stringify(text)}))?.click()`;
 
+/**
+ * Le même clic, mais **sur ce qui est à l'écran**.
+ *
+ * Les deux tailles cohabitent dans le document — la barre latérale est
+ * `hidden md:flex`, la feuille du téléphone est portalisée — et `querySelector`
+ * ne connaît pas `md:`. En cherchant « Indésirable » sur 393 px, on tombait sur
+ * la rangée **de la barre bureau**, invisible mais première dans l'ordre du
+ * document : le dossier changeait bien (son `onClick` part quand même) mais la
+ * feuille ne se refermait pas, puisque c'est *sa* rangée qui la referme. La
+ * capture montrait donc un écran que personne ne peut obtenir au doigt.
+ *
+ * `offsetParent` est nul dès qu'un ancêtre est `display: none` — c'est le test
+ * le plus court qui distingue les deux mondes.
+ */
+const CLICK_VISIBLE = (text) =>
+  `[...document.querySelectorAll('button')].find((b) => b.offsetParent !== null && b.textContent?.includes(${JSON.stringify(text)}))?.click()`;
+
 /* Les trois états de la barre se commutent depuis la **tête de liste** : le
    sélecteur y vit désormais, et la barre n'a plus de rangée du haut. */
 const RAIL = `document.querySelector('div[role="group"][aria-label="Barre latérale"] button[aria-label^="Réduire en rail"]')?.click()`;
 const MASQUEE = `document.querySelector('div[role="group"][aria-label="Barre latérale"] button[aria-label^="Masquer"]')?.click()`;
+
+/**
+ * Ouvrir la feuille Dossiers, **sur téléphone seulement**.
+ *
+ * Elle est le seul chemin vers un dossier non épinglé là-bas ; sur bureau la
+ * barre le porte déjà. Et il faut vraiment la condition : sur 1280 px la
+ * feuille est `md:hidden` mais Radix la porte quand même dans le document, et
+ * son voile avalait le clic suivant — la capture bureau restait sur la
+ * réception sans rien signaler.
+ */
+const SHEET_IF_PHONE = `innerWidth < 768 && document.querySelector('nav[aria-label="Navigation"] button[aria-label="Dossiers"]')?.click()`;
 
 const OPENERS = {
   /* La case d'espace de la barre **change** d'espace depuis le lot mobile ;
@@ -73,6 +101,22 @@ const OPENERS = {
   compose: `document.querySelector('nav[aria-label="Navigation"] button[aria-label="Écrire"]')?.click()`,
   search: `document.querySelector('nav[aria-label="Navigation"] button[aria-label="Rechercher"]')?.click()`,
   fil: [CLICK_TEXT("Photos de l'anniversaire")],
+  /* Le dossier des indésirables. Une seule suite pour les deux tailles : sur
+     téléphone la première étape ouvre la feuille Dossiers (le dossier n'est pas
+     dans les quatre épinglés), sur bureau elle ne trouve rien et la seconde
+     clique la rangée de la barre. */
+  indesirable: [SHEET_IF_PHONE, CLICK_VISIBLE("Indésirable")],
+  /* Le fil pris à tort par le filtre, et le menu qui le réhabilite. */
+  "indesirable-plus": [
+    SHEET_IF_PHONE,
+    CLICK_VISIBLE("Indésirable"),
+    CLICK_VISIBLE("Devis chantier Marquisats"),
+    /* « Plus » dans la pill du téléphone, « Plus d'actions » dans l'en-tête du
+       bureau : un préfixe plutôt qu'une apostrophe, qui refermait la chaîne du
+       sélecteur — et le premier **visible**, pour la même raison que
+       `CLICK_VISIBLE`. */
+    `[...document.querySelectorAll('button[aria-label^="Plus"]')].find((b) => b.offsetParent !== null)?.click()`,
+  ],
   /* Le fil qui porte des citations : c'est celui qui montre le repli et, en
      mode discussion, l'alternance des deux côtés. */
   discussion: [CLICK_TEXT("Tu as vu le vélo sur leboncoin ?")],
@@ -125,7 +169,7 @@ const OPENERS = {
 };
 
 /** Les écrans qui ne sont pas des cartes flottantes : rien à mesurer, mais à capturer partout. */
-const BOTH_SIZES = new Set(["fil", "discussion", "formes", "reponse-volet", "infolettre", "piece-jointe", "rail", "masquee", "volet-message", "composeur", "html-large", "correspondants", "correspondants-large"]);
+const BOTH_SIZES = new Set(["fil", "discussion", "formes", "reponse-volet", "infolettre", "piece-jointe", "rail", "masquee", "volet-message", "composeur", "html-large", "correspondants", "correspondants-large", "indesirable", "indesirable-plus"]);
 
 const CARD = `(() => {
   const el = document.querySelector('[data-slot="sheet-content"], [data-slot="dialog-content"]');

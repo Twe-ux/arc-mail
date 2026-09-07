@@ -4,8 +4,7 @@ import { Pencil, Plus, X } from "lucide-react";
 import { useState } from "react";
 
 import { FOLDER_ICON, VUE_ICON } from "@/lib/folders";
-import { FOLDERS } from "@/lib/mock-data";
-import { selectUnreadCount, selectVueUnread, useMail, useRecentThreads } from "@/lib/store";
+import { selectUnreadCount, selectVueUnread, useFolders, useMail, useRecentThreads } from "@/lib/store";
 import type { FolderId, Vue } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { BottomSheet, SheetCloseButton, SheetGroup, SheetRow, SheetScroller } from "./bottom-sheet";
@@ -31,6 +30,7 @@ import { ContactAvatar } from "./contact-avatar";
  * pixels de défilement.
  */
 export function MobileMenu() {
+  const folders = useFolders();
   const open = useMail((s) => s.sidebarOpen);
   const setOpen = useMail((s) => s.setSidebarOpen);
   const folderId = useMail((s) => s.folderId);
@@ -67,7 +67,7 @@ export function MobileMenu() {
     >
       <SheetScroller>
         <SheetGroup className="mt-1">
-          {FOLDERS.map((f) => (
+          {folders.map((f) => (
             <FolderRow
               key={f.id}
               id={f.id}

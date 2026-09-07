@@ -29,6 +29,7 @@ l'état du projet et ce qui reste à faire.
 - [Comptes et secrets](features/comptes-et-secrets.md) — Supabase, les deux tables, le chiffrement
 - [IMAP](features/imap.md) — lire une vraie boîte : la route, les dossiers, les fils, l'hydratation
 - [Espaces](features/espaces.md) — d'où ils viennent, un dossier vécu comme une réception, la lecture par dossier, Favoris
+- [Indésirable](features/indesirable.md) — le seul dossier qui peut ne pas exister, et les deux gestes qui le remplissent et le vident
 - [Données mock](features/donnees-mock.md) — le jeu de données et ses règles
 
 ## Audits

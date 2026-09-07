@@ -52,6 +52,10 @@ const DOSSIERS: Record<string, FolderId> = {
   envoyes: "sent", sent: "sent",
   brouillons: "drafts", drafts: "drafts",
   archive: "archive",
+  /* `laver` a déjà retiré les accents : « dans:indésirable » arrive ici en
+     « indesirable ». `spam` y est parce que c'est le mot que la moitié des
+     gens tapent, même quand l'interface écrit « Indésirable ». */
+  indesirable: "junk", indesirables: "junk", spam: "junk", junk: "junk",
   corbeille: "trash", trash: "trash",
 };
 

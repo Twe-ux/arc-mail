@@ -511,6 +511,23 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   sans attendre ; corps et pièces jointes non, et la déconnexion efface le tout.
 - Une relecture de dossier **fond** les corps déjà connus (`replaceFolder`) au lieu de les jeter.
 
+**Indésirable** → [docs/features/indesirable.md](docs/features/indesirable.md)
+- `junk` est le **seul dossier qui peut ne pas exister** : `bySpecial("\\Junk")` sans repli (deviner
+  un nom rendrait le signal faux), et sa rangée se **cache** quand le serveur ne l'annonce pas — les
+  six autres se montrent toujours, un dossier absent y étant une liste vide.
+- L'existence se lit aux **clés** de `listFolders` (bâties sur le `LIST` du serveur, donc un dossier
+  vide y vaut zéro) et se garde dans `boites`, persisté ; les comptes, eux, ne le sont pas. La rangée
+  arrive quand même après la première peinture (réhydratation après montage, mesuré 380 ms), comme
+  toute préférence persistée.
+- **Une seule table d'icônes** (`FOLDER_ICON`) : elle en avait trois identiques, et une huitième
+  ligne à ajouter dans trois tables est une ligne oubliée quelque part.
+- Signaler et se dédire passent par **`signalement(folder)`**, une définition pour les trois menus :
+  « Signaler comme indésirable » → `junk`, « Ce n'est pas indésirable » → **réception** (on corrige
+  le filtre, on ne défait pas son propre geste). Rien à écrire pour l'annulation, c'est un
+  déplacement — `moveThread` pose le toast et bouge les compteurs.
+- Écarté de la recherche **sauf si la requête le nomme** (`dans:indésirable`, `dans:spam`), comme la
+  corbeille ; **Favoris le garde**, parce qu'étoiler est délibéré.
+
 **Espaces** → [docs/features/espaces.md](docs/features/espaces.md)
 - Les espaces viennent des comptes branchés (`spacesFromAccounts`) ; sans compte, la maquette reste.
 - Ils vivent dans le store (`spaces`), plus dans une constante : deviner un compte, c'est écrire

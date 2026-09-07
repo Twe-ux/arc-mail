@@ -59,6 +59,10 @@ export const FOLDERS: Folder[] = [
   { id: "sent", name: "Envoyés" },
   { id: "drafts", name: "Brouillons" },
   { id: "archive", name: "Archive" },
+  /* **Juste au-dessus de la corbeille.** Les deux disent « rejeté » — l'un par
+     le filtre, l'autre par nous —, et l'archive au-dessus dit « gardé ». Ce
+     que la liste raconte de haut en bas, c'est ce qu'on fait du courrier. */
+  { id: "junk", name: "Indésirable" },
   { id: "trash", name: "Corbeille" },
 ];
 
@@ -1427,6 +1431,54 @@ Raph`,
       },
     ],
   ),
+  /* ───────────── Indésirable ─────────────
+     Trois fils, et **le troisième est un vrai** : un dossier d'indésirables ne
+     sert pas à regarder du spam, il sert à retrouver ce que le filtre a pris à
+     tort. Sans un faux positif dedans, « Ce n'est pas indésirable » n'aurait
+     rien à faire dans la maquette et personne ne verrait à quoi il sert. */
+  thread(
+    "perso",
+    "junk",
+    "Votre compte a été suspendu — action requise",
+    [
+      {
+        from: c("Sécurité", "no-reply@secure-verif-account.info"),
+        to: [ME.perso],
+        hoursAgo: 20,
+        body: `Cliquez sous 24 h pour rétablir l'accès à votre compte, faute de quoi il sera définitivement fermé.`,
+      },
+    ],
+    { unread: true },
+  ),
+  thread(
+    "perso",
+    "junk",
+    "Vous avez gagné un iPhone 17",
+    [
+      {
+        from: c("Grand Concours", "gagnant@promo-cadeaux-express.biz"),
+        to: [ME.perso],
+        hoursAgo: 52,
+        body: `Vous êtes le visiteur sélectionné du jour. Confirmez votre adresse pour recevoir votre lot.`,
+      },
+    ],
+    { unread: true },
+  ),
+  thread(
+    "pro",
+    "junk",
+    "Devis chantier Marquisats — v2",
+    [
+      {
+        from: c("Karine Vidal", "k.vidal@vidal-renovation.fr"),
+        to: [ME.pro],
+        hoursAgo: 30,
+        body: `Bonjour Thierry, voici le devis corrigé avec la reprise du plancher. Je reste disponible cette semaine.`,
+        attachments: [document_("devis-marquisats-v2.pdf", "application/pdf", 184_000)],
+      },
+    ],
+  ),
+
   thread(
     "side",
     "trash",

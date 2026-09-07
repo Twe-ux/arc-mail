@@ -193,6 +193,13 @@ function cheminsDepuis(list: ListResponse[]): Partial<Record<FolderId, string>> 
        libellé `INBOX`, et le dossier qui reste tout est annoncé `\All`. Le
        repli le rend équivalent sans que le reste de l'app ait à le savoir. */
     archive: bySpecial("\\Archive") ?? bySpecial("\\All"),
+    /* **Le seul dossier qu'on n'invente pas.** Les autres ont un repli ou une
+       constante ; celui-ci n'en a pas, et c'est voulu : `junk` absent de cette
+       table veut dire « cette boîte n'a pas de dossier d'indésirables », et
+       c'est exactement ce que l'interface lit pour cacher sa rangée plutôt que
+       d'ouvrir une porte sur rien. Deviner un nom (« Junk », « Spam »,
+       « Indésirables », selon la langue du compte) rendrait ce signal faux. */
+    junk: bySpecial("\\Junk"),
   };
 }
 

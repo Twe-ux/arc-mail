@@ -38,8 +38,10 @@ est argumenté dans l'[audit du 6 septembre](audits/2026-09-06-clients-mail.md).
 
 ### Les fonctions annoncées qui n'ont rien derrière
 
-- [ ] « Signaler comme indésirable » — demande un dossier Junk dans `FolderId` et son chemin
-      SPECIAL-USE côté IMAP ; retiré du volet et du `⋯` tant qu'il n'a rien derrière lui.
+- [x] « Signaler comme indésirable » — fait le 7 sept. 2026 : `junk` dans `FolderId`,
+      `bySpecial("\Junk")` côté IMAP, la rangée cachée quand la boîte n'en a pas, et l'action rendue
+      aux trois menus avec son inverse → [fiche](features/indesirable.md). Reste à vérifier sur une
+      vraie boîte.
 - [ ] « Étiqueter… » — demande un moyen d'ajouter une étiquette à un fil, qu'aucun écran n'offre.
 - [ ] « Marquer comme traité » — demande un état qui n'existe pas dans `Thread`.
 - [ ] « En pause » est un dossier sans mécanique : rien ne fait revenir un fil à l'heure dite

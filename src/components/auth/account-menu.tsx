@@ -63,7 +63,21 @@ export function AccountMenu({ className }: { className?: string }) {
         <TooltipContent side="top">{session.email}</TooltipContent>
       </Tooltip>
 
-      <PopoverContent align="end" side="top" sideOffset={8} className="w-[248px] overflow-hidden p-0">
+      {/* **Le même rectangle que le panneau d'apparence, à côté.** Les deux
+          portes du bas de la barre s'ouvrent au même endroit, à la même
+          largeur : 260 px — la largeur de la barre —, alignées par leur fin et
+          reposées à 8 px du bord (`collisionPadding`, la marge `px-2` de la
+          barre elle-même). Sans ces deux valeurs, le menu du compte tombait à
+          4 px du bord en barre attachée et à 0 en rail, pendant que le panneau
+          se posait à 8 : deux cartes issues de deux boutons voisins, décalées
+          l'une de l'autre sans qu'aucune raison ne le dise. */}
+      <PopoverContent
+        align="end"
+        side="top"
+        sideOffset={8}
+        collisionPadding={8}
+        className="w-[260px] overflow-hidden p-0"
+      >
         {/* Le visage et le nom **dans** le menu : sans eux, deux entrées
             nues ne diraient pas de quel compte on parle — et c'est justement
             la question que pose quelqu'un qui en a deux. */}

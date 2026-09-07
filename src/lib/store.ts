@@ -4,7 +4,7 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { renommerEspace } from "./accounts/actions";
 import { FOLDER_DONE } from "./folders";
-import { firstLine } from "./format";
+import { firstLine, formatFullDate } from "./format";
 import { providerFor } from "./mail";
 import type { FolderUnread } from "./mail/provider";
 import { FOLDERS, SPACES } from "./mock-data";
@@ -36,7 +36,18 @@ export type SidebarMode = "full" | "rail" | "hidden";
  */
 export type Third =
   | { kind: "message"; messageId: string }
-  | { kind: "file"; attachmentId: string };
+  | { kind: "file"; attachmentId: string }
+  /**
+   * **Le composeur, dans le volet.** Répondre dans un fil se fait là où le fil
+   * est : ce qu'on cite reste à gauche, sous les yeux. « Nouveau message », qui
+   * n'a aucun contexte à garder, continue d'ouvrir la fenêtre posée.
+   *
+   * Le volet ne porte qu'une chose : réclamer le volet pour une pièce jointe
+   * pendant qu'on écrit **promeut le brouillon dans la fenêtre** — il ne se
+   * ferme pas, il change de contenant, et fermer le volet fait de même. Une
+   * seule règle, dans un seul sens.
+   */
+  | { kind: "compose" };
 
 export type MailState = {
   spaceId: SpaceId;
@@ -240,7 +251,9 @@ export type MailState = {
    */
   reply: (threadId: string, body: string, to?: Contact[]) => Promise<boolean>;
 
-  openCompose: (initial?: Partial<ComposeDraft>) => void;
+  openCompose: (initial?: Partial<ComposeDraft>, dans?: "volet") => void;
+  /** Répondre à un fil **dans le volet**, avec la citation — bureau seulement. */
+  repondreDansVolet: (threadId: string, to: Contact[]) => void;
   openDraft: (threadId: string) => void;
   updateCompose: (patch: Partial<ComposeDraft>) => void;
   /** Closes the composer, keeping the text as a draft unless it is blank. */
@@ -590,6 +603,14 @@ export const LISTE_DEFAUT = 360;
 
 /** Le troisième volet : 460 à l'ouverture, 320 au plancher. */
 export const TIERS_DEFAUT = 460;
+/**
+ * Le volet quand c'est le composeur qui l'occupe.
+ *
+ * 620 et non 460 : lire un message à côté du fil demande une colonne, écrire en
+ * demande une plus large — 460 px moins les marges laissent 40 caractères par
+ * ligne, et on écrit un mail, pas un SMS. La poignée reste libre de la changer.
+ */
+export const TIERS_COMPOSE = 620;
 export const TIERS_MIN = 320;
 /** Ce qu'on garde à la conversation, quoi qu'il arrive. */
 export const LECTURE_MIN = 420;
@@ -1324,13 +1345,20 @@ export const useMail = create<MailState>()(
      est une surprise ; la mémoire sert pendant la session, pas d'un objet à
      l'autre. Et si la barre était attachée, elle passe en rail : trois
      colonnes utiles, pas quatre colonnes serrées. */
+  /* **Le volet ne porte qu'une chose.** Réclamer le volet pendant qu'on écrit
+     ne ferme donc pas le brouillon : il reste dans le store, et `ComposeDialog`
+     le rend dans la fenêtre posée dès que le volet n'est plus à lui. La
+     promotion n'a pas d'état à elle — c'est `third.kind` qui dit où le
+     composeur vit, et rien d'autre. */
   openThird: (third) =>
     set((s) => ({
       third,
-      thirdWidth: TIERS_DEFAUT,
+      thirdWidth: third.kind === "compose" ? TIERS_COMPOSE : TIERS_DEFAUT,
       sidebarMode: s.sidebarMode === "full" ? "rail" : s.sidebarMode,
     })),
 
+  /* Fermer le volet **promeut** le brouillon au lieu de le perdre : même règle,
+     même sens. */
   closeThird: () => set({ third: null }),
 
   setThirdWidth: (px) => set({ thirdWidth: Math.max(TIERS_MIN, Math.round(px)) }),
@@ -1378,7 +1406,7 @@ export const useMail = create<MailState>()(
 
   // ───────────── Composer ─────────────
 
-  openCompose: (initial) =>
+  openCompose: (initial, dans) =>
     set((s) => {
       const spaceId = initial?.spaceId ?? s.spaceId;
       const signature = s.spaces.find((sp) => sp.id === spaceId)?.signature ?? "";
@@ -1395,8 +1423,43 @@ export const useMail = create<MailState>()(
         sidebarOpen: false,
         settingsOpen: false,
         commandOpen: false,
+        /* Le volet réduit une barre attachée en rail, comme toute ouverture du
+           troisième volet — la règle est déjà celle d'`openThird`. */
+        ...(dans === "volet"
+          ? { third: { kind: "compose" } as Third, thirdWidth: TIERS_COMPOSE, sidebarMode: s.sidebarMode === "full" ? ("rail" as SidebarMode) : s.sidebarMode }
+          : null),
       };
     }),
+
+  /**
+   * **Répondre là où est le fil.**
+   *
+   * La barre du bas garde la réponse courte — trois mots, sans quitter la
+   * lecture. Celle-ci est l'autre moitié : un vrai message, avec ses champs,
+   * sa mise en forme et ses pièces jointes, dans le volet de droite pendant
+   * que la conversation reste visible à gauche.
+   */
+  repondreDansVolet: (threadId, to) => {
+    const t = get().threads.find((x) => x.id === threadId);
+    if (!t) return;
+    const dernier = t.messages[t.messages.length - 1];
+    const cite = dernier.body
+      .split("\n")
+      .map((l) => `> ${l}`)
+      .join("\n");
+    get().openCompose(
+      {
+        spaceId: t.spaceId,
+        to: to.map((c) => c.email),
+        subject: /^re\s*:/i.test(t.subject) ? t.subject : `Re: ${t.subject}`,
+        replyTo: threadId,
+        /* La citation s'écrit comme tous les clients l'écrivent — et c'est
+           celle-là que `couperCitation` sait replier chez le destinataire. */
+        body: `\n\nLe ${formatFullDate(dernier.date)}, ${dernier.from.name} <${dernier.from.email}> a écrit :\n${cite}`,
+      },
+      "volet",
+    );
+  },
 
   openDraft: (threadId) => {
     const t = get().threads.find((x) => x.id === threadId);
@@ -1423,6 +1486,8 @@ export const useMail = create<MailState>()(
   updateCompose: (patch) => set((s) => (s.compose ? { compose: { ...s.compose, ...patch } } : {})),
 
   closeCompose: () => {
+    /* Le composeur s'en va : le volet qu'il occupait s'en va avec lui. */
+    if (get().third?.kind === "compose") set({ third: null });
     const d = get().compose;
     if (!d) return;
     const before = get().threads;
@@ -1538,6 +1603,9 @@ export const useMail = create<MailState>()(
         bcc: d.bcc.length ? toContacts(d.bcc, book) : undefined,
         subject: d.subject,
         body: d.body,
+        /* Le fil suit le brouillon : une réponse écrite dans le volet doit
+           arriver **dans sa conversation**, pas en ouvrir une neuve. */
+        replyTo: d.replyTo,
         /* Les deux parties suivent le brouillon comme elles suivent l'envoi :
            un message mis en forme, refermé puis rouvert, doit revenir tel
            qu'on l'a laissé. */

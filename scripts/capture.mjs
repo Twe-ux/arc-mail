@@ -76,6 +76,15 @@ const OPENERS = {
   /* Le fil qui porte des citations : c'est celui qui montre le repli et, en
      mode discussion, l'alternance des deux côtés. */
   discussion: [CLICK_TEXT("Tu as vu le vélo sur leboncoin ?")],
+  /* Le fil qui porte la **feuille blanche** : un mot, puis une signature en
+     couleur — le courrier le plus courant du monde professionnel. */
+  formes: [CLICK_TEXT("Planning des événements de septembre")],
+  /* Répondre depuis une bulle : le composeur ouvre le volet de droite. Le ↩ est
+     transparent au repos (il se révèle au survol) mais bien dans le DOM. */
+  "reponse-volet": [
+    CLICK_TEXT("Planning des événements de septembre"),
+    `document.querySelector('button[aria-label^="Répondre à"]')?.click()`,
+  ],
   "piece-jointe": [
     CLICK_TEXT("Photos de l'anniversaire"),
     `document.querySelector('button[aria-pressed] img')?.closest('button')?.click()`,
@@ -116,7 +125,7 @@ const OPENERS = {
 };
 
 /** Les écrans qui ne sont pas des cartes flottantes : rien à mesurer, mais à capturer partout. */
-const BOTH_SIZES = new Set(["fil", "discussion", "infolettre", "piece-jointe", "rail", "masquee", "volet-message", "composeur", "html-large", "correspondants", "correspondants-large"]);
+const BOTH_SIZES = new Set(["fil", "discussion", "formes", "reponse-volet", "infolettre", "piece-jointe", "rail", "masquee", "volet-message", "composeur", "html-large", "correspondants", "correspondants-large"]);
 
 const CARD = `(() => {
   const el = document.querySelector('[data-slot="sheet-content"], [data-slot="dialog-content"]');
@@ -160,7 +169,13 @@ async function main() {
       }
       /* Le thème est lu dans localStorage avant la première peinture (layout.tsx) : on le
          pose comme l'app le persisterait, pour capturer le vrai chemin et non une classe forcée. */
-      await page.addInitScript(({ dark, densite }) => {
+      /* **L'espace se pose ici, avec le thème.** Il passait par la feuille du
+         téléphone — laquelle ne choisit plus le compte depuis que les espaces
+         sont dans la barre du bas : le bouton n'existait plus, le clic ne
+         trouvait rien, et toutes les captures `--space pro` rendaient Perso
+         sans rien dire. Persisté comme l'app le persiste, il vaut aussi sur
+         bureau, où il n'y avait aucun chemin du tout. */
+      await page.addInitScript(({ dark, densite, espace }) => {
         /* `addInitScript` s'exécute dans **tous** les cadres, y compris l'iframe
            en bac à sable d'un message HTML — qui n'a pas d'origine, donc pas de
            `localStorage`, et l'accès y lève. C'était l'outil de mesure qui
@@ -169,27 +184,15 @@ async function main() {
         const raw = localStorage.getItem("arc-mail");
         const state = raw ? JSON.parse(raw) : { state: {}, version: 0 };
         state.state = { themes: {}, splitView: true, recent: { perso: [], pro: [], side: [] }, ...state.state, dark, listDensity: densite };
+        if (espace) state.state.spaceId = espace;
         localStorage.setItem("arc-mail", JSON.stringify(state));
-      }, { dark: theme === "dark", densite });
+      }, { dark: theme === "dark", densite, espace: space && space !== true ? String(space) : null });
       await page.goto(url, { waitUntil: "networkidle" });
       await page.waitForTimeout(500);
 
-      if (space && size === "mobile") {
-        await page.evaluate(OPENERS.menu);
-        await page.waitForTimeout(700);
-        await page.evaluate((s) => {
-          [...document.querySelectorAll("button[aria-pressed]")].find((b) => b.textContent.toLowerCase().includes(s))?.click();
-        }, space.toLowerCase());
-        await page.waitForTimeout(400);
-        if (open !== "menu") {
-          await page.evaluate(() => document.querySelector('button[aria-label="Fermer"]')?.click());
-          await page.waitForTimeout(600);
-        }
-      }
       if (open && OPENERS[open] && (size === "mobile" || BOTH_SIZES.has(open))) {
         const steps = Array.isArray(OPENERS[open]) ? OPENERS[open] : [OPENERS[open]];
         for (const [i, step] of steps.entries()) {
-          if (space && open === "menu" && i === 0) continue;
           await page.evaluate(step);
           /* L'animation d'entrée dure 400 ms (fiche cartes-flottantes) ; mesurée pendant qu'elle
              joue, la carte est encore quelques pixels trop bas et cela ressemble à un bug. */

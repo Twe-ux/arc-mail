@@ -81,12 +81,14 @@ export function MessageCard({
   const estHtml = Boolean(message.html);
   const aQui = destinataires(message.to, space.identity.email);
 
-  /* **La règle qui tient tout le mode discussion** : un courrier qui apporte
-     sa mise en page ne rentre pas dans une bulle. Une infolettre écrasée dans
-     76 % de la colonne, avec sa feuille blanche à l'intérieur d'une pastille
-     teintée, c'est le cadre dans le cadre — et c'est un document, pas une
-     réplique. Il garde donc exactement ce qu'il a aujourd'hui. */
-  if (conversation && enveloppe(message.html) === "bulle") {
+  /* **La règle qui tient tout le mode discussion, et c'est la largeur qui la
+     dit.** Seul un courrier qui apporte une vraie mise en page reste pleine
+     largeur : une infolettre écrasée dans 76 % de la colonne n'est plus une
+     infolettre. Un message qui n'a que des couleurs — toute signature
+     professionnelle en a — passe en bulle, avec sa feuille blanche pour peau
+     (`enveloppe`). */
+  const forme = enveloppe(message.html);
+  if (conversation && forme !== "document") {
     return (
       <MessageBubble
         message={message}
@@ -94,6 +96,7 @@ export function MessageCard({
         mien={Boolean(mien)}
         tete={Boolean(tete)}
         queue={Boolean(queue)}
+        forme={forme}
         dark={dark}
         onReplyTo={onReplyTo}
       />

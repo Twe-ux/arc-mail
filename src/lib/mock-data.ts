@@ -737,11 +737,24 @@ Sophie`,
         hoursAgo: 3,
         body: `Vu, merci. Pour le 24 on prend la grande salle, je préviens Marc pour décaler les travaux.`,
       },
+      /* **Le cas de la signature**, et il en fallait un : c'est le courrier le
+         plus courant du monde professionnel — un mot, puis un logo, un nom en
+         couleur et une adresse. Il n'a aucune mise en page (pas de largeur
+         déclarée, pas de fond peint, un seul tableau), mais il a **ses
+         couleurs** : il passe donc en bulle avec sa feuille blanche pour peau
+         (`enveloppe` rend « feuille »). Sans lui, la troisième forme n'était
+         vérifiable nulle part. */
       {
         from: sophie,
         to: [ME.pro],
         hoursAgo: 2,
-        body: `Parfait, je bloque. Tu veux que je lance la com' sur Instagram cette semaine ?`,
+        body: `Parfait, je bloque. Tu veux que je lance la com' sur Instagram cette semaine ?
+
+--
+Sophie Marchand
+Coworking Café — Strasbourg
+sophie@coworkingcafe.fr`,
+        html: `<div dir="ltr">Parfait, je bloque. Tu veux que je lance la com' sur Instagram cette semaine ?</div><div><br></div><div>--</div><table><tr><td style="padding-right:14px;border-right:2px solid #e2574c"><b style="font-size:15px">Sophie Marchand</b></td><td style="padding-left:14px;font-size:12px"><span style="color:#e2574c;font-weight:700">Coworking Café</span> — Strasbourg<br><a href="mailto:sophie@coworkingcafe.fr">sophie@coworkingcafe.fr</a></td></tr></table>`,
       },
     ],
     { unread: true, starred: true, labels: ["Événements"] },

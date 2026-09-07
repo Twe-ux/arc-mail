@@ -40,6 +40,7 @@ export function MessageBubble({
   mien,
   tete,
   queue,
+  forme,
   dark,
   onReplyTo,
 }: {
@@ -51,6 +52,11 @@ export function MessageBubble({
   tete: boolean;
   /** Dernier de sa grappe : c'est lui qui porte le coin coupé. */
   queue: boolean;
+  /**
+   * `bulle` ou `feuille` (`enveloppe`) — jamais `document`, qui ne passe pas
+   * par ici. La géométrie est la même dans les deux cas ; seule la peau change.
+   */
+  forme: "bulle" | "feuille";
   dark: boolean;
   onReplyTo: (to: Contact[]) => void;
 }) {
@@ -130,9 +136,23 @@ export function MessageBubble({
                caractères par ligne, et une bulle cesse d'être une réplique
                pour redevenir la dalle qu'on vient de quitter. */
             "max-w-[76%] min-w-0 overflow-hidden rounded-[18px] px-3.5 py-2.5 md:max-w-[min(76%,54ch)]",
-            mien
-              ? "bg-[color-mix(in_oklch,var(--space-accent)_22%,transparent)]"
-              : "bg-foreground/[0.06] dark:bg-foreground/[0.09]",
+            /* **La feuille blanche est une peau, pas une autre forme.** Un
+               message qui a écrit ses couleurs les a écrites pour du blanc : le
+               rouge d'une signature sur une teinte à 22 %, ou son noir sur un
+               fond sombre, ne se lit plus. Il garde donc sa feuille — mais le
+               même rayon, la même largeur, le même côté et le même coin de
+               queue, pour rester le même objet. Un filet, parce qu'un blanc
+               posé sur un fond sombre sans tranche flotte. */
+            /* **Une feuille posée, pas un trou.** Sur la carte blanche du thème
+               clair, un blanc sur du blanc à un filet de 8 % ne se voyait plus
+               du tout : la bulle avait disparu (mesuré à la capture). Un bord
+               plus franc **et** une ombre courte la posent *sur* la carte ; en
+               sombre le blanc se détache tout seul et un filet clair suffit. */
+            forme === "feuille"
+              ? "bg-white text-[#111] shadow-[0_1px_3px_rgb(0_0_0/0.07),0_0_0_1px_rgb(0_0_0/0.11)] dark:shadow-[0_0_0_1px_rgb(255_255_255/0.14)]"
+              : mien
+                ? "bg-[color-mix(in_oklch,var(--space-accent)_22%,transparent)]"
+                : "bg-foreground/[0.06] dark:bg-foreground/[0.09]",
             /* Le coin coupé du côté de qui parle, sur la **dernière** bulle de
                la grappe : c'est la grammaire d'iMessage, et le poser sur toutes
                ferait une pile de pastilles au lieu d'un tour de parole. */
@@ -141,7 +161,7 @@ export function MessageBubble({
         >
           <MessageBody
             message={message}
-            bulle
+            forme={forme}
             dark={dark}
             className="block text-[15px] leading-[1.45] whitespace-pre-wrap md:text-sm md:leading-[1.5]"
           />

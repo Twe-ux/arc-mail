@@ -8,9 +8,9 @@
  *   répondre à un mail en recopie l'intégralité en dessous, et un fil de quatre
  *   échanges contient donc quatre fois le premier message. C'est ce qui rendait
  *   une conversation de deux phrases illisible.
- * - **Ce message tient-il dans une bulle** (`enveloppe`) : un mot tapé à la
- *   main, oui ; une infolettre qui apporte ses tableaux, ses fonds et ses
- *   couleurs, non — elle a besoin de sa feuille blanche et de toute la largeur.
+ * - **Sous quelle forme il se lit** (`enveloppe`) : une bulle teintée, une
+ *   bulle qui garde la feuille blanche du courrier, ou un document pleine
+ *   largeur. C'est la **largeur** qui tranche, jamais la couleur.
  */
 
 /**
@@ -85,31 +85,63 @@ export function couperCitation(texte: string): { visible: string; citation: stri
 }
 
 /**
- * Ce message peut-il vivre **dans une bulle**, ou lui faut-il sa feuille ?
+ * Sous quelle **forme** ce message se lit dans une discussion.
  *
- * C'est la règle qui empêche la vue conversation de faire ce qu'`arc-messenger`
- * avait fait : un courrier n'est pas une réplique de chat. Un mot tapé à la
- * main tient dans une bulle teintée ; une facture, une infolettre, une
- * confirmation de commande apportent leur mise en page — tableaux, fonds,
- * couleurs de texte — et elles ne se lisent que sur du blanc, en pleine
- * largeur, exactement comme aujourd'hui.
+ * Trois, parce que le courrier réel en demande trois — et la règle qui les
+ * sépare est la **largeur**, pas la couleur. La première version disqualifiait
+ * un message dès qu'il portait un `<table>` ou un `color:` : or toute signature
+ * professionnelle a un logo, un nom en couleur et quatre icônes dans un petit
+ * tableau. Un mot d'une personne à une autre devenait donc une dalle pleine
+ * largeur au milieu d'une conversation, et deux messages voisins n'avaient plus
+ * la même forme sans qu'on comprenne pourquoi.
  *
- * On lit la **chaîne**, pas le DOM : le cadre du message le fait déjà à la
- * mesure (`misEnPage` dans `message-body.tsx`), mais il le fait *après* la
- * peinture, et la forme du bloc doit être décidée avant. Six signes suffisent,
- * et chacun d'eux à lui seul suffit.
+ * - **`bulle`** — du texte, ou du HTML sans couleurs à lui. Le cadre devient
+ *   transparent et prend l'encre de l'app : la bulle est la surface.
+ * - **`feuille`** — il a ses couleurs mais pas de mise en page. La bulle garde
+ *   la **feuille blanche** du courrier, parce que ces couleurs ont été écrites
+ *   pour du blanc : un rouge de signature sur une teinte, ou un noir sur un
+ *   fond sombre, ne se lit plus. Même rayon, même largeur, même côté qu'une
+ *   bulle ordinaire — c'est le même objet, avec une autre peau.
+ * - **`document`** — il apporte une vraie mise en page. Pleine largeur, feuille
+ *   blanche, dans les deux modes : une infolettre écrasée dans 76 % de la
+ *   colonne n'est plus une infolettre.
+ *
+ * On lit la **chaîne**, pas le DOM : le cadre le fait déjà à la mesure
+ * (`misEnPage` dans `message-body.tsx`), mais après la peinture, et la forme du
+ * bloc doit être décidée avant.
  */
-export function enveloppe(html: string | undefined): "bulle" | "document" {
+export type Enveloppe = "bulle" | "feuille" | "document";
+
+/** La plus grande largeur que le message se donne, en pixels. */
+function largeurDeclaree(html: string): number {
+  let max = 0;
+  for (const m of html.matchAll(/width\s*[:=]\s*["']?\s*(\d{3,})/gi)) {
+    const px = Number(m[1]);
+    if (Number.isFinite(px) && px > max) max = px;
+  }
+  return max;
+}
+
+export function enveloppe(html: string | undefined): Enveloppe {
   if (!html) return "bulle";
-  /* Un message tapé fait quelques centaines d'octets. Au-delà, c'est une mise
-     en page, même si aucun des signes ci-dessous n'y est. */
+
+  /* **Une mise en page se voit à sa largeur.** Une signature tient dans 400 px,
+     une infolettre est écrite pour 600 et plus — c'est le seul signe qui
+     sépare vraiment les deux. Trois autres l'accompagnent, chacun suffisant :
+     un fond peint (une intention de mise en page, jamais une signature), un
+     poids qu'aucun message tapé n'atteint, et trois tableaux ou plus — un
+     signataire en pose un, parfois deux, jamais trois. */
   if (html.length > 20_000) return "document";
-  if (/<table[\s>]/i.test(html)) return "document";
-  if (/<font[\s>]/i.test(html)) return "document";
+  if (largeurDeclaree(html) >= 500) return "document";
   if (/bgcolor=/i.test(html)) return "document";
   if (/background(?:-color)?\s*:/i.test(html)) return "document";
-  /* `background-color:` contient `color:` — le tiret est donc exclu devant. */
-  if (/(?:^|[^-\w])color\s*:/i.test(html)) return "document";
-  if (/width\s*:\s*\d{3,}/i.test(html)) return "document";
+  if ((html.match(/<table[\s>]/gi)?.length ?? 0) >= 3) return "document";
+
+  /* **La couleur ne décide plus de la forme, seulement du fond.** Un message
+     qui a écrit ses couleurs les a écrites pour du blanc.
+     (`background-color:` contient `color:` — le tiret est exclu devant, mais il
+     est de toute façon déjà parti au-dessus.) */
+  if (/<font[\s>]/i.test(html)) return "feuille";
+  if (/(?:^|[^-\w])color\s*:/i.test(html)) return "feuille";
   return "bulle";
 }

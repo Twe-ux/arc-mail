@@ -463,3 +463,22 @@ cas ; le détecteur ne signale que les quatre couleurs déjà connues.
 
 **Reste à voir sur une vraie boîte** : le `multipart/alternative` tel qu'il arrive chez le
 destinataire, et la copie dans « Envoyés ».
+
+## Un troisième contenant (7 sept. 2026)
+
+Le composeur en connaissait deux — la feuille du téléphone, la fenêtre du bureau. Il en connaît
+trois : **le volet de droite**, où s'ouvre une réponse → [bureau](bureau.md).
+
+Le partage a demandé une extraction, faite dans le même passage : tout ce qui n'est pas le châssis
+(les lignes, l'erreur d'envoi, les puces de pièces jointes, la barre du bas avec sa bulle de mise en
+forme, le glisser-déposer, la case d'en-tête) vit dans `compose-corps.tsx`, et les deux châssis de
+bureau n'ont plus que leur enveloppe — 89 lignes pour la fenêtre, 56 pour le volet. Aucun fichier
+du composeur ne dépasse 300 lignes.
+
+`ComposeDraft` gagne `replyTo` : il porte `In-Reply-To` et `References` jusqu'au serveur. Sans lui,
+une réponse écrite dans le volet ouvrait un fil neuf chez le destinataire. Il ne voyage pas avec un
+brouillon — `DraftInput` l'exclut, et un brouillon n'est pas encore une réponse.
+
+La citation que `repondreDansVolet` écrit est celle que tous les clients écrivent — « Le … a
+écrit : » puis des chevrons —, c'est-à-dire exactement celle que `couperCitation` sait replier chez
+le destinataire.

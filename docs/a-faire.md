@@ -105,6 +105,12 @@ correctif.
       nouveaux s'enregistrent au lieu d'être refusés par la contrainte `check`.
 - [ ] **La PWA installée sur l'iPhone** — après un déploiement : la version se rafraîchit-elle au
       tirage, et l'écran ne reste-t-il pas figé.
+- [ ] **Les trois formes sur du vrai courrier** — `enveloppe` lit une chaîne, pas un rendu : la
+      frontière entre une signature et une mise en page se vérifie sur une vraie boîte, en
+      particulier les signatures qui posent un fond ou une largeur.
+- [ ] **La réponse dans le volet, de bout en bout** — le brouillon promu dans la fenêtre quand une
+      pièce jointe réclame le volet, et surtout `In-Reply-To` : la réponse doit arriver **dans sa
+      conversation** chez le destinataire.
 - [ ] **La fusion avec « Envoyés »** — une réponse écrite depuis Arc Mail doit rester dans le fil
       après rechargement, et l'archivage doit continuer d'écrire dans la réception, pas dans
       « Envoyés ». Le mock ne range rien dans deux boîtes.

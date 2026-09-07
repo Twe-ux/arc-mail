@@ -54,7 +54,9 @@ d'Arc (espaces colorés, sidebar translucide, favoris épinglés, onglets « Auj
   enchaînent : `impeccable` (design ; `npm ci --prefix .claude/skills/impeccable` sur un clone
   neuf, `node_modules` jamais commité), `apple-design`, `emil-design-eng`, `animate`,
   `review-animations`, `shadcn`, `ask-sonner` → [liste et tri](docs/README.md).
-- `npm run capture -- --name <ecran> [--open menu|compose|search] [--space pro]` : les quatre
+- `npm run capture -- --name <ecran> [--open menu|compose|search] [--space pro]` — l'espace est
+  **persisté avant la première peinture**, comme le thème : il passait par la feuille du téléphone,
+  qui ne choisit plus le compte, et toutes les captures `--space` rendaient Perso sans le dire. : les quatre
   captures (téléphone 393×852 avec insets 59/34, bureau 1280×800 ; clair et sombre), erreurs de
   console, et la géométrie de la carte ouverte. C'est l'outil de mesure ; serveur de dev requis.
 
@@ -205,7 +207,14 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - Le regroupement par correspondant enclenché **se remplit** (accent 22 %, encre `--space-ink`).
 - Ouvrir le troisième volet **réduit une barre attachée en rail** ; il fait 460 px à chaque
   ouverture, sa largeur a sa propre clé, et il porte un message **ou** un fichier.
-- Le composeur ne dispute plus la colonne de droite au volet : c'est une fenêtre posée dessus.
+- **Écrire va là où est le contexte** : trois mots → la barre du bas ; le ↩ d'un message →
+  **le composeur dans le volet** (620 px) ; « Nouveau message » → la fenêtre posée. Le formulaire
+  n'existe qu'**une fois** (`compose-corps.tsx`), les châssis n'ont que leur enveloppe.
+- Le volet ne porte **qu'une chose** : le lui réclamer pendant qu'on écrit **promeut le brouillon
+  dans la fenêtre** — pas d'état de plus, c'est `third.kind` qui dit où le composeur vit. Fermer le
+  volet fait pareil.
+- **Le clic dans une bulle reste une sélection de texte** : la cible pour répondre est le ↩ du
+  survol, à côté d'elle, jamais dedans.
 - La révélation au survol part de la **bande du bord**, jamais du rail ; son voile est en
   `pointer-events: none`, sinon quitter la barre ne la retire jamais.
 - Les boîtes sont des tuiles de verre (`SpaceTile`) à **point d'accent** ; nom, adresse et raccourci
@@ -275,10 +284,17 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   défaut) : bulles — nôtres à droite, accent 22 %, une tête par grappe, 76 % et `min(76%,54ch)` sur
   bureau — ou la pile de blocs d'avant. Ce n'est **pas un rangement** : objet, dossier et fil ne
   bougent pas → [vue par correspondant](docs/features/vue-correspondant.md).
-- Un courrier qui **apporte sa mise en page** (`enveloppe` : table, `font`, `bgcolor`, fond,
-  couleur, largeur à trois chiffres, > 20 ko) garde sa **feuille blanche et toute la largeur dans
-  les deux modes** ; un fil d'**un seul message** reste en courrier, et l'objet remonte au fil dès
-  qu'on est en discussion.
+- **Trois formes, et c'est la largeur qui tranche** (`enveloppe`) : `bulle` (teintée, cadre
+  transparent), `feuille` (même bulle, fond blanc du courrier gardé — ses couleurs ont été écrites
+  pour du blanc), `document` (pleine largeur, dans les deux modes : largeur ≥ 500, fond peint,
+  > 20 ko, ou trois tableaux). **La couleur ne décide plus de la forme, seulement du fond** — sinon
+  toute signature professionnelle devenait une dalle. Un fil d'**un seul message** reste en
+  courrier, et l'objet remonte au fil dès qu'on est en discussion.
+- Une bulle **ne passe pas par le canevas de 600 px** (0,38 d'échelle sur 230 px de bulle) et prend
+  **la largeur que le message demande** — le cadre la mesure en `max-content` et la rend avec sa
+  hauteur, sinon la bulle se verrouille aux 300 px par défaut d'un cadre.
+- Une bulle `feuille` a **un bord à 11 % et une ombre courte** en clair : blanc sur la carte
+  blanche, un filet à 8 % la faisait disparaître.
 - En bulle le cadre est **transparent** et le thème lui est **dit** (`prefers-color-scheme` répond
   celui du système, pas le nôtre) ; ses couleurs en dur sont l'exception assumée aux tokens — les
   variables n'entrent pas dans un autre document.
@@ -340,6 +356,9 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   bords, son coin bas se faisait couper par l'écran.
 - Le focus va à « À » pour un message neuf, au **corps (curseur au début)** dès que le destinataire
   est déjà là.
+- Le composeur connaît **trois contenants** : la feuille du téléphone, la fenêtre du bureau et le
+  volet de droite. `ComposeDraft.replyTo` porte `In-Reply-To`/`References` — sans lui une réponse
+  écrite dans le volet ouvrait un fil neuf ; il ne voyage pas avec un brouillon.
 - Les trois panneaux s'excluent et referment le clavier ; le menu du brouillon (`⋯`) a sa **clé
   d'état à part** — il se superpose au composeur, le partager le démontait.
 - Les pièces jointes voyagent en **base64** (`OutgoingAttachment`), 10 Mo par message, refusés à la

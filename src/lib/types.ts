@@ -204,6 +204,14 @@ export type ComposeDraft = {
    * ne doit pas s'inviter dans un courrier qui n'en demandait pas.
    */
   html?: string;
+  /**
+   * Le fil auquel ce message répond.
+   *
+   * Il porte `In-Reply-To` et `References` jusqu'au serveur : sans lui, une
+   * réponse écrite dans le volet ouvrirait un fil neuf chez le destinataire.
+   * Absent pour un message d'origine.
+   */
+  replyTo?: string;
   /** Les fichiers joints, déjà lus et encodés — voir `OutgoingAttachment`. */
   attachments?: import("./mail/provider").OutgoingAttachment[];
 };

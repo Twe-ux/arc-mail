@@ -23,6 +23,7 @@ import { formatFullDate } from "@/lib/format";
 import { useMail, usePreview, useThirdMessage } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { AttachmentBody, AttachmentHead } from "./attachment";
+import { ComposePane } from "./compose-pane";
 import { ContactAvatar } from "./contact-avatar";
 import { MessageBody } from "./message-body";
 
@@ -35,23 +36,39 @@ import { MessageBody } from "./message-body";
  * par du dégradé faisaient lire les trois colonnes comme trois documents sans
  * rapport ; une seule fenêtre pour les trois les collait.
  *
- * Il porte **un message** (cliquer un bloc de la conversation) ou **un
- * fichier** (cliquer sa vignette), jamais les deux — et sa largeur vit sur une
- * clé à part : partagée avec ce qu'il porte, tirer la poignée le faisait
- * basculer de l'un à l'autre.
+ * Il porte **une chose à la fois** — un message (cliquer un bloc de la
+ * conversation), un fichier (cliquer sa vignette), ou **la réponse qu'on est en
+ * train d'écrire**. Sa largeur vit sur une clé à part : partagée avec ce qu'il
+ * porte, tirer la poignée le faisait basculer de l'un à l'autre.
+ *
+ * « Une chose à la fois » a une conséquence, et c'est la seule règle à retenir :
+ * réclamer le volet pendant qu'on écrit **promeut le brouillon dans la fenêtre
+ * posée**. Il ne se ferme pas, il change de contenant.
  */
 export function ThirdPane() {
   const third = useMail((s) => s.third);
+  const compose = useMail((s) => s.compose);
   if (!third) return null;
+  /* Le volet dit qu'il porte le composeur, mais il n'y a plus de brouillon :
+     rien à montrer, et surtout pas un volet vide. */
+  if (third.kind === "compose" && !compose) return null;
   return (
     <aside
-      aria-label={third.kind === "file" ? "Pièce jointe" : "Message"}
+      aria-label={ETIQUETTE[third.kind]}
       className="fenetre-carte hidden w-[var(--third-width)] shrink-0 flex-col overflow-hidden rounded-xl bg-background text-foreground md:flex"
     >
-      {third.kind === "file" ? <ModeFichier /> : <ModeMessage />}
+      {third.kind === "file" ? (
+        <ModeFichier />
+      ) : third.kind === "compose" ? (
+        <ComposePane draft={compose!} />
+      ) : (
+        <ModeMessage />
+      )}
     </aside>
   );
 }
+
+const ETIQUETTE = { file: "Pièce jointe", message: "Message", compose: "Réponse" } as const;
 
 function ModeFichier() {
   const preview = usePreview();

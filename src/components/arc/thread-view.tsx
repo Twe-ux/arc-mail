@@ -4,6 +4,7 @@ import { Archive, ArrowLeft, Folder, Mail, MoreHorizontal, Reply, Star, Trash2 }
 import { useState } from "react";
 
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import { formatFullDate } from "@/lib/format";
 import { cestNous, replyRecipients, selectFolder, useMail, useSpace, useVisibleThreads } from "@/lib/store";
 import type { Contact, FolderId } from "@/lib/types";
@@ -24,6 +25,8 @@ export function ThreadView({ className }: { className?: string }) {
   const moveThread = useMail((s) => s.moveThread);
   const openCompose = useMail((s) => s.openCompose);
   const filStyle = useMail((s) => s.filStyle);
+  const repondreDansVolet = useMail((s) => s.repondreDansVolet);
+  const bureau = useMediaQuery("(min-width: 768px)");
 
   /* À qui va la réponse. `null` = tout le monde sur le dernier message, ce que
      le store fait de lui-même ; une liste veut dire qu'on a restreint, par
@@ -61,6 +64,18 @@ export function ThreadView({ className }: { className?: string }) {
     const reste = targets.filter((x) => x.email !== c.email);
     if (!reste.length) return;
     setAim((actuel) => ({ threadId, to: reste, tick: actuel?.threadId === threadId ? actuel.tick : 0 }));
+  };
+
+  /* **Deux réponses, deux gestes.** La barre du bas garde la réponse courte —
+     trois mots sans quitter la lecture, et c'est elle que vise `aimReply`. Le
+     ↩ à côté d'un message ouvre, lui, un vrai composeur **dans le volet de
+     droite** : champs, mise en forme, pièces jointes, et la conversation reste
+     à gauche pendant qu'on écrit. Sur téléphone il n'y a pas de volet : le ↩ y
+     vise la barre, comme avant. */
+  const viserOuOuvrir = (to: Contact[]) => {
+    if (!threadId) return;
+    if (bureau) repondreDansVolet(threadId, to);
+    else aimReply(to);
   };
 
   const aimReply = (to: Contact[]) => {
@@ -238,7 +253,7 @@ export function ThreadView({ className }: { className?: string }) {
                      « Milone Thierry » une fois et « thierry » la suivante. */
                   tete={i === 0 || thread.messages[i - 1].from.email !== m.from.email}
                   queue={i === thread.messages.length - 1 || thread.messages[i + 1].from.email !== m.from.email}
-                  onReplyTo={aimReply}
+                  onReplyTo={viserOuOuvrir}
                 />
               ))}
             </div>

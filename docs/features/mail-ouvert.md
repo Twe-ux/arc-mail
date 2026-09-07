@@ -127,21 +127,50 @@ courte). Les grappes respirent une fois — 2 px entre deux messages du même au
 parole change. C'est la troisième pièce, et il fallait les trois : deux suffisaient à distinguer, la
 troisième est ce qui fait qu'on n'a plus à lire pour savoir.
 
-### Ce qui ne rentre pas dans une bulle
+### Trois formes, et c'est la largeur qui tranche
 
-`enveloppe` ([`src/lib/fil.ts`](../../src/lib/fil.ts)) : un courrier qui apporte sa mise en page —
-un tableau, une balise `font`, un `bgcolor`, un fond, une couleur de texte, une largeur à trois
-chiffres, ou plus de 20 ko — **garde sa feuille blanche et toute la largeur, dans les deux modes**.
-Une infolettre écrasée dans 76 % de la colonne, sa feuille blanche à l'intérieur d'une pastille
-teintée, c'est le cadre dans le cadre que cette fiche interdit depuis le premier jour ; et c'est un
-document, pas une réplique.
+La première version en avait deux, et elle disqualifiait un message dès qu'il portait un
+`<table>`, une couleur de texte ou un `bgcolor`. Or **toute signature professionnelle** coche ces
+cases : un logo, un nom en couleur, quatre icônes sociales, le tout dans un petit tableau. Un mot
+d'une personne à une autre devenait donc une dalle pleine largeur au milieu d'une conversation —
+« pourquoi certains mails ne sont pas présentés pareil ? », capture d'un transfert Anticafé à
+l'appui. Deux messages voisins n'avaient pas la même forme sans qu'on comprenne pourquoi.
 
-Ce qui passe en bulle voit son cadre devenir **transparent**, avec l'encre de l'app : un cadre est un
-autre document, nos variables CSS n'y entrent pas, donc le thème lui est **dit** — `prefers-color-scheme`
-répondrait celui du système, et le nôtre est un réglage de l'app. Les couleurs écrites en dur dans
-la feuille du cadre (`#ededef`, `#7fabf5`, `#b9b9be`, `#5c5c66`, comme `#fff` et `#0b57d0` avant
-elles) sont l'exception assumée aux tokens : elles vivent là où les tokens n'existent pas. Le
-détecteur les signale, et c'est cette ligne qui répond.
+Le bon discriminant est la **largeur** : une signature tient dans 400 px, une infolettre est
+écrite pour 600 et plus. `enveloppe()` ([`src/lib/fil.ts`](../../src/lib/fil.ts)) rend donc trois
+valeurs :
+
+| Ce que le message porte | Sa forme |
+| --- | --- |
+| Du texte, ou du HTML sans couleurs à lui | **`bulle`** — teintée, cadre transparent, encre de l'app |
+| Ses couleurs, mais pas de mise en page | **`feuille`** — même bulle, mais elle garde le fond blanc du courrier |
+| Une largeur ≥ 500, un fond peint, > 20 ko, ou trois tableaux | **`document`** — pleine largeur, dans les deux modes |
+
+**La feuille blanche n'est pas un choix de style, c'est une contrainte du contenu.** Ces couleurs
+ont été écrites pour du blanc : le rouge d'une signature sur une teinte à 22 %, ou son noir sur un
+fond sombre, ne se lit plus. Elle garde donc sa feuille — mais le **même rayon, la même largeur, le
+même côté et le même coin de queue** qu'une bulle ordinaire : c'est le même objet, avec une autre
+peau. Sur la carte blanche du thème clair, un blanc sur du blanc à un filet de 8 % disparaissait
+complètement : bord à 11 % **et** ombre courte, pour la poser *sur* la carte.
+
+Deux mesures ont dû suivre, toutes deux prises à la capture :
+
+- **Pas de canevas de 600 px dans une bulle.** Le cadre pose un courrier mis en page sur le
+  canevas des e-mails puis le réduit, comme Mail d'iOS — mais une bulle fait 230 px sur un
+  téléphone, et la signature de Sophie s'y retrouvait à 0,38 d'échelle, illisible. Ce qui rentre
+  dans une bulle n'a pas de mise en page à préserver, par définition.
+- **La bulle prend la largeur que le message demande.** Un cadre vaut 300 px par défaut, et une
+  bulle qui épouse son cadre s'y verrouille : une phrase de dix mots se repliait sur trois lignes à
+  côté d'une bulle de texte qui en prenait une. Le cadre mesure en `max-content`, rend la mesure
+  avec sa hauteur, et la page en borne la bulle — bornée à son tour par les 76 % de la colonne.
+
+Le cadre d'une bulle **teintée** devient transparent et prend l'encre de l'app ; celui d'une
+**feuille** garde son blanc et son encre. Un cadre est un autre document : nos variables CSS n'y
+entrent pas, donc le thème lui est **dit** — `prefers-color-scheme` répondrait celui du système, et
+le nôtre est un réglage de l'app. Les couleurs écrites en dur dans la feuille du cadre (`#ededef`,
+`#7fabf5`, `#b9b9be`, `#5c5c66`, comme `#fff` et `#0b57d0` avant elles) sont l'exception assumée aux
+tokens : elles vivent là où les tokens n'existent pas. Le détecteur les signale, et c'est cette
+ligne qui répond.
 
 Deux règles tombent d'elles-mêmes en discussion : **un fil d'un seul message reste en courrier**
 (une bulle seule n'est pas une conversation, et elle rendrait 24 % de la largeur pour rien), et

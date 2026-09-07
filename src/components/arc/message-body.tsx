@@ -31,7 +31,7 @@ export function MessageBody({
   message,
   sujet,
   className,
-  bulle,
+  forme,
   dark,
 }: {
   message: Message;
@@ -39,12 +39,14 @@ export function MessageBody({
   sujet?: string;
   className?: string;
   /**
-   * Le message est posé **dans une bulle**, pas sur sa feuille : le cadre perd
-   * son fond blanc et prend l'encre de l'app. Réservé à ce qui n'apporte pas
-   * sa mise en page (`enveloppe`), sans quoi un courrier qui a écrit ses
-   * propres couleurs se retrouverait noir sur noir.
+   * Sous quelle forme le message est posé (`enveloppe`).
+   *
+   * `bulle` : le cadre devient **transparent** et prend l'encre de l'app — la
+   * bulle est la surface. `feuille` : il est dans une bulle lui aussi, mais
+   * garde son **fond blanc et son encre d'origine**, parce que ses couleurs ont
+   * été écrites pour du blanc. Absent : la feuille pleine largeur d'avant.
    */
-  bulle?: boolean;
+  forme?: "bulle" | "feuille";
   /** Le thème courant : un cadre est un autre document, nos variables n'y vont pas. */
   dark?: boolean;
 }) {
@@ -61,7 +63,7 @@ export function MessageBody({
       html={message.html}
       bloquees={message.blockedImages ?? 0}
       sujet={sujet ?? ""}
-      bulle={bulle}
+      forme={forme}
       dark={dark}
     />
   );
@@ -139,12 +141,12 @@ const MARGE = 16;
  * donc le thème lui est dit, il ne se devine pas : `prefers-color-scheme`
  * répondrait celui du système, et le nôtre est un réglage de l'app.
  */
-const feuille = (bulle: boolean, dark: boolean) => `
-  :root { color-scheme: ${bulle && dark ? "dark" : "light"}; }
+const feuille = (transparent: boolean, dark: boolean) => `
+  :root { color-scheme: ${transparent && dark ? "dark" : "light"}; }
   html, body {
     margin: 0;
-    background: ${bulle ? "transparent" : "#fff"};
-    color: ${bulle && dark ? "#ededef" : "#111"};
+    background: ${transparent ? "transparent" : "#fff"};
+    color: ${transparent && dark ? "#ededef" : "#111"};
   }
   body {
     font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -165,19 +167,19 @@ const feuille = (bulle: boolean, dark: boolean) => `
      bordé avec « GoDaddy » écrit dedans, au milieu du courrier.
      (Pas d'accent grave ici : ce bloc vit dans un littéral gabarit.) */
   img:not([src]), img[src=""] { display: none; }
-  a { color: ${bulle && dark ? "#7fabf5" : "#0b57d0"}; }
+  a { color: ${transparent && dark ? "#7fabf5" : "#0b57d0"}; }
   /* Le bouton de la citation, dessiné dans le cadre : c'est là que vit la
      citation, et une réplique dans la page ne saurait pas où se poser. */
   .arc-cit {
     display: inline-flex; align-items: center; justify-content: center;
     height: 22px; padding: 0 9px; margin: 6px 0;
     border: 0; border-radius: 999px; cursor: pointer;
-    background: ${bulle && dark ? "rgba(255,255,255,0.13)" : "rgba(0,0,0,0.07)"};
-    color: ${bulle && dark ? "#b9b9be" : "#5c5c66"};
+    background: ${transparent && dark ? "rgba(255,255,255,0.13)" : "rgba(0,0,0,0.07)"};
+    color: ${transparent && dark ? "#b9b9be" : "#5c5c66"};
     font: 700 15px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     letter-spacing: 1px;
   }
-  .arc-cit:hover { background: ${bulle && dark ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.12)"}; }
+  .arc-cit:hover { background: ${transparent && dark ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.12)"}; }
 `;
 
 /**
@@ -220,11 +222,17 @@ const garde = (marge: number) => `
    rapporter la hauteur (le cadre ne sait pas se dimensionner), rendre les
    images quand on les demande, et **relayer les touchers** — un cadre les garde
    pour lui, et le geste de retour n'existait donc pas sur un message HTML. */
-const script = (marge: number) => `
+const script = (marge: number, canevas: number) => `
   (function () {
     var MARGE = ${marge};
-    /* La page pour laquelle les courriers sont ecrits, depuis toujours. */
-    var CANEVAS = 600;
+    /* La page pour laquelle les courriers sont ecrits, depuis toujours.
+       **Zero dans une bulle** : le canevas sert a rendre une infolettre a la
+       taille pour laquelle elle est ecrite, puis a la reduire. Une bulle fait
+       230 px sur un telephone — poser une signature sur 600 et reduire a 0,38
+       donnait un message a la loupe (mesure : la signature de Sophie illisible
+       dans sa bulle). Ce qui rentre dans une bulle n'a pas de mise en page a
+       preserver, par definition (voir enveloppe). */
+    var CANEVAS = ${canevas};
     var SUJET = __SUJET__;
     var fit = document.getElementById("arc-fit");
     var occupe = false;
@@ -293,10 +301,21 @@ const script = (marge: number) => `
          etroit, et l'echelle fait le reste.
          Le HTML simple n'y passe pas : 15 px reduits a 0,65 ne se lisent plus,
          et un texte sans mise en page n'a pas de largeur a lui. */
-      if (misEnPage && dispo < CANEVAS) {
+      if (CANEVAS && misEnPage && dispo < CANEVAS) {
         fit.style.width = CANEVAS + "px";
         naturel = Math.max(fit.scrollWidth, CANEVAS);
       }
+      /* **La largeur que le message demanderait s'il avait la place.** Un cadre
+         vaut 300 px par defaut, et une bulle qui epouse son cadre se verrouille
+         donc a 300 quoi qu'elle porte : une phrase de dix mots s'y repliait sur
+         trois lignes a cote d'une bulle de texte qui en prenait une. On mesure
+         en max-content, on rend la mesure a la page, et c'est elle qui borne la
+         bulle — bornee a son tour par les 76 % de la colonne. */
+      var avant = fit.style.width;
+      fit.style.width = "max-content";
+      var voulue = Math.ceil(fit.getBoundingClientRect().width) + marge * 2;
+      fit.style.width = avant;
+
       var echelle = naturel > dispo + 1 ? dispo / naturel : 1;
       if (echelle < 1) {
         fit.style.width = naturel + "px";
@@ -320,7 +339,7 @@ const script = (marge: number) => `
          posee sur un telephone de 393 — 128 px de gris sous le message. */
       if (echelle === 1) h = Math.max(h, document.body.scrollHeight);
       occupe = false;
-      parent.postMessage({ type: "arc-mail-height", height: h }, "*");
+      parent.postMessage({ type: "arc-mail-height", height: h, width: voulue }, "*");
     };
 
     /* **L'objet, ecrit deux fois.** Une infolettre commence par un « preheader »
@@ -538,17 +557,20 @@ function CorpsHtml({
   html,
   bloquees,
   sujet,
-  bulle,
+  forme,
   dark,
 }: {
   html: string;
   bloquees: number;
   sujet: string;
-  bulle?: boolean;
+  forme?: "bulle" | "feuille";
   dark?: boolean;
 }) {
   const cadre = useRef<HTMLIFrameElement>(null);
   const [hauteur, setHauteur] = useState(220);
+  /* La largeur que le message demande. `null` tant qu'on ne sait pas : le cadre
+     prend alors toute la place offerte, ce qu'il faisait déjà. */
+  const [largeur, setLargeur] = useState<number | null>(null);
   const [montrees, setMontrees] = useState(false);
   const relais = useRelaisRetour();
   /* L'écouteur est posé une fois ; il lit le relais courant sans se refaire. */
@@ -561,7 +583,7 @@ function CorpsHtml({
     () =>
       `<!doctype html><html><head><meta charset="utf-8">` +
       `<meta name="viewport" content="width=device-width,initial-scale=1">` +
-      `<style>${feuille(Boolean(bulle), Boolean(dark))}</style></head>` +
+      `<style>${feuille(forme === "bulle", Boolean(dark))}</style></head>` +
       `<body><div id="arc-fit">${html}</div>` +
       /* Après le message, pas avant : le `<style>` d'une infolettre est dans le
          corps, et à importance égale c'est l'ordre qui tranche. */
@@ -572,11 +594,11 @@ function CorpsHtml({
       /* En bulle, la marge du cadre est **zero** : c'est la bulle qui la donne,
          et deux rembourrages l'un dans l'autre feraient un message perdu au
          milieu de sa propre pastille. */
-      `<style>${garde(bulle ? 0 : MARGE)}</style><script>${script(bulle ? 0 : MARGE).replace(
+      `<style>${garde(forme ? 0 : MARGE)}</style><script>${script(forme ? 0 : MARGE, forme ? 0 : 600).replace(
         "__SUJET__",
         JSON.stringify(sujet).replace(/<\//g, "<\\/"),
       )}<\/script></body></html>`,
-    [html, sujet, bulle, dark],
+    [html, sujet, forme, dark],
   );
 
   useEffect(() => {
@@ -587,12 +609,16 @@ function CorpsHtml({
       const data = e.data as {
         type?: string;
         height?: number;
+        width?: number;
         phase?: TouchRelaye["phase"];
         x?: number;
         y?: number;
       };
       if (data?.type === "arc-mail-height" && typeof data.height === "number") {
         setHauteur(Math.min(Math.max(Math.ceil(data.height), 80), 20000));
+        if (typeof data.width === "number" && data.width > 0) {
+          setLargeur(Math.min(Math.ceil(data.width), 20000));
+        }
         return;
       }
       /* Le cadre fait toute la hauteur de son contenu : il ne défile jamais
@@ -629,7 +655,8 @@ function CorpsHtml({
         /* **En bulle, plus de feuille** : la bulle est la surface, et une
            feuille blanche dedans redonnerait le cadre dans le cadre que la
            fiche interdit depuis le premier jour. */
-        bulle ? "" : "bg-white md:mt-4 md:rounded-xl md:ring-1 md:ring-black/[0.08]",
+        /* La bulle porte déjà la surface — la sienne, ou celle du courrier. */
+        forme ? "" : "bg-white md:mt-4 md:rounded-xl md:ring-1 md:ring-black/[0.08]",
       )}
     >
       {bloquees > 0 && !montrees && (
@@ -638,7 +665,7 @@ function CorpsHtml({
         <div
           className={cn(
             "flex items-center gap-2 border-b px-3 py-2 text-[13px]",
-            bulle
+            forme === "bulle"
               ? "border-foreground/10 text-muted-foreground"
               : "border-black/[0.06] bg-[#f6f6f7] text-[#444]",
           )}
@@ -653,7 +680,7 @@ function CorpsHtml({
             onClick={montrer}
             className={cn(
               "shrink-0 rounded-full px-3 py-1 font-medium",
-              bulle
+              forme === "bulle"
                 ? "bg-foreground/[0.08] text-foreground hover:bg-foreground/[0.13]"
                 : "bg-white text-[#0b57d0] shadow-[0_0_0_1px_rgb(0_0_0/0.08)]",
             )}
@@ -673,8 +700,10 @@ function CorpsHtml({
            une origine à lui, sans accès à la page ni aux cookies. Les liens
            ont besoin des deux `popups` pour s'ouvrir hors du bac à sable. */
         sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox"
-        className="block w-full border-0"
-        style={{ height: hauteur }}
+        /* `max-w-full` fait le reste : la largeur demandée est un souhait, la
+           bulle et sa borne de 76 % ont le dernier mot. */
+        className="block w-full max-w-full border-0"
+        style={{ height: hauteur, width: forme && largeur ? largeur : undefined }}
       />
     </div>
   );

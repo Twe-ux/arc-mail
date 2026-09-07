@@ -2,6 +2,38 @@
 
 Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérification.
 
+## 7 septembre 2026 — trois enveloppes, un volet
+
+Deux décisions, maquettées avant d'être codées.
+
+**La règle `enveloppe` était trop large.** Elle classait un message en document dès qu'il portait un
+tableau ou une couleur — c'est-à-dire dès qu'il avait une signature professionnelle. Un transfert
+Anticafé devenait une dalle pleine largeur au milieu d'une conversation : « pourquoi certains mails
+ne sont pas présentés pareil ? ». Le bon discriminant est la **largeur** — 400 px pour une
+signature, 600 et plus pour une infolettre. Trois formes désormais : bulle teintée, bulle qui garde
+la feuille blanche du courrier, document pleine largeur. La couleur ne décide plus de la forme,
+seulement du fond.
+
+La feuille blanche reste blanche, et ce n'est pas un choix de style : ces couleurs ont été écrites
+pour du blanc. Deux mesures ont suivi — pas de canevas de 600 px dans une bulle (la signature s'y
+retrouvait à 0,38 d'échelle) et la bulle prend la largeur que le message demande, mesurée en
+`max-content` par le cadre lui-même, sinon elle se verrouille aux 300 px par défaut d'un cadre. Et
+en thème clair, un blanc sur la carte blanche à un filet de 8 % avait purement disparu.
+
+**Écrire va là où est le contexte.** La barre du bas garde la réponse courte ; le ↩ à côté d'un
+message ouvre un vrai composeur dans le volet de droite, ce qu'on cite restant à gauche ; « Nouveau
+message », qui n'a aucun contexte, garde la fenêtre posée. Le volet ne porte qu'une chose : le lui
+réclamer promeut le brouillon dans la fenêtre — pas d'état de plus, `third.kind` suffit.
+
+Le formulaire a été extrait pour être partagé (`compose-corps.tsx`) : deux copies de cette barre
+auraient divergé au premier réglage ajouté, comme la mise en forme avait divergé entre téléphone et
+bureau. Les deux châssis de bureau n'ont plus que leur enveloppe, 89 et 56 lignes.
+
+Trouvé en passant : **`--space` ne marchait plus dans les captures**. Il cliquait un bouton de la
+feuille du téléphone, laquelle ne choisit plus le compte depuis que les espaces sont dans la barre
+du bas — toutes les captures `--space pro` rendaient Perso sans rien dire. L'espace se persiste
+maintenant avec le thème, avant la première peinture, et vaut aussi sur bureau.
+
 ## 6 septembre 2026 — un fil tient dans deux boîtes
 
 « Quand je recharge, mes messages envoyés ne s'affichent pas — mais ils sont dans Envoyés. » Exact :

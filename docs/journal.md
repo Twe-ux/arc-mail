@@ -2,6 +2,28 @@
 
 Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérification.
 
+## 7 septembre 2026 — des bulles à leur largeur, et une citation qui se lit
+
+« On peut les allonger que tout soit sur une ligne jusqu'à une certaine limite ? » Deux causes
+distinctes, mesurées l'une après l'autre :
+
+- le plafond était à **54ch** — la bulle demandait 515 px, on lui en accordait 410. Il passe à 68ch,
+  la mesure que le projet donne déjà au texte simple ;
+- et surtout, la rangée d'une bulle se dimensionnait **sur son contenu** (`items-end` sur la
+  colonne), donc les 76 % de la bulle se résolvaient contre une largeur qui en dépendait :
+  circulaire. Six mots se repliaient dans 215 px sur 460 offerts. La rangée prend maintenant toute
+  la colonne, et c'est `flex-row-reverse` qui range la bulle à droite.
+
+« Et quand on ouvre le message pour voir le détail, moins de chevrons ? » Une réponse citait le
+corps entier du dernier message — lequel portait déjà la citation du précédent : un chevron de plus
+par tour, `> >> ` au quatrième échange. Elle ne cite plus que **ce que ce message dit**, et le
+brouillon porte les deux versions : un seul niveau de `>` dans le texte, un vrai `blockquote` dans
+le HTML, rendu avec un filet dans le champ d'écriture.
+
+Question posée au passage, et vérifiée dans le code : la **réponse rapide de la barre du bas est
+bien une réponse**. `reply` passe `replyTo`, et le SMTP en tire `In-Reply-To` et `References` — la
+chaîne complète, à laquelle on ajoute un maillon au lieu de la remplacer.
+
 ## 7 septembre 2026 — trois enveloppes, un volet
 
 Deux décisions, maquettées avant d'être codées.

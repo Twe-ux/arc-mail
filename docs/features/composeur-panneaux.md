@@ -479,6 +479,17 @@ du composeur ne dépasse 300 lignes.
 une réponse écrite dans le volet ouvrait un fil neuf chez le destinataire. Il ne voyage pas avec un
 brouillon — `DraftInput` l'exclut, et un brouillon n'est pas encore une réponse.
 
-La citation que `repondreDansVolet` écrit est celle que tous les clients écrivent — « Le … a
-écrit : » puis des chevrons —, c'est-à-dire exactement celle que `couperCitation` sait replier chez
-le destinataire.
+### La citation qu'on écrit, et celle qu'on lit
+
+`repondreDansVolet` ne cite que **ce que le dernier message dit** — `couperCitation(...).visible`,
+pas son corps entier. Son corps porte déjà la citation du précédent, qui portait celle d'avant :
+citer le tout ajoutait un chevron par tour, et une réponse au quatrième échange s'ouvrait sur
+`> >> `. Le fil est tenu par `References`, pas par la profondeur des chevrons.
+
+Le brouillon porte les deux versions, et elles ne disent pas la même chose de la même façon :
+
+- **le texte** garde **un** niveau de `>` — la convention que tous les clients lisent, et celle que
+  `couperCitation` sait replier chez le destinataire ;
+- **le HTML** met la même citation dans un `blockquote`, rendu par le champ d'écriture avec un filet
+  et une encre sourde. Une citation se reconnaît à sa marge, pas à une ponctuation qu'il faut
+  décoder — et le bouton « Citation » du panneau de mise en forme gagne le même dessin.

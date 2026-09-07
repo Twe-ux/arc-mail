@@ -136,6 +136,12 @@ export function ComposeBody({
            transformation du glisser-fermer au moment précis où les deux se
            passent la main — c'est le tremblement (mesuré sur Kairos). */
         "min-h-16 flex-1 overflow-y-auto overscroll-none bg-transparent px-4 py-3.5 outline-none",
+        /* **Une citation se reconnaît à sa marge, pas à sa ponctuation.** Le
+           `blockquote` — celui d'une réponse comme celui du bouton Citation —
+           prend un filet et une encre sourde : dans le composeur on voyait des
+           chevrons empilés, ce qui est la façon dont le texte simple *écrit*
+           une citation, pas la façon dont on la *lit*. */
+        "[&_blockquote]:my-2 [&_blockquote]:ml-0 [&_blockquote]:border-l-2 [&_blockquote]:border-foreground/20 [&_blockquote]:pl-3 [&_blockquote]:text-muted-foreground",
         /* L'invite d'un champ riche s'écrit en CSS : il n'a pas de
            `placeholder`, et un `<span>` posé dedans deviendrait du message. */
         "data-[vide=true]:before:pointer-events-none data-[vide=true]:before:absolute data-[vide=true]:before:text-muted-foreground data-[vide=true]:before:content-[attr(data-invite)]",

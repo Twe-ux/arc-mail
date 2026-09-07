@@ -281,8 +281,8 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   « a écrit : ») — on remonte tant que le contenant n'ajoute rien devant, et un message qui n'est
   *que* citation ne se replie pas. Rien n'est retiré ; le bouton reste pour refermer.
 - **Deux lectures d'un fil** (`filStyle`, rangée « Fil » des deux panneaux, `conversation` par
-  défaut) : bulles — nôtres à droite, accent 22 %, une tête par grappe, 76 % et `min(76%,54ch)` sur
-  bureau — ou la pile de blocs d'avant. Ce n'est **pas un rangement** : objet, dossier et fil ne
+  défaut) : bulles — nôtres à droite, accent 22 %, une tête par grappe, 76 % et `min(76%,68ch)` sur
+  bureau (68ch, la mesure du texte simple) — ou la pile de blocs d'avant. Ce n'est **pas un rangement** : objet, dossier et fil ne
   bougent pas → [vue par correspondant](docs/features/vue-correspondant.md).
 - **Trois formes, et c'est la largeur qui tranche** (`enveloppe`) : `bulle` (teintée, cadre
   transparent), `feuille` (même bulle, fond blanc du courrier gardé — ses couleurs ont été écrites
@@ -290,6 +290,10 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   > 20 ko, ou trois tableaux). **La couleur ne décide plus de la forme, seulement du fond** — sinon
   toute signature professionnelle devenait une dalle. Un fil d'**un seul message** reste en
   courrier, et l'objet remonte au fil dès qu'on est en discussion.
+- **La rangée d'une bulle prend toute la colonne** (`w-full`, le côté vient de `flex-row-reverse`) :
+  avec un `items-end` sur la colonne, elle se dimensionnait sur son contenu et les 76 % se
+  résolvaient contre une largeur qui en dépendait — six mots se repliaient dans 215 px sur 460
+  offerts.
 - Une bulle **ne passe pas par le canevas de 600 px** (0,38 d'échelle sur 230 px de bulle) et prend
   **la largeur que le message demande** — le cadre la mesure en `max-content` et la rend avec sa
   hauteur, sinon la bulle se verrouille aux 300 px par défaut d'un cadre.
@@ -358,7 +362,12 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   est déjà là.
 - Le composeur connaît **trois contenants** : la feuille du téléphone, la fenêtre du bureau et le
   volet de droite. `ComposeDraft.replyTo` porte `In-Reply-To`/`References` — sans lui une réponse
-  écrite dans le volet ouvrait un fil neuf ; il ne voyage pas avec un brouillon.
+  écrite dans le volet ouvrait un fil neuf ; il ne voyage pas avec un brouillon. La réponse rapide
+  de la barre du bas le porte aussi : **c'est une réponse, pas un message neuf**.
+- Une réponse ne cite que **ce que le dernier message dit** (`couperCitation(...).visible`), jamais
+  la pile : un chevron par tour donnait `> >> ` au quatrième échange. Un seul niveau de `>` dans le
+  texte, et un vrai `blockquote` dans le HTML — dans le champ d'écriture une citation se reconnaît
+  à **son filet**, pas à une ponctuation qu'il faut décoder.
 - Les trois panneaux s'excluent et referment le clavier ; le menu du brouillon (`⋯`) a sa **clé
   d'état à part** — il se superpose au composeur, le partager le démontait.
 - Les pièces jointes voyagent en **base64** (`OutgoingAttachment`), 10 Mo par message, refusés à la

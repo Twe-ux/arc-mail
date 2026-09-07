@@ -72,7 +72,6 @@ export function MessageBubble({
         /* Une grappe respire une fois, pas à chaque réplique : 2 px entre deux
            messages du même auteur, 14 quand la parole change. */
         tete ? "mt-3.5 first:mt-0" : "mt-0.5",
-        mien ? "items-end" : "items-start",
       )}
     >
       {tete && (
@@ -94,7 +93,7 @@ export function MessageBubble({
                discussion il en reste une, de 22 px de haut, et elle ne revient
                qu'au changement de voix. */
             "mb-1 flex max-w-full items-center gap-1.5 rounded-full px-1 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
-            mien && "flex-row-reverse",
+            mien ? "flex-row-reverse self-end" : "self-start",
           )}
         >
           <ContactAvatar contact={message.from} className="size-[22px] text-[10px]" />
@@ -127,15 +126,24 @@ export function MessageBubble({
         </dl>
       )}
 
-      <div className={cn("flex max-w-full items-end gap-1", mien && "flex-row-reverse")}>
+      {/* **La rangée prend toute la colonne**, et c'est le `justify` du sens de
+          lecture qui range la bulle à droite ou à gauche — `flex-row-reverse`
+          fait partir le premier enfant du bord droit. Avec un `items-end` sur la
+          colonne, la rangée se dimensionnait sur son contenu et les 76 % de la
+          bulle se résolvaient contre une largeur qui dépendait d'eux : une
+          phrase de six mots se repliait dans 215 px au lieu des 460 offerts. */}
+      <div className={cn("flex w-full items-end gap-1", mien && "flex-row-reverse")}>
         <div
           className={cn(
             /* 76 % : au-delà, une bulle touche les deux bords et le côté cesse
                de se voir — c'est le côté qui dit qui parle. Sur bureau une
-               seconde borne, en `ch` : à 1000 px de volet, 76 % font 140
-               caractères par ligne, et une bulle cesse d'être une réplique
-               pour redevenir la dalle qu'on vient de quitter. */
-            "max-w-[76%] min-w-0 overflow-hidden rounded-[18px] px-3.5 py-2.5 md:max-w-[min(76%,54ch)]",
+               seconde borne, en `ch`, pour qu'une bulle ne redevienne pas la
+               dalle qu'on vient de quitter — mais **68ch, pas 54** : à 54, une
+               phrase de six mots se repliait sur deux lignes alors qu'elle
+               tenait (mesuré : 515 px demandés, 410 accordés). 68ch est la
+               mesure que le projet donne déjà au texte simple, pas un nombre
+               de plus. */
+            "max-w-[76%] min-w-0 overflow-hidden rounded-[18px] px-3.5 py-2.5 md:max-w-[min(76%,68ch)]",
             /* **La feuille blanche est une peau, pas une autre forme.** Un
                message qui a écrit ses couleurs les a écrites pour du blanc : le
                rouge d'une signature sur une teinte à 22 %, ou son noir sur un

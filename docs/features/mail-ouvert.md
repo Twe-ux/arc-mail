@@ -164,6 +164,16 @@ Deux mesures ont dû suivre, toutes deux prises à la capture :
   côté d'une bulle de texte qui en prenait une. Le cadre mesure en `max-content`, rend la mesure
   avec sa hauteur, et la page en borne la bulle — bornée à son tour par les 76 % de la colonne.
 
+Et deux fois encore, la même question — « on peut les allonger que tout soit sur une ligne ? » —, à
+laquelle deux causes distinctes répondaient :
+
+- **Le plafond était à 54ch, il est à 68.** Mesuré : la bulle demandait 515 px, on lui en accordait
+  410. 68ch est la mesure que le projet donne déjà au texte simple ; ce n'est pas un nombre de plus.
+- **La rangée prend toute la colonne** (`w-full`), et c'est `flex-row-reverse` qui range la bulle à
+  droite. Avec un `items-end` sur la colonne, la rangée se dimensionnait sur son contenu et les
+  76 % de la bulle se résolvaient contre une largeur qui dépendait d'eux — circulaire, et six mots
+  se repliaient dans 215 px sur 460 offerts.
+
 Le cadre d'une bulle **teintée** devient transparent et prend l'encre de l'app ; celui d'une
 **feuille** garde son blanc et son encre. Un cadre est un autre document : nos variables CSS n'y
 entrent pas, donc le thème lui est **dit** — `prefers-color-scheme` répondrait celui du système, et

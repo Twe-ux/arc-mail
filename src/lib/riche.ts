@@ -85,17 +85,19 @@ export function enrichi(html: string): boolean {
  *
  * Sert à amorcer le champ depuis un brouillon écrit avant le HTML, ou depuis
  * une réponse dont le corps cité est du texte. L'échappement est fait ici et
- * nulle part ailleurs : c'est le seul endroit où du texte devient du balisage.
+ * nulle part ailleurs (`echapper`) : c'est le seul endroit où du texte devient
+ * du balisage.
  */
+export function echapper(texte: string): string {
+  return texte.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
 export function htmlDe(texte: string): string {
   if (!texte) return "";
   return texte
     .split("\n")
     .map((ligne) => {
-      const echappe = ligne
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;");
+      const echappe = echapper(ligne);
       /* Une ligne vide n'est un bloc que si elle porte quelque chose : un
          `<div>` vide se replie à zéro et le saut de paragraphe disparaît. */
       return `<div>${echappe || "<br>"}</div>`;

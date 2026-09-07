@@ -9,6 +9,8 @@ import { providerFor } from "./mail";
 import type { FolderUnread } from "./mail/provider";
 import { FOLDERS, SPACES } from "./mock-data";
 import { resolveSpace } from "./theme";
+import { couperCitation } from "./fil";
+import { echapper, htmlDe } from "./riche";
 import { texteLibre } from "./search/ast";
 import { dossiersDe } from "./search/imap";
 import { correspond } from "./search/match";
@@ -1443,19 +1445,29 @@ export const useMail = create<MailState>()(
     const t = get().threads.find((x) => x.id === threadId);
     if (!t) return;
     const dernier = t.messages[t.messages.length - 1];
-    const cite = dernier.body
-      .split("\n")
-      .map((l) => `> ${l}`)
-      .join("\n");
+    /* **On ne cite que ce que le dernier message dit, pas la pile.** Son corps
+       porte déjà la citation du précédent, qui portait celle d'avant : citer le
+       tout ajoutait un chevron par tour, et une réponse au quatrième échange
+       s'ouvrait sur `> >> ` — illisible dans le composeur, et sans rien
+       apporter. Le fil est tenu par `References`, pas par la profondeur des
+       chevrons. */
+    const dit = couperCitation(dernier.body).visible;
+    const attribution = `Le ${formatFullDate(dernier.date)}, ${dernier.from.name} <${dernier.from.email}> a écrit :`;
     get().openCompose(
       {
         spaceId: t.spaceId,
         to: to.map((c) => c.email),
         subject: /^re\s*:/i.test(t.subject) ? t.subject : `Re: ${t.subject}`,
         replyTo: threadId,
-        /* La citation s'écrit comme tous les clients l'écrivent — et c'est
-           celle-là que `couperCitation` sait replier chez le destinataire. */
-        body: `\n\nLe ${formatFullDate(dernier.date)}, ${dernier.from.name} <${dernier.from.email}> a écrit :\n${cite}`,
+        /* Le texte garde **un** niveau de chevrons : c'est la convention que
+           tous les clients lisent, et c'est elle que `couperCitation` sait
+           replier chez le destinataire. */
+        body: `\n\n${attribution}\n${dit.split("\n").map((l) => `> ${l}`).join("\n")}`,
+        /* Le HTML dit la même chose avec **un filet au lieu des chevrons** :
+           c'est un `blockquote`, ce que tout client comprend, et c'est ce qu'on
+           voit en écrivant — une citation se reconnaît à sa marge, pas à une
+           ponctuation qu'il faut décoder. */
+        html: `<div><br></div><div><br></div><div>${echapper(attribution)}</div><blockquote>${htmlDe(dit)}</blockquote><div><br></div>`,
       },
       "volet",
     );

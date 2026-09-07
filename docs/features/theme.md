@@ -85,7 +85,7 @@ Deux pièges, tous deux mesurés :
 
 **La fenêtre prend le filet de la carte du téléphone** (`.fenetre-carte`, bureau seulement) : sans
 tranche, un rectangle presque noir sur un fond presque noir fondait dans le décor. Bord haut deux
-fois plus clair que les côtés — c'est là que la lumière frappe — et liseré intérieur en reflet, la
+fois plus clair que les côtés — c'est là que la lumière frappe — et lisieré intérieur en reflet, la
 recette de `.list-card`. Le troisième volet la partage.
 
 ## Le fond du bureau, dégradé (`[data-fond="degrade"]`, le défaut)
@@ -255,7 +255,7 @@ nom, une valeur à droite.
 La ligne de la couleur est la seule à deux niveaux — l'icône appartient à son **titre**, et les huit
 pastilles reprennent toute la largeur de la rangée en dessous. Indentées des 32 px de l'icône, elles
 ne laissaient plus qu'un pixel de gouttière (mesuré : 329 px de place, 8 × 34 = 272, sept
-gouttières de 8).
+goutttières de 8).
 
 Le libellé de la densité est **« Densité »**, pas « Densité de la liste » : avec l'icône et le
 segmenté de 147 px, le nom long demandait 135 px pour 138 disponibles à 393 — trois pixels de
@@ -343,6 +343,21 @@ Deux mesures, dans cet ordre :
 
 Mesure après : panneau `8 → 268`, barre `8 → 268`. Le rail garde le même ancrage — il n'a pas la
 place de contenir quoi que ce soit, et son menu de compte se pose déjà là.
+
+**Et le menu du compte a suivi, parce qu'il ne suivait pas.** Signalé sur la barre repliée : « aligne
+profil sur personnaliser ». Le menu était déjà en `align="end"`, mais sans `collisionPadding` et à
+248 px — il tombait donc à 4 px du bord en barre attachée et à 0 en rail, pendant que le panneau se
+posait à 8. Deux cartes ouvertes par deux boutons voisins, décalées l'une de l'autre sans qu'aucune
+raison ne le dise. Il prend les **mêmes trois valeurs** : `align="end"`, `collisionPadding={8}`,
+260 px. Les deux portes du bas de la barre s'ouvrent désormais sur le même rectangle, dans les deux
+états de barre.
+
+Vérifié en rail, où les deux déclencheurs sont **empilés à la même abscisse et à la même largeur**
+(`size-9`) : à props identiques la boîte l'est aussi, et le panneau y est mesuré `8 → 268`. En barre
+attachée les deux débordent largement à gauche (fin du bouton à 218 pour l'engrenage, 252 pour
+l'avatar, contre 260 px de carte) et sont donc reposés tous les deux sur la même butée. Le menu du
+compte ne se rend pas sans session Supabase, il n'a pas pu être capturé ici — c'est le seul point
+à revoir sur la vraie boîte.
 
 ---
 

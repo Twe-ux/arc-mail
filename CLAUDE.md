@@ -158,9 +158,13 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   décrit, elle ne promet pas.
 - Le **panneau d'apparence du bureau dit la même chose que la feuille**, avec les mêmes mots : une
   ligne, son icône, son contrôle à droite ; pas de titre en capitales. Il fait **260 px, la largeur
-  de la barre**, et s'aligne **par sa fin** (`align="end"`, `collisionPadding` 8) comme le menu du
-  compte à côté : aligné par son début il partait de l'engrenage, à droite de la rangée du bas, et
-  déroulait tout son corps sur la liste.
+  de la barre**, et s'aligne **par sa fin** (`align="end"`, `collisionPadding` 8) : aligné par son
+  début il partait de l'engrenage, à droite de la rangée du bas, et déroulait tout son corps sur la
+  liste.
+- Le **menu du compte porte les trois mêmes valeurs** (`align="end"`, `collisionPadding` 8, 260 px) :
+  les deux portes du bas de la barre s'ouvrent sur le **même rectangle**, en barre attachée comme en
+  rail — à 248 px sans butée il se posait à 4 px du bord, puis à 0 en rail, décalé du panneau voisin
+  sans raison.
 - L'accent **remplit à 22 %, il n'est pas l'aplat** : en `bg-[var(--space-accent)]` sous une encre
   `--space-ink`, qui vaut l'accent en sombre, le glyphe disparaît dans son propre fond.
 - La feuille **Personnaliser** est **un seul groupe de quatre lignes**, sans titre en capitales,

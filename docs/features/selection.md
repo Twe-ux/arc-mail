@@ -27,7 +27,7 @@ frapperait des fils qu'on ne voit plus. Elle ne se persiste pas non plus — ell
 | | Entrer | Cocher | Sortir |
 |---|---|---|---|
 | Téléphone | **appui long** (450 ms, 8 px de tolérance) | appui sur la rangée | « Terminé », ou changer de dossier |
-| Bureau | ⌘/Ctrl-clic, Maj-clic, ou le bouton de la tête | clic sur la rangée | ✕, `Échap` |
+| Bureau | **la case au survol de la rangée**, ⌘/Ctrl-clic, Maj-clic, ou le bouton de la tête | clic sur la rangée | ✕, `Échap` |
 | Clavier | `x` sur la conversation courante | `x`, ⌘A pour tout | `Échap` |
 
 **L'appui long est le seul geste encore libre** sur une rangée : l'horizontale appartient au
@@ -39,8 +39,16 @@ la conversation par-dessus la sélection qu'il vient d'ouvrir.
 **⌘A ne prend la main que dans le mode.** Hors sélection, c'est le « tout sélectionner » du
 navigateur, et le voler sur une page de courrier empêcherait de copier un message.
 
-Le bouton de la tête de liste existe parce qu'un raccourci que rien n'annonce n'existe pas ; son
-infobulle donne les deux autres chemins. Il vit contre Synchroniser et le regroupement : les trois
+**Au survol, l'avatar cède la place à la case** (8 sept., seconde passe). Le bouton de la tête ne
+suffisait pas : « pas très visible et pratique, le raccourci marche mais faut le connaître ». Il est
+loin de la rangée qu'on vise, et un mode qui ne s'annonce qu'à l'autre bout de l'écran ne s'annonce
+pas. La case est **la sœur de la rangée, pas son enfant** — un `<button>` dans un `<button>` est
+invalide —, exactement la mécanique de l'étoile posée à droite ; elle tombe **au pixel sur
+l'avatar** dans les quatre dispositions (mesuré : pleine largeur, colonne 360, confort et compact).
+Bureau seulement : sur téléphone l'appui long ouvre le mode, et un rond permanent sur chaque rangée
+y coûterait plus qu'il ne rendrait.
+
+Le bouton de la tête de liste reste : son infobulle donne les deux autres chemins. Il vit contre Synchroniser et le regroupement : les trois
 agissent sur la **liste entière**, pas sur une conversation.
 
 ## La rangée

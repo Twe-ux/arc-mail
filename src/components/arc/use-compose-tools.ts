@@ -79,11 +79,17 @@ export function useComposeTools(draft: ComposeDraft | null) {
       });
       return;
     }
-    /* Le corps est repeuplé depuis le brouillon : on écrit les deux versions,
+    /* **La signature entre telle qu'elle a été écrite.** Un « — » était collé
+       devant : signalé le 8 sept. — la personne avait écrit son propre tiret
+       dans le champ, et le message en portait deux. Ce n'est pas à l'insertion
+       de décider de la ponctuation d'une signature ; ce qui est dans le champ
+       est ce qui part, et le tiret se met dans le champ si on le veut.
+
+       Le corps est repeuplé depuis le brouillon : on écrit les deux versions,
        sinon le champ garderait son HTML d'avant et la signature n'y serait
        jamais. */
-    const texte = `${draft.body}\n\n— ${espace.signature}`;
-    update({ body: texte, html: draft.html ? `${draft.html}${htmlDe(`\n— ${espace.signature}`)}` : undefined });
+    const texte = `${draft.body}\n\n${espace.signature}`;
+    update({ body: texte, html: draft.html ? `${draft.html}${htmlDe(`\n${espace.signature}`)}` : undefined });
     setPanneau(null);
     setMenu(false);
   };

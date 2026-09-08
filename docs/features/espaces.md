@@ -90,6 +90,11 @@ n'existe nulle part en base, et le retirer ferait disparaître sa réception.
 `signature` n'entre dans l'écriture que si l'appelant en a une à dire : le sélecteur de la barre ne
 règle que le nom et l'icône, et un `undefined` écraserait la signature à chaque renommage.
 
+**Elle entre telle qu'elle a été écrite.** Un « — » était collé devant par l'insertion : signalé le
+8 sept. — la personne avait écrit son propre tiret dans le champ, et le message en portait deux. Ce
+n'est pas à l'insertion de décider de la ponctuation d'une signature ; ce qui est dans le champ est
+ce qui part, et le tiret se met dans le champ si on le veut.
+
 Le toast du composeur porte maintenant **le chemin** : « Elle se règle dans Profil et comptes, sous
 l'espace », avec un bouton qui y va. Il a vécu six jours sans, et c'était juste — il n'y avait
 alors nulle part où envoyer qui que ce soit.

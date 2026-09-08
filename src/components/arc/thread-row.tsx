@@ -255,7 +255,17 @@ export function ThreadRow({
           {selectionOn ? (
             <Coche coche={coche} />
           ) : (
-            <ContactAvatar contact={last.from} className="mt-0.5 size-10 md:size-9 md:group-data-[large=true]/liste:mt-0 md:group-data-[large=true]/liste:size-6" />
+            /* **Au survol, l'avatar cède la place à la case.** C'est la seule
+               chose qui annonce la sélection à la souris : le bouton de la tête
+               de liste existe, mais il est loin de la rangée qu'on vise, et
+               « le raccourci marche mais faut le connaître ». Le visage
+               s'efface, la case prend sa place au pixel près (elle est la sœur
+               de la rangée, pas son enfant — un `<button>` dans un `<button>`
+               est invalide, c'est la mécanique de l'étoile juste à côté). */
+            <ContactAvatar
+              contact={last.from}
+              className="mt-0.5 size-10 transition-opacity md:size-9 md:group-hover:opacity-0 md:group-data-[large=true]/liste:mt-0 md:group-data-[large=true]/liste:size-6"
+            />
           )}
           <span className="min-w-0 flex-1 md:group-data-[large=true]/liste:flex md:group-data-[large=true]/liste:items-center md:group-data-[large=true]/liste:gap-2.5">
             {/* L'expéditeur prend une colonne fixe en pleine largeur : c'est ce
@@ -365,6 +375,31 @@ export function ThreadRow({
           </span>
         </span>
       </button>
+      {/* La case de sélection, sœur de la rangée comme l'étoile : posée sur
+          l'avatar, révélée au survol, **bureau seulement** — sur téléphone
+          c'est l'appui long qui ouvre le mode, et un rond permanent sur chaque
+          rangée y coûterait plus qu'il ne rendrait. */}
+      {!selectionOn && (
+        <button
+          type="button"
+          onClick={() => ouvrirSelection(thread.id)}
+          aria-label="Sélectionner cette conversation"
+          className={cn(
+            "absolute left-3 hidden place-items-center rounded-full opacity-0 transition-opacity md:grid",
+            /* La verticale de l'avatar, densité par densité : 10 + 2 en
+               confort, 6 + 2 en compact, centré en pleine largeur. */
+            "top-3 size-9 md:group-data-[densite=compact]/liste:top-2",
+            "md:group-data-[large=true]/liste:top-1/2 md:group-data-[large=true]/liste:size-6 md:group-data-[large=true]/liste:-translate-y-1/2",
+            "text-muted-foreground ring-1 ring-inset ring-black/15 hover:text-foreground dark:ring-white/20",
+            "group-hover:opacity-100 focus-visible:opacity-100",
+            /* Comme l'étoile : elle ne voyage pas avec la rangée, donc elle
+               s'efface pendant le balayage. */
+            "md:group-data-[side=left]/swipe:opacity-0 md:group-data-[side=right]/swipe:opacity-0",
+          )}
+        >
+          <Check className="size-[18px] md:group-data-[large=true]/liste:size-3.5" strokeWidth={2.5} />
+        </button>
+      )}
       <button
         type="button"
         onClick={onStar}

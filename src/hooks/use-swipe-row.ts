@@ -14,6 +14,32 @@ import {
 
 /** Le voyage qu'il faut avoir fait pour que le relâchement vaille validation. */
 const SEUIL = 150;
+/**
+ * Le même geste au pavé tactile, **plus court et sans relâchement**.
+ *
+ * Signalé sur bureau en pleine largeur : « il faut balayer longtemps, et
+ * parfois on a l'impression que ça bug ». Deux causes, pas une :
+ *
+ * 1. **150 px, c'était le seuil du doigt.** Un doigt parcourt du verre ; un
+ *    pavé tactile accumule des `wheel` de quelques pixels, et le même chiffre
+ *    demande un geste deux fois plus long pour le même résultat.
+ * 2. **Il n'y a pas de relâchement à attendre.** On concluait après 140 ms de
+ *    silence : passer le seuil ne faisait donc rien tout de suite, et une main
+ *    qui s'arrête une demi-seconde au milieu du geste voyait la rangée revenir
+ *    toute seule. C'est ça, « ça bug » — l'app attendait un événement que le
+ *    pavé n'envoie jamais.
+ *
+ * Donc : **franchir le seuil *est* le geste**, et il part aussitôt. C'est ce
+ * que fait Mail sur macOS, et c'est la seule lecture honnête d'un geste sans
+ * fin. Le silence ne sert plus qu'à annuler ce qui n'est pas allé assez loin.
+ */
+const SEUIL_PAVE = 100;
+/**
+ * Ce qu'un pavé tactile continue d'envoyer **après** que les doigts se sont
+ * levés (l'inertie de macOS). Sans ce verrou, la traîne relançait un second
+ * balayage sur une rangée déjà partie.
+ */
+const TRAINE = 300;
 /** Où la rangée part quand l'action est validée : au-delà de sa propre largeur. */
 const SORTIE = 300;
 /** De quoi distinguer « je balaye » de « je fais défiler ». */
@@ -21,8 +47,13 @@ const AXE = 10;
 /**
  * Un geste de pavé tactile n'a **pas de fin** : il n'y a pas de `pointerup`,
  * seulement des `wheel` qui s'arrêtent. On la déduit du silence.
+ *
+ * **220 ms, pas 140** : depuis que franchir le seuil part tout seul, ce délai
+ * ne sert plus qu'à ramener un geste trop court. Trop bref, il ramenait la
+ * rangée pendant la micro-pause qu'une main fait au milieu d'un balayage — et
+ * une rangée qui recule sous les doigts, c'est ce qui « a l'air de buguer ».
  */
-const REPOS = 140;
+const REPOS = 220;
 /** Au-delà, la rangée résiste : sans butée elle partait avant le relâchement. */
 const BUTEE = SEUIL + 70;
 
@@ -96,6 +127,11 @@ export function useSwipeRow({
     let x = 0;
     let echantillons: Sample[] = [];
     let vol: SpringAnimation | null = null;
+    /* **Le seuil du geste en cours**, parce que le calque doit s'armer là où
+       l'action part. Le doigt et le pavé n'ont pas la même course : garder 150
+       pour le dessin pendant que le pavé partait à 110, c'était une rangée qui
+       s'en va sans que le libellé « Archiver » ait eu le temps d'apparaître. */
+    let seuil = SEUIL;
 
     const ecrire = (valeur: number) => {
       x = valeur;
@@ -103,10 +139,10 @@ export function useSwipeRow({
       const p = piste.current;
       if (!p) return;
       const distance = Math.abs(valeur);
-      p.style.setProperty("--swipe-progress", String(Math.min(1, distance / SEUIL)));
+      p.style.setProperty("--swipe-progress", String(Math.min(1, distance / seuil)));
       const cote = valeur > 1 ? "right" : valeur < -1 ? "left" : "none";
       if (p.dataset.side !== cote) p.dataset.side = cote;
-      const arme = distance >= SEUIL ? "true" : "false";
+      const arme = distance >= seuil ? "true" : "false";
       if (p.dataset.armed !== arme) p.dataset.armed = arme;
     };
 
@@ -126,6 +162,7 @@ export function useSwipeRow({
       if (e.pointerType === "mouse" && e.button !== 0) return;
       const etat = arreter();
       x = etat.value;
+      seuil = SEUIL;
       pointer = e.pointerId;
       depart = { x: e.clientX, y: e.clientY };
       axe = "inconnu";
@@ -226,19 +263,40 @@ export function useSwipeRow({
        Le sens est inversé : deux doigts vers la droite donnent un `deltaX`
        négatif, et c'est bien la rangée qui doit partir à droite. */
     let repos: ReturnType<typeof setTimeout> | null = null;
+    /* Le geste est parti : on ignore l'inertie du pavé jusqu'au silence. */
+    let fige = false;
+    let finTraine: ReturnType<typeof setTimeout> | null = null;
 
+    /* Le silence **avant** le seuil : le geste n'est pas allé assez loin, la
+       rangée revient. Il n'a plus à valider quoi que ce soit — passer le seuil
+       s'en charge à l'instant où il est franchi. */
     const conclure = () => {
       repos = null;
-      const action = x > 0 ? actions.current.right : actions.current.left;
-      const valide = action.enabled && Math.abs(x) >= SEUIL;
       vol = animateSpring({
         from: { value: x, velocity: 0 },
-        to: valide ? Math.sign(x) * SORTIE : 0,
-        spring: valide ? SPRING_DISMISS : SPRING_SETTLE,
+        to: 0,
+        spring: SPRING_SETTLE,
         onFrame: ecrire,
         onRest: () => {
           vol = null;
-          if (valide) action.run();
+        },
+      });
+    };
+
+    const partir = (action: SwipeAction, signe: number) => {
+      if (repos) {
+        clearTimeout(repos);
+        repos = null;
+      }
+      fige = true;
+      vol = animateSpring({
+        from: { value: x, velocity: 0 },
+        to: signe * SORTIE,
+        spring: SPRING_DISMISS,
+        onFrame: ecrire,
+        onRest: () => {
+          vol = null;
+          action.run();
         },
       });
     };
@@ -254,10 +312,33 @@ export function useSwipeRow({
          balayage qui ne fait rien. */
       const cote = (x !== 0 ? x : vers) > 0 ? actions.current.right : actions.current.left;
       e.preventDefault();
+      /* La traîne d'inertie : elle se contente de repousser le déverrouillage,
+         elle ne rouvre pas de geste. */
+      if (fige) {
+        if (finTraine) clearTimeout(finTraine);
+        finTraine = setTimeout(() => {
+          fige = false;
+          finTraine = null;
+        }, TRAINE);
+        return;
+      }
       if (!cote.enabled) return;
+      seuil = SEUIL_PAVE;
       if (repos) clearTimeout(repos);
       else arreter();
       const brut = x + vers;
+      /* **Le seuil franchi, c'est parti.** Pas de silence à attendre : il n'y a
+         pas de relâchement au pavé tactile, et l'attendre était ce qui donnait
+         l'impression que rien ne se passait. */
+      if (Math.abs(brut) >= SEUIL_PAVE) {
+        ecrire(Math.sign(brut) * SEUIL_PAVE);
+        partir(cote, Math.sign(brut));
+        finTraine = setTimeout(() => {
+          fige = false;
+          finTraine = null;
+        }, TRAINE);
+        return;
+      }
       ecrire(Math.max(-BUTEE, Math.min(BUTEE, brut)));
       repos = setTimeout(conclure, REPOS);
     };
@@ -274,6 +355,7 @@ export function useSwipeRow({
       el.removeEventListener("pointercancel", up);
       el.removeEventListener("wheel", roulette);
       if (repos) clearTimeout(repos);
+      if (finTraine) clearTimeout(finTraine);
       vol?.stop();
     };
   }, []);

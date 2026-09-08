@@ -187,9 +187,11 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - **L'avatar devient la case** et toute la rangée bascule : pas de `<button>` dans un `<button>`, et
   la case garde **exactement le gabarit de l'avatar** — plus petite, le texte sautait d'un cran.
   Le balayage se tait pendant la sélection.
-- Entrer : **appui long** (450 ms, 8 px de tolérance, `swallowNextClick`) sur téléphone ; ⌘-clic,
-  Maj-clic (plage dans l'ordre **affiché**) ou le bouton de la tête sur bureau ; `x` au clavier.
-  **⌘A ne prend la main que dans le mode** — sinon c'est le « tout sélectionner » du navigateur.
+- Entrer : **appui long** (450 ms, 8 px de tolérance, `swallowNextClick`) sur téléphone ; sur bureau
+  **la case qui prend la place de l'avatar au survol** (sœur de la rangée comme l'étoile, alignée au
+  pixel dans les quatre dispositions), ⌘-clic, Maj-clic (plage dans l'ordre **affiché**) ou le bouton
+  de la tête ; `x` au clavier. **⌘A ne prend la main que dans le mode** — sinon c'est le « tout
+  sélectionner » du navigateur.
 - Les deux barres **prennent la place**, elles ne s'ajoutent pas : la pill remplace la navigation
   (troisième emploi d'`action-pill`), et la barre du bureau remplace la 2ᵉ rangée de la tête —
   mesuré **0 px** d'écart, sinon la liste sautait sous le pointeur au premier ⌘-clic.
@@ -277,9 +279,12 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - **Un seul bord pour les trois** : filet, surlignage d'appui et pastille d'action à `inset-x-2` ;
   le filet est l'`::after` de la piste, jamais de la rangée qui glisse.
 - Les retours sont des ressorts (`animateSpring`), jamais une transition CSS ; distance **ou** élan.
-- **Sur bureau le même balayage vient du pavé tactile** (`wheel` horizontaux, fin déduite de
-  140 ms de silence) ; `overscroll-behavior-x: none` sur `html` retire l'horizontale au navigateur,
-  à qui elle servait à revenir en arrière → [gestes](docs/features/gestes.md).
+- **Sur bureau le même balayage vient du pavé tactile** (`wheel` horizontaux) : seuil à part
+  (**100 px**, `SEUIL_PAVE`), et **franchir le seuil *est* le geste** — un pavé n'a pas de
+  relâchement, et attendre 140 ms de silence était ce qui donnait l'impression que ça buguait. Le
+  silence (220 ms) ne fait plus que ramener un geste trop court, un verrou de traîne ignore
+  l'inertie, et le seuil du **dessin** suit celui du geste. `overscroll-behavior-x: none` sur `html`
+  retire l'horizontale au navigateur → [gestes](docs/features/gestes.md).
 - **Un vide parle du dossier** (`VIDES` dans `thread-row.tsx`, les deux tailles) : « Rien ici » était
   vrai partout et utile nulle part — dans la corbeille c'est une bonne nouvelle, dans les
   indésirables c'est le but. Deux lignes, l'icône du dossier, et **rien qui n'existe pas** — « En
@@ -632,6 +637,8 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   demande une migration : la colonne `icon` porte la liste en `check`. Renommer un espace fabriqué crée sa ligne et **change son identifiant** : fils, teinte et
   récents suivent.
 - `loadSpace` ne lit **qu'un dossier**, celui qu'on regarde ; Favoris se fond au lieu de remplacer.
+- La signature **entre telle qu'elle a été écrite** : le « — » que l'insertion collait devant en
+  faisait deux quand la personne avait mis le sien.
 - **La signature est sur l'espace**, pas sur le compte (c'est lui qui porte l'identité) et se règle
   sous l'espace dans `/comptes`, repliée derrière sa première ligne. L'écran liste
   `spacesFromAccounts` et non les lignes de `mail_spaces` : un compte sans vue a quand même un

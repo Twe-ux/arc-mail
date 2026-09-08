@@ -155,3 +155,34 @@ sur la pastille de l'action.
 Mesuré (1280×800, `Input.dispatchWheelEvent` par le pointeur) : trois crans de 60 px → 180 px,
 `data-armed=true`, la rangée part et la liste passe de 19 à 18 ; un cran de 40 px → `armed=false`,
 retour à zéro, rien de supprimé. Le geste tactile du téléphone est inchangé (−214 px, 19 → 18).
+
+
+## Le balayage au pavé tactile (8 sept. 2026, seconde passe)
+
+Signalé sur bureau : « il faut balayer longtemps, et parfois on a l'impression que ça bug ». Deux
+causes, pas une.
+
+**150 px, c'était le seuil du doigt.** Un doigt parcourt du verre ; un pavé tactile accumule des
+`wheel` de quelques pixels, et le même chiffre demande un geste deux fois plus long pour le même
+résultat. Le seuil du pavé est à part : **100 px** (`SEUIL_PAVE`), un tiers de moins.
+
+**Il n'y a pas de relâchement à attendre.** On concluait après 140 ms de silence : franchir le
+seuil ne faisait donc rien tout de suite, et une main qui s'arrête une demi-seconde au milieu du
+geste voyait la rangée revenir toute seule. C'est ça, « ça bug » — l'app attendait un événement que
+le pavé n'envoie jamais. Désormais **franchir le seuil *est* le geste** : la rangée part à
+l'instant où il est passé, comme Mail sur macOS. C'est la seule lecture honnête d'un geste sans fin.
+
+Trois conséquences :
+
+- Le silence ne sert plus qu'à **ramener** ce qui n'est pas allé assez loin, et il passe à
+  **220 ms** : trop bref, il reculait la rangée pendant la micro-pause qu'une main fait au milieu
+  d'un balayage.
+- Un **verrou de traîne** (300 ms) ignore l'inertie que macOS continue d'envoyer après que les
+  doigts se sont levés — sans lui, elle relançait un second balayage sur une rangée déjà partie.
+- Le **seuil du dessin suit celui du geste** (`seuil`, posé par `pointerdown` ou par la roulette) :
+  garder 150 pour le calque pendant que le pavé partait à 100, c'était une rangée qui s'en va sans
+  que le libellé « Archiver » ait eu le temps d'apparaître. Il apparaît maintenant **pendant le
+  vol**, la distance dépassant le seuil tout du long.
+
+Mesuré : 17 événements de roulette pour partir (≈ 100 px de translation) contre un geste plus long
+suivi d'une attente auparavant, et le toast « Archivé » au bout.

@@ -78,6 +78,27 @@ fabrique une nouvelle. Même mécanique que les libellés de Gmail, qui se déco
   sur bureau (un second popover se serait posé hors fenêtre une fois sur deux), feuille prise depuis
   « Plus » sur téléphone.
 
+## Où la puce se voit
+
+Dans la ligne d'aperçu, avec la pause devant elle — c'est l'ordre du plus périssable au plus stable.
+
+**Sauf en densité compacte, où cette ligne n'existe pas** : la puce remonte alors sur la ligne du
+nom, calée à droite juste avant l'heure. Signalé le 8 sept. — « ajoute-les aussi dans la liste quand
+l'écran n'est pas en pleine largeur » : une étiquette n'est pas un morceau de l'aperçu, c'est un
+signal sur le fil, et elle n'a pas à payer le prix d'une densité.
+
+**Sur cette ligne-ci, pas sur une ligne à elle.** La première version lui donnait sa propre ligne
+sous l'objet : mesuré, la rangée passait de 53 à **77 px**, soit la hauteur du confort — une densité
+compacte qui ne compacte plus rien. Sur la ligne du nom elle coûte zéro pixel, cette ligne ayant de
+la place à revendre.
+
+Deux exemplaires, chacun caché dans les états de l'autre — c'est déjà ce que fait la date, pour la
+même raison : déplacer un élément d'une ligne à l'autre par le CSS demanderait de le sortir du bloc
+où il est chez lui.
+
+**Bureau seulement.** Sur téléphone, « deux lignes » est un choix explicite de la feuille
+Personnaliser ; y ajouter une puce dès qu'un fil porte une étiquette rendrait le réglage faux.
+
 ## Le piège du sélecteur
 
 `useLabels` est **memoïsé**, comme `useVisibleThreads`. La première version passait par

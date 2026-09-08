@@ -301,6 +301,28 @@ export function ThreadRow({
               {thread.messages.length > 1 && (
                 <span className="shrink-0 text-xs text-muted-foreground tabular-nums">{thread.messages.length}</span>
               )}
+              {/* **Les puces remontent sur la ligne du nom en densité
+                  compacte.** La troisième ligne y disparaît, et les étiquettes
+                  disparaissaient avec elle : signalé le 8 sept., « ajoute-les
+                  aussi dans la liste quand l'écran n'est pas en pleine
+                  largeur ». Or une étiquette n'est pas un morceau de l'aperçu,
+                  c'est un signal sur le fil — elle n'a pas à payer le prix
+                  d'une densité.
+
+                  **Sur cette ligne-ci, pas sur une ligne à elle** : essayé, et
+                  mesuré à 77 px la rangée, soit la hauteur du confort — une
+                  densité compacte qui ne compacte plus rien. Ici elle coûte
+                  zéro pixel, la ligne du nom ayant de la place à revendre.
+                  `ml-auto` sur ce bloc : la date suit derrière, l'espace libre
+                  se met devant les deux.
+
+                  Deux exemplaires, chacun caché dans les états de l'autre :
+                  c'est déjà ce que fait la date juste en dessous, pour la même
+                  raison. Bureau seulement — sur téléphone « deux lignes » est
+                  un choix explicite, y ajouter une puce le rendrait faux. */}
+              <span className="ml-auto hidden shrink-0 items-center gap-1.5 md:group-data-[densite=compact]/liste:flex md:group-data-[large=true]/liste:hidden">
+                <Puces pause={pause?.wake} labels={thread.labels} />
+              </span>
               <time
                 dateTime={last.date}
                 suppressHydrationWarning
@@ -329,19 +351,6 @@ export function ThreadRow({
             >
               <Surligne texte={thread.subject} requete={motsVue} />
             </span>
-            {/* En densité compacte la rangée perd son aperçu : c'est la ligne
-                qui coûte le plus de hauteur et la moins nécessaire quand on
-                balaie une longue liste. Deux lignes au lieu de trois, et
-                l'objet reste — c'est lui qu'on cherche.
-
-                **Le téléphone lit `data-lignes`, pas `data-densite`.** Sur
-                téléphone `data-large` vaut « vrai » dès qu'aucun message n'est
-                ouvert (les styles larges sont tous en `md:`, ils n'y arrivent
-                jamais), et la densité y est donc forcée à « confort » par la
-                colonne. Un attribut à part, lu derrière `max-md:`, plutôt
-                qu'une variante qui viendrait disputer la même propriété à une
-                règle de bureau — à spécificité égale c'est l'ordre de la
-                feuille qui tranche, et on ne le choisit pas. */}
             <span className="mt-1 flex min-w-0 items-center gap-2 max-md:group-data-[lignes=2]/liste:hidden md:group-data-[densite=compact]/liste:hidden md:group-data-[large=true]/liste:mt-0 md:group-data-[large=true]/liste:flex-1">
               {/* L'aperçu, **ou le morceau qui a répondu** quand la vue a
                   trouvé son mot ailleurs : une adresse en copie, un corps, le
@@ -355,10 +364,7 @@ export function ThreadRow({
                   n'était visible nulle part, et c'est elle qui distingue une
                   pause d'un rangement. Elle passe **devant** les étiquettes —
                   c'est l'information la plus périssable de la rangée. */}
-              {pause && <LabelChip label={`Revient ${libellePause(pause.wake)}`} />}
-              {thread.labels.map((label) => (
-                <LabelChip key={label} label={label} />
-              ))}
+              <Puces pause={pause?.wake} labels={thread.labels} />
             </span>
             {/* La date, au bout de la ligne. Voir plus haut : deux exemplaires,
                 un par disposition. */}
@@ -420,6 +426,23 @@ export function ThreadRow({
         <Star className={cn("size-4", thread.starred && "fill-current")} />
       </button>
     </li>
+  );
+}
+
+/**
+ * Les puces d'une rangée : la pause d'abord, les étiquettes ensuite.
+ *
+ * **La pause passe devant** — c'est l'information la plus périssable de la
+ * rangée, et sans elle « En pause » ne serait qu'un dossier où l'on dépose.
+ */
+function Puces({ pause, labels }: { pause?: string; labels: string[] }) {
+  return (
+    <>
+      {pause && <LabelChip label={`Revient ${libellePause(pause)}`} />}
+      {labels.map((label) => (
+        <LabelChip key={label} label={label} />
+      ))}
+    </>
   );
 }
 

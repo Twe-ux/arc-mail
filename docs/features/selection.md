@@ -13,10 +13,19 @@ et vingt toasts.
 
 ## Le mode, explicite
 
-`selectionOn` est un booléen à part, pas `selection.length > 0`. Deux raisons, mesurées à
-l'usage : sur bureau on entre dans le mode **avant** d'avoir coché quoi que ce soit (le bouton de
-la tête de liste), et sur téléphone « Terminé » doit pouvoir sortir d'une sélection vide sans que
-le mode s'éteigne tout seul en décochant la dernière rangée.
+`selectionOn` est un booléen à part, pas `selection.length > 0` : sur bureau on entre dans le mode
+**avant** d'avoir coché quoi que ce soit (le bouton de la tête de liste), et ce mode-là doit tenir —
+c'est justement là qu'on va chercher les cases.
+
+**Mais décocher le dernier ferme le mode** (8 sept., seconde passe). Signalé à l'usage : « si je
+désélectionne manuellement le ou les messages, il faut revenir à l'affichage d'origine sans devoir
+appuyer sur la croix ». C'est juste — la barre d'actions n'a plus rien à viser, et laisser un mode
+ouvert sur zéro conversation oblige à un geste de plus pour revenir à l'endroit d'où l'on n'est
+jamais vraiment parti.
+
+La règle tient donc en une phrase : **le mode se ferme sur un geste de décochage, pas sur un compte
+à zéro.** « Tout sélectionner » qui décoche tout le garde ouvert — on vient de presser un bouton du
+mode, pas de décocher une rangée ; la différence est celle de l'intention.
 
 **Changer de liste vide la sélection** : dossier, espace, vue, filtre « Non lus », regroupement.
 Elle désigne des rangées visibles ; gardée d'une liste à l'autre, le prochain « Supprimer »

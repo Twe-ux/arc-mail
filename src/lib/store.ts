@@ -1383,14 +1383,30 @@ export const useMail = create<MailState>()(
       ancreSelection: id ?? s.ancreSelection,
     })),
 
+  /**
+   * **Décocher le dernier ferme le mode.**
+   *
+   * Signalé à l'usage : « si je désélectionne manuellement le ou les messages,
+   * il faut revenir à l'affichage d'origine sans devoir appuyer sur la croix ».
+   * C'est juste — la barre d'actions n'a plus rien à viser, et laisser un mode
+   * ouvert sur zéro conversation oblige à un geste de plus pour revenir à
+   * l'endroit d'où l'on n'est jamais vraiment parti.
+   *
+   * **Ce n'est pas `selection.length > 0` pour autant** : entrer par le bouton
+   * de la tête de liste ouvre le mode **sans rien cocher**, et il doit tenir —
+   * c'est justement là qu'on va chercher les cases. Le mode se ferme sur un
+   * geste de **décochage**, pas sur un compte à zéro.
+   */
   basculerSelection: (id) =>
-    set((s) => ({
-      selectionOn: true,
-      selection: s.selection.includes(id)
-        ? s.selection.filter((x) => x !== id)
-        : [...s.selection, id],
-      ancreSelection: id,
-    })),
+    set((s) => {
+      const dedans = s.selection.includes(id);
+      const selection = dedans ? s.selection.filter((x) => x !== id) : [...s.selection, id];
+      return {
+        selection,
+        selectionOn: !(dedans && selection.length === 0),
+        ancreSelection: dedans && selection.length === 0 ? null : id,
+      };
+    }),
 
   /**
    * Maj-clic : **de l'ancre à la rangée visée, dans l'ordre affiché**.
@@ -1417,7 +1433,9 @@ export const useMail = create<MailState>()(
     const s = get();
     const visibles = selectVisibleThreads(s).map((t) => t.id);
     /* Tout coché : le bouton devient « Ne rien sélectionner ». Un bouton qui ne
-       fait plus rien une fois pressé est un bouton qu'on presse deux fois. */
+       fait plus rien une fois pressé est un bouton qu'on presse deux fois.
+       Le mode **reste ouvert** : on vient de presser un bouton du mode, pas de
+       décocher la dernière rangée — la différence est celle de l'intention. */
     const toutes = visibles.length > 0 && visibles.every((v) => s.selection.includes(v));
     set({ selectionOn: true, selection: toutes ? [] : visibles, ancreSelection: null });
   },

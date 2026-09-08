@@ -182,7 +182,9 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 
 **Sélection multiple** → [docs/features/selection.md](docs/features/selection.md)
 - `selectionOn` est un **mode explicite**, pas `selection.length > 0` : on entre avant d'avoir coché
-  (bouton du bureau) et « Terminé » doit pouvoir sortir d'une sélection vide.
+  (bouton du bureau), et ce mode-là tient. Mais **décocher le dernier le ferme** — le mode se ferme
+  sur un geste de **décochage**, pas sur un compte à zéro (« Tout sélectionner » qui décoche tout le
+  garde ouvert).
 - **Changer de liste la vide** (dossier, espace, vue, filtre, regroupement) ; jamais persistée.
 - **L'avatar devient la case** et toute la rangée bascule : pas de `<button>` dans un `<button>`, et
   la case garde **exactement le gabarit de l'avatar** — plus petite, le texte sautait d'un cran.
@@ -441,6 +443,10 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   un sélecteur qui rend un tableau neuf **boucle**, la règle du dépôt, apprise à nouveau ici).
 - Pas de bouton « Enregistrer », le menu reste ouvert, la coche est à droite ; une définition
   (`EtiquettesChoix`) pour le sous-menu du `⋯` et la feuille du téléphone.
+- La puce vit dans la ligne d'aperçu, **et sur la ligne du nom en densité compacte**, où cette ligne
+  n'existe pas : sur une ligne à elle, la rangée passait de 53 à 77 px — la hauteur du confort, donc
+  une densité qui ne compacte plus rien. Bureau seulement : sur téléphone « deux lignes » est un
+  choix explicite.
 
 **En pause** → [docs/features/pause.md](docs/features/pause.md)
 - Une pause porte **une date** — c'est ce qui la distingue d'un rangement. Cinq moments

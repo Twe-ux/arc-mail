@@ -2,6 +2,33 @@
 
 Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérification.
 
+## 8 septembre 2026 — la puce qui manquait, et le mode qui ne se fermait pas
+
+« Les étiquettes marchent — ajoute aussi dans la liste mail quand l'écran n'est pas en pleine
+largeur. » En densité compacte la ligne d'aperçu disparaît, et les étiquettes disparaissaient avec
+elle. Or une étiquette n'est pas un morceau de l'aperçu : c'est un signal sur le fil, il n'a pas à
+payer le prix d'une densité.
+
+Première version : une ligne à elle, sous l'objet. Mesurée, la rangée passait de 53 à **77 px** —
+la hauteur du confort, donc une densité compacte qui ne compacte plus rien. La puce est remontée
+**sur la ligne du nom**, calée à droite avant l'heure, où elle coûte zéro pixel : cette ligne a de
+la place à revendre. Bureau seulement — sur téléphone, « deux lignes » est un choix explicite de la
+feuille Personnaliser, et y ajouter une puce le rendrait faux.
+
+« Quand je désélectionne manuellement le ou les messages, il faut revenir à l'affichage d'origine
+sans devoir appuyer sur la croix. » C'est juste : la barre d'actions n'a plus rien à viser, et un
+mode ouvert sur zéro conversation oblige à un geste de plus pour revenir là d'où l'on n'est jamais
+vraiment parti.
+
+Mais le mode reste **explicite** : le bouton de la tête de liste l'ouvre sans rien cocher, et c'est
+justement là qu'on va chercher les cases. La règle tient donc en une phrase — **le mode se ferme sur
+un geste de décochage, pas sur un compte à zéro**. « Tout sélectionner » qui décoche tout le garde
+ouvert : on vient de presser un bouton du mode, pas de décocher une rangée.
+
+Vérifié : une cochée → barre, deux → barre, une décochée → barre, **zéro → la barre s'en va toute
+seule**, et le bouton de la tête rouvre le mode sur « Aucune sélectionnée ». Rangée compacte de
+retour à 53 px avec sa puce.
+
 ## 8 septembre 2026 — étiqueter, et laisser le serveur répondre lui-même
 
 « Étiqueter ? que dois-je faire ? » — rien, justement. La veille j'avais rangé la fonction dans

@@ -1,6 +1,19 @@
 "use client";
 
-import { PanelLeft, PanelLeftDashed, Search, Square, SquarePen, X, type LucideIcon } from "lucide-react";
+import {
+  Archive,
+  ListChecks,
+  Mail,
+  MailOpen,
+  PanelLeft,
+  PanelLeftDashed,
+  Search,
+  Square,
+  SquarePen,
+  Trash2,
+  X,
+  type LucideIcon,
+} from "lucide-react";
 
 import { Kbd } from "@/components/ui/kbd";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -71,6 +84,7 @@ export function ListHeaderDesktop() {
   const threads = useVisibleThreads();
   /* Ce qui attend le réseau se dit là où l'on compte déjà. */
   const enAttente = useMail((s) => s.enAttente);
+  const selectionOn = useMail((s) => s.selectionOn);
 
   return (
     <div
@@ -120,6 +134,10 @@ export function ListHeaderDesktop() {
           « écrire » à gauche contre le sélecteur, le compte et le regroupement
           au bout. */}
       <div className="flex items-center gap-2 md:group-data-[large=true]/liste:contents">
+        {selectionOn ? (
+          <BarreSelection />
+        ) : (
+          <>
         {/* **Le filtre passe à gauche, contre le sélecteur** : c'est le premier
             choix qu'on fait sur une liste, et le chercher au bout de la fenêtre
             après avoir lu à gauche coûte un aller-retour du regard à chaque
@@ -171,8 +189,11 @@ export function ListHeaderDesktop() {
           {/* **Relire la boîte** — le seul chemin de la souris vers du courrier
               neuf : le tirage est un geste, il n'existe pas ici. */}
           <SyncButton />
+          <SelectButton />
           <GroupByToggle />
         </span>
+          </>
+        )}
       </div>
 
       {/* Masquée : la tête reprend les quatre dossiers **et la boîte courante**,
@@ -191,6 +212,130 @@ export function ListHeaderDesktop() {
         </div>
       )}
     </div>
+  );
+}
+
+/**
+ * **Entrer en sélection à la souris.**
+ *
+ * ⌘-clic et Maj-clic y entrent aussi, et c'est le chemin rapide — mais un
+ * raccourci que rien n'annonce n'existe pas. Ce bouton est ce qui dit que le
+ * mode existe ; son infobulle donne les deux autres chemins.
+ *
+ * Il vit contre Synchroniser et le regroupement : les trois agissent sur la
+ * **liste entière**, pas sur une conversation.
+ */
+function SelectButton() {
+  const ouvrirSelection = useMail((s) => s.ouvrirSelection);
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button
+          type="button"
+          onClick={() => ouvrirSelection()}
+          aria-label="Sélectionner des conversations"
+          className="grid size-[30px] shrink-0 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+        >
+          <ListChecks className="size-4" />
+        </button>
+      </TooltipTrigger>
+      <TooltipContent side="bottom">Sélectionner · ⌘-clic, Maj-clic pour une plage</TooltipContent>
+    </Tooltip>
+  );
+}
+
+/**
+ * **La barre de sélection prend la deuxième rangée**, elle ne s'ajoute pas.
+ *
+ * Une rangée de plus ferait descendre la liste de 38 px au premier ⌘-clic, et
+ * remonter au dernier décoché : la liste sauterait sous le pointeur au moment
+ * précis où l'on vise des rangées. Le filtre et « Nouveau message » lui cèdent
+ * la place — le filtre change la liste, donc vide la sélection ; écrire n'a
+ * rien à faire au milieu d'un tri. La rangée du haut, elle, ne bouge pas :
+ * chercher pendant qu'on sélectionne reste légitime.
+ */
+function BarreSelection() {
+  const selection = useMail((s) => s.selection);
+  const threads = useMail((s) => s.threads);
+  const toutSelectionner = useMail((s) => s.toutSelectionner);
+  const finSelection = useMail((s) => s.finSelection);
+  const moveThreads = useMail((s) => s.moveThreads);
+  const marquerLus = useMail((s) => s.marquerLus);
+  const n = selection.length;
+  const vide = n === 0;
+  const desNonLus = threads.some((t) => selection.includes(t.id) && t.unread);
+
+  return (
+    <>
+      <span className="min-w-0 flex-1 truncate text-xs font-medium text-muted-foreground md:group-data-[large=true]/liste:order-2">
+        {n === 0 ? "Aucune sélectionnée" : `${n} sélectionnée${n > 1 ? "s" : ""}`}
+      </span>
+      <span className="flex shrink-0 items-center gap-1 md:group-data-[large=true]/liste:order-6">
+        <CaseSelection label="Tout sélectionner" onClick={toutSelectionner}>
+          <ListChecks className="size-4" />
+        </CaseSelection>
+        <CaseSelection
+          label={desNonLus ? "Marquer comme lu" : "Marquer comme non lu"}
+          disabled={vide}
+          onClick={() => marquerLus(selection, !desNonLus)}
+        >
+          {/* L'icône dit le résultat, pas l'état. */}
+          {desNonLus ? <MailOpen className="size-4" /> : <Mail className="size-4" />}
+        </CaseSelection>
+        <CaseSelection
+          label="Archiver"
+          disabled={vide}
+          onClick={() => moveThreads(selection, "archive")}
+        >
+          <Archive className="size-4" />
+        </CaseSelection>
+        <CaseSelection
+          label="Supprimer"
+          danger
+          disabled={vide}
+          onClick={() => moveThreads(selection, "trash")}
+        >
+          <Trash2 className="size-4" />
+        </CaseSelection>
+        <CaseSelection label="Terminer la sélection" onClick={finSelection}>
+          <X className="size-4" />
+        </CaseSelection>
+      </span>
+    </>
+  );
+}
+
+function CaseSelection({
+  label,
+  danger,
+  disabled,
+  onClick,
+  children,
+}: {
+  label: string;
+  danger?: boolean;
+  disabled?: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button
+          type="button"
+          onClick={onClick}
+          disabled={disabled}
+          aria-label={label}
+          className={cn(
+            "grid size-[30px] shrink-0 place-items-center rounded-lg transition-colors hover:bg-muted disabled:opacity-35 disabled:hover:bg-transparent",
+            danger ? "text-destructive" : "text-muted-foreground hover:text-foreground",
+          )}
+        >
+          {children}
+        </button>
+      </TooltipTrigger>
+      <TooltipContent side="bottom">{label}</TooltipContent>
+    </Tooltip>
   );
 }
 

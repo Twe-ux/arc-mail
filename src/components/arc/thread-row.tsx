@@ -1,6 +1,6 @@
 "use client";
 
-import { Archive, ListFilter, MailOpen, Star, Trash2, type LucideIcon } from "lucide-react";
+import { Archive, Check, ListFilter, MailOpen, Star, Trash2, type LucideIcon } from "lucide-react";
 import { useEffect, useMemo, useRef } from "react";
 
 import { useSwipeRow } from "@/hooks/use-swipe-row";
@@ -44,6 +44,17 @@ export function ThreadRow({
   onArchive: () => void;
   onDelete: () => void;
 }) {
+  /* **La sélection multiple passe par la rangée elle-même**, pas par une case
+     à côté : un `<button>` dans un `<button>` est du HTML invalide (la règle
+     des cartes), et une case posée par-dessus l'avatar aurait eu une verticale
+     différente à chaque densité. En mode sélection, l'avatar **devient** la
+     case et toute la rangée bascule — c'est ce que fait Mail sur iPhone. */
+  const selectionOn = useMail((s) => s.selectionOn);
+  const coche = useMail((s) => s.selection.includes(thread.id));
+  const basculer = useMail((s) => s.basculerSelection);
+  const etendre = useMail((s) => s.etendreSelection);
+  const ouvrirSelection = useMail((s) => s.ouvrirSelection);
+
   const minuteur = useRef<number | null>(null);
   const quitte = () => {
     if (minuteur.current !== null) window.clearTimeout(minuteur.current);
@@ -61,10 +72,27 @@ export function ThreadRow({
   const inTrash = thread.folder === "trash";
   /* Aucun état React dans ce geste : la rangée porte la translation, la piste
      porte les variables, et le calque se dessine à partir d'elles. */
+  /* Le balayage se tait pendant la sélection : il agirait sur **une** rangée
+     pendant qu'on en désigne dix, et son calque rouge sous une case cochée ne
+     voudrait rien dire. */
   const { noeud, piste } = useSwipeRow({
-    right: { enabled: !enArchive, run: onArchive },
-    left: { enabled: true, run: onDelete },
+    right: { enabled: !enArchive && !selectionOn, run: onArchive },
+    left: { enabled: !selectionOn, run: onDelete },
   });
+
+  /* **L'appui long entre en sélection.** L'horizontale appartient au balayage
+     et la verticale au défilement ; l'appui immobile est le seul geste encore
+     libre sur cette rangée, et c'est celui qu'iOS emploie pour la même chose.
+     450 ms, et **8 px de tolérance** : annuler au premier pixel rendait le
+     geste impossible à tenir sur un écran qu'on porte à la main. */
+  const long = useRef<number | null>(null);
+  const depart = useRef<{ x: number; y: number } | null>(null);
+  const annulerLong = () => {
+    if (long.current !== null) window.clearTimeout(long.current);
+    long.current = null;
+    depart.current = null;
+  };
+  useEffect(() => annulerLong, []);
 
   const last = thread.messages[thread.messages.length - 1];
   /* **Une vue ouverte, la rangée dit pourquoi elle est là.** C'est la règle de
@@ -137,7 +165,13 @@ export function ThreadRow({
         ref={noeud as React.RefObject<HTMLButtonElement>}
         type="button"
         aria-current={active ? "true" : undefined}
-        onClick={() => {
+        onClick={(e) => {
+          /* **Trois lectures d'un clic**, dans l'ordre où elles priment.
+             ⌘/Ctrl et Maj passent avant le mode : c'est ainsi qu'on entre en
+             sélection à la souris, sans avoir rien à armer d'abord. */
+          if (e.metaKey || e.ctrlKey) return basculer(thread.id);
+          if (e.shiftKey) return etendre(thread.id);
+          if (selectionOn) return basculer(thread.id);
           /* Le clic fantôme qu'iOS synthétise après un toucher retombe sur la
              vue qui vient de s'ouvrir, au même endroit — c'est-à-dire souvent
              sur « Répondre », et le clavier montait tout seul. */
@@ -146,7 +180,25 @@ export function ThreadRow({
         }}
         /* Avant le clic, et avant l'ouverture de la vue : les millisecondes du
            geste, prises sur l'attente. */
-        onPointerDown={onIntent}
+        onPointerDown={(e) => {
+          onIntent();
+          if (e.pointerType !== "touch" || selectionOn) return;
+          depart.current = { x: e.clientX, y: e.clientY };
+          long.current = window.setTimeout(() => {
+            long.current = null;
+            /* Le clic que le doigt posera en se relevant ouvrirait la
+               conversation par-dessus la sélection qu'on vient d'ouvrir. */
+            swallowNextClick();
+            ouvrirSelection(thread.id);
+          }, 450);
+        }}
+        onPointerMove={(e) => {
+          const d = depart.current;
+          if (!d) return;
+          if (Math.abs(e.clientX - d.x) > 8 || Math.abs(e.clientY - d.y) > 8) annulerLong();
+        }}
+        onPointerUp={annulerLong}
+        onPointerCancel={annulerLong}
         /* Au survol aussi, mais **après un temps d'arrêt** : un pointeur qui
            traverse la liste passe sur vingt rangées en une seconde, et sans ce
            délai il ferait descendre vingt messages. */
@@ -196,7 +248,11 @@ export function ThreadRow({
           className="pointer-events-none absolute inset-x-2 inset-y-1 rounded-2xl bg-foreground/[0.07] opacity-0 transition-opacity duration-200 ease-out group-data-[press=true]/swipe:opacity-100 group-data-[press=true]/swipe:duration-0 md:hidden"
         />
         <span className="relative flex w-full items-start gap-3 transition-transform duration-200 ease-out group-data-[press=true]/swipe:scale-[0.985] group-data-[press=true]/swipe:duration-100 md:transition-none md:group-data-[large=true]/liste:items-center md:group-data-[large=true]/liste:gap-2.5">
-          <ContactAvatar contact={last.from} className="mt-0.5 size-10 md:size-9 md:group-data-[large=true]/liste:mt-0 md:group-data-[large=true]/liste:size-6" />
+          {selectionOn ? (
+            <Coche coche={coche} />
+          ) : (
+            <ContactAvatar contact={last.from} className="mt-0.5 size-10 md:size-9 md:group-data-[large=true]/liste:mt-0 md:group-data-[large=true]/liste:size-6" />
+          )}
           <span className="min-w-0 flex-1 md:group-data-[large=true]/liste:flex md:group-data-[large=true]/liste:items-center md:group-data-[large=true]/liste:gap-2.5">
             {/* L'expéditeur prend une colonne fixe en pleine largeur : c'est ce
                 qui aligne les objets les uns sous les autres, et sans cet
@@ -319,6 +375,34 @@ export function ThreadRow({
         <Star className={cn("size-4", thread.starred && "fill-current")} />
       </button>
     </li>
+  );
+}
+
+/**
+ * La case à cocher qui prend la place de l'avatar.
+ *
+ * **Exactement son gabarit** (40 sur téléphone, 36 sur bureau, 24 en pleine
+ * largeur) : une case plus petite ferait sauter tout le texte de la rangée
+ * d'un cran au moment où la sélection s'ouvre, et une liste qui se réagence
+ * sous le doigt donne l'impression d'avoir touché autre chose.
+ *
+ * Cochée, elle **se remplit** — l'accent à 22 %, l'encre `--space-ink` — comme
+ * tout état actif du dépôt. Décochée, un anneau : un rond vide sans bord ne se
+ * distingue pas d'un avatar qui n'a pas fini de charger.
+ */
+function Coche({ coche }: { coche: boolean }) {
+  return (
+    <span
+      aria-hidden
+      className={cn(
+        "mt-0.5 grid size-10 shrink-0 place-items-center rounded-full transition-colors md:size-9 md:group-data-[large=true]/liste:mt-0 md:group-data-[large=true]/liste:size-6",
+        coche
+          ? "bg-[color-mix(in_oklch,var(--space-accent)_22%,transparent)] text-[var(--space-ink)]"
+          : "text-transparent ring-1 ring-inset ring-black/15 dark:ring-white/20",
+      )}
+    >
+      <Check className="size-5 md:size-[18px] md:group-data-[large=true]/liste:size-3.5" strokeWidth={2.5} />
+    </span>
   );
 }
 

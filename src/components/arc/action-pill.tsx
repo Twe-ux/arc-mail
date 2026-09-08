@@ -92,6 +92,7 @@ export function PillCase({
   label,
   active,
   danger,
+  disabled,
   onClick,
   children,
 }: {
@@ -99,6 +100,8 @@ export function PillCase({
   active?: boolean;
   /** Supprimer : la seule couleur qui n'est pas celle de l'espace. */
   danger?: boolean;
+  /** La barre de sélection : ses actions n'ont pas de cible tant que rien n'est coché. */
+  disabled?: boolean;
   onClick: () => void;
   children: ReactNode;
 }) {
@@ -106,10 +109,11 @@ export function PillCase({
     <button
       type="button"
       onClick={onClick}
+      disabled={disabled}
       aria-label={label}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "flex size-11 shrink-0 items-center justify-center rounded-full transition-[background-color,color,transform] duration-200 active:scale-90 active:duration-0 [&_svg]:size-[22px]",
+        "flex size-11 shrink-0 items-center justify-center rounded-full transition-[background-color,color,transform] duration-200 active:scale-90 active:duration-0 disabled:opacity-35 disabled:active:scale-100 [&_svg]:size-[22px]",
         active
           ? "bg-[color-mix(in_oklch,var(--space-accent)_22%,transparent)] text-[var(--space-ink)]"
           : danger

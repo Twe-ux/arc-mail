@@ -1,6 +1,17 @@
 "use client";
 
-import { Folder, MoreHorizontal, Search, SquarePen } from "lucide-react";
+import {
+  Archive,
+  Check,
+  Folder,
+  ListChecks,
+  Mail,
+  MailOpen,
+  MoreHorizontal,
+  Search,
+  SquarePen,
+  Trash2,
+} from "lucide-react";
 
 import { useMail, useSpace, useSpaces } from "@/lib/store";
 import { cn } from "@/lib/utils";
@@ -20,6 +31,76 @@ import { SPACE_ICONS } from "./space-icon";
  * disent les noms.
  */
 export function MobileNav({ className }: { className?: string }) {
+  const selectionOn = useMail((s) => s.selectionOn);
+  if (selectionOn) return <BarreSelection className={className} />;
+  return <BarreListe className={className} />;
+}
+
+/**
+ * **La barre de sélection prend la place de la barre de navigation.**
+ *
+ * Elle ne se pose pas par-dessus : le pouce a une seule place, et deux barres
+ * empilées auraient mis les actions du groupe au-dessus de la ligne où la main
+ * les cherche. Naviguer pendant qu'on sélectionne n'a de toute façon pas de
+ * sens — changer d'espace ou de dossier vide la sélection.
+ *
+ * Quatre cases et le bouton rond, le gabarit des deux autres barres : tout
+ * sélectionner, marquer comme lu, archiver, supprimer, puis « Terminé ». Les
+ * quatre premières sont éteintes tant que rien n'est coché — sauf « tout
+ * sélectionner », qui est justement le moyen de cocher.
+ */
+function BarreSelection({ className }: { className?: string }) {
+  const selection = useMail((s) => s.selection);
+  const threads = useMail((s) => s.threads);
+  const toutSelectionner = useMail((s) => s.toutSelectionner);
+  const finSelection = useMail((s) => s.finSelection);
+  const moveThreads = useMail((s) => s.moveThreads);
+  const marquerLus = useMail((s) => s.marquerLus);
+
+  const vide = selection.length === 0;
+  /* **« Marquer comme lu » tant qu'il en reste un non lu.** Un groupe n'a pas
+     d'état commun à basculer ; le bouton dit donc ce qu'il va faire, et il
+     fait passer tout le monde du même côté. */
+  const desNonLus = threads.some((t) => selection.includes(t.id) && t.unread);
+
+  return (
+    <nav aria-label="Sélection" className={cn("md:hidden", className)}>
+      <ActionBar>
+        <Pill>
+          <PillCase label="Tout sélectionner" onClick={toutSelectionner}>
+            <ListChecks strokeWidth={1.75} />
+          </PillCase>
+          {/* L'icône dit le résultat, pas l'état : enveloppe ouverte pour
+              « marquer comme lu », fermée pour l'inverse. */}
+          <PillCase
+            label={desNonLus ? "Marquer comme lu" : "Marquer comme non lu"}
+            disabled={vide}
+            onClick={() => marquerLus(selection, !desNonLus)}
+          >
+            {desNonLus ? <MailOpen strokeWidth={1.75} /> : <Mail strokeWidth={1.75} />}
+          </PillCase>
+          <PillCase label="Archiver" disabled={vide} onClick={() => moveThreads(selection, "archive")}>
+            <Archive strokeWidth={1.75} />
+          </PillCase>
+          <PillCase
+            label="Supprimer"
+            danger
+            disabled={vide}
+            onClick={() => moveThreads(selection, "trash")}
+          >
+            <Trash2 strokeWidth={1.75} />
+          </PillCase>
+        </Pill>
+
+        <RoundButton label="Terminé" onClick={finSelection}>
+          <Check strokeWidth={2.5} />
+        </RoundButton>
+      </ActionBar>
+    </nav>
+  );
+}
+
+function BarreListe({ className }: { className?: string }) {
   const space = useSpace();
   const spaces = useSpaces();
   const sidebarOpen = useMail((s) => s.sidebarOpen);

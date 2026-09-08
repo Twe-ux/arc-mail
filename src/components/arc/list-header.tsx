@@ -46,6 +46,12 @@ export function ListHeader() {
   const enAttente = useMail((s) => s.enAttente);
   const groupBy = useMail((s) => s.groupBy);
   const setGroupBy = useMail((s) => s.setGroupBy);
+  /* **En sélection, la tête dit combien.** Le titre du dossier n'apprend plus
+     rien — on ne l'a pas quitté — alors que le nombre coché est la seule chose
+     qui change sous le doigt, et il est à l'autre bout de l'écran des actions
+     qui vont s'y appliquer. */
+  const selectionOn = useMail((s) => s.selectionOn);
+  const cochees = useMail((s) => s.selection.length);
 
   return (
     <div className="shrink-0 md:hidden">
@@ -61,12 +67,12 @@ export function ListHeader() {
       <div className="px-5">
         <div className="flex items-center gap-2">
           <h1 className="min-w-0 flex-1 truncate text-[22px] leading-[1.2] font-bold tracking-[-0.015em]">
-            {titre}
+            {selectionOn ? titreSelection(cochees) : titre}
           </h1>
           {/* La sortie de la vue, contre son titre : sur téléphone les quatre
               pilules de dossiers sont l'autre chemin, mais aucune ne dit
               « revenir à la boîte entière » — elles en proposent une autre. */}
-          {vue && (
+          {vue && !selectionOn && (
             <button
               type="button"
               onClick={() => setFolder(folderId)}
@@ -76,7 +82,7 @@ export function ListHeader() {
               <X className="size-4" />
             </button>
           )}
-          <Segmented />
+          {!selectionOn && <Segmented />}
         </div>
         <div className="mt-1 flex items-center gap-2">
           {/* `truncate` sur la ligne entière, et l'adresse en toutes lettres dans
@@ -96,6 +102,7 @@ export function ListHeader() {
           {/* 30 px, la hauteur exacte du segmenté qui vivait ici avant lui. */}
           <button
             type="button"
+            hidden={selectionOn}
             onClick={() => setGroupBy(groupBy === "fil" ? "correspondant" : "fil")}
             aria-pressed={groupBy === "correspondant"}
             aria-label="Ranger par correspondant"
@@ -112,6 +119,17 @@ export function ListHeader() {
       <TuilesDossiers />
     </div>
   );
+}
+
+/**
+ * « 3 sélectionnées », et **« Aucune sélectionnée »** quand il n'y en a pas —
+ * pas un titre vide. Entrer en sélection depuis le bouton du bureau ne coche
+ * rien : sans cette phrase, la tête de liste n'aurait plus de titre du tout et
+ * le mode n'aurait rien qui l'annonce.
+ */
+function titreSelection(n: number): string {
+  if (n === 0) return "Aucune sélectionnée";
+  return `${n} sélectionnée${n > 1 ? "s" : ""}`;
 }
 
 /**

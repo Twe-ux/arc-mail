@@ -180,6 +180,24 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - Un groupe blanc a un bord (`shadow 0 0 0 1px`) ; un rail horizontal rogne aussi verticalement,
   d'où du `padding` dedans pour tout ring.
 
+**Sélection multiple** → [docs/features/selection.md](docs/features/selection.md)
+- `selectionOn` est un **mode explicite**, pas `selection.length > 0` : on entre avant d'avoir coché
+  (bouton du bureau) et « Terminé » doit pouvoir sortir d'une sélection vide.
+- **Changer de liste la vide** (dossier, espace, vue, filtre, regroupement) ; jamais persistée.
+- **L'avatar devient la case** et toute la rangée bascule : pas de `<button>` dans un `<button>`, et
+  la case garde **exactement le gabarit de l'avatar** — plus petite, le texte sautait d'un cran.
+  Le balayage se tait pendant la sélection.
+- Entrer : **appui long** (450 ms, 8 px de tolérance, `swallowNextClick`) sur téléphone ; ⌘-clic,
+  Maj-clic (plage dans l'ordre **affiché**) ou le bouton de la tête sur bureau ; `x` au clavier.
+  **⌘A ne prend la main que dans le mode** — sinon c'est le « tout sélectionner » du navigateur.
+- Les deux barres **prennent la place**, elles ne s'ajoutent pas : la pill remplace la navigation
+  (troisième emploi d'`action-pill`), et la barre du bureau remplace la 2ᵉ rangée de la tête —
+  mesuré **0 px** d'écart, sinon la liste sautait sous le pointeur au premier ⌘-clic.
+- **Un geste, un toast** : `deplacer` est extrait de `moveThread` pour cela, chaque fil garde son
+  dossier de départ, et l'annulation ne défait que ce qui est passé. `fait(folder, n)` écrit le
+  libellé aux deux nombres.
+- « Marquer comme lu » **pose, ne bascule pas** : un groupe n'a pas d'état commun à inverser.
+
 **Pill d'actions** → [docs/features/pill-actions.md](docs/features/pill-actions.md)
 - Une seule définition (`action-pill.tsx`) pour les deux barres du bas (liste et lecture) : case **44**, bouton rond
   **56**, verre en `p-[6px_8px] gap-0`, barre à **14 px** des bords et **16 px** du bas — 80 px en

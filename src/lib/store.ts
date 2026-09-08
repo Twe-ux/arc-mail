@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { renommerEspace } from "./accounts/actions";
-import { FOLDER_DONE } from "./folders";
+import { fait } from "./folders";
 import { firstLine, formatFullDate } from "./format";
 import { providerFor } from "./mail";
 import type { FolderUnread } from "./mail/provider";
@@ -206,6 +206,33 @@ export type MailState = {
   toggleStar: (id: string, silencieux?: boolean) => void;
   toggleUnread: (id: string, silencieux?: boolean) => void;
   moveThread: (id: string, folder: FolderId, silencieux?: boolean) => void;
+
+  /**
+   * **La sélection multiple.** Elle décrit un écran, pas un goût : elle ne se
+   * persiste pas, et elle se vide dès qu'on change de dossier, d'espace ou de
+   * vue — une sélection qui survivrait à un changement de liste agirait sur
+   * des fils qu'on ne voit plus.
+   *
+   * `selectionOn` est un **mode explicite**, pas `selection.length > 0` : sur
+   * bureau on entre dans le mode sans rien avoir coché encore (le bouton de la
+   * tête de liste), et sur téléphone « Terminé » doit pouvoir sortir d'une
+   * sélection vide sans que le mode s'éteigne tout seul sous le doigt.
+   */
+  selection: string[];
+  selectionOn: boolean;
+  /** D'où part une plage Maj-clic. `null` = aucune, le geste vaut alors une bascule. */
+  ancreSelection: string | null;
+  /** Entrer dans le mode, en cochant au passage la rangée qui l'a déclenché. */
+  ouvrirSelection: (id?: string) => void;
+  basculerSelection: (id: string) => void;
+  /** Maj-clic : de la dernière rangée touchée jusqu'à celle-ci, dans l'ordre affiché. */
+  etendreSelection: (id: string) => void;
+  toutSelectionner: () => void;
+  finSelection: () => void;
+  /** Le même déplacement pour n fils, **un seul** toast et une seule annulation. */
+  moveThreads: (ids: string[], folder: FolderId) => void;
+  /** Poser l'état de lecture d'un groupe — poser, pas basculer : un groupe n'a pas d'état commun. */
+  marquerLus: (ids: string[], unread: boolean) => void;
   removeRecent: (id: string) => void;
   clearRecent: () => void;
   toggleSplit: () => void;
@@ -850,10 +877,83 @@ export const useMail = create<MailState>()(
     });
   };
 
+  /**
+   * **Un déplacement, sans son récit.** Extrait de `moveThread` le jour de la
+   * sélection multiple : trois fils archivés d'un coup doivent poser **un**
+   * toast, pas trois, et une seule annulation doit tous les ramener. Le geste
+   * et son récit sont donc deux choses — `deplacer` fait, `moveThread` et
+   * `moveThreads` racontent.
+   *
+   * Il rend de quoi défaire : le dossier de départ, la promesse d'écriture
+   * (`true` si elle est passée ou si elle attend le réseau), et un **lecteur**
+   * de l'identifiant d'après. Un lecteur et non une valeur : l'identifiant
+   * change au déplacement et n'est connu qu'au retour du serveur.
+   */
+  const deplacer = (
+    id: string,
+    folder: FolderId,
+  ): { depuis: FolderId; ok: Promise<boolean>; courant: () => string } | null => {
+    const before = get().threads;
+    const t = before.find((x) => x.id === id);
+    if (!t) return null;
+    const depuis = t.folder;
+    /* **L'annulation vise l'identifiant d'après.** Il change au déplacement, et
+       il n'est connu qu'une fois le serveur revenu : la fermeture le relit
+       plutôt que de le capturer. */
+    let courant = id;
+    set((s) => ({
+      threads: patchThread(before, id, (x) => ({ ...x, folder })),
+      selectedThreadId: s.selectedThreadId === id ? null : s.selectedThreadId,
+      /* Le compteur du dossier d'arrivée suit tout de suite. Celui du départ
+         n'a rien à faire : c'est le dossier ouvert, donc le compte local, et
+         le fil vient d'en sortir. On ne touche qu'un compte **déjà connu** —
+         inventer un 1 là où le serveur n'a rien dit écraserait le compte local,
+         qui est juste. */
+      /* Le dossier de **départ** perd son non-lu autant que celui d'arrivée le
+         gagne. On ne le faisait pas : le départ était toujours le dossier
+         ouvert, dont le compte est local et se recalcule seul. Une annulation
+         casse cette hypothèse — elle ramène le fil depuis Archive, qu'on ne
+         regarde pas —, et sans cette ligne Archive gardait son +1 pour de bon.
+         `bouger` ne touche qu'un compte déjà connu, donc le dossier ouvert n'y
+         perd rien. */
+      folderCounts: t.unread
+        ? bouger(bouger(s.folderCounts, t.spaceId, folder, +1), t.spaceId, depuis, -1)
+        : s.folderCounts,
+    }));
+    const account = accountOf(t.spaceId);
+    const undone = {
+      archive: "Archivage impossible, la conversation est de retour",
+      trash: "Suppression impossible, la conversation est de retour",
+      junk: "Signalement impossible, la conversation est de retour",
+    }[folder as string] ?? "Déplacement impossible, la conversation est de retour";
+    const ecriture = commit(
+      t,
+      () => providerFor(account).modify(account, id, { folder }),
+      undone,
+      (apres) => {
+        if (apres) courant = apres;
+        if (apres === id) return;
+        set((s) => ({
+          threads: apres
+            ? renommerFil(s.threads, id, apres)
+            : s.threads.filter((x) => x.id !== id),
+          recent: retirerRecent(s.recent, id, apres),
+          third: s.third?.kind === "message" && s.third.messageId.startsWith(id)
+            ? null
+            : s.third,
+        }));
+      },
+    );
+    return { depuis, ok: ecriture, courant: () => courant };
+  };
+
   return {
   spaceId: SPACES[0].id,
   folderId: "inbox",
   selectedThreadId: null,
+  selection: [],
+  selectionOn: false,
+  ancreSelection: null,
   splitView: true,
   unreadOnly: false,
   commandOpen: false,
@@ -955,12 +1055,16 @@ export const useMail = create<MailState>()(
   },
 
   setSpace: (spaceId) =>
-    set({ spaceId, folderId: "inbox", selectedThreadId: null, unreadOnly: false, vueId: null }),
+    set({ spaceId, folderId: "inbox", selectedThreadId: null, unreadOnly: false, vueId: null, selection: [], selectionOn: false, ancreSelection: null }),
 
   /* **Choisir un dossier, c'est quitter la vue.** Les deux occupent la même
      liste : la laisser filtrée par une question qu'on ne voit plus, c'est une
      réception qui cache la moitié de son courrier sans le dire. */
-  setFolder: (folderId) => set({ folderId, selectedThreadId: null, vueId: null }),
+  /* **Changer de liste vide la sélection.** Elle désigne des rangées visibles ;
+     gardée d'un dossier à l'autre, le prochain « Supprimer » aurait frappé
+     des fils qu'on ne voit plus. Même raison pour l'espace et pour une vue. */
+  setFolder: (folderId) =>
+    set({ folderId, selectedThreadId: null, vueId: null, selection: [], selectionOn: false, ancreSelection: null }),
 
   selectThread: (id) => {
     if (id === null) {
@@ -1084,63 +1188,114 @@ export const useMail = create<MailState>()(
      rend donc le nom d'après, et on renomme ; s'il ne le sait pas (`null`), on
      retire le fil de la liste et la prochaine lecture le retrouvera. */
   moveThread: (id, folder, silencieux) => {
-    const before = get().threads;
-    const t = before.find((x) => x.id === id);
-    if (!t) return;
-    const depuis = t.folder;
-    /* **L'annulation vise l'identifiant d'après.** Il change au déplacement, et
-       il n'est connu qu'une fois le serveur revenu : la fermeture le relit
-       plutôt que de le capturer. */
-    let courant = id;
-    set((s) => ({
-      threads: patchThread(before, id, (x) => ({ ...x, folder })),
-      selectedThreadId: s.selectedThreadId === id ? null : s.selectedThreadId,
-      /* Le compteur du dossier d'arrivée suit tout de suite. Celui du départ
-         n'a rien à faire : c'est le dossier ouvert, donc le compte local, et
-         le fil vient d'en sortir. On ne touche qu'un compte **déjà connu** —
-         inventer un 1 là où le serveur n'a rien dit écraserait le compte local,
-         qui est juste. */
-      /* Le dossier de **départ** perd son non-lu autant que celui d'arrivée le
-         gagne. On ne le faisait pas : le départ était toujours le dossier
-         ouvert, dont le compte est local et se recalcule seul. Une annulation
-         casse cette hypothèse — elle ramène le fil depuis Archive, qu'on ne
-         regarde pas —, et sans cette ligne Archive gardait son +1 pour de bon.
-         `bouger` ne touche qu'un compte déjà connu, donc le dossier ouvert n'y
-         perd rien. */
-      folderCounts: t.unread
-        ? bouger(bouger(s.folderCounts, t.spaceId, folder, +1), t.spaceId, depuis, -1)
-        : s.folderCounts,
-    }));
-    const account = accountOf(t.spaceId);
-    const undone = {
-      archive: "Archivage impossible, la conversation est de retour",
-      trash: "Suppression impossible, la conversation est de retour",
-      junk: "Signalement impossible, la conversation est de retour",
-    }[folder as string] ?? "Déplacement impossible, la conversation est de retour";
-    const ecriture = commit(
-      t,
-      () => providerFor(account).modify(account, id, { folder }),
-      undone,
-      (apres) => {
-        if (apres) courant = apres;
-        if (apres === id) return;
-        set((s) => ({
-          threads: apres
-            ? renommerFil(s.threads, id, apres)
-            : s.threads.filter((x) => x.id !== id),
-          recent: retirerRecent(s.recent, id, apres),
-          third: s.third?.kind === "message" && s.third.messageId.startsWith(id)
-            ? null
-            : s.third,
-        }));
-      },
-    );
-    if (silencieux) return;
-    annulable(FOLDER_DONE[folder], ecriture, () => {
-      get().moveThread(courant, depuis, true);
+    const d = deplacer(id, folder);
+    if (!d || silencieux) return;
+    annulable(fait(folder, 1), d.ok, () => {
+      get().moveThread(d.courant(), d.depuis, true);
       toast("Annulé");
     });
   },
+
+  /**
+   * **Le même déplacement pour n fils, un seul toast.**
+   *
+   * Chacun garde son propre dossier de départ : une sélection peut venir d'une
+   * vue ou d'une recherche, où les fils ne sont pas tous dans la même boîte —
+   * et « l'inverse d'archiver » n'existe pas dans l'absolu, c'est la règle de
+   * la fiche « Annuler ».
+   *
+   * L'annulation ne défait que **ce qui est passé** : un fil dont l'écriture a
+   * échoué est déjà revenu tout seul (`commit` l'a restauré), et lui envoyer le
+   * déplacement inverse ferait un vrai déplacement au lieu d'un retour.
+   *
+   * La sélection se vide tout de suite : les fils qu'elle désignait viennent de
+   * quitter la liste.
+   */
+  moveThreads: (ids, folder) => {
+    const faits = ids.map((id) => deplacer(id, folder)).filter((d) => d !== null);
+    if (faits.length === 0) return;
+    set({ selection: [], selectionOn: false, ancreSelection: null });
+    /* `some` et non `every` : si une seule écriture est passée, « Annuler » a
+       quelque chose à défaire. */
+    const tout = Promise.all(faits.map((d) => d.ok)).then((oks) => oks.some(Boolean));
+    annulable(fait(folder, faits.length), tout, () => {
+      faits.forEach((d) => void d.ok.then((ok) => ok && get().moveThread(d.courant(), d.depuis, true)));
+      toast("Annulé");
+    });
+  },
+
+  /**
+   * **Poser** l'état de lecture d'un groupe, ne pas le basculer : dix fils dont
+   * six sont lus n'ont pas d'état commun à inverser, et une bascule en aurait
+   * fait quatre lus et six non lus. Le bouton dit donc ce qu'il fait.
+   */
+  marquerLus: (ids, unread) => {
+    const cibles = get().threads.filter((t) => ids.includes(t.id) && t.unread !== unread);
+    if (cibles.length === 0) return;
+    set({ selection: [], selectionOn: false, ancreSelection: null });
+    cibles.forEach((t) => get().toggleUnread(t.id, true));
+    const tout = Promise.resolve(true);
+    annulable(
+      cibles.length === 1
+        ? unread
+          ? "Marqué comme non lu"
+          : "Marqué comme lu"
+        : `${cibles.length} conversations marquées comme ${unread ? "non lues" : "lues"}`,
+      tout,
+      () => {
+        cibles.forEach((t) => get().toggleUnread(t.id, true));
+        toast("Annulé");
+      },
+    );
+  },
+
+  ouvrirSelection: (id) =>
+    set((s) => ({
+      selectionOn: true,
+      selection: id ? (s.selection.includes(id) ? s.selection : [...s.selection, id]) : s.selection,
+      ancreSelection: id ?? s.ancreSelection,
+    })),
+
+  basculerSelection: (id) =>
+    set((s) => ({
+      selectionOn: true,
+      selection: s.selection.includes(id)
+        ? s.selection.filter((x) => x !== id)
+        : [...s.selection, id],
+      ancreSelection: id,
+    })),
+
+  /**
+   * Maj-clic : **de l'ancre à la rangée visée, dans l'ordre affiché**.
+   *
+   * L'ordre est celui de `selectVisibleThreads`, pas celui de `threads` : la
+   * liste est triée et filtrée, et une plage prise sur l'ordre interne
+   * cocherait des fils qui ne sont pas entre les deux à l'écran. Sans ancre —
+   * premier clic de la session — le geste vaut une bascule.
+   */
+  etendreSelection: (id) => {
+    const s = get();
+    const visibles = selectVisibleThreads(s).map((t) => t.id);
+    const a = s.ancreSelection ? visibles.indexOf(s.ancreSelection) : -1;
+    const b = visibles.indexOf(id);
+    if (a < 0 || b < 0) return get().basculerSelection(id);
+    const plage = visibles.slice(Math.min(a, b), Math.max(a, b) + 1);
+    set({
+      selectionOn: true,
+      selection: [...new Set([...s.selection, ...plage])],
+    });
+  },
+
+  toutSelectionner: () => {
+    const s = get();
+    const visibles = selectVisibleThreads(s).map((t) => t.id);
+    /* Tout coché : le bouton devient « Ne rien sélectionner ». Un bouton qui ne
+       fait plus rien une fois pressé est un bouton qu'on presse deux fois. */
+    const toutes = visibles.length > 0 && visibles.every((v) => s.selection.includes(v));
+    set({ selectionOn: true, selection: toutes ? [] : visibles, ancreSelection: null });
+  },
+
+  finSelection: () => set({ selectionOn: false, selection: [], ancreSelection: null }),
 
   removeRecent: (id) =>
     set((s) => ({
@@ -1150,7 +1305,10 @@ export const useMail = create<MailState>()(
   clearRecent: () => set((s) => ({ recent: { ...s.recent, [s.spaceId]: [] } })),
 
   toggleSplit: () => set((s) => ({ splitView: !s.splitView })),
-  setUnreadOnly: (unreadOnly) => set({ unreadOnly }),
+  /* Le filtre change la liste : une sélection gardée désignerait des rangées
+     que le filtre vient de cacher. Même règle que le dossier. */
+  setUnreadOnly: (unreadOnly) =>
+    set({ unreadOnly, selection: [], selectionOn: false, ancreSelection: null }),
   setCommandOpen: (commandOpen) => set({ commandOpen }),
   setSidebarOpen: (sidebarOpen) => set((s) => ({ sidebarOpen, settingsOpen: sidebarOpen ? false : s.settingsOpen })),
   setSettingsOpen: (settingsOpen) => set((s) => ({ settingsOpen, sidebarOpen: settingsOpen ? false : s.sidebarOpen })),
@@ -1299,7 +1457,7 @@ export const useMail = create<MailState>()(
   /* Changer de rangement referme la personne ouverte : sa liste n'a plus de
      sens dans l'autre vue, et la garder ferait revenir un écran qu'on ne
      saurait plus quitter. */
-  setGroupBy: (groupBy) => set({ groupBy, correspondent: null }),
+  setGroupBy: (groupBy) => set({ groupBy, correspondent: null, selection: [], selectionOn: false, ancreSelection: null }),
   setCorrespondent: (correspondent) => set({ correspondent }),
 
   /**
@@ -1354,7 +1512,7 @@ export const useMail = create<MailState>()(
     const vue = get().vues.find((v) => v.id === id);
     if (!vue) return;
     const folderId = dossiersDe(parse(vue.q))[0] ?? "inbox";
-    set({ vueId: id, folderId, selectedThreadId: null, correspondent: null, unreadOnly: false });
+    set({ vueId: id, folderId, selectedThreadId: null, correspondent: null, unreadOnly: false, selection: [], selectionOn: false, ancreSelection: null });
     void get().loadSpace(get().spaceId, folderId);
   },
   setPreview: (attachmentId) =>

@@ -2,6 +2,37 @@
 
 Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérification.
 
+## 8 septembre 2026 — sélectionner, et jeter d'un coup
+
+« Ajoute aussi la possibilité de sélectionner et supprimer en un coup. » Il n'y avait qu'un geste
+par conversation : vider vingt infolettres coûtait vingt gestes et vingt toasts.
+
+**Un mode explicite**, `selectionOn`, et non « il y a au moins une case cochée » : sur bureau on
+entre avant d'avoir coché, et sur téléphone « Terminé » doit pouvoir sortir d'une sélection vide.
+Changer de liste la vide — elle désigne des rangées visibles, et gardée d'un dossier à l'autre le
+prochain « Supprimer » frapperait des fils qu'on ne voit plus.
+
+**L'avatar devient la case** et toute la rangée bascule. Pas de case posée à côté : un `<button>`
+dans un `<button>` est invalide, et une case par-dessus l'avatar aurait eu une verticale différente
+à chaque densité. Elle garde exactement le gabarit de l'avatar — plus petite, tout le texte de la
+rangée sautait d'un cran au moment où la sélection s'ouvre.
+
+**Les deux barres prennent la place, elles ne s'ajoutent pas.** Sur téléphone la pill de sélection
+remplace la navigation (son troisième emploi) : le pouce a une seule place. Sur bureau elle prend
+la deuxième rangée de la tête — mesuré **0 px** d'écart en pleine largeur comme en colonne de
+360 px, sinon la liste sautait sous le pointeur au premier ⌘-clic, au moment précis où l'on vise
+des rangées.
+
+**Un geste, un toast.** `deplacer` sort de `moveThread` pour ça : le geste et son récit deviennent
+deux choses. Chaque fil garde son propre dossier de départ, et l'annulation ne défait que ce qui
+est passé — un fil dont l'écriture a échoué est déjà revenu tout seul, lui envoyer l'inverse ferait
+un vrai déplacement au lieu d'un retour.
+
+Vérifié : rangée 0, Maj-clic sur la 3, ⌘-clic sur la 5 → cinq cochées, la plage suit l'ordre
+affiché et le ⌘-clic saute la quatrième ; trois supprimées → exactement ces trois quittent la
+liste, un seul toast, « Annuler » les ramène ; appui long de 600 ms sur téléphone → le mode
+s'ouvre et **la conversation ne s'ouvre pas**.
+
 ## 8 septembre 2026 — un visage, et le nôtre dans les fils
 
 « Si connexion via mail dorénavant, peut-on mettre en place l'édition du profil avec chargement

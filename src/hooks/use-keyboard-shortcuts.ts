@@ -48,6 +48,14 @@ export function useKeyboardShortcuts() {
         s.toggleSplit();
         return;
       }
+      /* **⌘A ne prend la main que dans le mode.** Hors sélection, c'est le
+         « tout sélectionner » du navigateur, et le voler sur une page de
+         courrier empêcherait de copier un message. */
+      if (mod && e.key.toLowerCase() === "a" && s.selectionOn) {
+        e.preventDefault();
+        s.toutSelectionner();
+        return;
+      }
       if (mod && /^[1-9]$/.test(e.key)) {
         const space = spacesRef.current[Number(e.key) - 1];
         if (space) {
@@ -62,7 +70,24 @@ export function useKeyboardShortcuts() {
       const visible = selectVisibleThreads(s);
       const index = visible.findIndex((t) => t.id === s.selectedThreadId);
 
+      /* **Les gestes du clavier suivent la sélection quand elle est ouverte.**
+         Archiver et supprimer visent alors le groupe : dans ce mode, « le fil
+         courant » n'est plus ce qu'on désigne. */
+      if (s.selectionOn && s.selection.length > 0) {
+        if (e.key === "e") return s.moveThreads(s.selection, "archive");
+        if (e.key === "#") return s.moveThreads(s.selection, "trash");
+        if (e.key === "u") {
+          const desNonLus = s.threads.some((t) => s.selection.includes(t.id) && t.unread);
+          return s.marquerLus(s.selection, !desNonLus);
+        }
+      }
+
       switch (e.key) {
+        /* Cocher la conversation courante, à la façon de Gmail : c'est ce qui
+           permet d'ouvrir une sélection sans quitter le clavier. */
+        case "x":
+          if (s.selectedThreadId) s.basculerSelection(s.selectedThreadId);
+          break;
         case "c":
           e.preventDefault();
           s.openCompose();
@@ -90,7 +115,10 @@ export function useKeyboardShortcuts() {
           if (s.selectedThreadId) s.toggleUnread(s.selectedThreadId);
           break;
         case "Escape":
-          if (s.selectedThreadId) s.selectThread(null);
+          /* La sélection d'abord : c'est le mode le plus récent, donc celui
+             dont on veut sortir. */
+          if (s.selectionOn) s.finSelection();
+          else if (s.selectedThreadId) s.selectThread(null);
           break;
       }
     };

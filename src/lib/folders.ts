@@ -90,6 +90,33 @@ export const FOLDER_DONE: Record<FolderId, string> = {
 };
 
 /**
+ * Le même récit **au pluriel**, pour la sélection multiple.
+ *
+ * `FOLDER_DONE` est au masculin singulier (« Archivé »), accordé sur « le fil
+ * qu'on vient de ranger ». Trois fils rangés d'un coup n'ont pas de singulier
+ * qui tienne, et « Archivé · 3 » se lit comme un compteur, pas comme une
+ * phrase. On dit donc ce qui vient d'arriver, accordé sur « conversations ».
+ *
+ * Une seule fonction pour les deux nombres : le toast d'un geste isolé et
+ * celui d'un geste de groupe racontent la même chose, il n'y a aucune raison
+ * que deux endroits l'écrivent.
+ */
+const FOLDER_DONE_N: Record<FolderId, string> = {
+  inbox: "remises en réception",
+  starred: "ajoutées aux favoris",
+  snoozed: "mises en pause",
+  sent: "déplacées vers Envoyés",
+  drafts: "déplacées vers Brouillons",
+  archive: "archivées",
+  junk: "signalées comme indésirables",
+  trash: "mises à la corbeille",
+};
+
+export function fait(folder: FolderId, n: number): string {
+  return n <= 1 ? FOLDER_DONE[folder] : `${n} conversations ${FOLDER_DONE_N[folder]}`;
+}
+
+/**
  * Signaler, et se dédire — **une seule définition pour trois surfaces**.
  *
  * L'action change de sens selon l'endroit d'où on la prend, et c'est la même

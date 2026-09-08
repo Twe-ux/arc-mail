@@ -10,6 +10,7 @@ import type { StoredAccount, StoredSpace } from "@/lib/accounts/server";
 import { formatShortDate } from "@/lib/format";
 import { BrancherBoite, Message } from "./brancher-boite";
 import { Espaces } from "./compte-espaces";
+import { Profil } from "./profil";
 
 /**
  * L'atelier des comptes : les boîtes branchées, et comment en brancher une.
@@ -29,11 +30,14 @@ export function ComptesEcran({
   comptes,
   espaces,
   connecte = null,
+  profil = null,
 }: {
   comptes: StoredAccount[];
   espaces: StoredSpace[];
   /** L'adresse avec laquelle on s'est connecté à l'app, si on la connaît. */
   connecte?: string | null;
+  /** Le compte de l'app — absent tant que Supabase n'est pas configuré. */
+  profil?: { userId: string; email: string; name: string | null; avatar: string | null } | null;
 }) {
   const [ouvert, setOuvert] = useState(comptes.length === 0);
   const premiere = comptes.length === 0;
@@ -62,6 +66,19 @@ export function ComptesEcran({
             Comptes
           </h1>
         </header>
+
+        {/* **Le profil d'abord.** C'est la seule chose de cet écran qui parle de
+            la personne plutôt que de ses tuyaux, et l'ordre le dit : qui je
+            suis, puis ce que j'ai branché. Il a sa carte à lui — dans celle
+            des comptes, il aurait eu l'air d'être un compte de plus. */}
+        {profil && (
+          <Profil
+            userId={profil.userId}
+            email={profil.email}
+            nom={profil.name}
+            avatar={profil.avatar}
+          />
+        )}
 
         <section className="fenetre-carte rounded-[24px] bg-card p-4 text-card-foreground md:rounded-[28px] md:p-6">
           {premiere ? (

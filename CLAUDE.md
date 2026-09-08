@@ -439,6 +439,25 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - `url` absente = rien à montrer, l'aperçu le dit ; un sélecteur qui construit un objet doit être
   memoïsé (`usePreview`).
 
+**Profil du compte** → [docs/features/profil.md](docs/features/profil.md)
+- Le visage et le nom du compte se règlent en **haut de `/comptes`** ; les deux portes qui y mènent
+  disent « Profil et comptes » — plus « et signatures », qui ne se règlent nulle part.
+- Ce nom **ne signe aucun courrier** : le `From` part de `Space.identity`. La carte le dit, en deux
+  lignes de 11 px — la première version en faisait quatre, plus de gris que de champ.
+- **Le rond est la cible** (un `<label>` sur une entrée cachée, pastille d'appareil, dépôt accepté) :
+  pas de bouton « Ajouter une photo », il tombait sous l'avatar, désaligné de la colonne du champ.
+  Photo appliquée tout de suite, nom au blur.
+- La photo est **recadrée et réduite dans le navigateur** (`preparerAvatar` : carré au plus petit
+  côté, 256 px, WebP 0,85, ~30 Ko) ; `createImageBitmap` d'abord pour l'EXIF, repli `Image` pour le
+  HEIC qu'il refuse.
+- Seau `avatars` **privé**, `<uid>/avatar.webp`, quatre politiques sur `auth.uid()` ; les octets ne
+  traversent pas notre serveur, donc c'est **le seau** qui borne le poids et les types. Le serveur
+  signe une URL d'une heure à chaque rendu, et `avatar_path` se **vérifie** avant d'être signé.
+- **`ContactAvatar` résout lui-même** qui est nous (`cestNous` ou l'adresse de connexion) : neuf
+  endroits montrent quelqu'un, un dixième appelant serait un oubli. Les autres gardent leurs
+  lettres — **pas de Gravatar** : annoncer à un tiers l'adresse de qui nous écrit défait la retenue
+  des images distantes.
+
 **Comptes et secrets** → [docs/features/comptes-et-secrets.md](docs/features/comptes-et-secrets.md)
 - Les secrets vivent dans `account_secrets`, une table RLS **sans politique** : serveur seulement.
 - AES-256-GCM lié à la ligne (`userId:accountId` en AAD) ; `ACCOUNTS_KEY` dans Vercel, jamais ici.

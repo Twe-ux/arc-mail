@@ -118,6 +118,15 @@ correctif.
       nouveaux s'enregistrent au lieu d'être refusés par la contrainte `check`.
 - [ ] **La PWA installée sur l'iPhone** — après un déploiement : la version se rafraîchit-elle au
       tirage, et l'écran ne reste-t-il pas figé.
+- [ ] **La signature d'un espace ne se règle nulle part** (relevé le 8 sept.) — `Space.signature`
+      n'est écrit que par le mock : `/comptes` ne l'édite pas, et le composeur répond « Cet espace
+      n'a pas encore de signature » sur toute vraie boîte. L'intitulé « Comptes et signatures » est
+      devenu « Profil et comptes » en attendant — un champ par espace, à côté de son nom et de son
+      identité, fermerait la promesse.
+- [ ] **Le profil sur une vraie session** (8 sept.) — poser une photo depuis l'iPhone (un HEIC
+      passe-t-il par le repli `Image` ?), vérifier qu'elle apparaît dans la barre, dans le menu du
+      compte et sur nos messages d'un fil, et qu'elle survit à une reconnexion. Le seau `avatars`
+      arrive avec la fusion sur `main`.
 - [ ] **Le code en app installée** (8 sept.) — le gabarit est collé et **le code arrive**
       (signalé le 8 sept. : huit chiffres, le réglage « OTP length » du projet). Reste à vérifier
       que iOS le propose au-dessus du clavier, et qu'entrer ouvre bien la session **dans l'app** et

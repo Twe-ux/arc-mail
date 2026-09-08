@@ -5,6 +5,7 @@ import { SpacesInit } from "@/components/arc/spaces-init";
 import { PrefsSync } from "@/components/arc/prefs-sync";
 import { SessionProvider, type Session } from "@/components/auth/session";
 import { lirePreferences } from "@/lib/accounts/prefs";
+import { lireProfil } from "@/lib/accounts/profil";
 import { listAccounts, listSpaces } from "@/lib/accounts/server";
 import { spacesFromAccounts } from "@/lib/accounts/spaces";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
@@ -25,16 +26,23 @@ export default async function Home() {
   const user = await currentUser();
   if (!user) redirect("/connexion");
 
-  const session: Session = {
-    email: user.email ?? "",
-    name: (user.user_metadata?.full_name as string | undefined) ?? null,
-    avatar: (user.user_metadata?.avatar_url as string | undefined) ?? null,
-  };
-
   /* Les espaces suivent les boîtes branchées ; sans aucune, la maquette
      reste, parce qu'une app vide est plus difficile à comprendre qu'une app
-     d'exemple. */
-  const [comptes, vues, prefs] = await Promise.all([listAccounts(), listSpaces(), lirePreferences()]);
+     d'exemple.
+
+     Le profil part **dans le même lot** : signer l'URL du visage est un
+     aller-retour de plus vers Supabase, et l'attendre avant les trois autres
+     l'ajoutait au temps du premier rendu au lieu de s'y fondre. */
+  const [comptes, vues, prefs, profil] = await Promise.all([
+    listAccounts(),
+    listSpaces(),
+    lirePreferences(),
+    lireProfil(user),
+  ]);
+  /* Le visage vient de là : `avatar_url` était posé par « Continuer avec
+     Google », qui n'existe plus — le champ était encore lu, plus jamais
+     rempli. L'URL est **signée** à chaque rendu, le seau est privé. */
+  const session: Session = { email: user.email ?? "", name: profil.name, avatar: profil.avatar };
   const spaces = spacesFromAccounts(comptes, vues);
 
   return (

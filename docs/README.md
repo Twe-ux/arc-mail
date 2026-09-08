@@ -27,6 +27,7 @@ l'état du projet et ce qui reste à faire.
 - [Répondre](features/reponse.md) — à qui part la réponse, et comment la viser
 - [Pièces jointes](features/pieces-jointes.md) — le modèle, les puces, le volet d'aperçu
 - [Comptes et secrets](features/comptes-et-secrets.md) — Supabase, les deux tables, le chiffrement
+- [Profil du compte](features/profil.md) — le visage et le nom, le seau privé, qui est « nous »
 - [IMAP](features/imap.md) — lire une vraie boîte : la route, les dossiers, les fils, l'hydratation
 - [Espaces](features/espaces.md) — d'où ils viennent, un dossier vécu comme une réception, la lecture par dossier, Favoris
 - [Indésirable](features/indesirable.md) — le seul dossier qui peut ne pas exister, et les deux gestes qui le remplissent et le vident

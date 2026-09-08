@@ -246,7 +246,7 @@ export function MobileSettings() {
             >
               <span className="flex min-h-[50px] min-w-0 flex-1 items-center gap-3 py-1.5 pr-4">
                 <UserRound className="size-5 shrink-0" strokeWidth={1.75} />
-                <span className="min-w-0 flex-1 text-[15px]">Comptes et signatures</span>
+                <span className="min-w-0 flex-1 text-[15px]">Profil et comptes</span>
                 <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
               </span>
             </Link>
@@ -268,7 +268,7 @@ export function MobileSettings() {
 
           {/* **La sortie est une rangée, comme le reste.** Elle vivait sous la
               feuille en un bloc à part — visage, nom, deux icônes muettes —
-              qui redisait « Comptes et signatures » juste au-dessus, et posait
+              qui redisait « Profil et comptes » juste au-dessus, et posait
               un second chemin vers la même page. Le bureau a perdu ce doublon
               en descendant son compte dans un menu ; ici la rangée suffit.
               L'adresse du compte, elle, se lit dans `/comptes`. */}

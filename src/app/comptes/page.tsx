@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { ComptesEcran } from "@/components/comptes/comptes-ecran";
+import { lireProfil } from "@/lib/accounts/profil";
 import { listAccounts, listSpaces } from "@/lib/accounts/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { currentUser } from "@/lib/supabase/server";
@@ -12,8 +13,19 @@ export default async function Comptes() {
   if (!isSupabaseConfigured()) redirect("/connexion");
   const user = await currentUser();
   if (!user) redirect("/connexion");
-  const [comptes, espaces] = await Promise.all([listAccounts(), listSpaces()]);
+  const [comptes, espaces, profil] = await Promise.all([
+    listAccounts(),
+    listSpaces(),
+    lireProfil(user),
+  ]);
   /* L'adresse de connexion sert à proposer la première boîte : c'est la seule
      qu'on connaisse déjà, et elle dit son fournisseur. */
-  return <ComptesEcran comptes={comptes} espaces={espaces} connecte={user.email ?? null} />;
+  return (
+    <ComptesEcran
+      comptes={comptes}
+      espaces={espaces}
+      connecte={user.email ?? null}
+      profil={{ userId: user.id, email: user.email ?? "", ...profil }}
+    />
+  );
 }

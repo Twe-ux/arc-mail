@@ -27,6 +27,11 @@ import { useSignOut } from "./use-sign-out";
  * shadcn n'est pas joignable depuis cet environnement, et le dépôt a déjà ce
  * motif (le menu du `⋯` du composeur). Une primitive de moins à tenir.
  *
+ * **« Profil et comptes », plus « Comptes et signatures ».** Deux raisons dans
+ * le même mot : la page mène désormais sur le profil (visage et nom), et une
+ * signature ne s'y règle pas — elle ne se règle nulle part encore. Un intitulé
+ * ne promet pas une porte qui n'existe pas.
+ *
  * Ne rend rien quand personne n'est connecté — c'est-à-dire tant que Supabase
  * n'est pas configuré, où l'app reste la maquette ouverte d'aujourd'hui.
  */
@@ -102,7 +107,7 @@ export function AccountMenu({ className }: { className?: string }) {
             className="flex h-10 items-center gap-2.5 px-3 text-sm transition-colors hover:bg-muted"
           >
             <UserRound className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.75} />
-            Comptes et signatures
+            Profil et comptes
           </Link>
           <button
             type="button"

@@ -376,7 +376,7 @@ const horsLigne = () => typeof navigator !== "undefined" && navigator.onLine ===
 
 /** Une adresse se compare **lavée** : les en-têtes portent volontiers la casse
  *  d'origine (« T.Milone@CoworkingCafe.fr »), et c'est la même boîte. */
-const memeAdresse = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
+export const memeAdresse = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
 
 /**
  * **Toutes nos adresses, pas seulement celle de l'espace regardé.**

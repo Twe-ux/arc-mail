@@ -2,6 +2,38 @@
 
 Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérification.
 
+## 8 septembre 2026 — un visage, et le nôtre dans les fils
+
+« Si connexion via mail dorénavant, peut-on mettre en place l'édition du profil avec chargement
+avatar ? » puis « et mettre avatar dans les conversations mail ».
+
+La question suit exactement le retrait de « Continuer avec Google ». Ce bouton posait un
+`avatar_url` dans les métadonnées, et l'app le lisait : sans lui, le champ était **encore lu et
+plus jamais rempli**. On rend donc la photo à la personne au lieu de la demander à un fournisseur.
+
+**Une carte de profil en haut de `/comptes`**, un seul écran pour les deux tailles, déjà
+atteignable des deux côtés — aucune navigation nouvelle. Le rond **est** la cible (label sur entrée
+cachée, pastille d'appareil, dépôt accepté) ; la photo est recadrée et réduite **dans le
+navigateur** à 256 px de WebP, une trentaine de kilo-octets ; le seau `avatars` est **privé** et le
+serveur signe une URL d'une heure à chaque rendu. Les octets ne traversent pas notre serveur, donc
+c'est le seau lui-même qui borne le poids et les types.
+
+**Et dans les fils, `ContactAvatar` résout tout seul.** Neuf endroits montrent quelqu'un ; la photo
+se pose donc dans la définition, pas aux neuf appels. « Nous » = les identités de tous les espaces
+ou l'adresse de connexion. Les autres gardent leurs lettres, **délibérément** : Gravatar rendrait
+un vrai visage au prix d'annoncer à un tiers l'adresse de chaque personne qui nous écrit, et ce
+dépôt retient déjà les images distantes d'un courrier pour ne pas signaler sa lecture.
+
+Deux défauts vus à la capture et corrigés : un bouton « Ajouter une photo » qui tombait **sous
+l'avatar**, désaligné de la colonne du champ, et qui redisait ce que la pastille dit déjà — retiré ;
+et une note de **quatre lignes** de gris sous le champ, plus lourde que le champ lui-même —
+ramenée à deux.
+
+Relevé au passage : **la signature d'un espace ne se règle nulle part**. `Space.signature` n'est
+écrit que par le mock, et le composeur répond « Cet espace n'a pas encore de signature » sur toute
+vraie boîte. Les deux portes qui menaient à `/comptes` disaient « Comptes et signatures » ; elles
+disent « Profil et comptes », et la promesse repasse dans `docs/a-faire.md`.
+
 ## 8 septembre 2026 — le code faisait six chiffres, l'e-mail en portait huit
 
 « Attention, code reçu par Supabase à 8 caractères mais que 6 possible de saisir. »

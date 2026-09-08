@@ -139,7 +139,7 @@ export async function saveSpace(input: NewSpace): Promise<StoredSpace> {
     if (error.code === "23505") throw new Error("Ce dossier sert déjà de réception à un espace.");
     if (error.code === "42P01") {
       throw new Error(
-        "La table des espaces n'existe pas encore : appliquer `supabase/migrations/` à la base.",
+        "La table des espaces n'existe pas encore : les migrations s'appliquent à la fusion sur `main`.",
       );
     }
     throw new Error(`Enregistrement de l'espace impossible : ${error.message}`);

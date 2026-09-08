@@ -67,13 +67,19 @@ Signalé en testant la PWA. Un lien de connexion ouvert depuis l'app Mail du té
 regardant sa propre session vivre ailleurs. Le lien porte en plus un code PKCE qui ne se vérifie
 que là où il a été demandé — le même message y perd donc deux fois.
 
-**Un code à six chiffres n'a pas ce défaut : il se retape**, donc il entre exactement là où on est.
+**Un code chiffré n'a pas ce défaut : il se retape**, donc il entre exactement là où on est.
 Le même e-mail porte les deux, et le premier utilisé gagne : le lien pour le bureau, où il est plus
 rapide ; le code pour l'app installée, où il est le seul chemin.
 
 - `verifyOtp({ email, token, type: "email" })`, côté navigateur.
 - Le champ porte `autoComplete="one-time-code"` : c'est lui qui fait proposer le code par iOS
   au-dessus du clavier, sans quoi il faut aller le chercher dans Mail et revenir.
+- **Sa longueur ne nous appartient pas** : elle se règle par projet chez Supabase (Authentication →
+  Providers → Email, « OTP length » : six à dix chiffres), et l'e-mail part avec ce nombre-là. Le
+  champ coupait à six — signalé le 8 sept. sur un projet réglé à **huit** : il amputait le code,
+  et la vérification refusait alors un code juste sans dire pourquoi. Il accepte donc tout
+  l'intervalle (`CODE_MIN`/`CODE_MAX`), l'espacement des chiffres tient jusqu'à dix, et son
+  intitulé ne promet plus un nombre — **un champ ne devine pas un réglage qu'il ne lit pas**.
 - Après vérification, **`router.replace` puis `router.refresh`** : `createBrowserClient` écrit la
   session dans des **cookies** (`@supabase/ssr`), donc elle est lisible par le serveur dès le
   retour — mais le rendu déjà en mémoire, lui, a été fait sans elle.

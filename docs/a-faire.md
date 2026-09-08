@@ -118,14 +118,13 @@ correctif.
       nouveaux s'enregistrent au lieu d'être refusés par la contrainte `check`.
 - [ ] **La PWA installée sur l'iPhone** — après un déploiement : la version se rafraîchit-elle au
       tirage, et l'écran ne reste-t-il pas figé.
-- [ ] **Le code à six chiffres en app installée** (8 sept.) — le gabarit est écrit
-      (`supabase/templates/magic-link.html`) mais il reste à le coller dans Supabase, avec le SMTP
-      Resend (host `smtp.resend.com`, port 465, username `resend`, mot de passe = la clé `re_…`) : à poser, puis à vérifier que
-      le code arrive, que iOS le propose au-dessus du clavier, et qu'entrer ouvre bien la session
-      **dans l'app** et non dans le navigateur.
-- [ ] **Les réglages qui suivent le compte** (8 sept.) — migration `user_prefs` à appliquer, puis :
-      changer la teinte sur un appareil et la retrouver sur l'autre, vérifier que l'état de la barre
-      **ne** suit **pas**, et qu'un appareil neuf ne garde qu'une frame de thème clair.
+- [ ] **Le code en app installée** (8 sept.) — le gabarit est collé et **le code arrive**
+      (signalé le 8 sept. : huit chiffres, le réglage « OTP length » du projet). Reste à vérifier
+      que iOS le propose au-dessus du clavier, et qu'entrer ouvre bien la session **dans l'app** et
+      non dans le navigateur.
+- [ ] **Les réglages qui suivent le compte** (8 sept.) — changer la teinte sur un appareil et la
+      retrouver sur l'autre, vérifier que l'état de la barre **ne** suit **pas**, et qu'un appareil
+      neuf ne garde qu'une frame de thème clair.
 - [ ] **Les trois formes sur du vrai courrier** — `enveloppe` lit une chaîne, pas un rendu : la
       frontière entre une signature et une mise en page se vérifie sur une vraie boîte, en
       particulier les signatures qui posent un fond ou une largeur.

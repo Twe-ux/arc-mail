@@ -7,6 +7,15 @@ import { useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
 
 /**
+ * Les bornes du code, celles de Supabase (« OTP length », six à dix chiffres).
+ *
+ * On ne fixe pas la longueur, on l'encadre : elle se règle par projet et
+ * l'e-mail arrive avec le nombre du jour.
+ */
+const CODE_MIN = 6;
+const CODE_MAX = 10;
+
+/**
  * La porte : une adresse, un lien, et rien d'autre.
  *
  * **« Continuer avec Google » a été retiré le 8 septembre 2026.** Il
@@ -129,13 +138,21 @@ export function SignIn({ erreur = null }: { erreur?: string | null }) {
  * qui ne se vérifie que là où il a été demandé — le même message y perd deux
  * fois.
  *
- * Un code à six chiffres n'a pas ce défaut : il se **retape**, donc il entre
+ * Un code chiffré n'a pas ce défaut : il se **retape**, donc il entre
  * exactement là où on est. Le lien reste pour le bureau, où il est plus
  * rapide ; les deux voyagent dans le même e-mail et le premier utilisé gagne.
  *
  * **Ce que ça demande côté Supabase** : le gabarit « Magic Link » doit contenir
  * `{{ .Token }}` à côté de `{{ .ConfirmationURL }}`. Sans lui, l'e-mail ne
  * porte pas de code et le champ ci-dessous reste sans réponse.
+ *
+ * **Sa longueur ne nous appartient pas.** Elle se règle par projet chez
+ * Supabase (Authentication → Providers → Email, « OTP length » : six à dix
+ * chiffres), et l'e-mail part avec ce nombre-là. Le champ coupait à six :
+ * signalé sur un projet réglé à huit, il amputait le code et la vérification
+ * refusait alors un code juste, sans dire pourquoi. Il accepte donc tout
+ * l'intervalle, et c'est le serveur qui tranche — un champ ne devine pas un
+ * réglage qu'il ne lit pas.
  */
 function Envoye({
   adresse,
@@ -152,7 +169,7 @@ function Envoye({
 
   const verifier = async (form: FormData) => {
     const token = (form.get("code") ?? "").toString().replace(/\D/g, "");
-    if (token.length < 6) return;
+    if (token.length < CODE_MIN) return;
     setPending(true);
     onErreur(null);
     const { error } = await supabaseBrowser().auth.verifyOtp({ email: adresse, token, type: "email" });
@@ -182,23 +199,23 @@ function Envoye({
           là où on est. */}
       <form action={verifier} className="mt-4 flex flex-col gap-2">
         <label className="flex flex-col gap-1.5">
-          <span className="text-[13px] font-medium">Le code à six chiffres</span>
+          <span className="text-[13px] font-medium">Le code reçu par e-mail</span>
           <input
             name="code"
             value={code}
-            onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+            onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, CODE_MAX))}
             inputMode="numeric"
             autoComplete="one-time-code"
-            placeholder="000000"
+            maxLength={CODE_MAX}
             required
             /* `one-time-code` est ce qui fait proposer le code par iOS au-dessus
                du clavier : sans lui, il faut aller le chercher dans Mail. */
-            className="h-12 rounded-xl bg-muted/60 px-3.5 text-center text-[22px] font-semibold tracking-[0.3em] tabular-nums outline-none ring-1 ring-transparent focus-visible:ring-2 focus-visible:ring-[var(--space-ink)] dark:bg-white/[0.07]"
+            className="h-12 rounded-xl bg-muted/60 px-3.5 text-center text-[22px] font-semibold tracking-[0.22em] tabular-nums outline-none ring-1 ring-transparent focus-visible:ring-2 focus-visible:ring-[var(--space-ink)] dark:bg-white/[0.07]"
           />
         </label>
         <button
           type="submit"
-          disabled={pending || code.length < 6}
+          disabled={pending || code.length < CODE_MIN}
           className="flex h-12 w-full items-center justify-center gap-2 rounded-xl text-[15px] font-semibold text-white transition-[opacity,transform] ease-out [background:var(--space-gradient)] active:scale-[0.98] active:duration-0 disabled:opacity-40"
         >
           {pending ? <Loader2 className="size-4 animate-spin" /> : null}

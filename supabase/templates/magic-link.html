@@ -8,10 +8,13 @@
   CE QU'IL PORTE, ET POURQUOI LES DEUX :
   - `{{ .ConfirmationURL }}` — le lien. Rapide sur un ordinateur, mais il porte
     un code PKCE qui ne se vérifie **que dans le navigateur qui l'a demandé**.
-  - `{{ .Token }}` — le code à six chiffres. **C'est lui qui fait marcher l'app
-    installée** : un lien ouvert depuis Mail part dans le navigateur, et la
-    session s'ouvre à côté de la PWA. Un code se retape, donc il entre là où on
-    est. Sans cette variable, le champ de l'app reste sans réponse.
+  - `{{ .Token }}` — le code. **C'est lui qui fait marcher l'app installée** :
+    un lien ouvert depuis Mail part dans le navigateur, et la session s'ouvre à
+    côté de la PWA. Un code se retape, donc il entre là où on est. Sans cette
+    variable, le champ de l'app reste sans réponse. **Sa longueur se règle chez
+    Supabase** (Authentication → Providers → Email, « OTP length » : six à dix
+    chiffres) ; le champ de l'app accepte tout l'intervalle, et l'espacement
+    ci-dessous tient jusqu'à dix.
 
   RÈGLES DE COURRIER, à ne pas « moderniser » :
   - tout en **styles inline** et en tableaux : Gmail retire `<style>`, et les
@@ -46,7 +49,7 @@
             </p>
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#f4f1fb" style="background-color:#f4f1fb;border-radius:12px;">
               <tr>
-                <td align="center" style="padding:16px 12px;font-family:'SF Mono',Menlo,Consolas,'Courier New',Courier,monospace;font-size:30px;line-height:1.1;font-weight:700;letter-spacing:9px;color:#141414;">
+                <td align="center" style="padding:16px 12px;font-family:'SF Mono',Menlo,Consolas,'Courier New',Courier,monospace;font-size:28px;line-height:1.1;font-weight:700;letter-spacing:7px;color:#141414;">
                   {{ .Token }}
                 </td>
               </tr>

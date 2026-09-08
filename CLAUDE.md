@@ -442,6 +442,9 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 **Comptes et secrets** → [docs/features/comptes-et-secrets.md](docs/features/comptes-et-secrets.md)
 - Les secrets vivent dans `account_secrets`, une table RLS **sans politique** : serveur seulement.
 - AES-256-GCM lié à la ligne (`userId:accountId` en AAD) ; `ACCOUNTS_KEY` dans Vercel, jamais ici.
+- Les migrations de `supabase/migrations/` **s'appliquent seules** à la fusion sur `main`
+  (intégration GitHub de Supabase) : rien à lancer à la main — mais une migration fausse part en
+  production toute seule, et un déploiement `preview` tourne sur la base d'avant.
 - Toujours `getUser()`, jamais `getSession()` ; `src/proxy.ts` rafraîchit et redirige de façon
   optimiste, la garde qui compte est dans `page.tsx` puis les politiques RLS.
 - Connexion par **un lien envoyé à une adresse**, et rien d'autre : « Continuer avec Google » est
@@ -457,10 +460,12 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   hex seul : les variables de `globals.css` n'existent pas dans un autre document). **Resend ne se
   pose ni dans Vercel ni dans `.env.local`** — c'est Supabase qui envoie, ses identifiants vont dans
   son tableau de bord ; `.env.example` le dit.
-- **L'e-mail porte un lien ET un code à six chiffres** : en app installée, un lien ouvert depuis Mail
+- **L'e-mail porte un lien ET un code** : en app installée, un lien ouvert depuis Mail
   part dans le navigateur et la session s'ouvre à côté — le code, lui, se retape là où on est
   (`verifyOtp`, `autoComplete="one-time-code"`, puis `router.replace` + `refresh`). Il demande
-  `{{ .Token }}` dans le gabarit Supabase, qui n'est pas dans le code.
+  `{{ .Token }}` dans le gabarit Supabase, qui n'est pas dans le code. Sa **longueur est un réglage
+  Supabase** (« OTP length », six à dix) : le champ l'encadre au lieu de la fixer — coupé à six, il
+  amputait un code de huit et faisait refuser un code juste.
 - **Les réglages suivent le compte** (`user_prefs`, un `jsonb` par personne) : `themes`, `dark`,
   `listDensity`, `fondBureau`, `groupBy`, `vues`. L'état de la barre, les largeurs, les fils et les
   récents restent **locaux** — ils décrivent un écran ou un cache, pas un goût. La base gagne à

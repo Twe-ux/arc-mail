@@ -2,6 +2,27 @@
 
 Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérification.
 
+## 8 septembre 2026 — le code faisait six chiffres, l'e-mail en portait huit
+
+« Attention, code reçu par Supabase à 8 caractères mais que 6 possible de saisir. »
+
+Le champ de la porte coupait à six (`slice(0, 6)`) et n'activait « Entrer » qu'à six. Sur un projet
+réglé à huit, il **amputait donc le code** et Supabase refusait un code juste — la personne lisait
+« code invalide » en ayant tapé exactement ce qu'elle avait reçu. Le pire défaut de la série : rien
+n'annonçait la coupe, ni l'intitulé (« Le code à six chiffres ») ni le champ, qui avalait les deux
+derniers chiffres sans broncher.
+
+**La longueur ne nous appartient pas** : c'est « OTP length » chez Supabase, six à dix, réglé par
+projet. Le champ l'**encadre** au lieu de la fixer (`CODE_MIN` 6, `CODE_MAX` 10), son intitulé ne
+promet plus de nombre (« Le code reçu par e-mail »), le gabarit de repli `000000` part — il
+mentait —, et l'espacement des chiffres passe de 0,3 à 0,22 em pour que dix tiennent sans se
+serrer. Le gabarit de l'e-mail suit (28 px, 7 px d'espacement). Un champ ne devine pas un réglage
+qu'il ne lit pas.
+
+Au passage, et signalé le même jour : **les migrations s'appliquent seules**, à la fusion sur
+`main`. La fiche des espaces promettait un `psql` à la main et le message d'erreur `42P01` y
+renvoyait — deux endroits qui envoyaient vers un geste qui n'existe pas.
+
 ## 7 septembre 2026 — un survol par message
 
 « Mets un hover lorsque je passe sur les messages pour les différencier. » Le fil plat a perdu ses

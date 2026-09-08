@@ -60,8 +60,9 @@ même temps que la première, une seule fois.
 identiques de couleurs différentes.
 
 **La table peut ne pas exister.** `listSpaces` rend `[]` sur l'erreur Postgres `42P01` au lieu de
-faire tomber la page : la migration s'applique à la main, et une app cassée entre le déploiement et
-le `psql` serait un piège.
+faire tomber la page. Les migrations **s'appliquent toutes seules**, mais à la **fusion sur `main`**
+(intégration GitHub de Supabase) : un déploiement `preview` porte donc le code d'une table qui
+n'existe pas encore, et une app tombée pendant cette fenêtre serait un piège.
 
 ## Pourquoi ils vivent dans le store
 

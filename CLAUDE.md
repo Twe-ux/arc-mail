@@ -617,6 +617,11 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   demande une migration : la colonne `icon` porte la liste en `check`. Renommer un espace fabriqué crée sa ligne et **change son identifiant** : fils, teinte et
   récents suivent.
 - `loadSpace` ne lit **qu'un dossier**, celui qu'on regarde ; Favoris se fond au lieu de remplacer.
+- **La signature est sur l'espace**, pas sur le compte (c'est lui qui porte l'identité) et se règle
+  sous l'espace dans `/comptes`, repliée derrière sa première ligne. L'écran liste
+  `spacesFromAccounts` et non les lignes de `mail_spaces` : un compte sans vue a quand même un
+  espace, et c'est le cas le plus courant — l'écrire crée la ligne qui manquait. « Retirer » ne
+  s'affiche que sur une vraie ligne. `signature` absente d'un patch = **inchangée**.
 - **Créer un espace depuis la boîte** : tuile « + » au bout de la rangée sur bureau, rangée dans la
   feuille Personnaliser sur téléphone (jamais dans la pill, qui est pleine) ; mêmes actions que
   `/comptes`, pas de choix d'icône (elle se règle déjà sur l'espace ouvert), et la porte n'existe que

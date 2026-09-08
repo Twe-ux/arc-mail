@@ -7,6 +7,7 @@ import { useState, useTransition } from "react";
 import { lireDerniers, retirerCompte, type Apercu } from "@/app/comptes/actions";
 import { Button } from "@/components/ui/button";
 import type { StoredAccount, StoredSpace } from "@/lib/accounts/server";
+import type { Space } from "@/lib/types";
 import { formatShortDate } from "@/lib/format";
 import { BrancherBoite, Message } from "./brancher-boite";
 import { Espaces } from "./compte-espaces";
@@ -29,11 +30,14 @@ import { Profil } from "./profil";
 export function ComptesEcran({
   comptes,
   espaces,
+  boites = [],
   connecte = null,
   profil = null,
 }: {
   comptes: StoredAccount[];
   espaces: StoredSpace[];
+  /** Les espaces tels que l'app les voit, l'espace fabriqué d'un compte sans vue compris. */
+  boites?: Space[];
   /** L'adresse avec laquelle on s'est connecté à l'app, si on la connaît. */
   connecte?: string | null;
   /** Le compte de l'app — absent tant que Supabase n'est pas configuré. */
@@ -90,6 +94,7 @@ export function ComptesEcran({
                   key={compte.id}
                   compte={compte}
                   espaces={espaces.filter((e) => e.accountId === compte.id)}
+                  boites={boites.filter((b) => b.account.id === compte.id)}
                 />
               ))}
             </ul>
@@ -142,7 +147,15 @@ function Amorce({ connecte }: { connecte: string | null }) {
 }
 
 /** Un compte branché : ce qu'il est, ce qu'il rend, ses espaces, et comment le retirer. */
-function Compte({ compte, espaces }: { compte: StoredAccount; espaces: StoredSpace[] }) {
+function Compte({
+  compte,
+  espaces,
+  boites,
+}: {
+  compte: StoredAccount;
+  espaces: StoredSpace[];
+  boites: Space[];
+}) {
   const [apercus, setApercus] = useState<Apercu[] | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
   const [enCours, demarrer] = useTransition();
@@ -188,7 +201,7 @@ function Compte({ compte, espaces }: { compte: StoredAccount; espaces: StoredSpa
 
       {erreur && <div className="mt-3"><Message statut="erreur" texte={erreur} /></div>}
 
-      <Espaces compte={compte} espaces={espaces} />
+      <Espaces compte={compte} espaces={espaces} boites={boites} />
 
       {apercus && (
         <div className="mt-3">

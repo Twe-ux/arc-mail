@@ -40,6 +40,8 @@ export function spacesFromAccounts(
         email: account.email,
         identity: { name: account.label, email: account.email },
         icon: icones[i % icones.length],
+        /* Un compte sans vue n'a pas de ligne où ranger une signature : elle
+           naît vide, et la première qu'on écrit crée la ligne (`renameSpace`). */
         signature: "",
         theme: teinte(account.email),
         account: { id: account.id, kind: account.kind },
@@ -55,7 +57,7 @@ export function spacesFromAccounts(
         email: vue.identityEmail,
         identity: { name: vue.identityName, email: vue.identityEmail },
         icon: vue.icon,
-        signature: "",
+        signature: vue.signature,
         /* La teinte suit l'**adresse d'envoi**, pas le compte : deux espaces
            du même compte doivent se distinguer d'un coup d'œil. */
         theme: teinte(vue.identityEmail),

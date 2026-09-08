@@ -58,6 +58,8 @@ export type StoredSpace = {
   inboxPath: string;
   identityName: string;
   identityEmail: string;
+  /** Ce que « Insérer la signature » ajoute à un message écrit depuis cet espace. */
+  signature: string;
   position: number;
 };
 
@@ -69,10 +71,12 @@ type SpaceRow = {
   inbox_path: string;
   identity_name: string;
   identity_email: string;
+  signature: string;
   position: number;
 };
 
-const SPACE_COLUMNS = "id, account_id, name, icon, inbox_path, identity_name, identity_email, position";
+const SPACE_COLUMNS =
+  "id, account_id, name, icon, inbox_path, identity_name, identity_email, signature, position";
 
 const toSpace = (r: SpaceRow): StoredSpace => ({
   id: r.id,
@@ -82,6 +86,9 @@ const toSpace = (r: SpaceRow): StoredSpace => ({
   inboxPath: r.inbox_path,
   identityName: r.identity_name,
   identityEmail: r.identity_email,
+  /* `?? ""` et non `r.signature` sec : la colonne est arrivée après les autres,
+     et une base d'avant la migration rend `undefined` plutôt qu'une chaîne. */
+  signature: r.signature ?? "",
   position: r.position,
 });
 
@@ -109,6 +116,7 @@ export type NewSpace = {
   inboxPath: string;
   identityName: string;
   identityEmail: string;
+  signature?: string;
 };
 
 export async function saveSpace(input: NewSpace): Promise<StoredSpace> {
@@ -130,6 +138,7 @@ export async function saveSpace(input: NewSpace): Promise<StoredSpace> {
       inbox_path: input.inboxPath,
       identity_name: input.identityName,
       identity_email: input.identityEmail,
+      signature: input.signature ?? "",
       position: count ?? 0,
     })
     .select(SPACE_COLUMNS)
@@ -161,7 +170,7 @@ export async function saveSpace(input: NewSpace): Promise<StoredSpace> {
  */
 export async function renameSpace(
   id: string,
-  patch: { name: string; icon: SpaceIconName },
+  patch: { name: string; icon: SpaceIconName; signature?: string },
 ): Promise<{ id: string }> {
   const user = await currentUser();
   if (!user) throw new Error("Personne n'est connecté.");
@@ -169,7 +178,14 @@ export async function renameSpace(
 
   const { data, error } = await supabase
     .from("mail_spaces")
-    .update({ name: patch.name, icon: patch.icon })
+    /* `signature` n'entre dans l'écriture que si l'appelant en a une à dire :
+       le sélecteur de la barre ne règle que le nom et l'icône, et un
+       `undefined` écraserait la signature à chaque renommage. */
+    .update({
+      name: patch.name,
+      icon: patch.icon,
+      ...(patch.signature === undefined ? {} : { signature: patch.signature }),
+    })
     .eq("id", id)
     .select("id")
     .maybeSingle();
@@ -190,6 +206,7 @@ export async function renameSpace(
     inboxPath: "INBOX",
     identityName: patch.name,
     identityEmail: compte.email,
+    signature: patch.signature ?? "",
   });
   return { id: pose.id };
 }

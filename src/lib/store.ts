@@ -289,7 +289,8 @@ export type MailState = {
   desabonner: (threadId: string, messageId: string) => void;
   deleteDraft: (threadId: string) => void;
   setSpaceHue: (id: SpaceId, hue: number | null) => void;
-  renameSpace: (id: SpaceId, patch: { name: string; icon: Space["icon"] }) => Promise<void>;
+  /** Le nom, l'icône, et la signature qu'un message emporte. `signature` absente = inchangée. */
+  renameSpace: (id: SpaceId, patch: { name: string; icon: Space["icon"]; signature?: string }) => Promise<void>;
 };
 
 const MAX_RECENT = 8;

@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -17,6 +18,7 @@ import { lireFichiers } from "./compose-attach";
  * téléphone le sait depuis le 5 septembre.
  */
 export function useComposeTools(draft: ComposeDraft | null) {
+  const router = useRouter();
   const update = useMail((s) => s.updateCompose);
   const spaces = useSpaces();
   const pieces = draft?.attachments ?? [];
@@ -67,7 +69,14 @@ export function useComposeTools(draft: ComposeDraft | null) {
   const signer = () => {
     if (!draft) return;
     if (!espace?.signature) {
-      toast("Cet espace n’a pas encore de signature.");
+      /* **Dire où, pas seulement que.** Le message a existé six jours sans
+         chemin : la signature ne se réglait alors nulle part, il n'y avait
+         donc rien à montrer. Maintenant qu'elle a un écran, l'annonce d'un
+         manque doit porter le moyen de le combler. */
+      toast("Cet espace n’a pas encore de signature.", {
+        description: "Elle se règle dans Profil et comptes, sous l’espace.",
+        action: { label: "Ouvrir", onClick: () => router.push("/comptes") },
+      });
       return;
     }
     /* Le corps est repeuplé depuis le brouillon : on écrit les deux versions,

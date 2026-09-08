@@ -17,12 +17,16 @@ import type { SpaceIconName } from "@/lib/types";
  */
 export async function renommerEspace(
   id: string,
-  patch: { name: string; icon: SpaceIconName },
+  patch: { name: string; icon: SpaceIconName; signature?: string },
 ): Promise<{ ok: true; id: string } | { ok: false; message: string }> {
   const nom = patch.name.trim();
   if (!nom) return { ok: false, message: "Un espace a besoin d'un nom." };
   try {
-    const { id: pose } = await renameSpace(id, { name: nom, icon: patch.icon });
+    const { id: pose } = await renameSpace(id, {
+      name: nom,
+      icon: patch.icon,
+      signature: patch.signature,
+    });
     revalidatePath("/");
     revalidatePath("/comptes");
     return { ok: true, id: pose };

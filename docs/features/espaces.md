@@ -64,6 +64,36 @@ faire tomber la page. Les migrations **s'appliquent toutes seules**, mais à la 
 (intégration GitHub de Supabase) : un déploiement `preview` porte donc le code d'une table qui
 n'existe pas encore, et une app tombée pendant cette fenêtre serait un piège.
 
+## La signature (8 sept. 2026)
+
+**Elle est sur l'espace, pas sur le compte** : c'est l'espace qui porte son identité
+(`identity_name`, `identity_email`, juste à côté dans `mail_spaces`), donc lui qui signe. Deux
+domaines d'un même compte iCloud n'ont aucune raison de signer pareil.
+
+`Space.signature` existait dans le type **depuis le premier jour** et n'était écrit que par les
+données mock : « Insérer la signature » répondait « Cet espace n'a pas encore de signature » sur
+toute vraie boîte, et le menu du compte promettait « Comptes et signatures » vers un écran qui n'en
+réglait aucune. Colonne `signature text not null default ''`
+(`20260908180000_signature.sql`) — une signature vide est l'état normal, pas une absence.
+
+Elle se règle **sous l'espace, dans `/comptes`**, et se replie : une zone de texte par espace,
+dépliée en permanence, ferait de cette liste compacte une page de formulaires. La rangée montre la
+**première ligne** de la signature, ou « Aucune signature », et le crayon donne la place.
+
+**L'écran liste `spacesFromAccounts`, pas les lignes de `mail_spaces`.** Un compte sans vue a
+quand même un espace, fabriqué à la volée avec l'identifiant du compte — et c'est le cas le plus
+courant, celui d'une boîte qu'on vient de brancher. Sans cette liste-ci, sa signature n'aurait
+aucun endroit où se régler ; l'écrire crée la ligne qui manquait (`renameSpace`, qui sait déjà le
+faire pour un renommage). « Retirer » ne s'affiche que sur une **vraie** ligne : l'espace fabriqué
+n'existe nulle part en base, et le retirer ferait disparaître sa réception.
+
+`signature` n'entre dans l'écriture que si l'appelant en a une à dire : le sélecteur de la barre ne
+règle que le nom et l'icône, et un `undefined` écraserait la signature à chaque renommage.
+
+Le toast du composeur porte maintenant **le chemin** : « Elle se règle dans Profil et comptes, sous
+l'espace », avec un bouton qui y va. Il a vécu six jours sans, et c'était juste — il n'y avait
+alors nulle part où envoyer qui que ce soit.
+
 ## Pourquoi ils vivent dans le store
 
 Ils étaient une constante de module (`SPACES`). Maintenant qu'ils viennent du serveur, ils sont un

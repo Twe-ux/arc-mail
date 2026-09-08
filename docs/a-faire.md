@@ -47,7 +47,7 @@ est argumenté dans l'[audit du 6 septembre](audits/2026-09-06-clients-mail.md).
 - [ ] « En pause » est un dossier sans mécanique : rien ne fait revenir un fil à l'heure dite
       (voir « À prévoir », la mise en pause a besoin d'un réveil).
 - [ ] La signature de l'expéditeur sous le message du troisième volet (le handoff la dessine ;
-      aucun message n'en porte).
+      aucun message n'en porte — c'est la signature **reçue**, celle de l'autre, pas la nôtre).
 
 ### Interface
 
@@ -118,11 +118,10 @@ correctif.
       nouveaux s'enregistrent au lieu d'être refusés par la contrainte `check`.
 - [ ] **La PWA installée sur l'iPhone** — après un déploiement : la version se rafraîchit-elle au
       tirage, et l'écran ne reste-t-il pas figé.
-- [ ] **La signature d'un espace ne se règle nulle part** (relevé le 8 sept.) — `Space.signature`
-      n'est écrit que par le mock : `/comptes` ne l'édite pas, et le composeur répond « Cet espace
-      n'a pas encore de signature » sur toute vraie boîte. L'intitulé « Comptes et signatures » est
-      devenu « Profil et comptes » en attendant — un champ par espace, à côté de son nom et de son
-      identité, fermerait la promesse.
+- [x] **La signature d'un espace** (8 sept.) — colonne `signature` sur `mail_spaces`, repliée sous
+      chaque espace dans `/comptes`, et le toast du composeur porte le chemin. L'écran liste
+      `spacesFromAccounts` pour que l'espace **fabriqué** d'un compte sans vue en ait une aussi
+      → [fiche](features/espaces.md). **Reste à voir sur une vraie boîte.**
 - [ ] **Le profil sur une vraie session** (8 sept.) — poser une photo depuis l'iPhone (un HEIC
       passe-t-il par le repli `Image` ?), vérifier qu'elle apparaît dans la barre, dans le menu du
       compte et sur nos messages d'un fil, et qu'elle survit à une reconnexion. Le seau `avatars`

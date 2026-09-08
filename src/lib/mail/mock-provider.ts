@@ -107,6 +107,7 @@ export class MockProvider implements MailProvider {
       unread: patch.unread ?? t.unread,
       starred: patch.starred ?? t.starred,
       folder: patch.folder ?? t.folder,
+      labels: patch.labels ?? t.labels,
     }));
     return id;
   }

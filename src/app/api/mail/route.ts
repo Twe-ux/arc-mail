@@ -17,7 +17,7 @@ import { dossiersDe, versImap } from "@/lib/search/imap";
 import { parse } from "@/lib/search/parse";
 import { deleteDraftMessage, saveDraftMessage, sendMessage } from "@/lib/mail/smtp";
 import { currentUser } from "@/lib/supabase/server";
-import type { FolderId, Thread } from "@/lib/types";
+import type { FolderId, Thread, DossierCible } from "@/lib/types";
 
 /**
  * La seule porte entre le navigateur et une boîte mail.
@@ -40,7 +40,7 @@ type Body =
       op: "modify";
       accountId: string;
       id: string;
-      patch: { unread?: boolean; starred?: boolean; folder?: FolderId };
+      patch: { unread?: boolean; starred?: boolean; folder?: FolderId; labels?: string[] };
     }
   | { op: "send"; accountId: string; message: OutgoingMessage }
   | { op: "saveDraft"; accountId: string; draft: DraftInput }
@@ -113,9 +113,14 @@ export async function POST(request: NextRequest) {
             }),
           };
         }
+        /* **« En pause » ne se demande pas au serveur.** Ce n'est pas un
+           dossier — aucune boîte n'en a un —, c'est un état que le store tient
+           tout seul : la liste vient de `pauses`, pas d'IMAP. La demande ne
+           devrait jamais arriver ici ; si elle arrive, elle est vide. */
+        if (body.folder === "snoozed") return { threads: [] };
         const path = body.folder === "inbox" ? reception : (await paths())[body.folder];
-        /* Une boîte iCloud n'a pas d'« En pause » : un dossier absent est une
-           liste vide, pas une erreur. */
+        /* Un dossier absent — les indésirables sur une boîte qui n'en a pas —
+           est une liste vide, pas une erreur. */
         if (!path) return { threads: [] };
         return {
           /* Notre adresse est des deux côtés de tout notre courrier : sans
@@ -148,12 +153,16 @@ export async function POST(request: NextRequest) {
              réception, comme `listThreads`, et le critère porte déjà
              `flagged` si la requête l'a demandé. */
           const flagged = cible === "starred";
+          /* « En pause » n'est pas un dossier : il n'y a rien à y chercher, la
+             liste vient du store. */
+          if (cible === "snoozed") continue;
           const path = flagged
             ? reception
             : cible === "inbox"
               ? reception
               : (await paths())[cible];
-          /* Un dossier absent — « En pause » sur iCloud — est une liste vide. */
+          /* Un dossier absent — les indésirables sur une boîte qui n'en a pas —
+             est une liste vide. */
           if (!path) continue;
           threads.push(
             ...(await searchFolder(
@@ -209,6 +218,7 @@ export async function POST(request: NextRequest) {
         const apres = await writeThread(client, body.id, {
           unread: body.patch.unread,
           starred: body.patch.starred,
+          labels: body.patch.labels,
           path: cible,
         });
         return { id: apres };
@@ -218,7 +228,7 @@ export async function POST(request: NextRequest) {
          renversant la table, pour que le fil hydraté garde le sien. */
       const path = parseThreadId(body.id)?.path;
       const folder =
-        (Object.entries(await paths()).find(([, p]) => p === path)?.[0] as FolderId | undefined) ??
+        (Object.entries(await paths()).find(([, p]) => p === path)?.[0] as DossierCible | undefined) ??
         "inbox";
       return { thread: await readThread(client, body.id, folder, body.messageIds) };
     });

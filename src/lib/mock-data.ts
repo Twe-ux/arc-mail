@@ -654,7 +654,9 @@ Théo`,
   ),
   thread(
     "perso",
-    "snoozed",
+    /* « En pause » n'est plus un dossier du mock : c'est un état que le
+       store tient (`pauses`), et un fil y arrive en le mettant en pause. */
+    "inbox",
     "Renouveler le passeport",
     [
       {
@@ -822,7 +824,9 @@ Lucas Petit`,
   ),
   thread(
     "pro",
-    "snoozed",
+    /* « En pause » n'est plus un dossier du mock : c'est un état que le
+       store tient (`pauses`), et un fil y arrive en le mettant en pause. */
+    "inbox",
     "Relance : contrat de maintenance",
     [
       {
@@ -1078,7 +1082,9 @@ Bien cordialement`,
   ),
   thread(
     "pro",
-    "snoozed",
+    /* « En pause » n'est plus un dossier du mock : c'est un état que le
+       store tient (`pauses`), et un fil y arrive en le mettant en pause. */
+    "inbox",
     "Devis enseigne lumineuse",
     [
       {
@@ -1381,7 +1387,9 @@ Raph`,
   ),
   thread(
     "side",
-    "snoozed",
+    /* « En pause » n'est plus un dossier du mock : c'est un état que le
+       store tient (`pauses`), et un fil y arrive en le mettant en pause. */
+    "inbox",
     "Migration vers le nouveau runtime",
     [
       {

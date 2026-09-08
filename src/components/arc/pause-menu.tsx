@@ -15,10 +15,11 @@ import { cn } from "@/lib/utils";
  * retombe n'est pas une pause, c'est un rangement. C'est aussi ce qui montre
  * que « ce soir », passé 18 h, vise le lendemain.
  *
- * **La ligne du bas dit la limite de la promesse** : il n'y a pas de serveur à
- * nous, donc le fil revient quand l'app s'ouvre ou revient au premier plan, pas
- * à la seconde dite. Écrit plutôt que caché — c'est la fonction qui manquait,
- * on ne va pas la remplacer par une autre approximation muette.
+ * **La ligne du bas dit la limite de la promesse**, et elle a changé le jour
+ * où la pause a cessé de déplacer quoi que ce soit : le fil reste dans sa boîte
+ * sur le serveur, c'est Arc Mail qui l'écarte de la liste jusqu'à l'heure dite,
+ * et il reparaît à l'ouverture. Écrit plutôt que caché — c'est la fonction qui
+ * manquait, on ne va pas la remplacer par une autre approximation muette.
  */
 export function PauseChoix({
   onChoisir,
@@ -65,7 +66,7 @@ export function PauseChoix({
           sheet ? "px-4 pt-1.5 pb-1 text-[11px] leading-relaxed" : "px-2.5 pt-1.5 pb-1 text-[11px] leading-relaxed",
         )}
       >
-        Revient à l&apos;ouverture d&apos;Arc Mail, pas à la minute près.
+        Écarté dans Arc Mail jusque-là ; il revient à l&apos;ouverture.
       </p>
     </div>
   );

@@ -25,6 +25,17 @@ export type FolderId =
   | "junk"
   | "trash";
 
+/**
+ * Un dossier où l'on peut **déplacer** un fil.
+ *
+ * Favoris est un drapeau (`\Flagged`), « En pause » un état à nous : ni l'un
+ * ni l'autre n'a de dossier derrière lui, et `modify({ folder })` répondait
+ * « Cette boîte n'a pas de dossier « snoozed » » sur une vraie boîte — signalé
+ * le 8 sept. Les retirer du type est la seule façon que ça ne se reproduise
+ * pas : le compilateur refuse maintenant ce que le serveur refusait.
+ */
+export type DossierCible = Exclude<FolderId, "starred" | "snoozed">;
+
 export type SpaceTheme = {
   /** Tailwind-free CSS gradient used as the window backdrop, like an Arc space tint. */
   gradient: string;
@@ -159,7 +170,8 @@ export type Message = {
 export type Thread = {
   id: string;
   spaceId: SpaceId;
-  folder: FolderId;
+  /** Un vrai dossier : Favoris et « En pause » sont des états, pas des lieux. */
+  folder: DossierCible;
   subject: string;
   snippet: string;
   labels: string[];

@@ -11,7 +11,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-import type { FolderId } from "./types";
+import type { FolderId, DossierCible } from "./types";
 
 /**
  * Le **nom court** d'un dossier, et son icône.
@@ -130,7 +130,7 @@ export function fait(folder: FolderId, n: number): string {
  * pas nous. Le retour va à la réception, jamais au dossier d'avant : un
  * message pris à tort n'était nulle part ailleurs.
  */
-export function signalement(folder: FolderId): { label: string; vers: FolderId } {
+export function signalement(folder: FolderId): { label: string; vers: DossierCible } {
   return folder === "junk"
     ? { label: "Ce n'est pas indésirable", vers: "inbox" }
     : { label: "Signaler comme indésirable", vers: "junk" };

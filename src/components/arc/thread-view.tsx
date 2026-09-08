@@ -7,7 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { formatFullDate } from "@/lib/format";
 import { cestNous, replyRecipients, selectFolder, useMail, useSpace, useVisibleThreads } from "@/lib/store";
-import type { Contact, FolderId } from "@/lib/types";
+import type { Contact, DossierCible } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { ActionBar, Pill, PillCase, PillPrimary } from "./action-pill";
 import { MessageCard } from "./message-card";
@@ -119,7 +119,7 @@ export function ThreadView({ className }: { className?: string }) {
      message sans place. Le toast est la seule trace de ce qui s'est passé —
      et c'est `moveThread` qui le pose, avec son « Annuler », pour les neuf
      endroits qui rangent et non pour celui-ci seulement. */
-  const ranger = (to: FolderId) => {
+  const ranger = (to: DossierCible) => {
     moveThread(thread.id, to);
     selectThread(null);
     setSheet(null);

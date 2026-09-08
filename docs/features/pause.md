@@ -46,42 +46,50 @@ rangement. C'est aussi ce qui montre que « ce soir », passé 18 h, vise le len
 8 h et 18 h : avant la journée sans être dans la nuit, et la fin de la journée de travail sans
 être le coucher.
 
+## « En pause » est un état, pas un dossier
+
+**Corrigé le 8 septembre, le jour même.** La première version faisait
+`moveThread(id, "snoozed")`, et sur une vraie boîte elle répondait : *« Cette boîte n'a pas de
+dossier « snoozed » »*. C'est vrai — iCloud n'a pas de `\Snoozed` en SPECIAL-USE, il n'y a aucun
+dossier où déposer quoi que ce soit, et en deviner un est précisément ce que la fiche IMAP interdit.
+La fiche le disait déjà pour les compteurs (« Favoris et En pause n'y sont pas : un drapeau, pas de
+dossier ») ; l'action, elle, ne le savait pas — elle ne marchait que sur le mock, depuis le premier
+jour.
+
+**Un fil en pause ne bouge donc pas.** Il reste dans son dossier sur le serveur ; c'est `pauses` qui
+le retire de la liste qu'on regarde et le pose dans « En pause » jusqu'à l'heure dite
+(`threadMatchesFolder`, troisième paramètre). Rien à créer, rien à deviner, rien qui puisse échouer
+— et le geste marche sur toutes les boîtes.
+
+Trois conséquences, toutes des simplifications :
+
+- **`DossierCible`** (`Exclude<FolderId, "starred" | "snoozed">`) type ce qui peut être une
+  destination. Le compilateur refuse maintenant ce que le serveur refusait — c'est la seule façon
+  que ça ne se reproduise pas. `Thread.folder` en est un, et « Déplacer vers » a perdu Favoris et
+  En pause (qui n'auraient jamais dû y être : ils ont leur ligne dans « Plus », qui **agit** au lieu
+  de ranger) et gagné **Réception**, qui manquait — depuis Archive, aucune ligne ne ramenait un fil
+  chez lui.
+- **`loadSpace` ne lit pas « En pause »**, et la route rend une liste vide s'il le demande quand
+  même : il n'y a rien à y chercher.
+- **Réveiller, c'est oublier la promesse.** Le fil est resté où il était, il reparaît. Plus de
+  relecture de dossier, plus de déplacement inverse, plus d'oubli au bout d'un mois — tout cela
+  n'existait que pour rattraper un déplacement.
+
+**Un piège pour la suite** : `useVisibleThreads` reconstruit un état partiel pour le sélecteur
+memoïsé. `pauses` oublié dedans, la liste ne bougeait pas d'un pouce quand on mettait un fil en
+pause — le sélecteur pur était juste, l'état qu'on lui passait ne l'était pas.
+
 ## Ce qui est gardé
 
-`pauses: Record<threadId, { wake, from, space }>`, **persisté** (store v6) :
+`pauses: Record<threadId, { wake }>`, **persisté** (store v6) — et c'est tout ce qu'il faut depuis
+que rien ne se déplace. Persisté parce que c'est **la seule mémoire d'une promesse faite à
+quelqu'un** : perdue au rechargement, le fil resterait masqué sans plus rien pour le ramener.
 
-- `wake` — quand il revient.
-- `from` — d'où il vient. « L'inverse de mettre en pause » n'existe pas dans l'absolu : un fil mis
-  en pause depuis Archive doit revenir dans Archive (règle de la fiche « Annuler »).
-- `space` — **où aller le chercher**. Un fil mis en pause depuis Perso doit revenir dans Perso même
-  si l'on regarde Pro à l'heure dite ; sans lui, le réveil ne saurait pas quelle boîte relire.
-
-Persisté parce que c'est **la seule mémoire d'une promesse faite à quelqu'un** : perdue au
-rechargement, le fil resterait dans « En pause » pour toujours — l'état d'avant.
-
-**Local, et c'est la limite connue.** Le fil, lui, est sur le serveur (dans le dossier « En pause »
-de la boîte) : rien n'est perdu, seule la *date* de retour est par navigateur. Une pause posée sur
-le téléphone ne se réveille pas toute seule sur le bureau. Une table côté serveur le réglerait ;
-elle est dans `docs/a-faire.md`, et l'attendre aurait voulu dire garder un dossier qui ment.
-
-## L'ordre des opérations
-
-`snoozeThread` **déplace d'abord, promet ensuite** : un fil change d'identifiant en changeant de
-dossier (l'UID IMAP ne survit pas au `MOVE`), et noter la pause sous l'ancien la rendrait
-introuvable au réveil. `deplacer` — extrait de `moveThread` pour la sélection multiple — rend
-justement un lecteur de l'identifiant d'après.
-
-`reveiller` va **chercher ce qu'il n'a pas en main** : `loadSpace` ne lit qu'un dossier, celui
-qu'on regarde, donc à l'ouverture sur la réception les fils déposés dans « En pause » ne sont nulle
-part. Il relit cette boîte-là — et celle de chaque espace concerné. `loadSpace(space, "snoozed")`
-ne change pas le dossier affiché, il verse dans `threads`.
-
-Il est **silencieux** : personne ne vient de faire un geste, et neuf fils qui reviennent en même
-temps feraient neuf toasts avec « Annuler » pour une nouvelle qui se lit dans la liste.
-
-Ce qu'il ne retrouve pas s'oublie **au bout d'un mois** (`OUBLI`), pas tout de suite : un fil peut
-manquer parce que la lecture a échoué, et jeter la promesse au premier réseau coupé serait la
-perdre pour de bon. Trente jours couvrent une app qu'on n'ouvre pas de trois semaines.
+**Local, et c'est la limite connue.** Le courrier reste dans sa boîte sur le serveur : un autre
+client (Mail sur iPhone) le voit toujours dans sa réception, et une pause posée ici ne s'applique
+qu'ici. C'est ce que la ligne du bas de la carte dit en toutes lettres : « Écarté dans Arc Mail
+jusque-là ; il revient à l'ouverture. » Un mot-clé IMAP le ferait suivre — même décision que pour
+les étiquettes, et elle est dans `docs/a-faire.md`.
 
 ## Où on le prend
 
@@ -113,18 +121,19 @@ avait raison de ne pas le dire.
 
 Sondes Playwright, bureau 1280×800 et téléphone 393×852 (insets 59/34), 0 erreur de console :
 
-- Sous-menu du `⋯` : carte de 246 px, 289 de haut, les cinq moments avec leur heure calculée
-  (« Ce soir · à 18 h », « Ce week-end · samedi à 8 h »).
+- Sous-menu du `⋯` : carte de 246 px, 289 de haut, les cinq moments avec leur heure calculée.
 - Feuille du téléphone : 377 px de large, 8 px à gauche et 8 px en bas — la marge des cartes
   flottantes.
-- Mettre en pause : le fil quitte la liste, toast « En pause, revient demain à 8 h · Annuler », et
-  `localStorage` porte `{ wake, from: "inbox", space: "perso" }`.
-- Réveil : heure reculée d'une minute puis rechargement → le fil est **de retour dans la
-  réception** et sa pause a disparu du store.
+- Mettre en pause : le fil **quitte la réception** (20 rangées → 19), toast « En pause, revient
+  demain à 8 h · Annuler », `localStorage` porte `{ wake }` et **rien d'autre**.
+- « En pause » : le fil y est, avec sa puce « Revient demain à 8 h ».
+- Réveil : heure reculée d'une minute puis rechargement → `pauses` est vide et le fil est de retour
+  dans la réception.
 
 ## Reste ouvert
 
 - **Une date libre** (« Choisir… ») en sixième ligne.
-- **Le réveil côté serveur** : aujourd'hui la date est locale au navigateur.
+- **Faire suivre la pause d'un appareil à l'autre** : un mot-clé IMAP la porterait, et c'est la même
+  décision que pour les étiquettes (le serveur les accepte-t-il ?) → `docs/a-faire.md`.
 - Pas de pause depuis la liste (balayage ou menu long) : elle se prend depuis le fil ouvert ou le
   volet.

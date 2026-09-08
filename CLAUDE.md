@@ -434,11 +434,16 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   (« ce soir » passé 18 h vise demain).
 - **Pas de serveur à nous** : le retour se fait à l'ouverture et au `visibilitychange`, et
   l'interface le dit (« Revient à l'ouverture d'Arc Mail, pas à la minute près »).
-- `pauses` est persisté et porte `wake`, `from` **et `space`** : il faut savoir quelle boîte relire.
-  Local, donc par navigateur — le fil, lui, est sur le serveur.
-- `snoozeThread` **déplace d'abord, promet ensuite** : l'UID change au `MOVE`, et noter la pause
-  sous l'ancien identifiant la rendrait introuvable. `reveiller` relit « En pause » de chaque espace
-  concerné, il est **silencieux**, et il oublie au bout d'un mois ce qu'il ne retrouve pas.
+- **« En pause » est un état, pas un dossier** : aucune boîte n'en a un (`moveThread(id,"snoozed")`
+  répondait « Cette boîte n'a pas de dossier « snoozed » »). Le fil **ne bouge pas** ; `pauses` le
+  retire de sa liste et le pose dans « En pause » (`threadMatchesFolder`, 3ᵉ paramètre). Réveiller,
+  c'est **oublier la promesse**. `pauses` ne porte donc que `wake`, persisté.
+- **`DossierCible`** (`Exclude<FolderId,"starred"|"snoozed">`) type ce qui peut être une
+  destination : le compilateur refuse ce que le serveur refusait. « Déplacer vers » perd Favoris et
+  En pause — ils **agissent** depuis « Plus » — et gagne **Réception**, qui manquait.
+- `useVisibleThreads` reconstruit un état partiel : **`pauses` doit y être**, sinon la liste ne
+  bouge pas quand on met un fil en pause.
+- Local, donc par navigateur — le fil reste dans sa boîte sur le serveur, et l'interface le dit.
 - Une seule liste de moments (`PauseChoix`, deux tailles) pour les trois surfaces : sous-menu **à la
   place** du `⋯` sur bureau, troisième feuille sur téléphone, popover dans le volet.
 - La rangée d'un fil en pause porte **« Revient demain à 8 h »** devant ses étiquettes.

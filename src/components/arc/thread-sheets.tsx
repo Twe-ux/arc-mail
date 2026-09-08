@@ -10,26 +10,34 @@ import {
   Paperclip,
   ReplyAll,
   ShieldAlert,
-  Star,
   Trash2,
   type LucideIcon,
 } from "lucide-react";
 
 import { FOLDER_ICON, signalement } from "@/lib/folders";
 import { selectAJunk, useMail } from "@/lib/store";
-import type { FolderId, Thread } from "@/lib/types";
+import type { Thread, DossierCible } from "@/lib/types";
 import { BottomSheet, SheetGroup, SheetRow, SheetScroller } from "./bottom-sheet";
 import { PauseChoix } from "./pause-menu";
 
 /**
- * Où l'on range depuis « Déplacer vers » : quatre destinations, pas sept.
+ * Où l'on range depuis « Déplacer vers » : **de vrais dossiers, et rien
+ * d'autre**.
  *
- * « Indésirable » s'y ajoute quand la boîte en a un — cinquième et dernière,
- * juste avant la corbeille comme dans la liste des dossiers.
+ * Favoris et « En pause » y étaient, et n'auraient jamais dû : le premier est
+ * un drapeau, le second un état — aucun des deux n'a de dossier derrière lui,
+ * et les choisir répondait « Cette boîte n'a pas de dossier « snoozed » » sur
+ * une vraie boîte. Ils ont d'ailleurs leur ligne dans « Plus », qui agit au
+ * lieu de ranger : « Ajouter aux favoris » et « Mettre en pause… ».
+ *
+ * « Réception » les remplace, et elle manquait : depuis Archive ou la
+ * corbeille, aucune ligne ne ramenait un fil chez lui.
+ *
+ * « Indésirable » s'ajoute quand la boîte en a un — juste avant la corbeille,
+ * comme dans la liste des dossiers.
  */
-const DESTINATIONS: { id: FolderId; name: string; icon: LucideIcon }[] = [
-  { id: "starred", name: "Favoris", icon: Star },
-  { id: "snoozed", name: "En pause", icon: Clock },
+const DESTINATIONS: { id: DossierCible; name: string; icon: LucideIcon }[] = [
+  { id: "inbox", name: "Réception", icon: FOLDER_ICON.inbox },
   { id: "archive", name: "Archive", icon: Archive },
   { id: "junk", name: "Indésirable", icon: FOLDER_ICON.junk },
   { id: "trash", name: "Corbeille", icon: Trash2 },
@@ -57,7 +65,7 @@ export function ThreadSheets({
   canReplyAll: boolean;
   onReplyAll: () => void;
   onForward: () => void;
-  onRanger: (to: FolderId) => void;
+  onRanger: (to: DossierCible) => void;
   /** Une pause porte une date : c'est ce qui la distingue d'un rangement. */
   onPause: (date: Date) => void;
 }) {

@@ -1,5 +1,3 @@
-import type { FolderId } from "./types";
-
 /**
  * **Mettre en pause, et revenir.**
  *
@@ -19,30 +17,11 @@ import type { FolderId } from "./types";
  * ce qu'elle dit, et dit ce qu'elle fait.
  */
 export type Pause = {
-  /** Quand le fil doit revenir, en ISO. */
+  /** Quand le fil doit revenir, en ISO. Et c'est tout ce qu'il faut. */
   wake: string;
-  /** D'où il vient — « l'inverse de mettre en pause » n'existe pas dans l'absolu. */
-  from: FolderId;
-  /**
-   * Quel espace, pour savoir **où aller le chercher**.
-   *
-   * Un fil mis en pause depuis Perso doit revenir dans Perso, même si on
-   * regarde Pro à l'heure dite : sans cet espace, le réveil ne saurait pas
-   * quelle boîte relire, et le compteur de non-lus de l'autre espace resterait
-   * faux jusqu'à ce qu'on y aille.
-   */
-  space: string;
 };
 
-/**
- * Au bout de combien de temps une pause qu'on n'arrive pas à tenir s'oublie.
- *
- * Un fil supprimé depuis un autre appareil ne reviendra jamais dans la liste,
- * et sa promesse serait réessayée à chaque ouverture pour toujours. Trente
- * jours : assez pour couvrir une app qu'on n'ouvre pas de trois semaines,
- * assez court pour que rien ne s'accumule.
- */
-export const OUBLI = 30 * 86_400_000;
+
 
 export type PauseId = "heure" | "soir" | "demain" | "weekend" | "semaine";
 

@@ -5,7 +5,7 @@ import nodemailer from "nodemailer";
 import MailComposer from "nodemailer/lib/mail-composer";
 
 import type { StoredAccount } from "@/lib/accounts/server";
-import type { Contact, FolderId, Thread } from "@/lib/types";
+import type { Contact, Thread, DossierCible } from "@/lib/types";
 import { parseThreadId, threadId } from "./imap";
 import type { DraftInput, OutgoingMessage } from "./provider";
 
@@ -120,7 +120,7 @@ async function composer(message: OutgoingMessage, fil: Fil, brouillon = false): 
 function filEcrit(
   message: OutgoingMessage | DraftInput,
   id: string,
-  folder: FolderId,
+  folder: DossierCible,
   unread = false,
 ): Thread {
   return {

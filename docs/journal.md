@@ -2,6 +2,40 @@
 
 Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérification.
 
+## 8 septembre 2026 — « En pause » n'est pas un dossier, et le compilateur le sait maintenant
+
+« Pour mettre en pause j'ai un toast : *Cette boîte n'a pas de dossier « snoozed »*. » Signalé sur
+la vraie boîte, quelques minutes après la mise en ligne de la fonction.
+
+Et c'est vrai. iCloud n'a pas de `\Snoozed` en SPECIAL-USE : il n'y a **aucun dossier** où déposer
+quoi que ce soit, et en deviner un est précisément ce que la fiche IMAP interdit. La fiche le disait
+déjà pour les compteurs — « Favoris et En pause n'y sont pas : un drapeau, pas de dossier » — mais
+l'action, elle, appelait `moveThread(id, "snoozed")` depuis le premier jour. Elle n'avait jamais
+marché ailleurs que sur le mock ; la pause d'hier avait hérité de ce défaut sans le voir.
+
+**Un fil en pause ne bouge plus.** Il reste dans son dossier sur le serveur, et c'est `pauses` qui
+le retire de la liste qu'on regarde et le pose dans « En pause ». Rien à créer, rien à deviner,
+rien qui puisse échouer.
+
+Ce qui a permis de fermer la porte pour de bon, c'est un **type** : `DossierCible`, `FolderId` moins
+Favoris et En pause. Le compilateur refuse maintenant ce que le serveur refusait. Il a fallu le
+suivre partout — `Thread.folder`, la route, `writeThread`, le mock — et il a trouvé au passage deux
+choses qu'on n'avait pas vues : « Déplacer vers » proposait **Favoris** (même erreur, même toast à
+venir) et ne proposait **pas Réception**, donc depuis Archive aucune ligne ne ramenait un fil chez
+lui.
+
+Le réveil s'en trouve simplifié à presque rien : le fil est resté où il était, réveiller c'est
+oublier la promesse. Plus de relecture de dossier, plus de déplacement inverse, plus d'oubli au bout
+d'un mois — tout cela n'existait que pour rattraper un déplacement.
+
+Un dernier piège, trouvé à la mesure : `useVisibleThreads` reconstruit un état partiel pour son
+sélecteur memoïsé, et `pauses` n'y était pas. Le sélecteur était juste, l'état qu'on lui passait ne
+l'était pas, et la liste ne bougeait pas d'un pouce.
+
+Vérifié : mise en pause → la réception passe de 20 rangées à 19, « En pause » montre le fil avec sa
+puce « Revient demain à 8 h » ; heure reculée puis rechargement → `pauses` est vide et le fil est de
+retour. Zéro erreur de console, zéro appel au serveur.
+
 ## 8 septembre 2026 — « En pause » ramène enfin ce qu'on y met
 
 Le paquet « les fonctions annoncées qui n'ont rien derrière ». « En pause » était un dossier et

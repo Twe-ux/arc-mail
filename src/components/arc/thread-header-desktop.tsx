@@ -9,7 +9,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 
 import { signalement } from "@/lib/folders";
 import { selectAJunk, useMail } from "@/lib/store";
-import type { FolderId, Thread } from "@/lib/types";
+import type { Thread, DossierCible } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { ContactAvatar } from "./contact-avatar";
 import { ThreadDetails } from "./thread-details";
@@ -47,7 +47,7 @@ export function ThreadHeaderDesktop({
   /** Une pause porte maintenant **une date** : c'est ce qui la distingue d'un rangement. */
   onSnooze: (date: Date) => void;
   /** Ranger ailleurs que dans les trois destinations qui ont leur bouton. */
-  onRanger: (to: FolderId) => void;
+  onRanger: (to: DossierCible) => void;
 }) {
   const selectThread = useMail((s) => s.selectThread);
   const toggleUnread = useMail((s) => s.toggleUnread);

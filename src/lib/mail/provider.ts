@@ -1,4 +1,4 @@
-import type { Contact, FolderId, Thread } from "../types";
+import type { Contact, DossierCible, FolderId, Thread } from "../types";
 
 /**
  * Where a space's mail comes from. One account can back several spaces (an
@@ -60,7 +60,16 @@ export type FolderUnread = Partial<Record<FolderId, number>>;
 export type ThreadPatch = {
   unread?: boolean;
   starred?: boolean;
-  folder?: FolderId;
+  folder?: DossierCible;
+  /**
+   * **La liste entière**, pas un ajout ni un retrait.
+   *
+   * Côté IMAP une étiquette est un mot-clé, et poser la liste laisse au
+   * fournisseur le soin de calculer la différence — c'est lui qui sait ce que
+   * le message porte déjà, y compris les mots-clés des autres clients auxquels
+   * on ne touche pas.
+   */
+  labels?: string[];
 };
 
 /**

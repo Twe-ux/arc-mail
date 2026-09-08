@@ -4,7 +4,7 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { renommerEspace } from "./accounts/actions";
 import { fait } from "./folders";
-import { libellePause, OUBLI, type Pause } from "./pause";
+import { libellePause, type Pause } from "./pause";
 import { firstLine, formatFullDate } from "./format";
 import { providerFor } from "./mail";
 import type { FolderUnread } from "./mail/provider";
@@ -16,7 +16,7 @@ import { texteLibre } from "./search/ast";
 import { dossiersDe } from "./search/imap";
 import { correspond } from "./search/match";
 import { parse } from "./search/parse";
-import type { Attachment, ComposeDraft, Contact, Folder, FolderId, Message, Space, SpaceId, Thread, Vue } from "./types";
+import type { Attachment, ComposeDraft, Contact, DossierCible, Folder, FolderId, Message, Space, SpaceId, Thread, Vue } from "./types";
 
 /** Partiel : un espace nouveau n'a pas encore de clé, et `?? []` est la lecture. */
 type RecentMap = Partial<Record<SpaceId, string[]>>;
@@ -206,7 +206,7 @@ export type MailState = {
   searchOnServer: (q: string) => void;
   toggleStar: (id: string, silencieux?: boolean) => void;
   toggleUnread: (id: string, silencieux?: boolean) => void;
-  moveThread: (id: string, folder: FolderId, silencieux?: boolean) => void;
+  moveThread: (id: string, folder: DossierCible, silencieux?: boolean) => void;
 
   /**
    * **La sélection multiple.** Elle décrit un écran, pas un goût : elle ne se
@@ -231,7 +231,7 @@ export type MailState = {
   toutSelectionner: () => void;
   finSelection: () => void;
   /** Le même déplacement pour n fils, **un seul** toast et une seule annulation. */
-  moveThreads: (ids: string[], folder: FolderId) => void;
+  moveThreads: (ids: string[], folder: DossierCible) => void;
 
   /**
    * **Les pauses en cours**, par identifiant de fil : quand il revient, et d'où
@@ -242,9 +242,12 @@ export type MailState = {
   pauses: Record<string, Pause>;
   /** Mettre en pause jusqu'à une date, en gardant le dossier de départ. */
   snoozeThread: (id: string, wake: Date) => void;
+  /** Sortir un fil de la pause tout de suite. */
+  reprendre: (id: string) => void;
   /**
-   * Ramener ce dont l'heure est passée. Appelé au montage et à chaque lecture
-   * de boîte : il n'y a pas de serveur à nous pour le faire à la seconde dite.
+   * Oublier les promesses dont l'heure est passée — les fils reparaissent là
+   * où ils sont restés. Appelé au montage et au retour sur l'onglet : il n'y a
+   * pas de serveur à nous pour le faire à la seconde dite.
    */
   reveiller: () => Promise<void>;
   /** Poser l'état de lecture d'un groupe — poser, pas basculer : un groupe n'a pas d'état commun. */
@@ -908,8 +911,8 @@ export const useMail = create<MailState>()(
    */
   const deplacer = (
     id: string,
-    folder: FolderId,
-  ): { depuis: FolderId; ok: Promise<boolean>; courant: () => string } | null => {
+    folder: DossierCible,
+  ): { depuis: DossierCible; ok: Promise<boolean>; courant: () => string } | null => {
     const before = get().threads;
     const t = before.find((x) => x.id === id);
     if (!t) return null;
@@ -1009,6 +1012,13 @@ export const useMail = create<MailState>()(
   loadSpace: async (id, folderId) => {
     const spaceId = id ?? get().spaceId;
     const folder = folderId ?? get().folderId;
+    /* **« En pause » ne se lit pas** : ce n'est pas un dossier, c'est `pauses`.
+       Aller le demander au serveur, c'était l'aller-retour qui répondait
+       « Cette boîte n'a pas de dossier « snoozed » ». */
+    if (folder === "snoozed") {
+      set((s) => ({ loading: { ...s.loading, [spaceId]: false }, error: null }));
+      return;
+    }
     const account = accountOf(spaceId);
     const token = (loadTokens.get(spaceId) ?? 0) + 1;
     loadTokens.set(spaceId, token);
@@ -1279,41 +1289,52 @@ export const useMail = create<MailState>()(
    * n'existe pas dans l'absolu — un fil mis en pause depuis Archive doit
    * revenir dans Archive.
    */
+  /**
+   * **Mettre en pause, sans rien déplacer.**
+   *
+   * La première version faisait `moveThread(id, "snoozed")`, et sur une vraie
+   * boîte elle répondait « Cette boîte n'a pas de dossier « snoozed » » :
+   * iCloud n'a pas de `\Snoozed` en SPECIAL-USE, et deviner un nom de dossier
+   * est ce que la fiche IMAP interdit. « En pause » est un **état**, comme
+   * Favoris — la fiche le disait déjà pour les compteurs, l'action ne le
+   * savait pas.
+   *
+   * Le fil reste donc là où il est sur le serveur ; c'est `pauses` qui le
+   * retire de la liste qu'on regarde et le montre dans « En pause » jusqu'à
+   * l'heure dite. Rien à écrire au serveur, donc rien qui puisse échouer : le
+   * geste marche sur toutes les boîtes, et son annulation est immédiate.
+   */
   snoozeThread: (id, wake) => {
-    const d = deplacer(id, "snoozed");
-    if (!d) return;
-    void d.ok.then((ok) => {
-      if (!ok) return;
-      const t = get().threads.find((x) => x.id === d.courant());
-      set((s) => ({
-        pauses: {
-          ...s.pauses,
-          [d.courant()]: { wake: wake.toISOString(), from: d.depuis, space: t?.spaceId ?? s.spaceId },
-        },
-      }));
-    });
-    annulable(`En pause, revient ${libellePause(wake.toISOString())}`, d.ok, () => {
-      const revenu = d.courant();
-      set((s) => {
-        const reste = { ...s.pauses };
-        delete reste[revenu];
-        return { pauses: reste };
-      });
-      get().moveThread(revenu, d.depuis, true);
+    const t = get().threads.find((x) => x.id === id);
+    if (!t) return;
+    set((s) => ({
+      pauses: { ...s.pauses, [id]: { wake: wake.toISOString() } },
+      selectedThreadId: s.selectedThreadId === id ? null : s.selectedThreadId,
+    }));
+    annulable(`En pause, revient ${libellePause(wake.toISOString())}`, Promise.resolve(true), () => {
+      get().reprendre(id);
       toast("Annulé");
     });
   },
 
+  /** Sortir un fil de la pause tout de suite — « Annuler », ou le réveil. */
+  reprendre: (id) =>
+    set((s) => {
+      const reste = { ...s.pauses };
+      delete reste[id];
+      return { pauses: reste };
+    }),
+
   /**
    * **Ramener ce dont l'heure est passée.**
    *
-   * Silencieux : un fil qui revient n'a pas à poser un toast avec « Annuler »
-   * — personne ne vient de faire un geste, et neuf fils qui reviennent en même
-   * temps feraient neuf toasts pour une nouvelle qui se lit dans la liste.
+   * Depuis que la pause ne déplace plus rien, réveiller c'est **oublier la
+   * promesse** : le fil est resté dans son dossier, il y réapparaît. Plus rien
+   * à relire, plus rien à écrire, plus rien qui puisse échouer.
    *
-   * On retire la pause **d'abord**, et on la retire aussi pour un fil que la
-   * liste ne connaît plus (déplacé ou supprimé depuis un autre appareil) :
-   * sinon la promesse resterait à essayer d'être tenue à chaque ouverture.
+   * Silencieux : personne ne vient de faire un geste, et neuf fils qui
+   * reviennent en même temps feraient neuf toasts pour une nouvelle qui se lit
+   * dans la liste.
    */
   reveiller: async () => {
     const maintenant = Date.now();
@@ -1321,34 +1342,11 @@ export const useMail = create<MailState>()(
       ([, p]) => new Date(p.wake).getTime() <= maintenant,
     );
     if (dus.length === 0) return;
-
-    /* **Le fil n'est pas forcément en main.** `loadSpace` ne lit qu'un dossier,
-       celui qu'on regarde : à l'ouverture sur la réception, les fils déposés
-       dans « En pause » ne sont nulle part. On relit donc cette boîte-là — et
-       celle de chaque espace concerné, parce qu'un fil mis en pause depuis
-       Perso doit revenir dans Perso même si l'on regarde Pro. `loadSpace` ne
-       change pas de dossier affiché, il verse dans `threads`. */
-    const absents = [...new Set(dus.filter(([id]) => !get().threads.some((t) => t.id === id)).map(([, p]) => p.space))];
-    if (absents.length > 0) {
-      await Promise.all(absents.map((sp) => get().loadSpace(sp, "snoozed").catch(() => {})));
-    }
-
-    const enMain = dus.filter(([id]) => get().threads.some((t) => t.id === id));
-    /* Ce qu'on ne retrouve pas s'oublie **au bout d'un mois**, pas tout de
-       suite : un fil peut manquer parce que la lecture a échoué, et jeter la
-       promesse au premier réseau coupé serait la perdre pour de bon. */
-    const perimees = dus.filter(([, p]) => maintenant - new Date(p.wake).getTime() > OUBLI);
-
-    if (enMain.length === 0 && perimees.length === 0) return;
     set((s) => {
       const reste = { ...s.pauses };
-      [...enMain, ...perimees].forEach(([id]) => delete reste[id]);
+      dus.forEach(([id]) => delete reste[id]);
       return { pauses: reste };
     });
-    /* **Silencieux.** Personne ne vient de faire un geste, et neuf fils qui
-       reviennent en même temps feraient neuf toasts avec « Annuler » pour une
-       nouvelle qui se lit dans la liste. */
-    enMain.forEach(([id, p]) => get().moveThread(id, p.from, true));
   },
 
   ouvrirSelection: (id) =>
@@ -2049,7 +2047,35 @@ export const useMail = create<MailState>()(
 
 // ───────────── Selectors ─────────────
 
-export function threadMatchesFolder(t: Thread, folderId: FolderId): boolean {
+/**
+ * **« En pause » est un état, pas une destination** — comme Favoris.
+ *
+ * Signalé sur une vraie boîte : « pour mettre en pause j'ai un toast *Cette
+ * boîte n'a pas de dossier « snoozed »* ». Et c'est vrai : iCloud n'a pas de
+ * `\Snoozed` en SPECIAL-USE, il n'y a aucun dossier où déposer quoi que ce
+ * soit. La fiche IMAP le disait déjà pour les compteurs — « Favoris et En
+ * pause n'y sont pas : un drapeau, pas de dossier » —, mais l'action, elle,
+ * appelait `moveThread(id, "snoozed")` depuis le premier jour : elle ne
+ * marchait que sur le mock.
+ *
+ * Un fil en pause **ne bouge donc pas** : il reste dans son dossier sur le
+ * serveur, et c'est la pause qui le retire de la liste qu'on regarde et le
+ * pose dans « En pause » jusqu'à l'heure dite. Rien à créer côté serveur,
+ * rien à deviner, et le geste marche sur toutes les boîtes.
+ *
+ * `pauses` est facultatif pour les appelants qui n'en ont pas (la recherche
+ * compile un arbre sans état) : sans lui, la pause ne masque rien.
+ */
+export function threadMatchesFolder(
+  t: Thread,
+  folderId: FolderId,
+  pauses?: Record<string, Pause>,
+): boolean {
+  const enPause = pauses?.[t.id] !== undefined;
+  if (folderId === "snoozed") return enPause && t.folder !== "trash";
+  /* Un fil en pause a quitté sa liste : le laisser dans la réception ferait
+     d'une pause un simple marquage. */
+  if (enPause) return false;
   if (folderId === "starred") return t.starred && t.folder !== "trash";
   return t.folder === folderId;
 }
@@ -2280,7 +2306,7 @@ export function selectVisibleThreads(s: MailState): Thread[] {
     s.threads.filter(
       (t) =>
         t.spaceId === s.spaceId &&
-        threadMatchesFolder(t, s.folderId) &&
+        threadMatchesFolder(t, s.folderId, s.pauses) &&
         (arbre === null || correspond(arbre, t)) &&
         (!s.unreadOnly || t.unread),
     ),
@@ -2292,7 +2318,7 @@ export function selectVueUnread(s: MailState, vue: Vue): number {
   const arbre = arbreDe(vue.q);
   const folderId = dossiersDe(arbre)[0] ?? "inbox";
   return s.threads.filter(
-    (t) => t.spaceId === s.spaceId && t.unread && threadMatchesFolder(t, folderId) && correspond(arbre, t),
+    (t) => t.spaceId === s.spaceId && t.unread && threadMatchesFolder(t, folderId, s.pauses) && correspond(arbre, t),
   ).length;
 }
 
@@ -2312,7 +2338,7 @@ export function selectVueUnread(s: MailState, vue: Vue): number {
  */
 export function selectUnreadCount(s: MailState, spaceId: SpaceId, folderId: FolderId): number {
   const local = s.threads.filter(
-    (t) => t.spaceId === spaceId && t.unread && threadMatchesFolder(t, folderId),
+    (t) => t.spaceId === spaceId && t.unread && threadMatchesFolder(t, folderId, s.pauses),
   ).length;
   if (spaceId === s.spaceId && folderId === s.folderId) return local;
   return s.folderCounts[spaceId]?.[folderId] ?? local;
@@ -2351,8 +2377,12 @@ export function useVisibleThreads(): Thread[] {
   const unreadOnly = useMail((s) => s.unreadOnly);
   const vues = useMail((s) => s.vues);
   const vueId = useMail((s) => s.vueId);
+  /* **`pauses` en fait partie** : c'est lui qui retire un fil de sa liste et le
+     pose dans « En pause ». Oublié dans cet état reconstruit, la liste ne
+     bougeait pas d'un pouce quand on mettait un fil en pause. */
+  const pauses = useMail((s) => s.pauses);
   return useMemo(
-    () => selectVisibleThreads({ threads, spaceId, folderId, unreadOnly, vues, vueId } as MailState),
-    [threads, spaceId, folderId, unreadOnly, vues, vueId],
+    () => selectVisibleThreads({ threads, spaceId, folderId, unreadOnly, vues, vueId, pauses } as MailState),
+    [threads, spaceId, folderId, unreadOnly, vues, vueId, pauses],
   );
 }

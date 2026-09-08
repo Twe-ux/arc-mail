@@ -13,8 +13,9 @@ import {
 import { simpleParser, type ParsedMail } from "mailparser";
 
 import type { StoredAccount } from "@/lib/accounts/server";
+import { etiquetteDe, etiquettesDe, motCle } from "@/lib/etiquettes";
 import type { RechercheImap } from "@/lib/search/imap";
-import type { Contact, FolderId, Message, Thread } from "@/lib/types";
+import type { Contact, FolderId, Message, Thread, DossierCible } from "@/lib/types";
 import { apercuDe } from "./apercu";
 import { lireListUnsubscribe } from "./desabonnement";
 import { inlineImages, nettoyer } from "./html";
@@ -445,7 +446,7 @@ function entete(mime: ParsedMail, nom: string): string | undefined {
  * Un fil sans espace : le fournisseur n'en connaît pas, c'est le store qui
  * tamponne à la réception (voir `stamp` dans `store.ts`).
  */
-function toThread(group: Situe[], path: string, folder: FolderId): Thread {
+function toThread(group: Situe[], path: string, folder: DossierCible): Thread {
   const last = group[group.length - 1];
   /* **L'identité du fil reste dans la boîte qu'on regarde.** Un fil fondu se
      termine souvent par notre propre réponse, qui vit dans « Envoyés » : en
@@ -473,7 +474,10 @@ function toThread(group: Situe[], path: string, folder: FolderId): Thread {
        l'objet. Vide si le fragment n'a pas pu être lu — une ligne absente vaut
        mieux qu'une ligne fausse. */
     snippet: apercuDe(fragment(last)),
-    labels: [],
+    /* **Les étiquettes sont des mots-clés**, lus sur tous les messages du fil :
+       étiqueter une conversation étiquette ce qu'elle contient, et un fil dont
+       un seul message porte le mot-clé porte l'étiquette. */
+    labels: etiquettesDe(group.flatMap((m) => [...(m.flags ?? [])])),
     unread: group.some((m) => !m.flags?.has("\\Seen")),
     starred: group.some((m) => m.flags?.has("\\Flagged")),
     messages,
@@ -496,7 +500,7 @@ function toThread(group: Situe[], path: string, folder: FolderId): Thread {
 export async function searchFolder(
   client: ImapFlow,
   path: string,
-  folder: FolderId,
+  folder: DossierCible,
   critere: RechercheImap,
   limit = 40,
   moi?: string,
@@ -564,7 +568,7 @@ async function lireEnvoyes(client: ImapFlow, path: string): Promise<Situe[]> {
 export async function readFolder(
   client: ImapFlow,
   path: string,
-  folder: FolderId,
+  folder: DossierCible,
   options: { flaggedOnly?: boolean; limit?: number; deja?: number; moi?: string; sentPath?: string } = {},
 ): Promise<Thread[]> {
   const lock = await client.getMailboxLock(path);
@@ -637,7 +641,7 @@ export async function readFolder(
 export async function writeThread(
   client: ImapFlow,
   id: string,
-  patch: { unread?: boolean; starred?: boolean; path?: string },
+  patch: { unread?: boolean; starred?: boolean; path?: string; labels?: string[] },
 ): Promise<string | null> {
   const parsed = parseThreadId(id);
   if (!parsed) throw new Error(`Identifiant de conversation illisible : « ${id} »`);
@@ -655,6 +659,32 @@ export async function writeThread(
       const flagged = ["\\Flagged"];
       if (patch.starred) await client.messageFlagsAdd(range, flagged, uid);
       else await client.messageFlagsRemove(range, flagged, uid);
+    }
+    if (patch.labels !== undefined) {
+      /* **On demande d'abord si la boîte en veut.** `\\*` dans les drapeaux
+         permanents est la façon dont un serveur annonce qu'il accepte les
+         mots-clés ; sans lui, `STORE` les avale sans rien garder et
+         l'étiquette disparaîtrait à la relecture — une écriture qui a l'air de
+         passer et ne passe pas est pire qu'un refus. Le dossier est déjà
+         sélectionné par le verrou, la question ne coûte rien. */
+      const permanents = client.mailbox && typeof client.mailbox !== "boolean"
+        ? client.mailbox.permanentFlags
+        : undefined;
+      if (permanents && !permanents.has("\\*")) {
+        throw new Error("Cette boîte n'accepte pas les étiquettes.");
+      }
+      /* Le message porte peut-être des mots-clés d'un autre client (`$label1`,
+         `$MailFlagBit0`) : on ne touche qu'aux nôtres, en retirant ce qui n'est
+         plus voulu et en ajoutant ce qui manque. */
+      const avant = new Set<string>();
+      for await (const m of client.fetch(range, { flags: true }, uid)) {
+        for (const f of m.flags ?? []) if (etiquetteDe(f)) avant.add(f);
+      }
+      const apres = new Set(patch.labels.map(motCle));
+      const aRetirer = [...avant].filter((f) => !apres.has(f));
+      const aPoser = [...apres].filter((f) => !avant.has(f));
+      if (aRetirer.length) await client.messageFlagsRemove(range, aRetirer, uid);
+      if (aPoser.length) await client.messageFlagsAdd(range, aPoser, uid);
     }
     /* Le déplacement en dernier : après lui, l'UID de départ ne désigne plus
        rien dans ce dossier, et les drapeaux n'auraient plus de cible. */
@@ -700,7 +730,7 @@ const BUDGET = 1_200_000;
 export async function readThreads(
   client: ImapFlow,
   ids: string[],
-  folder: FolderId,
+  folder: DossierCible,
 ): Promise<Thread[]> {
   const parDossier = new Map<string, number[]>();
   for (const id of ids) {
@@ -747,7 +777,7 @@ export async function readThreads(
  * squelette, **pour toujours** : « pourquoi je n'ai pas tous les messages de la
  * conversation ? ». Un fil de trois messages n'en montrait qu'un.
  */
-async function complet(messages: Situe[], path: string, folder: FolderId): Promise<Thread> {
+async function complet(messages: Situe[], path: string, folder: DossierCible): Promise<Thread> {
   const thread = toThread(messages, path, folder);
   await Promise.all(messages.map((m, i) => remplirMessage(thread, i, m, chemin(m, path))));
 
@@ -861,7 +891,7 @@ export async function readAttachment(
 export async function readThread(
   client: ImapFlow,
   id: string,
-  folder: FolderId,
+  folder: DossierCible,
   messageIds?: string[],
 ): Promise<Thread | null> {
   const parsed = parseThreadId(id);

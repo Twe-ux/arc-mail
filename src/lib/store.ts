@@ -252,6 +252,19 @@ export type MailState = {
   reveiller: () => Promise<void>;
   /** Poser l'état de lecture d'un groupe — poser, pas basculer : un groupe n'a pas d'état commun. */
   marquerLus: (ids: string[], unread: boolean) => void;
+
+  /**
+   * **Les étiquettes d'un fil, la liste entière.**
+   *
+   * Pas d'ajout ni de retrait : c'est le fournisseur qui sait ce que le message
+   * porte déjà (y compris les mots-clés des autres clients, auxquels on ne
+   * touche pas) et qui calcule la différence.
+   *
+   * Pas de toast non plus : cocher une étiquette se défait en la décochant, et
+   * un « Annuler » pour un geste qui est déjà son propre inverse serait du
+   * bruit. Un refus du serveur, lui, se voit — `commit` ramène le fil.
+   */
+  setLabels: (id: string, labels: string[]) => void;
   removeRecent: (id: string) => void;
   clearRecent: () => void;
   toggleSplit: () => void;
@@ -1349,6 +1362,20 @@ export const useMail = create<MailState>()(
     });
   },
 
+  setLabels: (id, labels) => {
+    const before = get().threads;
+    const t = before.find((x) => x.id === id);
+    if (!t) return;
+    const propres = [...new Set(labels.map((l) => l.trim()).filter(Boolean))];
+    set({ threads: patchThread(before, id, (x) => ({ ...x, labels: propres })) });
+    const account = accountOf(t.spaceId);
+    void commit(
+      t,
+      () => providerFor(account).modify(account, id, { labels: propres }),
+      "Étiquette impossible, la conversation est de retour",
+    );
+  },
+
   ouvrirSelection: (id) =>
     set((s) => ({
       selectionOn: true,
@@ -2078,6 +2105,34 @@ export function threadMatchesFolder(
   if (enPause) return false;
   if (folderId === "starred") return t.starred && t.folder !== "trash";
   return t.folder === folderId;
+}
+
+/**
+ * **Les étiquettes déjà employées**, dans l'espace qu'on regarde.
+ *
+ * Il n'y a pas de table d'étiquettes : une étiquette existe parce qu'un
+ * message la porte, comme les libellés de Gmail se découvrent en lisant. La
+ * liste se construit donc sur ce qu'on a en mémoire — elle s'allonge à mesure
+ * qu'on lit des dossiers, et c'est le comportement juste : proposer une
+ * étiquette qu'on n'a jamais vue n'aurait aucun sens.
+ */
+function labelsDe(threads: Thread[], spaceId: SpaceId): string[] {
+  const vues = new Set<string>();
+  for (const t of threads) if (t.spaceId === spaceId) for (const l of t.labels) vues.add(l);
+  return [...vues].sort((a, b) => a.localeCompare(b, "fr"));
+}
+
+/**
+ * **Memoïsé, comme `useVisibleThreads`.** Un sélecteur qui fabrique un tableau
+ * neuf à chaque appel rend une référence différente à chaque comparaison, et
+ * `useSyncExternalStore` boucle jusqu'à « Maximum update depth exceeded ». La
+ * règle est écrite dans `CLAUDE.md` ; elle vient de coûter un rendu infini au
+ * premier menu d'étiquettes.
+ */
+export function useLabels(): string[] {
+  const threads = useMail((s) => s.threads);
+  const spaceId = useMail((s) => s.spaceId);
+  return useMemo(() => labelsDe(threads, spaceId), [threads, spaceId]);
 }
 
 export function lastMessageDate(t: Thread): string {

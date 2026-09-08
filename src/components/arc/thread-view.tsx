@@ -39,7 +39,7 @@ export function ThreadView({ className }: { className?: string }) {
   const [aim, setAim] = useState<{ threadId: string; to: Contact[]; tick: number } | null>(null);
   /* Une feuille à la fois, et une seule barre en bas : répondre remplace la
      pill, il ne se pose pas dessus. */
-  const [sheet, setSheet] = useState<null | "move" | "more" | "pause">(null);
+  const [sheet, setSheet] = useState<null | "move" | "more" | "pause" | "tags">(null);
   const [replyOpen, setReplyOpen] = useState(false);
 
   const threadId = thread?.id;

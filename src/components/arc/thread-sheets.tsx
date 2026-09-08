@@ -10,6 +10,7 @@ import {
   Paperclip,
   ReplyAll,
   ShieldAlert,
+  Tag,
   Trash2,
   type LucideIcon,
 } from "lucide-react";
@@ -18,6 +19,7 @@ import { FOLDER_ICON, signalement } from "@/lib/folders";
 import { selectAJunk, useMail } from "@/lib/store";
 import type { Thread, DossierCible } from "@/lib/types";
 import { BottomSheet, SheetGroup, SheetRow, SheetScroller } from "./bottom-sheet";
+import { EtiquettesChoix } from "./etiquettes-menu";
 import { PauseChoix } from "./pause-menu";
 
 /**
@@ -60,8 +62,8 @@ export function ThreadSheets({
   onPause,
 }: {
   thread: Thread;
-  sheet: null | "move" | "more" | "pause";
-  onSheet: (s: null | "move" | "more" | "pause") => void;
+  sheet: null | "move" | "more" | "pause" | "tags";
+  onSheet: (s: null | "move" | "more" | "pause" | "tags") => void;
   canReplyAll: boolean;
   onReplyAll: () => void;
   onForward: () => void;
@@ -137,6 +139,11 @@ export function ThreadSheets({
               <span className="min-w-0 flex-1 text-[15px]">Mettre en pause…</span>
               <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
             </SheetRow>
+            <SheetRow onClick={() => onSheet("tags")}>
+              <Tag className="size-5 shrink-0" strokeWidth={1.75} />
+              <span className="min-w-0 flex-1 text-[15px]">Étiqueter…</span>
+              <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+            </SheetRow>
             {/* **L'action nommée, à côté du rangement qui la double.** « Mettre
                 en pause » est déjà dans les deux feuilles pour la même raison :
                 « Déplacer vers » range, « Plus » agit, et un geste qu'on nomme
@@ -184,6 +191,22 @@ export function ThreadSheets({
                 onPause(date);
               }}
             />
+          </SheetGroup>
+        </SheetScroller>
+      </BottomSheet>
+
+      {/* Comme la pause : une feuille à elle, prise depuis « Plus » et qui y
+          ramène. Elle **reste ouverte** quand on coche — on pose souvent deux
+          étiquettes d'affilée, et le champ du bas en fabrique une nouvelle. */}
+      <BottomSheet
+        open={sheet === "tags"}
+        onOpenChange={(o) => onSheet(o ? "tags" : "more")}
+        title="Étiqueter"
+        description="Les étiquettes de cette conversation"
+      >
+        <SheetScroller>
+          <SheetGroup>
+            <EtiquettesChoix taille="sheet" threadId={thread.id} actuelles={thread.labels} />
           </SheetGroup>
         </SheetScroller>
       </BottomSheet>

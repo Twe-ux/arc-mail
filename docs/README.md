@@ -30,6 +30,7 @@ l'état du projet et ce qui reste à faire.
 - [Profil du compte](features/profil.md) — le visage et le nom, le seau privé, qui est « nous »
 - [Sélection multiple](features/selection.md) — le mode, l'appui long, un geste et un toast
 - [En pause](features/pause.md) — les cinq moments, le réveil, et ce qu'il ne sait pas faire
+- [Étiqueter](features/etiquettes.md) — le mot-clé IMAP, l'alphabet des atomes, ce que le serveur accepte
 - [IMAP](features/imap.md) — lire une vraie boîte : la route, les dossiers, les fils, l'hydratation
 - [Espaces](features/espaces.md) — d'où ils viennent, un dossier vécu comme une réception, la lecture par dossier, Favoris
 - [Indésirable](features/indesirable.md) — le seul dossier qui peut ne pas exister, et les deux gestes qui le remplissent et le vident

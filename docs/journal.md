@@ -2,6 +2,35 @@
 
 Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérification.
 
+## 8 septembre 2026 — étiqueter, et laisser le serveur répondre lui-même
+
+« Étiqueter ? que dois-je faire ? » — rien, justement. La veille j'avais rangé la fonction dans
+« une décision à prendre » et demandé une vérification sur la vraie boîte : est-ce qu'iCloud accepte
+les mots-clés ? C'était mettre à quelqu'un d'autre une question que le code peut poser lui-même, à
+chaque écriture, sur la boîte qui est devant lui.
+
+**Une étiquette est un mot-clé IMAP** — la mécanique de `\Seen` et `\Flagged`. Un fil reste dans un
+seul dossier et l'étiquette voyage avec le message ; les deux autres chemins (un dossier par
+étiquette, ou du local) changeaient le modèle ou se perdaient au premier archivage.
+
+**L'alphabet était le vrai obstacle.** Un mot-clé est un *atome* : ni espace, ni accent. « Amis » et
+« Achats » passent donc tels quels et restent lisibles dans Mail d'iOS ; « Santé » devient
+`Arc_U2FudMOp`. Aller-retour vérifié sur sept cas, apostrophes, barres obliques et japonais compris.
+
+**Et la question de départ se pose à l'écriture** : `\*` dans `PERMANENTFLAGS` est la façon dont un
+serveur annonce qu'il accepte les mots-clés. Sans lui, `STORE` les avale sans rien garder — une
+écriture qui a l'air de passer et ne passe pas est pire qu'un refus. Le dossier est déjà
+sélectionné, la question ne coûte rien, et le refus se lit.
+
+Un défaut trouvé à la mesure, et c'est une règle du dépôt que je venais d'enfreindre : le sélecteur
+des étiquettes connues fabriquait un tableau neuf à chaque appel, donc une référence neuve à chaque
+comparaison, et le menu mourait sur « Maximum update depth exceeded ». Memoïsé comme
+`useVisibleThreads`, comme `CLAUDE.md` le demande depuis longtemps.
+
+Vérifié : sous-menu à 246 × 423 px, les neuf étiquettes de l'espace proposées ; cocher « Achats »
+puis créer « Vacances d'été » fait passer la rangée de « Amis » à « Amis · Achats · Vacances d'été »,
+et les trois se relisent cochées. Zéro erreur de console.
+
 ## 8 septembre 2026 — « En pause » n'est pas un dossier, et le compilateur le sait maintenant
 
 « Pour mettre en pause j'ai un toast : *Cette boîte n'a pas de dossier « snoozed »*. » Signalé sur

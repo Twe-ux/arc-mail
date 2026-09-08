@@ -1,9 +1,10 @@
 "use client";
 
-import { Archive, ChevronLeft, Clock, Forward, type LucideIcon, Mail, MailOpen, MoreHorizontal, ReplyAll, ShieldAlert, Star, Trash2, X } from "lucide-react";
+import { Archive, ChevronLeft, Clock, Forward, type LucideIcon, Mail, MailOpen, MoreHorizontal, ReplyAll, ShieldAlert, Star, Tag, Trash2, X } from "lucide-react";
 import { useState } from "react";
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { EtiquettesChoix } from "./etiquettes-menu";
 import { PauseChoix } from "./pause-menu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -61,6 +62,9 @@ export function ThreadHeaderDesktop({
      largeur et change de contenu — c'est le motif des feuilles du téléphone,
      porté ici. */
   const [pause, setPause] = useState(false);
+  /* Même mécanique que la pause : la carte change de contenu au lieu d'ouvrir
+     un second popover qui se poserait hors de la fenêtre une fois sur deux. */
+  const [tags, setTags] = useState(false);
 
   const inTrash = thread.folder === "trash";
   const dernier = thread.messages[thread.messages.length - 1];
@@ -99,7 +103,10 @@ export function ThreadHeaderDesktop({
         open={menu}
         onOpenChange={(o) => {
           setMenu(o);
-          if (!o) setPause(false);
+          if (!o) {
+            setPause(false);
+            setTags(false);
+          }
         }}
       >
         <Tooltip>
@@ -113,7 +120,23 @@ export function ThreadHeaderDesktop({
           <TooltipContent side="bottom">Plus d&apos;actions</TooltipContent>
         </Tooltip>
         <PopoverContent align="end" sideOffset={8} className="w-[246px] rounded-xl p-1">
-          {pause ? (
+          {tags ? (
+            <>
+              <button
+                type="button"
+                onClick={() => setTags(false)}
+                className="flex h-9 w-full items-center gap-2 rounded-lg px-2.5 text-left text-sm font-medium transition-colors hover:bg-muted"
+              >
+                <ChevronLeft className="size-4 shrink-0 text-muted-foreground" />
+                Étiqueter
+              </button>
+              <div className="-mx-1 my-1 h-px bg-black/[0.07] dark:bg-white/[0.08]" />
+              {/* Le menu **reste ouvert** : on pose souvent deux étiquettes
+                  d'affilée, et se faire refermer entre les deux ferait
+                  rouvrir le `⋯` à chaque fois. */}
+              <EtiquettesChoix threadId={thread.id} actuelles={thread.labels} />
+            </>
+          ) : pause ? (
             <>
               <button
                 type="button"
@@ -170,6 +193,7 @@ export function ThreadHeaderDesktop({
             }}
           />
           <Rangee icon={Clock} label="Mettre en pause…" onClick={() => setPause(true)} />
+          <Rangee icon={Tag} label="Étiqueter…" onClick={() => setTags(true)} />
           {/* Même ligne que sur téléphone, mêmes mots : depuis une boîte elle
               accuse, depuis les indésirables elle corrige le filtre. Absente
               quand le compte n'a pas de dossier où l'envoyer. */}

@@ -428,6 +428,20 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - La barre est posée par-dessus la liste ; le défilant lui laisse `--nav-height` en bas, sinon le
   verre n'a rien à flouter.
 
+**Étiqueter** → [docs/features/etiquettes.md](docs/features/etiquettes.md)
+- Une étiquette est un **mot-clé IMAP** (la mécanique de `\Seen`), pas un dossier : le fil reste
+  dans une seule boîte et l'étiquette voyage avec le message.
+- **Un mot-clé est un atome** : une étiquette qui en est un part telle quelle (« Amis », « Achats »,
+  lisibles ailleurs), tout le reste passe en `Arc_<base64url>` (« Santé » → `Arc_U2FudMOp`). Les
+  mots-clés en `$…` sont ceux des autres clients, on ne les montre pas.
+- **On demande d'abord si la boîte en veut** (`\*` dans `PERMANENTFLAGS`) : un `STORE` qui avale un
+  mot-clé sans le garder est pire qu'un refus. `ThreadPatch.labels` porte la **liste entière**, le
+  fournisseur calcule la différence et laisse intacts les mots-clés des autres.
+- Pas de table d'étiquettes : elles existent parce qu'un message les porte (`useLabels`, memoïsé —
+  un sélecteur qui rend un tableau neuf **boucle**, la règle du dépôt, apprise à nouveau ici).
+- Pas de bouton « Enregistrer », le menu reste ouvert, la coche est à droite ; une définition
+  (`EtiquettesChoix`) pour le sous-menu du `⋯` et la feuille du téléphone.
+
 **En pause** → [docs/features/pause.md](docs/features/pause.md)
 - Une pause porte **une date** — c'est ce qui la distingue d'un rangement. Cinq moments
   (`PAUSES`), chacun avec **son heure calculée à droite** ; un réveil est toujours dans le futur

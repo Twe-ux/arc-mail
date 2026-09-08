@@ -42,27 +42,11 @@ est argumenté dans l'[audit du 6 septembre](audits/2026-09-06-clients-mail.md).
       `bySpecial("\Junk")` côté IMAP, la rangée cachée quand la boîte n'en a pas, et l'action rendue
       aux trois menus avec son inverse → [fiche](features/indesirable.md). Reste à vérifier sur une
       vraie boîte.
-- [ ] **« Étiqueter… » — une décision à prendre avant d'écrire du code** (analysé le 8 sept.).
-      Aucun menu ne la propose aujourd'hui (retirée du volet le 7 sept.), donc rien ne ment ; ce
-      qui manque est la fonction. `Thread.labels` existe, le mock le remplit, `imap.ts` rend `[]`.
-      Trois chemins possibles, et **aucun n'est évident** :
-
-      1. **Mots-clés IMAP** (`STORE` d'un drapeau personnalisé), la mécanique de `\Seen` et
-         `\Flagged`, donc presque rien à écrire côté serveur. Deux obstacles réels : un mot-clé
-         est un **atome IMAP** — pas d'espace ni d'accent, or nos étiquettes d'exemple sont
-         « Amis », « Achats », « Santé » —, et **rien ne garantit que le serveur les accepte**
-         (il faut lire `PERMANENTFLAGS` et y trouver `\*`). Il faudrait donc encoder l'étiquette
-         (et la rendre illisible dans les autres clients) **ou** se limiter à l'ASCII sans espace,
-         et cacher l'action quand le serveur ne les prend pas — la règle du dossier Indésirable,
-         qui a déjà ce précédent.
-      2. **Un dossier par étiquette**, comme Gmail. Lisible partout, mais un fil n'est alors plus
-         dans un seul endroit et tout le modèle de `folder` change.
-      3. **Local**, comme les vues. Écarté : l'identifiant d'un fil change à chaque déplacement
-         (UID), donc une étiquette locale se perdrait au premier archivage.
-
-      Le 1 est le bon si iCloud annonce `\*`, et c'est **ce qu'il faut vérifier sur la vraie
-      boîte avant de coder** — deviner ce que le serveur accepte, c'est la faute que la fiche IMAP
-      interdit partout ailleurs.
+- [x] **« Étiqueter… »** (8 sept.) — une étiquette est un **mot-clé IMAP**, le chemin qui ne change
+      rien au modèle. L'alphabet des atomes est réglé (atome tel quel, sinon `Arc_<base64url>`), et
+      la question qui restait — « iCloud accepte-t-il les mots-clés ? » — **ne se pose plus à la
+      main** : le code lit `PERMANENTFLAGS` avant d'écrire et le dit si la boîte refuse
+      → [fiche](features/etiquettes.md). **Reste à voir sur une vraie boîte.**
 - [ ] ~~« Marquer comme traité »~~ — **abandonné le 8 sept.** Archiver *est* « traité » : c'est le
       geste qui sort un fil de la réception sans le jeter, et il a déjà son dossier, son raccourci
       (`e`), son balayage et son annulation. Un second état « fait » à côté n'aurait pas de dossier

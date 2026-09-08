@@ -43,9 +43,18 @@ est argumenté dans l'[audit du 6 septembre](audits/2026-09-06-clients-mail.md).
       aux trois menus avec son inverse → [fiche](features/indesirable.md). Reste à vérifier sur une
       vraie boîte.
 - [ ] « Étiqueter… » — demande un moyen d'ajouter une étiquette à un fil, qu'aucun écran n'offre.
-- [ ] « Marquer comme traité » — demande un état qui n'existe pas dans `Thread`.
-- [ ] « En pause » est un dossier sans mécanique : rien ne fait revenir un fil à l'heure dite
-      (voir « À prévoir », la mise en pause a besoin d'un réveil).
+      Aucun menu ne la propose aujourd'hui (elle a été retirée du volet le 7 sept.), donc rien ne
+      ment ; ce qui manque est la fonction. Côté IMAP c'est un **mot-clé** (`STORE` d'un `$Label`),
+      la même mécanique que `\Seen` et `\Flagged`.
+- [ ] ~~« Marquer comme traité »~~ — **abandonné le 8 sept.** Archiver *est* « traité » : c'est le
+      geste qui sort un fil de la réception sans le jeter, et il a déjà son dossier, son raccourci
+      (`e`), son balayage et son annulation. Un second état « fait » à côté n'aurait pas de dossier
+      où vivre, et obligerait à choisir entre deux gestes qui veulent dire la même chose. L'action
+      n'est proposée nulle part : il n'y a rien à retirer.
+- [x] **« En pause » ramène ce qu'on y met** (8 sept.) — cinq moments avec leur heure calculée, le
+      dossier de départ et l'espace gardés, réveil à l'ouverture et au retour sur l'onglet
+      → [fiche](features/pause.md). **Deux limites connues** : la date est **locale au navigateur**
+      (une table côté serveur la ferait suivre le compte) et il n'y a pas de **date libre**.
 - [ ] La signature de l'expéditeur sous le message du troisième volet (le handoff la dessine ;
       aucun message n'en porte — c'est la signature **reçue**, celle de l'autre, pas la nôtre).
 

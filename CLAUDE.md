@@ -282,9 +282,9 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   à qui elle servait à revenir en arrière → [gestes](docs/features/gestes.md).
 - **Un vide parle du dossier** (`VIDES` dans `thread-row.tsx`, les deux tailles) : « Rien ici » était
   vrai partout et utile nulle part — dans la corbeille c'est une bonne nouvelle, dans les
-  indésirables c'est le but. Deux lignes, l'icône du dossier, et **rien qui n'existe pas** (« En
-  pause » ne promet pas de retour). Un filtre sans résultat et une vue sans réponse passent **avant**
-  le dossier : ce sont eux qui expliquent le vide.
+  indésirables c'est le but. Deux lignes, l'icône du dossier, et **rien qui n'existe pas** — « En
+  pause » n'a promis de retour qu'à partir du jour où le réveil a existé. Un filtre sans résultat et
+  une vue sans réponse passent **avant** le dossier : ce sont eux qui expliquent le vide.
 
 **Mail ouvert** → [docs/features/mail-ouvert.md](docs/features/mail-ouvert.md)
 - En-tête à trois éléments (retour · « dossier · n sur N » / nom de la boîte · favori) ; l'objet vit
@@ -422,6 +422,21 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 **Barre du bas** → [docs/features/barre-du-bas.md](docs/features/barre-du-bas.md)
 - La barre est posée par-dessus la liste ; le défilant lui laisse `--nav-height` en bas, sinon le
   verre n'a rien à flouter.
+
+**En pause** → [docs/features/pause.md](docs/features/pause.md)
+- Une pause porte **une date** — c'est ce qui la distingue d'un rangement. Cinq moments
+  (`PAUSES`), chacun avec **son heure calculée à droite** ; un réveil est toujours dans le futur
+  (« ce soir » passé 18 h vise demain).
+- **Pas de serveur à nous** : le retour se fait à l'ouverture et au `visibilitychange`, et
+  l'interface le dit (« Revient à l'ouverture d'Arc Mail, pas à la minute près »).
+- `pauses` est persisté et porte `wake`, `from` **et `space`** : il faut savoir quelle boîte relire.
+  Local, donc par navigateur — le fil, lui, est sur le serveur.
+- `snoozeThread` **déplace d'abord, promet ensuite** : l'UID change au `MOVE`, et noter la pause
+  sous l'ancien identifiant la rendrait introuvable. `reveiller` relit « En pause » de chaque espace
+  concerné, il est **silencieux**, et il oublie au bout d'un mois ce qu'il ne retrouve pas.
+- Une seule liste de moments (`PauseChoix`, deux tailles) pour les trois surfaces : sous-menu **à la
+  place** du `⋯` sur bureau, troisième feuille sur téléphone, popover dans le volet.
+- La rangée d'un fil en pause porte **« Revient demain à 8 h »** devant ses étiquettes.
 
 **Annuler** → [docs/features/annulation.md](docs/features/annulation.md)
 - Le toast qui porte « Annuler » est posé par le **store**, une fois (`annulable`), jamais par les

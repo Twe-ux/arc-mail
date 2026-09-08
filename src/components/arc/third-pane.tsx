@@ -3,6 +3,7 @@
 import { AlignLeft, Archive, Bold, Clock, Italic, Link as LinkIcon, type LucideIcon, MailOpen, Paperclip, Send, ShieldAlert, Trash2, Underline, X } from "lucide-react";
 import { useState } from "react";
 
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { formatFullDate } from "@/lib/format";
@@ -12,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { AttachmentBody, AttachmentHead } from "./attachment";
 import { ContactAvatar } from "./contact-avatar";
 import { MessageBody } from "./message-body";
+import { PauseChoix } from "./pause-menu";
 
 /**
  * Le troisième volet, en **fenêtre détachée**.
@@ -81,8 +83,10 @@ function ModeMessage() {
   const trouve = useThirdMessage();
   const close = useMail((s) => s.closeThird);
   const moveThread = useMail((s) => s.moveThread);
+  const snoozeThread = useMail((s) => s.snoozeThread);
   const toggleUnread = useMail((s) => s.toggleUnread);
   const aJunk = useMail(selectAJunk);
+  const [pause, setPause] = useState(false);
 
   if (!trouve) return null;
   const { thread, message } = trouve;
@@ -91,7 +95,6 @@ function ModeMessage() {
   const agir = (id: string) => {
     if (id === "archive") moveThread(thread.id, "archive");
     else if (id === "trash") moveThread(thread.id, "trash");
-    else if (id === "snooze") moveThread(thread.id, "snoozed");
     else if (id === "junk") moveThread(thread.id, signaler.vers);
     else if (id === "unread") return toggleUnread(thread.id);
     close();
@@ -107,18 +110,40 @@ function ModeMessage() {
       </header>
 
       <div className="flex shrink-0 items-center gap-0.5 border-b px-3 pb-2.5">
-        {ACTIONS.filter((a) => a.id !== "junk" || aJunk).map(({ id, icon: Icon, label }) => (
-          <Case
-            key={id}
-            /* Une seule ligne à dire deux choses selon l'endroit : c'est la
-               même case, pas deux cases dont une serait toujours éteinte. */
-            label={id === "junk" ? signaler.label : label}
-            danger={id === "trash"}
-            onClick={() => agir(id)}
-          >
-            <Icon />
-          </Case>
-        ))}
+        {ACTIONS.filter((a) => a.id !== "junk" || aJunk).map(({ id, icon: Icon, label }) =>
+          /* **La pause s'ouvre au lieu d'agir** : elle porte une date, et une
+             case qui range sans dire quand ne serait qu'un déplacement de plus.
+             Le popover plutôt qu'une feuille — le volet est du bureau. */
+          id === "snooze" ? (
+            <Popover key={id} open={pause} onOpenChange={setPause}>
+              <PopoverTrigger asChild>
+                <button type="button" aria-label={label} className={CASE_TIERS}>
+                  <Icon />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent align="start" sideOffset={6} className="w-[248px] rounded-xl p-1">
+                <PauseChoix
+                  onChoisir={(date) => {
+                    setPause(false);
+                    snoozeThread(thread.id, date);
+                    close();
+                  }}
+                />
+              </PopoverContent>
+            </Popover>
+          ) : (
+            <Case
+              key={id}
+              /* Une seule ligne à dire deux choses selon l'endroit : c'est la
+                 même case, pas deux cases dont une serait toujours éteinte. */
+              label={id === "junk" ? signaler.label : label}
+              danger={id === "trash"}
+              onClick={() => agir(id)}
+            >
+              <Icon />
+            </Case>
+          ),
+        )}
       </div>
 
       <ScrollArea className="min-h-0 flex-1">
@@ -218,6 +243,10 @@ function ReponseVolet({ threadId, to }: { threadId: string; to: string }) {
   );
 }
 
+/** Le gabarit d'une case du volet, emprunté aussi par le déclencheur de la pause. */
+const CASE_TIERS =
+  "grid size-8 shrink-0 place-items-center rounded-[7px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground [&_svg]:size-4";
+
 function Case({
   label,
   danger,
@@ -236,10 +265,7 @@ function Case({
           type="button"
           onClick={onClick}
           aria-label={label}
-          className={cn(
-            "grid size-8 shrink-0 place-items-center rounded-[7px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground [&_svg]:size-4",
-            danger && "hover:text-destructive",
-          )}
+          className={cn(CASE_TIERS, danger && "hover:text-destructive")}
         >
           {children}
         </button>

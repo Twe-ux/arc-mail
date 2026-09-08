@@ -2,6 +2,7 @@
 
 import {
   Archive,
+  ChevronRight,
   Clock,
   Forward,
   Mail,
@@ -18,6 +19,7 @@ import { FOLDER_ICON, signalement } from "@/lib/folders";
 import { selectAJunk, useMail } from "@/lib/store";
 import type { FolderId, Thread } from "@/lib/types";
 import { BottomSheet, SheetGroup, SheetRow, SheetScroller } from "./bottom-sheet";
+import { PauseChoix } from "./pause-menu";
 
 /**
  * Où l'on range depuis « Déplacer vers » : quatre destinations, pas sept.
@@ -47,14 +49,17 @@ export function ThreadSheets({
   onReplyAll,
   onForward,
   onRanger,
+  onPause,
 }: {
   thread: Thread;
-  sheet: null | "move" | "more";
-  onSheet: (s: null | "move" | "more") => void;
+  sheet: null | "move" | "more" | "pause";
+  onSheet: (s: null | "move" | "more" | "pause") => void;
   canReplyAll: boolean;
   onReplyAll: () => void;
   onForward: () => void;
   onRanger: (to: FolderId) => void;
+  /** Une pause porte une date : c'est ce qui la distingue d'un rangement. */
+  onPause: (date: Date) => void;
 }) {
   const toggleUnread = useMail((s) => s.toggleUnread);
   const setPreview = useMail((s) => s.setPreview);
@@ -119,9 +124,10 @@ export function ThreadSheets({
                 {thread.unread ? "Marquer comme lu" : "Marquer comme non lu"}
               </span>
             </SheetRow>
-            <SheetRow onClick={() => onRanger("snoozed")}>
+            <SheetRow onClick={() => onSheet("pause")}>
               <Clock className="size-5 shrink-0" strokeWidth={1.75} />
-              <span className="min-w-0 flex-1 text-[15px]">Mettre en pause</span>
+              <span className="min-w-0 flex-1 text-[15px]">Mettre en pause…</span>
+              <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
             </SheetRow>
             {/* **L'action nommée, à côté du rangement qui la double.** « Mettre
                 en pause » est déjà dans les deux feuilles pour la même raison :
@@ -146,6 +152,30 @@ export function ThreadSheets({
                 <span className="min-w-0 flex-1 truncate text-[15px]">Pièces jointes</span>
               </SheetRow>
             )}
+          </SheetGroup>
+        </SheetScroller>
+      </BottomSheet>
+
+      {/* **Une troisième feuille, pas un menu dans un menu.** Les cinq moments
+          ont besoin de leur heure à droite, donc de la largeur d'une feuille ;
+          les empiler dans « Plus » aurait allongé une liste déjà longue avec
+          cinq lignes qui n'ont de sens qu'après avoir choisi de mettre en
+          pause. Elle se prend depuis « Plus », et la fermer y ramène. */}
+      <BottomSheet
+        open={sheet === "pause"}
+        onOpenChange={(o) => onSheet(o ? "pause" : "more")}
+        title="Mettre en pause"
+        description="Quand cette conversation doit revenir"
+      >
+        <SheetScroller>
+          <SheetGroup>
+            <PauseChoix
+              taille="sheet"
+              onChoisir={(date) => {
+                onSheet(null);
+                onPause(date);
+              }}
+            />
           </SheetGroup>
         </SheetScroller>
       </BottomSheet>

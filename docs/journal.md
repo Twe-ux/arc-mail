@@ -2,6 +2,37 @@
 
 Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérification.
 
+## 8 septembre 2026 — « En pause » ramène enfin ce qu'on y met
+
+Le paquet « les fonctions annoncées qui n'ont rien derrière ». « En pause » était un dossier et
+rien d'autre : on y déposait un fil, rien ne l'en sortait jamais. C'est le mot « pause » qui promet
+un retour, pas nous — et l'état vide de la liste en portait la trace, écrit exprès pour **ne pas**
+promettre ce qui n'existait pas.
+
+**Cinq moments**, chacun avec son heure calculée à droite : « Ce soir » ne dit pas la même chose à
+9 h et à 17 h, et une pause dont on ne sait pas quand elle retombe est un rangement. Un réveil est
+toujours dans le futur — passé 18 h, « ce soir » vise demain.
+
+**Ce que le réveil ne sait pas faire est écrit dans l'interface.** Il n'y a pas de serveur à nous :
+le retour se fait à l'ouverture et au retour sur l'onglet, pas à la seconde dite. « Revient à
+l'ouverture d'Arc Mail, pas à la minute près », sous les cinq choix. La fonction qui manquait ne se
+remplace pas par une autre approximation muette.
+
+Trois détails qui ont coûté leur ligne de code : la pause se note **après** le déplacement (l'UID
+change au `MOVE`, la noter sous l'ancien identifiant la rendrait introuvable) ; elle garde
+**l'espace** en plus du dossier de départ (un fil de Perso doit revenir dans Perso même si l'on
+regarde Pro) ; et le réveil **relit « En pause »** quand le fil n'est pas en main, parce que
+`loadSpace` ne lit que le dossier qu'on regarde.
+
+Vérifié de bout en bout : mise en pause → le fil quitte la liste, un toast le dit ; heure reculée
+d'une minute et rechargement → le fil est de retour dans la réception et sa promesse a disparu du
+store.
+
+**« Marquer comme traité » est abandonné, et c'est la bonne réponse.** Archiver *est* « traité » :
+c'est le geste qui sort un fil de la réception sans le jeter, et il a déjà son dossier, son
+raccourci, son balayage et son annulation. Un second état « fait » n'aurait pas de dossier où
+vivre et obligerait à choisir entre deux gestes qui veulent dire la même chose.
+
 ## 8 septembre 2026 — sélectionner, et jeter d'un coup
 
 « Ajoute aussi la possibilité de sélectionner et supprimer en un coup. » Il n'y avait qu'un geste

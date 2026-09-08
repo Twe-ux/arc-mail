@@ -4,6 +4,7 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { renommerEspace } from "./accounts/actions";
 import { fait } from "./folders";
+import { libellePause, OUBLI, type Pause } from "./pause";
 import { firstLine, formatFullDate } from "./format";
 import { providerFor } from "./mail";
 import type { FolderUnread } from "./mail/provider";
@@ -231,6 +232,21 @@ export type MailState = {
   finSelection: () => void;
   /** Le même déplacement pour n fils, **un seul** toast et une seule annulation. */
   moveThreads: (ids: string[], folder: FolderId) => void;
+
+  /**
+   * **Les pauses en cours**, par identifiant de fil : quand il revient, et d'où
+   * il vient. Persisté — c'est la seule mémoire d'une promesse faite à
+   * quelqu'un, et la perdre au rechargement laisserait le fil dans « En pause »
+   * pour toujours, ce qui était l'état d'avant.
+   */
+  pauses: Record<string, Pause>;
+  /** Mettre en pause jusqu'à une date, en gardant le dossier de départ. */
+  snoozeThread: (id: string, wake: Date) => void;
+  /**
+   * Ramener ce dont l'heure est passée. Appelé au montage et à chaque lecture
+   * de boîte : il n'y a pas de serveur à nous pour le faire à la seconde dite.
+   */
+  reveiller: () => Promise<void>;
   /** Poser l'état de lecture d'un groupe — poser, pas basculer : un groupe n'a pas d'état commun. */
   marquerLus: (ids: string[], unread: boolean) => void;
   removeRecent: (id: string) => void;
@@ -955,6 +971,7 @@ export const useMail = create<MailState>()(
   selection: [],
   selectionOn: false,
   ancreSelection: null,
+  pauses: {},
   splitView: true,
   unreadOnly: false,
   commandOpen: false,
@@ -1248,6 +1265,90 @@ export const useMail = create<MailState>()(
         toast("Annulé");
       },
     );
+  },
+
+  /**
+   * **Mettre en pause, avec une date.**
+   *
+   * Le déplacement d'abord, la promesse ensuite, et dans cet ordre : un fil
+   * change d'identifiant en changeant de dossier, et noter la pause sous
+   * l'ancien la rendrait introuvable au réveil. `deplacer` rend justement un
+   * lecteur de l'identifiant d'après.
+   *
+   * Le dossier de départ est gardé avec : « l'inverse de mettre en pause »
+   * n'existe pas dans l'absolu — un fil mis en pause depuis Archive doit
+   * revenir dans Archive.
+   */
+  snoozeThread: (id, wake) => {
+    const d = deplacer(id, "snoozed");
+    if (!d) return;
+    void d.ok.then((ok) => {
+      if (!ok) return;
+      const t = get().threads.find((x) => x.id === d.courant());
+      set((s) => ({
+        pauses: {
+          ...s.pauses,
+          [d.courant()]: { wake: wake.toISOString(), from: d.depuis, space: t?.spaceId ?? s.spaceId },
+        },
+      }));
+    });
+    annulable(`En pause, revient ${libellePause(wake.toISOString())}`, d.ok, () => {
+      const revenu = d.courant();
+      set((s) => {
+        const reste = { ...s.pauses };
+        delete reste[revenu];
+        return { pauses: reste };
+      });
+      get().moveThread(revenu, d.depuis, true);
+      toast("Annulé");
+    });
+  },
+
+  /**
+   * **Ramener ce dont l'heure est passée.**
+   *
+   * Silencieux : un fil qui revient n'a pas à poser un toast avec « Annuler »
+   * — personne ne vient de faire un geste, et neuf fils qui reviennent en même
+   * temps feraient neuf toasts pour une nouvelle qui se lit dans la liste.
+   *
+   * On retire la pause **d'abord**, et on la retire aussi pour un fil que la
+   * liste ne connaît plus (déplacé ou supprimé depuis un autre appareil) :
+   * sinon la promesse resterait à essayer d'être tenue à chaque ouverture.
+   */
+  reveiller: async () => {
+    const maintenant = Date.now();
+    const dus = Object.entries(get().pauses).filter(
+      ([, p]) => new Date(p.wake).getTime() <= maintenant,
+    );
+    if (dus.length === 0) return;
+
+    /* **Le fil n'est pas forcément en main.** `loadSpace` ne lit qu'un dossier,
+       celui qu'on regarde : à l'ouverture sur la réception, les fils déposés
+       dans « En pause » ne sont nulle part. On relit donc cette boîte-là — et
+       celle de chaque espace concerné, parce qu'un fil mis en pause depuis
+       Perso doit revenir dans Perso même si l'on regarde Pro. `loadSpace` ne
+       change pas de dossier affiché, il verse dans `threads`. */
+    const absents = [...new Set(dus.filter(([id]) => !get().threads.some((t) => t.id === id)).map(([, p]) => p.space))];
+    if (absents.length > 0) {
+      await Promise.all(absents.map((sp) => get().loadSpace(sp, "snoozed").catch(() => {})));
+    }
+
+    const enMain = dus.filter(([id]) => get().threads.some((t) => t.id === id));
+    /* Ce qu'on ne retrouve pas s'oublie **au bout d'un mois**, pas tout de
+       suite : un fil peut manquer parce que la lecture a échoué, et jeter la
+       promesse au premier réseau coupé serait la perdre pour de bon. */
+    const perimees = dus.filter(([, p]) => maintenant - new Date(p.wake).getTime() > OUBLI);
+
+    if (enMain.length === 0 && perimees.length === 0) return;
+    set((s) => {
+      const reste = { ...s.pauses };
+      [...enMain, ...perimees].forEach(([id]) => delete reste[id]);
+      return { pauses: reste };
+    });
+    /* **Silencieux.** Personne ne vient de faire un geste, et neuf fils qui
+       reviennent en même temps feraient neuf toasts avec « Annuler » pour une
+       nouvelle qui se lit dans la liste. */
+    enMain.forEach(([id, p]) => get().moveThread(id, p.from, true));
   },
 
   ouvrirSelection: (id) =>
@@ -1882,7 +1983,11 @@ export const useMail = create<MailState>()(
       /* 5 : `boites` — quelles boîtes chaque espace possède. Rien à migrer, un
             install plus ancien repart d'un objet vide et la première lecture le
             remplit ; c'est la version qui est bumpée, pas la forme. */
-      version: 5,
+      /* 6 : `pauses` — le réveil d'un fil mis en pause. Rien à migrer, un
+            install plus ancien repart d'un objet vide ; ses fils déjà déposés
+            dans « En pause » y restent, et il n'y a rien de mieux à faire —
+            personne n'a jamais dit quand ils devaient revenir. */
+      version: 6,
       migrate: (persisted, version) => {
         const avant = persisted as Partial<MailState> & {
           sidebarCollapsed?: boolean;
@@ -1911,6 +2016,7 @@ export const useMail = create<MailState>()(
           | "vues"
           | "recent"
           | "threads"
+          | "pauses"
         >;
       },
       /* Ce qui doit survivre à un rechargement : les préférences, et de quoi
@@ -1928,6 +2034,10 @@ export const useMail = create<MailState>()(
         vues: s.vues,
         recent: s.recent,
         boites: s.boites,
+        /* Une pause est une **promesse faite à quelqu'un** : perdue au
+           rechargement, le fil resterait dans « En pause » pour toujours — ce
+           qui était exactement l'état d'avant. */
+        pauses: s.pauses,
         threads: enMemoire(s.threads),
       }),
       /* Rehydrated from `AppShell` after mount so the server and first client

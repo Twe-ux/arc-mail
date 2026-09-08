@@ -65,6 +65,31 @@ export function AppShell() {
     void loadSpace(spaceId, folderId);
   }, [spaceId, folderId, loadSpace]);
 
+  /* **Le réveil des fils en pause.**
+   *
+   * Il n'y a pas de serveur à nous : rien ne peut ramener un fil à la seconde
+   * dite. On regarde donc à l'ouverture, et **au retour sur l'onglet** —
+   * `visibilitychange` est le seul moment où l'on sait que quelqu'un revient
+   * regarder, et c'est exactement là qu'un fil doit être remonté. Un onglet
+   * laissé ouvert toute la nuit rattrape ainsi sa nuit au premier coup d'œil,
+   * sans qu'on ait besoin d'un minuteur qui tourne dans le vide.
+   *
+   * Après la réhydratation : les pauses sont persistées, et les lire avant
+   * qu'elles ne soient revenues ne réveillerait rien. */
+  useEffect(() => {
+    const reveil = () => {
+      if (document.visibilityState === "visible") void useMail.getState().reveiller();
+    };
+    const arreter = useMail.persist.hasHydrated()
+      ? (reveil(), undefined)
+      : useMail.persist.onFinishHydration(reveil);
+    document.addEventListener("visibilitychange", reveil);
+    return () => {
+      arreter?.();
+      document.removeEventListener("visibilitychange", reveil);
+    };
+  }, []);
+
   /* **Le retour du réseau rejoue ce qui n'est pas parti.** L'événement `online`
      est le seul signal que le navigateur donne sans qu'on l'interroge ; on
      vide aussi au montage, pour l'onglet rouvert alors que la connexion était

@@ -1,9 +1,10 @@
 "use client";
 
-import { Archive, Clock, Forward, type LucideIcon, Mail, MailOpen, MoreHorizontal, ReplyAll, ShieldAlert, Star, Trash2, X } from "lucide-react";
+import { Archive, ChevronLeft, Clock, Forward, type LucideIcon, Mail, MailOpen, MoreHorizontal, ReplyAll, ShieldAlert, Star, Trash2, X } from "lucide-react";
 import { useState } from "react";
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { PauseChoix } from "./pause-menu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 import { signalement } from "@/lib/folders";
@@ -43,7 +44,8 @@ export function ThreadHeaderDesktop({
   onReplyAll: () => void;
   onArchive: () => void;
   onTrash: () => void;
-  onSnooze: () => void;
+  /** Une pause porte maintenant **une date** : c'est ce qui la distingue d'un rangement. */
+  onSnooze: (date: Date) => void;
   /** Ranger ailleurs que dans les trois destinations qui ont leur bouton. */
   onRanger: (to: FolderId) => void;
 }) {
@@ -53,6 +55,12 @@ export function ThreadHeaderDesktop({
   const aJunk = useMail(selectAJunk);
   const signaler = signalement(thread.folder);
   const [menu, setMenu] = useState(false);
+  /* **Un sous-menu à la place du menu, pas à côté.** Un second popover ancré
+     sur une rangée du premier se serait posé hors de la fenêtre une fois sur
+     deux, et Radix ferme le parent au clic dans l'enfant. La carte garde sa
+     largeur et change de contenu — c'est le motif des feuilles du téléphone,
+     porté ici. */
+  const [pause, setPause] = useState(false);
 
   const inTrash = thread.folder === "trash";
   const dernier = thread.messages[thread.messages.length - 1];
@@ -87,7 +95,13 @@ export function ThreadHeaderDesktop({
       {/* Le filet dit « ce qui suit n'agit pas sur le message, ça l'ouvre ». */}
       <span aria-hidden className="mx-1 h-5 w-px shrink-0 bg-black/10 dark:bg-white/15" />
 
-      <Popover open={menu} onOpenChange={setMenu}>
+      <Popover
+        open={menu}
+        onOpenChange={(o) => {
+          setMenu(o);
+          if (!o) setPause(false);
+        }}
+      >
         <Tooltip>
           <TooltipTrigger asChild>
             <PopoverTrigger asChild>
@@ -99,6 +113,27 @@ export function ThreadHeaderDesktop({
           <TooltipContent side="bottom">Plus d&apos;actions</TooltipContent>
         </Tooltip>
         <PopoverContent align="end" sideOffset={8} className="w-[246px] rounded-xl p-1">
+          {pause ? (
+            <>
+              <button
+                type="button"
+                onClick={() => setPause(false)}
+                className="flex h-9 w-full items-center gap-2 rounded-lg px-2.5 text-left text-sm font-medium transition-colors hover:bg-muted"
+              >
+                <ChevronLeft className="size-4 shrink-0 text-muted-foreground" />
+                Mettre en pause
+              </button>
+              <div className="-mx-1 my-1 h-px bg-black/[0.07] dark:bg-white/[0.08]" />
+              <PauseChoix
+                onChoisir={(date) => {
+                  setMenu(false);
+                  setPause(false);
+                  onSnooze(date);
+                }}
+              />
+            </>
+          ) : (
+          <>
           <Rangee
             icon={ReplyAll}
             label="Répondre à tous"
@@ -134,14 +169,7 @@ export function ThreadHeaderDesktop({
               toggleStar(thread.id);
             }}
           />
-          <Rangee
-            icon={Clock}
-            label="Mettre en pause"
-            onClick={() => {
-              setMenu(false);
-              onSnooze();
-            }}
-          />
+          <Rangee icon={Clock} label="Mettre en pause…" onClick={() => setPause(true)} />
           {/* Même ligne que sur téléphone, mêmes mots : depuis une boîte elle
               accuse, depuis les indésirables elle corrige le filtre. Absente
               quand le compte n'a pas de dossier où l'envoyer. */}
@@ -154,6 +182,8 @@ export function ThreadHeaderDesktop({
                 onRanger(signaler.vers);
               }}
             />
+          )}
+          </>
           )}
         </PopoverContent>
       </Popover>

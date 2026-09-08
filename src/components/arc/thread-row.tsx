@@ -7,6 +7,7 @@ import { useSwipeRow } from "@/hooks/use-swipe-row";
 import { FOLDER_ICON } from "@/lib/folders";
 import { swallowNextClick } from "@/lib/gesture";
 import { formatShortDate } from "@/lib/format";
+import { libellePause } from "@/lib/pause";
 import { extrait } from "@/lib/search/match";
 import { selectVueLibre, useMail, type Correspondant } from "@/lib/store";
 import type { FolderId, Thread } from "@/lib/types";
@@ -101,6 +102,9 @@ export function ThreadRow({
      la vue « icloud », qui remonte des messages dont le mot n'est ni dans
      l'objet ni dans l'expéditeur, mais dans une adresse ou un corps. */
   const motsVue = useMail(selectVueLibre);
+  /* La pause du fil, s'il en a une : lue ici et non calculée, `pauses` est la
+     seule mémoire de la promesse. */
+  const pause = useMail((s) => s.pauses[thread.id]);
   const raison = useMemo(() => (motsVue ? extrait(thread, motsVue) : null), [thread, motsVue]);
   const isDraft = thread.folder === "drafts";
   const outgoing = isDraft || thread.folder === "sent";
@@ -336,6 +340,12 @@ export function ThreadRow({
               <span className="min-w-0 flex-1 truncate text-[13px] text-muted-foreground md:text-xs">
                 <Surligne texte={raison ?? thread.snippet} requete={motsVue} />
               </span>
+              {/* **Une pause dit quand elle retombe.** Sans cette puce, « En
+                  pause » restait un dossier où l'on dépose : la promesse
+                  n'était visible nulle part, et c'est elle qui distingue une
+                  pause d'un rangement. Elle passe **devant** les étiquettes —
+                  c'est l'information la plus périssable de la rangée. */}
+              {pause && <LabelChip label={`Revient ${libellePause(pause.wake)}`} />}
               {thread.labels.map((label) => (
                 <LabelChip key={label} label={label} />
               ))}
@@ -619,7 +629,9 @@ export function Attente() {
 const VIDES: Partial<Record<FolderId, { titre: string; suite?: string }>> = {
   inbox: { titre: "Rien de neuf.", suite: "Tout ce qui arrive se pose ici." },
   starred: { titre: "Aucun favori.", suite: "L'étoile d'une conversation la range ici." },
-  snoozed: { titre: "Rien en pause." },
+  /* La suite est arrivée avec le réveil : jusqu'au 8 sept., « En pause » ne
+     promettait rien parce que rien ne ramenait un fil. Maintenant si. */
+  snoozed: { titre: "Rien en pause.", suite: "Ce qu'on met ici revient à l'heure dite." },
   sent: { titre: "Rien d'envoyé." },
   drafts: { titre: "Aucun brouillon.", suite: "Un message fermé sans être envoyé attend ici." },
   archive: { titre: "L'archive est vide.", suite: "Archiver range sans jeter." },

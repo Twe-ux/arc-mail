@@ -23,6 +23,7 @@ export function ThreadView({ className }: { className?: string }) {
   const selectThread = useMail((s) => s.selectThread);
   const toggleStar = useMail((s) => s.toggleStar);
   const moveThread = useMail((s) => s.moveThread);
+  const snoozeThread = useMail((s) => s.snoozeThread);
   const openCompose = useMail((s) => s.openCompose);
   const repondre = useMail((s) => s.repondre);
   const bureau = useMediaQuery("(min-width: 768px)");
@@ -38,7 +39,7 @@ export function ThreadView({ className }: { className?: string }) {
   const [aim, setAim] = useState<{ threadId: string; to: Contact[]; tick: number } | null>(null);
   /* Une feuille à la fois, et une seule barre en bas : répondre remplace la
      pill, il ne se pose pas dessus. */
-  const [sheet, setSheet] = useState<null | "move" | "more">(null);
+  const [sheet, setSheet] = useState<null | "move" | "more" | "pause">(null);
   const [replyOpen, setReplyOpen] = useState(false);
 
   const threadId = thread?.id;
@@ -124,6 +125,16 @@ export function ThreadView({ className }: { className?: string }) {
     setSheet(null);
   };
 
+  /* Même sortie que `ranger` : le fil quitte le dossier qu'on regardait. Ce
+     n'est pas un `ranger("snoozed")` de plus parce qu'une pause porte **une
+     date** — c'est elle qui la distingue d'un rangement, et sans elle le
+     dossier « En pause » ne promettait un retour que par son nom. */
+  const mettreEnPause = (date: Date) => {
+    snoozeThread(thread.id, date);
+    selectThread(null);
+    setSheet(null);
+  };
+
   const position = visibles.findIndex((t) => t.id === thread.id);
 
   return (
@@ -191,7 +202,7 @@ export function ThreadView({ className }: { className?: string }) {
         onArchive={() => ranger("archive")}
         onTrash={() => (inTrash ? ranger("inbox") : ranger("trash"))}
         onRanger={ranger}
-        onSnooze={() => ranger("snoozed")}
+        onSnooze={mettreEnPause}
       />
 
       {/* Le message : une carte flottante sur téléphone, une colonne sur bureau. */}
@@ -319,6 +330,7 @@ export function ThreadView({ className }: { className?: string }) {
         onReplyAll={() => aimReply(everyone)}
         onForward={forward}
         onRanger={ranger}
+        onPause={mettreEnPause}
       />
     </article>
   );

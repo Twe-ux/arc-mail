@@ -262,6 +262,11 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - **Sur bureau le même balayage vient du pavé tactile** (`wheel` horizontaux, fin déduite de
   140 ms de silence) ; `overscroll-behavior-x: none` sur `html` retire l'horizontale au navigateur,
   à qui elle servait à revenir en arrière → [gestes](docs/features/gestes.md).
+- **Un vide parle du dossier** (`VIDES` dans `thread-row.tsx`, les deux tailles) : « Rien ici » était
+  vrai partout et utile nulle part — dans la corbeille c'est une bonne nouvelle, dans les
+  indésirables c'est le but. Deux lignes, l'icône du dossier, et **rien qui n'existe pas** (« En
+  pause » ne promet pas de retour). Un filtre sans résultat et une vue sans réponse passent **avant**
+  le dossier : ce sont eux qui expliquent le vide.
 
 **Mail ouvert** → [docs/features/mail-ouvert.md](docs/features/mail-ouvert.md)
 - En-tête à trois éléments (retour · « dossier · n sur N » / nom de la boîte · favori) ; l'objet vit
@@ -448,6 +453,15 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   accepte `code` (PKCE, même navigateur) comme `token_hash` (n'importe où). L'identité d'entrée
   n'ouvre aucune boîte : elle sert à proposer la première dans `/comptes`.
 - Une erreur de retour se lit : `/connexion` rend `?erreur=` traduit, jamais une porte muette.
+- **L'e-mail porte un lien ET un code à six chiffres** : en app installée, un lien ouvert depuis Mail
+  part dans le navigateur et la session s'ouvre à côté — le code, lui, se retape là où on est
+  (`verifyOtp`, `autoComplete="one-time-code"`, puis `router.replace` + `refresh`). Il demande
+  `{{ .Token }}` dans le gabarit Supabase, qui n'est pas dans le code.
+- **Les réglages suivent le compte** (`user_prefs`, un `jsonb` par personne) : `themes`, `dark`,
+  `listDensity`, `fondBureau`, `groupBy`, `vues`. L'état de la barre, les largeurs, les fils et les
+  récents restent **locaux** — ils décrivent un écran ou un cache, pas un goût. La base gagne à
+  l'arrivée, **après** `onFinishHydration` (poser avant, c'est se faire écraser par `localStorage`),
+  et le contrat vit dans `src/lib/preferences.ts` — pas `server-only`, le client en a besoin.
 - iCloud, Gmail et « Autre » : les hôtes sont posés par le formulaire, jamais tapés. Gmail passe par
   IMAP avec un mot de passe d'application, pas par son API.
 - Les **écrans hors espace** (porte, comptes) prennent le **voile**, jamais un dégradé recopié : la

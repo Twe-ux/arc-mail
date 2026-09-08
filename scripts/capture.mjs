@@ -106,6 +106,9 @@ const OPENERS = {
      dans les quatre épinglés), sur bureau elle ne trouve rien et la seconde
      clique la rangée de la barre. */
   indesirable: [SHEET_IF_PHONE, CLICK_VISIBLE("Indésirable")],
+  /* Un dossier **réellement** vide : l'espace Pro n'a pas de brouillon dans le
+     mock (« En pause » en a deux — vérifié en comptant, pas en supposant). */
+  vide: [SHEET_IF_PHONE, CLICK_VISIBLE("Brouillons")],
   /* Le fil pris à tort par le filtre, et le menu qui le réhabilite. */
   "indesirable-plus": [
     SHEET_IF_PHONE,
@@ -169,7 +172,7 @@ const OPENERS = {
 };
 
 /** Les écrans qui ne sont pas des cartes flottantes : rien à mesurer, mais à capturer partout. */
-const BOTH_SIZES = new Set(["fil", "discussion", "formes", "reponse-volet", "infolettre", "piece-jointe", "rail", "masquee", "volet-message", "composeur", "html-large", "correspondants", "correspondants-large", "indesirable", "indesirable-plus"]);
+const BOTH_SIZES = new Set(["fil", "discussion", "formes", "reponse-volet", "infolettre", "piece-jointe", "rail", "masquee", "volet-message", "composeur", "html-large", "correspondants", "correspondants-large", "indesirable", "indesirable-plus", "vide"]);
 
 const CARD = `(() => {
   const el = document.querySelector('[data-slot="sheet-content"], [data-slot="dialog-content"]');

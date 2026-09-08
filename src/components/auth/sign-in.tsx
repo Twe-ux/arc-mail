@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowRight, Loader2, MailCheck } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { supabaseBrowser } from "@/lib/supabase/client";
@@ -57,7 +58,7 @@ export function SignIn({ erreur = null }: { erreur?: string | null }) {
         <h1 className="text-[26px] leading-tight font-bold tracking-[-0.02em]">Arc Mail</h1>
 
         {envoye ? (
-          <Envoye adresse={envoye} onChanger={() => setEnvoye(null)} />
+          <Envoye adresse={envoye} onChanger={() => setEnvoye(null)} onErreur={setError} />
         ) : (
           <>
             {/* **Ce que ça fait, avant de le faire.** Le paragraphe explicatif
@@ -119,24 +120,98 @@ export function SignIn({ erreur = null }: { erreur?: string | null }) {
 }
 
 /**
- * Le lien est parti : où regarder, et dans quel navigateur l'ouvrir.
+ * Le lien est parti — et **le code aussi**.
  *
- * Le second point n'est pas un détail — le lien porte un code (PKCE) qui ne se
- * vérifie que là où il a été demandé, et l'ouvrir depuis l'app Mail du
- * téléphone quand on l'a demandé sur le bureau donne une erreur qui ne dit pas
- * pourquoi.
+ * **C'est l'app installée qui impose le code.** Un lien ouvert depuis l'app
+ * Mail du téléphone part dans le navigateur, pas dans la PWA : la session
+ * atterrit dans la mauvaise fenêtre, et l'app installée reste à la porte en
+ * regardant la session s'ouvrir ailleurs. Le lien porte en plus un code PKCE
+ * qui ne se vérifie que là où il a été demandé — le même message y perd deux
+ * fois.
+ *
+ * Un code à six chiffres n'a pas ce défaut : il se **retape**, donc il entre
+ * exactement là où on est. Le lien reste pour le bureau, où il est plus
+ * rapide ; les deux voyagent dans le même e-mail et le premier utilisé gagne.
+ *
+ * **Ce que ça demande côté Supabase** : le gabarit « Magic Link » doit contenir
+ * `{{ .Token }}` à côté de `{{ .ConfirmationURL }}`. Sans lui, l'e-mail ne
+ * porte pas de code et le champ ci-dessous reste sans réponse.
  */
-function Envoye({ adresse, onChanger }: { adresse: string; onChanger: () => void }) {
+function Envoye({
+  adresse,
+  onChanger,
+  onErreur,
+}: {
+  adresse: string;
+  onChanger: () => void;
+  onErreur: (m: string | null) => void;
+}) {
+  const router = useRouter();
+  const [code, setCode] = useState("");
+  const [pending, setPending] = useState(false);
+
+  const verifier = async (form: FormData) => {
+    const token = (form.get("code") ?? "").toString().replace(/\D/g, "");
+    if (token.length < 6) return;
+    setPending(true);
+    onErreur(null);
+    const { error } = await supabaseBrowser().auth.verifyOtp({ email: adresse, token, type: "email" });
+    setPending(false);
+    if (error) return onErreur(lisible(error.message));
+    /* **`replace` puis `refresh`.** `createBrowserClient` écrit la session dans
+       des **cookies** (paquet `@supabase/ssr`), donc elle est lisible par le
+       serveur dès le retour de `verifyOtp` ; mais le rendu déjà en mémoire, lui,
+       a été fait sans elle. `refresh` le refait avec — sans quoi on arriverait
+       sur une boîte rendue pour un visiteur anonyme. */
+    router.replace("/");
+    router.refresh();
+  };
+
   return (
     <div className="mt-5">
       <div className="flex items-start gap-3 rounded-xl bg-[color-mix(in_oklch,var(--space-accent)_14%,transparent)] px-3.5 py-3">
         <MailCheck className="mt-0.5 size-5 shrink-0 text-[var(--space-ink)]" strokeWidth={1.75} />
         <p className="min-w-0 text-[13px] leading-relaxed">
-          Un lien vient de partir vers <span className="font-semibold">{adresse}</span>. Ouvre-le{" "}
-          <span className="font-semibold">depuis ce navigateur</span> : il se vérifie là où il a
-          été demandé.
+          Un e-mail vient de partir vers <span className="font-semibold">{adresse}</span>. Il porte
+          un lien <span className="font-semibold">et</span> un code.
         </p>
       </div>
+
+      {/* **Le code d'abord, ici.** Sur une app installée, le lien s'ouvre dans
+          le navigateur et la session atterrit à côté ; le code, lui, se retape
+          là où on est. */}
+      <form action={verifier} className="mt-4 flex flex-col gap-2">
+        <label className="flex flex-col gap-1.5">
+          <span className="text-[13px] font-medium">Le code à six chiffres</span>
+          <input
+            name="code"
+            value={code}
+            onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            placeholder="000000"
+            required
+            /* `one-time-code` est ce qui fait proposer le code par iOS au-dessus
+               du clavier : sans lui, il faut aller le chercher dans Mail. */
+            className="h-12 rounded-xl bg-muted/60 px-3.5 text-center text-[22px] font-semibold tracking-[0.3em] tabular-nums outline-none ring-1 ring-transparent focus-visible:ring-2 focus-visible:ring-[var(--space-ink)] dark:bg-white/[0.07]"
+          />
+        </label>
+        <button
+          type="submit"
+          disabled={pending || code.length < 6}
+          className="flex h-12 w-full items-center justify-center gap-2 rounded-xl text-[15px] font-semibold text-white transition-[opacity,transform] ease-out [background:var(--space-gradient)] active:scale-[0.98] active:duration-0 disabled:opacity-40"
+        >
+          {pending ? <Loader2 className="size-4 animate-spin" /> : null}
+          {pending ? "Vérification…" : "Entrer"}
+        </button>
+      </form>
+
+      <p className="mt-3 text-[13px] leading-relaxed text-muted-foreground">
+        Sur un ordinateur, le lien va plus vite — mais ouvre-le{" "}
+        <span className="font-medium text-foreground">depuis ce navigateur</span> : il se vérifie là
+        où il a été demandé.
+      </p>
+
       <button
         type="button"
         onClick={onChanger}

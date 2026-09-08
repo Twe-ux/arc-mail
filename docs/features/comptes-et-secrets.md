@@ -60,6 +60,66 @@ adresse**, l'e-mail étant la clé d'identité.
 développeur payant (99 €/an), pour un résultat strictement identique : entrer sans compte Google.
 Le lien rend le même service, gratuitement, et couvre aussi qui n'a ni l'un ni l'autre.
 
+## Un code, parce que l'app installée ne peut pas suivre un lien (8 sept. 2026)
+
+Signalé en testant la PWA. Un lien de connexion ouvert depuis l'app Mail du téléphone part dans le
+**navigateur**, pas dans l'app installée : la session s'ouvre à côté, et la PWA reste à la porte en
+regardant sa propre session vivre ailleurs. Le lien porte en plus un code PKCE qui ne se vérifie
+que là où il a été demandé — le même message y perd donc deux fois.
+
+**Un code à six chiffres n'a pas ce défaut : il se retape**, donc il entre exactement là où on est.
+Le même e-mail porte les deux, et le premier utilisé gagne : le lien pour le bureau, où il est plus
+rapide ; le code pour l'app installée, où il est le seul chemin.
+
+- `verifyOtp({ email, token, type: "email" })`, côté navigateur.
+- Le champ porte `autoComplete="one-time-code"` : c'est lui qui fait proposer le code par iOS
+  au-dessus du clavier, sans quoi il faut aller le chercher dans Mail et revenir.
+- Après vérification, **`router.replace` puis `router.refresh`** : `createBrowserClient` écrit la
+  session dans des **cookies** (`@supabase/ssr`), donc elle est lisible par le serveur dès le
+  retour — mais le rendu déjà en mémoire, lui, a été fait sans elle.
+
+**Ce que ça demande côté Supabase, et qui n'est pas dans le code** : le gabarit « Magic Link » doit
+contenir `{{ .Token }}` à côté de `{{ .ConfirmationURL }}`. Sans lui, l'e-mail ne porte pas de code
+et le champ reste sans réponse. Un SMTP à soi (Resend) lève au passage la limite de quelques envois
+par heure de l'expéditeur par défaut.
+
+## Les réglages suivent le compte, pas le navigateur (8 sept. 2026)
+
+Signalé après une reconnexion : « mes choix n'ont pas tout été appliqués ». Ils vivaient dans
+`localStorage` sous la clé `arc-mail`, donc **par navigateur** — et un lien de connexion ouvre
+volontiers un autre navigateur que celui d'où il a été demandé. Rien n'était perdu : c'était rangé
+ailleurs, et l'ailleurs ne suivait pas.
+
+Table `user_prefs` : une ligne par personne, un `jsonb`. **Un blob et non une colonne par réglage**,
+et c'est un choix : le jeu de préférences bouge à chaque semaine de ce projet, une colonne par
+réglage voudrait dire une migration par réglage, et personne n'interroge jamais ces valeurs une par
+une — elles se lisent et s'écrivent en bloc, par un seul client.
+
+**Ce qui suit le compte** : `themes` (la teinte par espace), `dark`, `listDensity`, `fondBureau`,
+`groupBy`, `vues`. **Ce qui reste local, et c'est aussi important** : l'état de la barre et les
+largeurs de colonnes (ils décrivent un écran, pas un goût — un rail n'existe pas sur un téléphone),
+les fils en cache et la liste des boîtes (des copies du serveur), les récents (une trace de
+navigation sur cet appareil).
+
+Trois pièges :
+
+- **L'ordre avec la réhydratation.** Le store se relit depuis `localStorage` dans un effet
+  d'`AppShell` (`skipHydration`) ; poser les valeurs de la base avant, c'était se faire écraser une
+  frame plus tard par des valeurs plus vieilles. D'où `onFinishHydration` plutôt qu'un effet qui
+  court après. **La base gagne à l'arrivée** — elle est ce que le compte sait, le navigateur n'est
+  qu'un cache — puis c'est l'écran qui commande et la base qui suit.
+- **Ne pas renvoyer ce qu'on vient de poser** : la première notification de `subscribe` est la
+  conséquence de notre propre écriture. Un drapeau l'avale, et une signature JSON évite d'écrire à
+  chaque `set` du store — il en fait des centaines pour une liste qui arrive.
+- **Le contrat ne peut pas être `server-only`.** Le composant qui synchronise vit dans le
+  navigateur et a besoin du type et de la liste des clés : `src/lib/preferences.ts` les porte,
+  `accounts/prefs.ts` garde les accès. Le serveur de dev l'a dit avant le `build`.
+
+Reste un défaut assumé : sur un appareil neuf, la première peinture garde le thème clair une frame,
+le temps que la base réponde. Le thème est posé avant toute peinture par le script inline de
+`layout.tsx`, qui lit `localStorage` — vide sur cet appareil. Le `set` suivant y écrit, donc le
+chargement d'après est juste.
+
 ## Les deux écrans hors espace ont leur couleur (8 sept. 2026)
 
 La porte et l'atelier des comptes peignaient le **dégradé de Perso en dur**

@@ -45,6 +45,10 @@ export function ThreadList({ className, large }: { className?: string; large?: b
   const moveThread = useMail((s) => s.moveThread);
   const cycleSpace = useMail((s) => s.cycleSpace);
   const unreadOnly = useMail((s) => s.unreadOnly);
+  /* De quoi un vide parle : le dossier regardé, ou la recherche gardée qui
+     ne rend rien — ce ne sont pas les mêmes mots. */
+  const folderId = useMail((s) => s.folderId);
+  const surUneVue = useMail((s) => s.vueId !== null);
   const listDensity = useMail((s) => s.listDensity);
   const loading = useMail(selectLoading);
   const error = useMail((s) => s.error);
@@ -174,7 +178,7 @@ export function ThreadList({ className, large }: { className?: string; large?: b
                 loading ? (
                   <Attente />
                 ) : (
-                  <Vide unreadOnly={unreadOnly} />
+                  <Vide unreadOnly={unreadOnly} folderId={folderId} surUneVue={surUneVue} />
                 )
               ) : (
                 <ul className="flex flex-col pt-2 max-md:pb-[calc(var(--nav-height)+0.5rem)] md:gap-1 md:p-2 md:group-data-[large=true]/liste:gap-0">
@@ -196,7 +200,7 @@ export function ThreadList({ className, large }: { className?: string; large?: b
               loading ? (
                 <Attente />
               ) : (
-                <Vide unreadOnly={unreadOnly} />
+                <Vide unreadOnly={unreadOnly} folderId={folderId} surUneVue={surUneVue} />
               )
             ) : (
               /* The bar floats over the list rather than beside it, so the last

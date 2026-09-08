@@ -2,7 +2,9 @@ import { redirect } from "next/navigation";
 
 import { AppShell } from "@/components/arc/app-shell";
 import { SpacesInit } from "@/components/arc/spaces-init";
+import { PrefsSync } from "@/components/arc/prefs-sync";
 import { SessionProvider, type Session } from "@/components/auth/session";
+import { lirePreferences } from "@/lib/accounts/prefs";
 import { listAccounts, listSpaces } from "@/lib/accounts/server";
 import { spacesFromAccounts } from "@/lib/accounts/spaces";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
@@ -32,12 +34,15 @@ export default async function Home() {
   /* Les espaces suivent les boîtes branchées ; sans aucune, la maquette
      reste, parce qu'une app vide est plus difficile à comprendre qu'une app
      d'exemple. */
-  const [comptes, vues] = await Promise.all([listAccounts(), listSpaces()]);
+  const [comptes, vues, prefs] = await Promise.all([listAccounts(), listSpaces(), lirePreferences()]);
   const spaces = spacesFromAccounts(comptes, vues);
 
   return (
     <SessionProvider session={session}>
       {spaces && <SpacesInit spaces={spaces} />}
+      {/* Les réglages suivent le compte : `localStorage` est par navigateur, et
+          un lien de connexion ouvre volontiers l'autre. */}
+      <PrefsSync initial={prefs} />
       <AppShell />
     </SessionProvider>
   );

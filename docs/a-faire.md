@@ -63,7 +63,10 @@ est argumenté dans l'[audit du 6 septembre](audits/2026-09-06-clients-mail.md).
       cases du panneau enfin actives → [fiche](features/composeur-panneaux.md). **Reste à voir sur
       une vraie boîte** : le `multipart/alternative` chez le destinataire et la copie dans
       « Envoyés » — c'est dans « à tester ».
-- [ ] États vides par dossier (le squelette de chargement existe).
+- [x] **États vides par dossier** (8 sept.) — « Rien ici pour l'instant » était vrai partout et
+      utile nulle part : dans la corbeille c'est une bonne nouvelle, dans les indésirables c'est le
+      but. Chaque dossier a ses deux lignes (`VIDES`), un filtre sans résultat et une vue sans
+      réponse passant avant lui.
 - [ ] Documenter dans `DESIGN.md` les valeurs que le détecteur signale encore : les trois dégradés
       d'espace, le voile `rgb(16 14 24 / 0.45)`, le bleu de lien des messages HTML — des valeurs
       voulues, pas de la dérive. (La marche de 26 px du titre y est entrée le 6 sept.)
@@ -113,6 +116,13 @@ correctif.
       nouveaux s'enregistrent au lieu d'être refusés par la contrainte `check`.
 - [ ] **La PWA installée sur l'iPhone** — après un déploiement : la version se rafraîchit-elle au
       tirage, et l'écran ne reste-t-il pas figé.
+- [ ] **Le code à six chiffres en app installée** (8 sept.) — il demande `{{ .Token }}` dans le
+      gabarit « Magic Link » de Supabase, qui n'est pas dans le code : à poser, puis à vérifier que
+      le code arrive, que iOS le propose au-dessus du clavier, et qu'entrer ouvre bien la session
+      **dans l'app** et non dans le navigateur.
+- [ ] **Les réglages qui suivent le compte** (8 sept.) — migration `user_prefs` à appliquer, puis :
+      changer la teinte sur un appareil et la retrouver sur l'autre, vérifier que l'état de la barre
+      **ne** suit **pas**, et qu'un appareil neuf ne garde qu'une frame de thème clair.
 - [ ] **Les trois formes sur du vrai courrier** — `enveloppe` lit une chaîne, pas un rendu : la
       frontière entre une signature et une mise en page se vérifie sur une vraie boîte, en
       particulier les signatures qui posent un fond ou une largeur.

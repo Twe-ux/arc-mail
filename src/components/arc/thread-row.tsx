@@ -1,14 +1,15 @@
 "use client";
 
-import { Archive, Inbox, Star, Trash2, type LucideIcon } from "lucide-react";
+import { Archive, ListFilter, MailOpen, Star, Trash2, type LucideIcon } from "lucide-react";
 import { useEffect, useMemo, useRef } from "react";
 
 import { useSwipeRow } from "@/hooks/use-swipe-row";
+import { FOLDER_ICON } from "@/lib/folders";
 import { swallowNextClick } from "@/lib/gesture";
 import { formatShortDate } from "@/lib/format";
 import { extrait } from "@/lib/search/match";
 import { selectVueLibre, useMail, type Correspondant } from "@/lib/store";
-import type { Thread } from "@/lib/types";
+import type { FolderId, Thread } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { ContactAvatar } from "./contact-avatar";
 import { LabelChip } from "./label-chip";
@@ -512,12 +513,60 @@ export function Attente() {
   );
 }
 
-/** « Rien ici », dit une fois pour les deux vues. */
-export function Vide({ unreadOnly }: { unreadOnly: boolean }) {
+/**
+ * Ce que dit un dossier vide — **et il ne dit pas la même chose partout**.
+ *
+ * « Rien ici pour l'instant » était vrai partout et utile nulle part : dans la
+ * corbeille c'est une bonne nouvelle, dans les brouillons c'est normal, dans
+ * les indésirables c'est le but, et dans la réception c'est le seul endroit où
+ * ça veut dire « tu es à jour ». Un écran vide est le plus lu de l'app le jour
+ * où on arrive, et c'était le seul à ne rien apprendre.
+ *
+ * Deux lignes : **ce qu'il en est**, puis **ce qui remplit ce dossier** — la
+ * seconde n'existe que là où le geste n'est pas évident. On ne promet rien
+ * qui n'existe pas : « En pause » ne dit pas qu'un fil reviendra à l'heure
+ * dite, parce que rien ne l'y ramène encore (voir `docs/a-faire.md`).
+ *
+ * Deux états passent **avant** le dossier, parce qu'ils expliquent mieux le
+ * vide que lui : un filtre qui ne laisse rien passer, et une recherche sans
+ * réponse. Dire « Archive vide » alors qu'on a tapé une requête ferait
+ * chercher le courrier au mauvais endroit.
+ */
+const VIDES: Partial<Record<FolderId, { titre: string; suite?: string }>> = {
+  inbox: { titre: "Rien de neuf.", suite: "Tout ce qui arrive se pose ici." },
+  starred: { titre: "Aucun favori.", suite: "L'étoile d'une conversation la range ici." },
+  snoozed: { titre: "Rien en pause." },
+  sent: { titre: "Rien d'envoyé." },
+  drafts: { titre: "Aucun brouillon.", suite: "Un message fermé sans être envoyé attend ici." },
+  archive: { titre: "L'archive est vide.", suite: "Archiver range sans jeter." },
+  junk: { titre: "Rien n'a été filtré.", suite: "Ce qui atterrit ici mérite un coup d'œil : le filtre se trompe." },
+  trash: { titre: "La corbeille est vide." },
+};
+
+export function Vide({
+  unreadOnly,
+  folderId,
+  surUneVue = false,
+}: {
+  unreadOnly: boolean;
+  folderId: FolderId;
+  /** Une recherche gardée est ouverte : c'est elle qui ne rend rien, pas le dossier. */
+  surUneVue?: boolean;
+}) {
+  const Icone = FOLDER_ICON[folderId];
+  const dossier = VIDES[folderId];
+  const { titre, suite, glyphe } = unreadOnly
+    ? { titre: "Tout est lu.", suite: undefined, glyphe: MailOpen }
+    : surUneVue
+      ? { titre: "Aucune conversation ne répond.", suite: "La rangée de la vue est sa requête : un double-clic la corrige.", glyphe: ListFilter }
+      : { titre: dossier?.titre ?? "Rien ici pour l'instant.", suite: dossier?.suite, glyphe: Icone };
+  const Glyphe = glyphe;
+
   return (
-    <div className="flex flex-col items-center gap-2 px-6 py-16 text-center text-muted-foreground">
-      <Inbox className="size-8 opacity-40" />
-      <p className="text-sm">{unreadOnly ? "Tout est lu." : "Rien ici pour l’instant."}</p>
+    <div className="flex flex-col items-center gap-2 px-8 py-16 text-center">
+      <Glyphe className="size-8 text-muted-foreground opacity-40" strokeWidth={1.5} />
+      <p className="text-sm font-medium">{titre}</p>
+      {suite && <p className="max-w-[34ch] text-[13px] leading-relaxed text-muted-foreground">{suite}</p>}
     </div>
   );
 }

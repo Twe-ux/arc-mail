@@ -6,6 +6,8 @@ import {
   accountCredentials,
   deleteAccount,
   deleteSpace,
+  listAccounts,
+  listSpaces,
   saveImapAccount,
   saveSpace,
   type StoredSpace,
@@ -147,6 +149,27 @@ export async function listerDossiers(
  * sans une vue sur `INBOX`, le courrier du compte principal n'aurait plus
  * d'espace du tout. On la pose donc en même temps, une seule fois.
  */
+/**
+ * Les boîtes branchées, pour choisir laquelle un nouvel espace regarde.
+ *
+ * `aDesVues` avec elles : la **première** vue d'un compte doit emporter sa
+ * réception (`principal`), sinon le courrier d'`INBOX` n'a plus d'espace du
+ * tout — c'est la règle de `ajouterEspace`, et l'app doit la connaître pour
+ * remplir le champ. Sans cette réponse, créer un espace depuis la boîte aurait
+ * fait disparaître la boîte.
+ */
+export type CompteBref = { id: string; label: string; email: string; aDesVues: boolean };
+
+export async function listerComptes(): Promise<CompteBref[]> {
+  const [comptes, espaces] = await Promise.all([listAccounts(), listSpaces()]);
+  return comptes.map((c) => ({
+    id: c.id,
+    label: c.label,
+    email: c.email,
+    aDesVues: espaces.some((e) => e.accountId === c.id),
+  }));
+}
+
 export async function ajouterEspace(_precedent: Etat, form: FormData): Promise<Etat> {
   const accountId = texte(form, "accountId");
   const inboxPath = texte(form, "inboxPath");

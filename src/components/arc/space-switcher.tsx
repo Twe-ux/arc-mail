@@ -1,7 +1,11 @@
 "use client";
 
+import { Plus } from "lucide-react";
+import { useState } from "react";
+
 import { useMail, useSpaces } from "@/lib/store";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { NouvelEspace } from "./nouvel-espace";
 import { SpaceTile } from "./space-icon";
 
 /**
@@ -19,6 +23,11 @@ export function SpaceSwitcher({ onSelect }: { onSelect?: () => void }) {
   const spaces = useSpaces();
   const spaceId = useMail((s) => s.spaceId);
   const setSpace = useMail((s) => s.setSpace);
+  const [ouvrir, setOuvrir] = useState(false);
+  /* **Le « + » n'apparaît que sur de vraies boîtes.** Sur la maquette, les
+     espaces sont fabriqués (`kind: "mock"`) et il n'y a aucun compte où poser
+     un dossier : le bouton mènerait à un dialogue qui ne peut rien faire. */
+  const reels = spaces.some((s) => s.account.kind !== "mock");
 
   return (
     <div className="flex items-center gap-1">
@@ -49,6 +58,28 @@ export function SpaceSwitcher({ onSelect }: { onSelect?: () => void }) {
           </Tooltip>
         );
       })}
+
+      {reels && (
+        <>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                onClick={() => setOuvrir(true)}
+                aria-label="Nouvel espace"
+                /* La boîte d'une `SpaceTile` (34 px, rayon 10), en trait :
+                   c'est une porte, pas une boîte de plus — elle ne doit pas se
+                   compter parmi les espaces qu'elle jouxte. */
+                className="grid size-[34px] shrink-0 place-items-center rounded-[10px] text-[var(--side-ink-soft)] transition-colors hover:bg-[var(--side-fill-hover)] hover:text-[var(--side-ink)]"
+              >
+                <Plus className="size-4" strokeWidth={2} />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="top">Nouvel espace</TooltipContent>
+          </Tooltip>
+          <NouvelEspace open={ouvrir} onOpenChange={setOuvrir} />
+        </>
+      )}
     </div>
   );
 }

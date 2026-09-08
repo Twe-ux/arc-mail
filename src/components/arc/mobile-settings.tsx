@@ -5,16 +5,18 @@ import {
   LogOut,
   Moon,
   Palette,
+  Plus,
   Rows3,
   Shapes,
   Sun,
   UserRound,
 } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 
 import { useSignOut } from "@/components/auth/use-sign-out";
 import { useSession } from "@/components/auth/session";
-import { useMail, useSpace } from "@/lib/store";
+import { useMail, useSpace, useSpaces } from "@/lib/store";
 import { PRESET_HUES, themeFromHue } from "@/lib/theme";
 import type { Space } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -22,6 +24,7 @@ import { BottomSheet, SheetCloseButton, SheetGroup, SheetRow, SheetScroller } fr
 import { Segmented } from "./segmented";
 import { SPACE_ICONS, SpaceIcon } from "./space-icon";
 import { InstallHint } from "./install-hint";
+import { NouvelEspace } from "./nouvel-espace";
 
 /**
  * La feuille de personnalisation, sous le `⋯` de la barre du bas.
@@ -52,6 +55,10 @@ export function MobileSettings() {
   const renameSpace = useMail((s) => s.renameSpace);
   const session = useSession();
   const { partir, enCours } = useSignOut();
+  const [nouvel, setNouvel] = useState(false);
+  /* Comme sur bureau : sur la maquette il n'y a aucun compte où poser un
+     dossier, donc aucune porte à ouvrir. */
+  const reels = useSpaces().some((s) => s.account.kind !== "mock");
 
   return (
     <BottomSheet
@@ -245,6 +252,20 @@ export function MobileSettings() {
             </Link>
           </li>
 
+          {/* **Créer un espace depuis la boîte.** `mobile-nav.tsx` le promettait
+              déjà en toutes lettres — « la case ouvre alors la feuille, où l'on
+              peut en ajouter un » — sans que rien ne le tienne. La rangée vit
+              ici, avec le nom et l'icône de l'espace courant : c'est la pièce
+              des espaces. Le dialogue se pose par-dessus la feuille plutôt que
+              de la remplacer — une feuille qui en ouvre une autre perd le
+              chemin du retour. */}
+          {reels && (
+            <SheetRow onClick={() => setNouvel(true)}>
+              <Plus className="size-5 shrink-0" strokeWidth={1.75} />
+              <span className="min-w-0 flex-1 text-[15px]">Nouvel espace</span>
+            </SheetRow>
+          )}
+
           {/* **La sortie est une rangée, comme le reste.** Elle vivait sous la
               feuille en un bloc à part — visage, nom, deux icônes muettes —
               qui redisait « Comptes et signatures » juste au-dessus, et posait
@@ -263,6 +284,7 @@ export function MobileSettings() {
           <InstallHint />
         </div>
       </SheetScroller>
+      <NouvelEspace open={nouvel} onOpenChange={setNouvel} />
     </BottomSheet>
   );
 }

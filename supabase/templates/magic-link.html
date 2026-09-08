@@ -1,0 +1,90 @@
+<!--
+  Gabarit « Magic Link » d'Arc Mail.
+
+  OÙ LE COLLER : Supabase → Authentication → Emails → Magic Link → Message body.
+  Il n'y a rien à poser dans Vercel ni dans `.env.local` pour cela : c'est
+  Supabase qui envoie cet e-mail, pas l'app.
+
+  CE QU'IL PORTE, ET POURQUOI LES DEUX :
+  - `{{ .ConfirmationURL }}` — le lien. Rapide sur un ordinateur, mais il porte
+    un code PKCE qui ne se vérifie **que dans le navigateur qui l'a demandé**.
+  - `{{ .Token }}` — le code à six chiffres. **C'est lui qui fait marcher l'app
+    installée** : un lien ouvert depuis Mail part dans le navigateur, et la
+    session s'ouvre à côté de la PWA. Un code se retape, donc il entre là où on
+    est. Sans cette variable, le champ de l'app reste sans réponse.
+
+  RÈGLES DE COURRIER, à ne pas « moderniser » :
+  - tout en **styles inline** et en tableaux : Gmail retire `<style>`, et les
+    clients de bureau ne connaissent pas la mise en page moderne ;
+  - **hexadécimal seul**, jamais `oklch` ni les variables de `globals.css` —
+    elles n'existent pas dans un autre document (même règle que le cadre des
+    messages reçus, fiche « Mail ouvert ») ;
+  - un dégradé porte toujours un `bgcolor` de repli : Outlook le jette ;
+  - le code est en `Courier`/monospace **espacé**, pour se lire et se recopier
+    chiffre à chiffre — c'est le seul endroit de tout le projet où une
+    monospace est justifiée : c'est une donnée à transcrire, pas un costume.
+-->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#f4f1fb" style="background-color:#f4f1fb;margin:0;padding:24px 12px;">
+  <tr>
+    <td align="center">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:440px;background-color:#ffffff;border-radius:20px;border:1px solid #e7e2f0;">
+        <tr>
+          <td style="padding:28px 28px 0 28px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+            <p style="margin:0;font-size:22px;line-height:1.2;font-weight:700;letter-spacing:-0.4px;color:#141414;">Arc Mail</p>
+            <p style="margin:8px 0 0 0;font-size:15px;line-height:1.6;color:#5b5b66;">
+              Voici de quoi entrer. Le code marche partout&nbsp;; le lien, lui, ne s&rsquo;ouvre que
+              dans le navigateur d&rsquo;où tu l&rsquo;as demandé.
+            </p>
+          </td>
+        </tr>
+
+        <!-- Le code d'abord : c'est le seul chemin dans l'app installée. -->
+        <tr>
+          <td style="padding:22px 28px 0 28px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+            <p style="margin:0 0 8px 0;font-size:13px;line-height:1.4;font-weight:600;color:#5b5b66;">
+              Ton code
+            </p>
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#f4f1fb" style="background-color:#f4f1fb;border-radius:12px;">
+              <tr>
+                <td align="center" style="padding:16px 12px;font-family:'SF Mono',Menlo,Consolas,'Courier New',Courier,monospace;font-size:30px;line-height:1.1;font-weight:700;letter-spacing:9px;color:#141414;">
+                  {{ .Token }}
+                </td>
+              </tr>
+            </table>
+            <p style="margin:8px 0 0 0;font-size:12px;line-height:1.5;color:#8a8a95;">
+              À taper dans Arc Mail. Il expire au bout d&rsquo;une heure et ne sert qu&rsquo;une fois.
+            </p>
+          </td>
+        </tr>
+
+        <!-- Le lien ensuite : plus rapide, mais seulement sur l'appareil qui l'a demandé. -->
+        <tr>
+          <td style="padding:22px 28px 0 28px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td align="center" bgcolor="#7c3aed" style="background-color:#7c3aed;background-image:linear-gradient(135deg,#7c3aed 0%,#db2777 55%,#f97316 100%);border-radius:12px;">
+                  <a href="{{ .ConfirmationURL }}" style="display:block;padding:14px 20px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;">
+                    Ouvrir Arc Mail
+                  </a>
+                </td>
+              </tr>
+            </table>
+            <p style="margin:10px 0 0 0;font-size:12px;line-height:1.5;color:#8a8a95;">
+              Ce lien ne fonctionne que dans le navigateur d&rsquo;où tu l&rsquo;as demandé. Depuis un
+              téléphone, prends plutôt le code.
+            </p>
+          </td>
+        </tr>
+
+        <tr>
+          <td style="padding:22px 28px 28px 28px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+            <p style="margin:0;padding-top:18px;border-top:1px solid #eeeaf5;font-size:12px;line-height:1.6;color:#8a8a95;">
+              Tu n&rsquo;as rien demandé&nbsp;? Ignore ce message : sans le code ni le lien, personne
+              n&rsquo;entre.
+            </p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>

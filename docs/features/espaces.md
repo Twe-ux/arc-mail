@@ -148,3 +148,41 @@ tombent juste en quatre rangées. La feuille passe à 629 px, sous les 86 dvh qu
 contrainte `check` : ajouter un nom dans `SpaceIconName` sans passer par
 `supabase/migrations/20260906180000_icones_24.sql` ferait échouer l'enregistrement côté serveur,
 avec une erreur que l'écran ne sait pas traduire.
+
+---
+
+## Créer un espace depuis la boîte (8 sept. 2026)
+
+Un espace se fabriquait dans `/comptes` seulement — et `mobile-nav.tsx` **promettait pourtant**, en
+commentaire comme à l'usage, que la case de la barre « ouvre alors la feuille, où l'on peut en
+ajouter un ». Une promesse que rien ne tenait.
+
+**Deux portes, une par surface, jamais deux sur la même** : la tuile « + » au bout de la rangée
+d'espaces sur bureau, une rangée « Nouvel espace » dans la feuille Personnaliser sur téléphone —
+la pièce où le nom et l'icône de l'espace courant se règlent déjà. Pas dans la pill : elle a quatre
+cases et un bouton rond, une cinquième casserait la mesure de
+[pill-actions](pill-actions.md).
+
+Le formulaire demande ce qu'il faut, dans l'ordre où on l'apprend : **quelle boîte** (sauté quand il
+n'y en a qu'une), **quel dossier** — lu sur le serveur, jamais tapé —, le **nom**, et **l'adresse
+d'envoi**. Il réutilise `listerDossiers` et `ajouterEspace`, les mêmes actions que `/comptes` : une
+seule définition de ce qu'est créer un espace.
+
+**Pas de choix d'icône ici**, délibérément : elle se règle déjà des deux côtés sur l'espace ouvert.
+Vingt-quatre glyphes de plus dans ce dialogue en feraient un second endroit pour la même chose.
+
+Trois pièges, tous rencontrés :
+
+- **`SpacesInit` ne posait les espaces qu'une fois.** Son initialiseur de `useState` ne s'exécute
+  qu'au montage : `ajouterEspace` revalidait bien `/`, le serveur renvoyait la liste complète, et le
+  store gardait l'ancienne — l'espace neuf n'apparaissait qu'après un rechargement. Un effet le
+  resynchronise quand les identifiants changent ; une frame de retard sur un geste qu'on vient de
+  faire soi-même, pas un scintillement au chargement.
+- **La première vue d'un compte emporte sa réception** (`principal`) : sans elle, `INBOX` n'a plus
+  d'espace du tout et le courrier du compte disparaît de l'app. `listerComptes` rend donc `aDesVues`.
+- **Un chargement qui ne revient jamais est pire qu'une erreur.** La lecture des comptes sans
+  rattrapage laissait le dialogue sur « Lecture des boîtes… » pour toujours quand elle échouait —
+  vu en capture. Elle rend maintenant l'erreur et le chemin (« Brancher une boîte »).
+
+La porte n'apparaît que sur de **vraies** boîtes (`account.kind !== "mock"`) : sur la maquette il
+n'y a aucun compte où poser un dossier, et le dialogue ne pourrait rien faire.

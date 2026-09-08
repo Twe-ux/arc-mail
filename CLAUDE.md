@@ -453,6 +453,10 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   accepte `code` (PKCE, même navigateur) comme `token_hash` (n'importe où). L'identité d'entrée
   n'ouvre aucune boîte : elle sert à proposer la première dans `/comptes`.
 - Une erreur de retour se lit : `/connexion` rend `?erreur=` traduit, jamais une porte muette.
+- Le **gabarit de l'e-mail** vit dans `supabase/templates/magic-link.html` (styles inline, tableaux,
+  hex seul : les variables de `globals.css` n'existent pas dans un autre document). **Resend ne se
+  pose ni dans Vercel ni dans `.env.local`** — c'est Supabase qui envoie, ses identifiants vont dans
+  son tableau de bord ; `.env.example` le dit.
 - **L'e-mail porte un lien ET un code à six chiffres** : en app installée, un lien ouvert depuis Mail
   part dans le navigateur et la session s'ouvre à côté — le code, lui, se retape là où on est
   (`verifyOtp`, `autoComplete="one-time-code"`, puis `router.replace` + `refresh`). Il demande
@@ -571,6 +575,12 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   demande une migration : la colonne `icon` porte la liste en `check`. Renommer un espace fabriqué crée sa ligne et **change son identifiant** : fils, teinte et
   récents suivent.
 - `loadSpace` ne lit **qu'un dossier**, celui qu'on regarde ; Favoris se fond au lieu de remplacer.
+- **Créer un espace depuis la boîte** : tuile « + » au bout de la rangée sur bureau, rangée dans la
+  feuille Personnaliser sur téléphone (jamais dans la pill, qui est pleine) ; mêmes actions que
+  `/comptes`, pas de choix d'icône (elle se règle déjà sur l'espace ouvert), et la porte n'existe que
+  sur de vraies boîtes (`account.kind !== "mock"`). `SpacesInit` **se resynchronise** quand le
+  serveur rend une autre liste — son initialiseur ne courait qu'au montage, et l'espace neuf
+  n'apparaissait qu'après un rechargement.
 
 **Vue par correspondant** → [docs/features/vue-correspondant.md](docs/features/vue-correspondant.md)
 - Une **vue**, jamais le rangement : un e-mail est un objet et ses réponses, et regrouper par adresse

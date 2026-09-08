@@ -380,6 +380,69 @@
   --wash-halo: 26%;
   --wash-compose: 8%;
 }
+/*
+ * ── Les écrans hors espace ───────────────────────────────────────────────
+ *
+ * La porte (`/connexion`) et l'atelier des comptes (`/comptes`) vivent avant
+ * ou à côté des espaces : aucun n'est choisi, donc aucune couleur d'espace ne
+ * s'applique. Les deux peignaient jusqu'ici le **dégradé de Perso en dur**
+ * (`#7c3aed → #db2777 → #f97316`) sous le verre fumé du bureau — trois hex
+ * recopiés, que le détecteur signalait, et un fond qui mentait : ce n'est pas
+ * l'espace Perso qu'on regarde.
+ *
+ * Ils prennent le **voile**, comme le reste de l'app. Il ne demande qu'une
+ * variable (`--space-accent`), donc un écran hors espace pose la sienne et
+ * hérite de tout : le halo, la base teintée, l'encre, les contrastes déjà
+ * mesurés pour la famille `oklch(0.7 0.18 h)`.
+ *
+ * **La porte ne pose rien** : elle garde l'accent par défaut de `:root`, qui
+ * *est* la couleur d'Arc Mail au repos. C'est la bonne couleur pour la porte
+ * d'Arc Mail.
+ *
+ * **L'atelier des comptes pose la sienne** (teal, h 190 — un des huit tons
+ * proposés aux espaces, donc la même clarté et le même chroma) : on y branche
+ * des tuyaux, on n'y lit pas son courrier, et changer de couleur est ce qui dit
+ * qu'on a changé de pièce.
+ *
+ * `--space-ink` doit être **redéclaré ici**, pas seulement `--space-accent` :
+ * sa valeur est substituée sur l'élément qui la déclare (`:root`), et une
+ * surcharge d'accent plus bas dans l'arbre ne la recalculerait pas.
+ */
+.ecran-hors-espace {
+  /* Rien à changer en clair : la base y est déjà teintée à 10 %, et le bas de
+     la page est mesuré à `(246,239,255)` — encore violet. */
+}
+.dark .ecran-hors-espace {
+  /* **En sombre il faut teinter la base, pas seulement le halo.** Mesuré sans
+     ça : haut `(36,30,43)`, bas **`(23,23,23)`** — chroma zéro, la couleur
+     n'existait que dans le premier tiers. C'est exactement ce que la fiche
+     thème a constaté sur 800 px de barre latérale, et le même remède : le
+     voile du téléphone garde `--card` parce que sa profondeur vient du
+     contraste avec la carte blanche, une page entière n'a pas ce recours. */
+  --wash-mix: 7%;
+  --wash-halo: 34%;
+}
+
+.ecran-comptes {
+  --space-accent: oklch(0.7 0.18 190);
+  --space-ink: color-mix(in oklch, var(--space-accent) 62%, black);
+  /* **Le dégradé aussi, pas seulement l'accent.** Ils ne se dérivent pas l'un
+     de l'autre : poser la teinte seule laissait « Brancher une boîte » en
+     violet-orange — le dégradé de Perso resté au `:root` — au milieu d'un
+     écran teal. Les trois arrêts sont ceux de `themeFromHue(190)`, la formule
+     qui fabrique le thème d'un espace à partir d'un seul nombre : cet écran a
+     donc exactement la forme d'un espace, sans en être un. */
+  --space-gradient: linear-gradient(
+    135deg,
+    oklch(0.56 0.22 190) 0%,
+    oklch(0.62 0.23 225) 55%,
+    oklch(0.7 0.2 265) 100%
+  );
+}
+.dark .ecran-comptes {
+  --space-ink: var(--space-accent);
+}
+
 @utility space-wash {
   --wash-teinte: color-mix(in oklch, var(--space-accent) var(--wash-mix), var(--wash-base));
   background:

@@ -51,6 +51,12 @@ est argumenté dans l'[audit du 6 septembre](audits/2026-09-06-clients-mail.md).
 
 ### Interface
 
+- [x] **Un bouton Synchroniser sur bureau** (8 sept.) — il n'y avait **aucun** moyen de relire la
+      boîte à la souris : le tirage est un geste, et « Réessayer » n'apparaît qu'après une erreur.
+      Dans la tête de liste, raccourci `r`.
+- [x] **La porte et l'atelier des comptes prennent le voile** (8 sept.) — ils peignaient le dégradé
+      de Perso en dur ; chacun a maintenant sa couleur de fonction, et « Continuer avec Google » est
+      retiré → [fiche](features/comptes-et-secrets.md).
 - [ ] Créer un espace (renommer et choisir son icône se font des deux côtés depuis le 6 sept.).
 - [x] **Corps HTML du message** (6 sept.) — champ riche (`contenteditable`), `html` dans
       `OutgoingMessage` et le brouillon, `MailComposer` qui envoie les deux parties, et les onze
@@ -217,8 +223,9 @@ qui suivent.
 
 ### Lecture
 
-- [ ] **Replier la citation** d'une réponse (les `>` empilés) et **détacher la signature** : un fil
-      de dix messages montre aujourd'hui dix fois le même texte cité.
+- [x] **Replier la citation** d'une réponse (6 sept.) — `couperCitation` pour le texte, un repli
+      dans le cadre pour le HTML → [fiche](features/mail-ouvert.md). **Reste** de détacher la
+      signature, qui n'a pas de marqueur aussi net que « a écrit : ».
 - [ ] **Replier les messages lus** d'un fil en une ligne, comme Mail d'iOS ; seul le dernier reste
       ouvert.
 - [ ] Regroupement par dates dans la liste (Aujourd'hui / Hier / Cette semaine) — à décider.
@@ -234,19 +241,25 @@ qui suivent.
 
 ### Accessibilité
 
-- [ ] Focus visible : l'anneau `outline-ring/50` fait **1,44:1**, sous le seuil.
+- [ ] Focus visible : l'anneau `outline-ring/50` fait **1,44:1**, sous le seuil. Réglé le 8 sept.
+      sur **la porte et les deux formulaires de `/comptes`** (anneau de 2 px en `--space-ink`) ;
+      reste toute l'app.
 - [ ] `--muted-foreground` sur `bg-muted` : contraste à revérifier après le lot couleur.
 - [ ] Repères sémantiques et régions vives (les toasts, le chargement) — Mailspring en a huit
       fiches, nous n'avons rien d'écrit.
 
 ### Code
 
+- [x] **`comptes-ecran.tsx` passait 300 lignes** (550) — coupé en cinq le 8 sept. (fournisseurs,
+      champ, branchement, espaces, châssis), aucun au-dessus de 210.
 - [ ] **`command-palette.tsx` passe 300 lignes** (484) : la palette est un composant et une fonction
       de surlignage, à découper en groupes (conversations, serveur, vues, actions, dossiers). Fait
       pour `mobile-menu.tsx`, coupé en deux le 6 sept. avec la feuille « Personnaliser »
       (`mobile-settings.tsx`) — 262 et 259 lignes.
 - [ ] Un seul `createTouchDrag` pour les trois hooks de geste.
-- [ ] Icônes de dossiers dans `src/lib/folders.ts` ; `replyDraft` dans le store.
+- [x] Icônes de dossiers dans `src/lib/folders.ts` (7 sept.) — la table vivait en **trois**
+      exemplaires identiques ; il a fallu y ajouter une huitième ligne pour s'en apercevoir.
+      **Reste** `replyDraft` dans le store.
 - [ ] `@property --space-accent` pour que le changement d'espace s'interpole vraiment.
 - [ ] Cache avec péremption pour ne pas relire un espace à chaque retour.
 

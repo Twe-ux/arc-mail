@@ -187,6 +187,11 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - Les cases sont `shrink-0` et l'état actif se **remplit** (accent à 22 %, encre `--space-ink`).
 
 **Fenêtre du bureau** → [docs/features/bureau.md](docs/features/bureau.md)
+- **Synchroniser est un bouton, sur bureau seulement** (`sync-button.tsx`, dans la tête de liste,
+  raccourci `r`) : le tirage est un geste, il n'existe pas à la souris, et `loadSpace()` n'était
+  sinon appelé que par un changement de dossier ou par « Réessayer » après une erreur. `loading` du
+  store ne peut pas servir de témoin — il n'est levé que quand il n'y a rien à montrer — d'où un
+  état local et le même plancher de rotation que le tirage (550 ms).
 - La fenêtre principale est une **grille à pistes explicites** et chaque enfant est posé par son
   `col-start` : un enfant caché n'est plus un élément de grille, et le placement auto décalait tout.
 - Les dossiers n'apparaissent **qu'une fois** : barre attachée, ou rail, ou tuiles de la tête ; la
@@ -434,13 +439,22 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - AES-256-GCM lié à la ligne (`userId:accountId` en AAD) ; `ACCOUNTS_KEY` dans Vercel, jamais ici.
 - Toujours `getUser()`, jamais `getSession()` ; `src/proxy.ts` rafraîchit et redirige de façon
   optimiste, la garde qui compte est dans `page.tsx` puis les politiques RLS.
-- Connexion par Google **ou par un lien envoyé à une adresse** ; le retour est un route handler
+- Connexion par **un lien envoyé à une adresse**, et rien d'autre : « Continuer avec Google » est
+  retiré (8 sept.) — il partait **sans scopes**, n'ouvrait donc aucune boîte, et portait le logo de
+  la seule marque dont on branche aussi les boîtes, par un chemin sans rapport (IMAP + mot de passe
+  d'application). Le compte, lui, reste : c'est lui qui permet de garder ce mot de passe chiffré
+  côté serveur. Le retour est un route handler
   (seul endroit qui peut écrire un cookie avec les Server Actions), son `next` est vérifié, et il
   accepte `code` (PKCE, même navigateur) comme `token_hash` (n'importe où). L'identité d'entrée
   n'ouvre aucune boîte : elle sert à proposer la première dans `/comptes`.
 - Une erreur de retour se lit : `/connexion` rend `?erreur=` traduit, jamais une porte muette.
 - iCloud, Gmail et « Autre » : les hôtes sont posés par le formulaire, jamais tapés. Gmail passe par
   IMAP avec un mot de passe d'application, pas par son API.
+- Les **écrans hors espace** (porte, comptes) prennent le **voile**, jamais un dégradé recopié : la
+  porte garde l'accent de `:root` (la couleur d'Arc Mail au repos), `/comptes` pose la sienne
+  (`.ecran-comptes`, teal). Poser l'accent ne suffit pas — `--space-ink` **et** `--space-gradient`
+  se redéclarent avec, et en sombre c'est la **base** qu'il faut teinter (`.ecran-hors-espace`),
+  sinon la couleur meurt au premier tiers de la page.
 - Sans `NEXT_PUBLIC_SUPABASE_*`, l'app reste la maquette ouverte d'aujourd'hui.
 
 **IMAP** → [docs/features/imap.md](docs/features/imap.md)

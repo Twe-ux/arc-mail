@@ -22,18 +22,81 @@ Le navigateur ne peut donc pas lire un secret, même chiffré, même le sien. C'
 la séparation : sans elle, une faille XSS rendrait le blob, et un blob volé est un blob qu'on a le
 temps d'attaquer.
 
-## Entrer par Google, ou par un lien
+## Entrer par un lien, et par rien d'autre (revu le 8 sept. 2026)
 
-Deux portes. Google, et un lien envoyé à une adresse — n'importe laquelle, `@icloud.com` comprise.
+Une porte : une adresse, un lien. N'importe quelle adresse — `@icloud.com` et `@gmail.com`
+comprises.
 
 **L'identité d'entrée n'ouvre aucune boîte.** Elle dit seulement à qui appartiennent les comptes
 rangés. Mais c'est elle qu'on propose en premier dans `/comptes` : l'adresse est connue, son
 fournisseur se déduit du domaine, et il ne reste qu'un champ à remplir — le mot de passe
 d'application.
 
+### « Continuer avec Google » a été retiré
+
+Signalé : « on se connecte avec Gmail mais on ne récupère pas le mail ». C'était exact, et c'était
+le bouton qui mentait, pas la lecture qu'on en faisait.
+
+- `signInWithOAuth({ provider: "google" })` partait **sans scopes** : profil et adresse, rien du
+  courrier. Aucune boîte ne s'ouvrait, aucune synchronisation ne démarrait.
+- Il portait le logo de **la seule marque dont on branche aussi les boîtes**, par un chemin qui n'a
+  rien à voir : Gmail s'ouvre en IMAP avec un mot de passe d'application, comme iCloud.
+- La preuve que le dessin était fautif tenait dans sa propre carte : un paragraphe en 12 px
+  expliquait, sous les boutons, que le bouton ne faisait pas ce qu'il annonçait. **Un bouton qui a
+  besoin d'une note de bas de page est un mauvais bouton.**
+
+Ce qu'on perd est un raccourci, pas une porte. Le lien couvre les mêmes adresses.
+
+**Le compte, lui, reste — et c'est un choix, pas un héritage.** Mailspring se passe d'identité
+parce qu'il a le trousseau du système ; une app web n'a que le navigateur, et y ranger un mot de
+passe de boîte serait un recul. Le compte est exactement ce qui permet de garder ce mot de passe
+**chiffré côté serveur** (`account_secrets`, AES-256-GCM lié à `userId:accountId`). Retirer le
+compte, ce serait choisir entre le mot de passe dans `localStorage` et le retaper à chaque session.
+
+À vérifier chez soi : un compte Supabase créé par Google se retrouve par un lien envoyé à **la même
+adresse**, l'e-mail étant la clé d'identité.
+
 **Pourquoi pas « Se connecter avec Apple ».** Il faut un Services ID et une clé, donc le programme
 développeur payant (99 €/an), pour un résultat strictement identique : entrer sans compte Google.
 Le lien rend le même service, gratuitement, et couvre aussi qui n'a ni l'un ni l'autre.
+
+## Les deux écrans hors espace ont leur couleur (8 sept. 2026)
+
+La porte et l'atelier des comptes peignaient le **dégradé de Perso en dur**
+(`#7c3aed → #db2777 → #f97316`) sous le verre fumé du bureau : trois hex recopiés, et un fond qui
+annonçait un espace qu'on ne regarde pas.
+
+Ils prennent le **voile** de l'app. Il ne demande qu'une variable, donc un écran hors espace pose
+la sienne et hérite de tout — halo, base teintée, encre, contrastes déjà mesurés pour la famille
+`oklch(0.7 0.18 h)`.
+
+- **La porte ne pose rien** : elle garde l'accent par défaut de `:root`, qui *est* la couleur d'Arc
+  Mail au repos. C'est la bonne couleur pour la porte d'Arc Mail.
+- **L'atelier pose la sienne** (`.ecran-comptes`, teal h 190, un des huit tons proposés aux
+  espaces) : on y branche des tuyaux, on n'y lit pas son courrier, et changer de couleur est ce qui
+  dit qu'on a changé de pièce.
+
+Trois pièges, tous mesurés :
+
+- **`--space-ink` doit être redéclaré**, pas seulement `--space-accent` : sa valeur est substituée
+  sur l'élément qui la déclare (`:root`), et une surcharge d'accent plus bas dans l'arbre ne la
+  recalculerait pas.
+- **`--space-gradient` non plus ne se dérive pas de l'accent.** Posé le seul accent, « Brancher une
+  boîte » restait violet-orange au milieu d'un écran teal. Les trois arrêts sont ceux de
+  `themeFromHue(190)` : l'écran a la forme d'un espace sans en être un.
+- **En sombre il faut teinter la base, pas seulement le halo.** Mesuré sans ça : haut `(36,30,43)`,
+  bas **`(23,23,23)`** — chroma zéro, la couleur n'existait que dans le premier tiers. C'est le
+  constat de la fiche thème sur 800 px de barre, et le même remède (`.ecran-hors-espace` :
+  `--wash-mix: 7%`, halo 34 %) → bas à `(32,28,36)`. Le voile du téléphone garde `--card` parce que
+  sa profondeur vient du contraste avec la carte blanche ; une page entière n'a pas ce recours.
+
+Un défaut trouvé à la capture : la tuile du compte était un **aplat** d'accent avec un glyphe
+blanc, illisible en sombre où `--space-ink` *vaut* l'accent. Elle passe à la dose de la pill —
+accent à 22 %, encre `--space-ink` : « l'accent remplit, il n'est pas l'aplat », la règle du thème,
+qui vaut ici comme ailleurs.
+
+L'écran des comptes faisait **550 lignes** ; il est en cinq fichiers (table des fournisseurs, champ
+partagé, formulaire de branchement, espaces d'un compte, châssis), aucun au-dessus de 300.
 
 ### Ce qu'un lien rapporte, et où il s'ouvre
 

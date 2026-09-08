@@ -10,6 +10,7 @@ import type { FolderId } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { EPINGLES, GroupByToggle, plural, Segmented } from "./list-header";
 import { SPACE_ICONS } from "./space-icon";
+import { SyncButton } from "./sync-button";
 
 /* **Les trois états, moins celui où l'on est.** Un sélecteur qui montre la
    position courante demande de la lire avant d'agir ; ces trois cases ne sont
@@ -166,7 +167,10 @@ export function ListHeaderDesktop() {
           {plural(threads.length, "conversation")}
           {enAttente > 0 && <> · {enAttente} en attente</>}
         </span>
-        <span className="md:group-data-[large=true]/liste:order-6">
+        <span className="flex items-center gap-1 md:group-data-[large=true]/liste:order-6">
+          {/* **Relire la boîte** — le seul chemin de la souris vers du courrier
+              neuf : le tirage est un geste, il n'existe pas ici. */}
+          <SyncButton />
           <GroupByToggle />
         </span>
       </div>

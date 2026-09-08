@@ -1,97 +1,29 @@
 "use client";
 
-import { ArrowLeft, FolderInput, Loader2, Mail, Plus, RefreshCw, Trash2 } from "lucide-react";
+import { ArrowLeft, Loader2, Mail, Plus, RefreshCw, Trash2 } from "lucide-react";
 import Link from "next/link";
-import { useActionState, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 
-import {
-  ajouterCompte,
-  ajouterEspace,
-  lireDerniers,
-  listerDossiers,
-  retirerCompte,
-  retirerEspace,
-  type Apercu,
-  type Dossier,
-  type Etat,
-} from "@/app/comptes/actions";
+import { lireDerniers, retirerCompte, type Apercu } from "@/app/comptes/actions";
 import { Button } from "@/components/ui/button";
 import type { StoredAccount, StoredSpace } from "@/lib/accounts/server";
 import { formatShortDate } from "@/lib/format";
-import { cn } from "@/lib/utils";
-
-const VIDE: Etat = { statut: "vide" };
-
-/**
- * Les boîtes qu'on sait brancher, et ce qu'il faut savoir pour chacune.
- *
- * Les hôtes ne se devinent pas et se tapent mal : `imap.gmail.com` avec un
- * `s` de trop, c'est une erreur de connexion qui ressemble à un mauvais mot de
- * passe. On les pose, et « Autre » reste pour tout le reste.
- *
- * **Ni l'un ni l'autre n'ouvre d'API sur simple connexion** : Apple n'en a
- * pas, et Google en a une mais qui demande son propre consentement. Dans les
- * deux cas, ce qui ouvre la boîte est un mot de passe d'application, et il
- * s'écrit ici.
- */
-const FOURNISSEURS = {
-  icloud: {
-    nom: "iCloud",
-    domaines: ["icloud.com", "me.com", "mac.com"],
-    imapHost: "imap.mail.me.com",
-    imapPort: "993",
-    /* 587 pour iCloud : la session commence en clair et monte en TLS. */
-    smtpHost: "smtp.mail.me.com",
-    smtpPort: "587",
-    exemple: "prenom@icloud.com",
-    lien: "https://account.apple.com",
-    lienNom: "mot de passe d'application",
-    aide: "Apple n'ouvre pas d'API : on passe par IMAP.",
-  },
-  gmail: {
-    nom: "Gmail",
-    domaines: ["gmail.com", "googlemail.com"],
-    imapHost: "imap.gmail.com",
-    imapPort: "993",
-    /* 465 pour Google : le chiffrement dès la poignée de main. */
-    smtpHost: "smtp.gmail.com",
-    smtpPort: "465",
-    exemple: "prenom@gmail.com",
-    lien: "https://myaccount.google.com/apppasswords",
-    lienNom: "mot de passe d'application",
-    aide: "Se connecter avec Google dit qui tu es, pas ce que contient ta boîte : on l'ouvre par IMAP, la validation en deux étapes activée.",
-  },
-  autre: {
-    nom: "Autre",
-    domaines: [] as string[],
-    imapHost: "",
-    imapPort: "993",
-    smtpHost: "",
-    smtpPort: "587",
-    exemple: "prenom@domaine.fr",
-    lien: "",
-    lienNom: "",
-    aide: "N'importe quelle boîte IMAP : il faut ses serveurs, que ton hébergeur publie.",
-  },
-} as const;
-
-type Fournisseur = keyof typeof FOURNISSEURS;
-
-/** Celui de l'adresse connectée, quand on le reconnaît : une case de moins à remplir. */
-function fournisseurDe(email: string | null): Fournisseur {
-  const domaine = (email ?? "").split("@")[1]?.toLowerCase() ?? "";
-  const trouve = (Object.keys(FOURNISSEURS) as Fournisseur[]).find((cle) =>
-    (FOURNISSEURS[cle].domaines as readonly string[]).includes(domaine),
-  );
-  return trouve ?? "icloud";
-}
+import { BrancherBoite, Message } from "./brancher-boite";
+import { Espaces } from "./compte-espaces";
 
 /**
- * Brancher une boîte, et vérifier tout de suite qu'elle répond.
+ * L'atelier des comptes : les boîtes branchées, et comment en brancher une.
  *
- * Un seul écran pour les deux : enregistrer un mot de passe sans l'avoir vu
- * marcher, c'est repousser la panne au premier chargement, là où on ne saura
- * plus si c'est l'adresse, le mot de passe ou l'hôte.
+ * **Sa couleur n'est pas celle d'un espace.** L'écran peignait le dégradé de
+ * Perso en dur, sous le verre fumé du bureau : trois hex recopiés, et un fond
+ * qui annonçait un espace qu'on ne regarde pas. Il prend le **voile** de
+ * l'app avec sa teinte à lui (`.ecran-comptes`, teal) — on y branche des
+ * tuyaux, on n'y lit pas son courrier, et changer de couleur est ce qui dit
+ * qu'on a changé de pièce → [fiche](../../../docs/features/comptes-et-secrets.md).
+ *
+ * Le fichier faisait 550 lignes ; il est en cinq (table des fournisseurs,
+ * champ partagé, formulaire de branchement, espaces d'un compte, ce châssis),
+ * aucun au-dessus de 300 — la règle du dépôt, tenue dans le même passage.
  */
 export function ComptesEcran({
   comptes,
@@ -103,45 +35,37 @@ export function ComptesEcran({
   /** L'adresse avec laquelle on s'est connecté à l'app, si on la connaît. */
   connecte?: string | null;
 }) {
-  const [etat, action, enCours] = useActionState(ajouterCompte, VIDE);
   const [ouvert, setOuvert] = useState(comptes.length === 0);
-  /* La première boîte proposée est celle avec laquelle on vient d'entrer :
-     l'adresse est déjà connue, le fournisseur aussi, et il ne reste qu'un
-     champ à remplir. Ensuite, on n'a plus de raison de deviner. */
   const premiere = comptes.length === 0;
-  const [fournisseur, setFournisseur] = useState<Fournisseur>(
-    premiere ? fournisseurDe(connecte) : "icloud",
-  );
-  const f = FOURNISSEURS[fournisseur];
-  const adresse = premiere && fournisseurDe(connecte) === fournisseur ? (connecte ?? "") : "";
 
   return (
-    <main className="min-h-dvh pt-[var(--safe-top)] [background:linear-gradient(135deg,#7c3aed_0%,#db2777_55%,#f97316_100%)]">
-      <div className="fixed inset-0 bg-[rgb(16_14_24/0.45)]" aria-hidden />
-
-      <div className="relative mx-auto w-full max-w-2xl px-4 py-6 md:py-10">
-        <header className="mb-5 flex items-center gap-2">
-          <Button variant="ghost" size="icon-sm" asChild aria-label="Retour à la boîte" className="text-white hover:bg-white/15 hover:text-white">
+    <main className="ecran-hors-espace ecran-comptes space-wash min-h-dvh pt-[var(--safe-top)]">
+      <div className="mx-auto w-full max-w-2xl px-3 pt-3 pb-[max(1.5rem,env(safe-area-inset-bottom))] md:px-4 md:pt-8 md:pb-10">
+        {/* **L'en-tête est sur le voile, pas dans la carte.** C'est la
+            grammaire du téléphone : le grand titre vit au-dessus de la carte,
+            et c'est le contraste entre les deux qui donne sa profondeur à
+            l'écran. L'encre suit le thème, elle n'est plus blanche en dur —
+            sur le voile clair, du blanc sur lavande ne se lisait pas. */}
+        <header className="mb-3 flex items-center gap-1 px-1 md:mb-4">
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            asChild
+            aria-label="Retour à la boîte"
+            className="-ml-1.5 shrink-0"
+          >
             <Link href="/">
               <ArrowLeft />
             </Link>
           </Button>
-          <h1 className="text-[22px] font-bold tracking-tight text-white">Comptes de messagerie</h1>
+          <h1 className="min-w-0 flex-1 truncate text-[22px] leading-tight font-bold tracking-[-0.015em]">
+            Comptes
+          </h1>
         </header>
 
-        <section className="rounded-[28px] bg-card p-5 text-card-foreground shadow-2xl ring-1 ring-black/[0.06] md:p-6 dark:ring-white/12">
-          {comptes.length === 0 ? (
-            <p className="text-sm leading-relaxed text-muted-foreground">
-              {connecte ? (
-                <>
-                  Tu es entré avec <span className="font-medium text-foreground">{connecte}</span> —
-                  on commence par cette boîte-là. L&apos;app affiche des données d&apos;exemple tant
-                  qu&apos;aucune n&apos;est branchée.
-                </>
-              ) : (
-                <>Aucune boîte branchée pour l&apos;instant. L&apos;app affiche des données d&apos;exemple.</>
-              )}
-            </p>
+        <section className="fenetre-carte rounded-[24px] bg-card p-4 text-card-foreground md:rounded-[28px] md:p-6">
+          {premiere ? (
+            <Amorce connecte={connecte} />
           ) : (
             <ul className="flex flex-col gap-2">
               {comptes.map((compte) => (
@@ -155,118 +79,48 @@ export function ComptesEcran({
           )}
 
           {!ouvert && (
-            <Button onClick={() => setOuvert(true)} className="mt-4 h-11 w-full rounded-xl">
+            <Button
+              onClick={() => setOuvert(true)}
+              className="mt-4 h-11 w-full rounded-xl text-white [background:var(--space-gradient)] hover:opacity-90"
+            >
               <Plus /> Brancher une boîte
             </Button>
           )}
 
           {ouvert && (
-            <form
-              action={action}
-              /* Changer de fournisseur remonte les champs : sans cette clé,
-                 React garderait les valeurs par défaut du précédent. */
-              key={fournisseur}
-              className="mt-5 flex flex-col gap-3 border-t pt-5"
-            >
-              <div role="radiogroup" aria-label="Fournisseur" className="flex gap-1 rounded-xl bg-muted/60 p-1 dark:bg-white/[0.07]">
-                {(Object.keys(FOURNISSEURS) as Fournisseur[]).map((cle) => (
-                  <button
-                    key={cle}
-                    type="button"
-                    role="radio"
-                    aria-checked={cle === fournisseur}
-                    onClick={() => setFournisseur(cle)}
-                    className={cn(
-                      "h-9 flex-1 rounded-lg text-[13px] font-medium transition-colors",
-                      cle === fournisseur
-                        ? "bg-card text-foreground shadow-[0_0_0_1px_rgb(0_0_0/0.06)] dark:bg-white/12"
-                        : "text-muted-foreground hover:text-foreground",
-                    )}
-                  >
-                    {FOURNISSEURS[cle].nom}
-                  </button>
-                ))}
-              </div>
-
-              <p className="text-[13px] leading-relaxed text-muted-foreground">
-                {f.aide}{" "}
-                {f.lien && (
-                  <>
-                    Il faut un{" "}
-                    <a
-                      href={f.lien}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="font-medium text-[var(--space-ink)] underline underline-offset-2"
-                    >
-                      {f.lienNom}
-                    </a>{" "}
-                    — pas celui de ton compte.{" "}
-                  </>
-                )}
-                Il est chiffré avant d&apos;être rangé, et le navigateur ne peut pas le relire.
-              </p>
-
-              <Champ nom="email" label="Adresse" type="email" placeholder={f.exemple} valeur={adresse} requis />
-              <Champ
-                nom="password"
-                label="Mot de passe d'application"
-                type="password"
-                placeholder="xxxx-xxxx-xxxx-xxxx"
-                requis
+            <div className={premiere ? "mt-5" : "mt-5 border-t pt-5"}>
+              <BrancherBoite
+                connecte={connecte}
+                premiere={premiere}
+                onAnnuler={premiere ? undefined : () => setOuvert(false)}
               />
-              <Champ nom="label" label="Nom affiché" placeholder={f.nom} />
-
-              {fournisseur === "autre" ? (
-                <div className="grid grid-cols-2 gap-3">
-                  <Champ nom="imapHost" label="IMAP" placeholder="imap.domaine.fr" requis />
-                  <Champ nom="imapPort" label="Port" placeholder="993" valeur={f.imapPort} />
-                  <Champ nom="smtpHost" label="SMTP" placeholder="smtp.domaine.fr" requis />
-                  <Champ nom="smtpPort" label="Port" placeholder="587" valeur={f.smtpPort} />
-                </div>
-              ) : (
-                <>
-                  <input type="hidden" name="imapHost" value={f.imapHost} />
-                  <input type="hidden" name="imapPort" value={f.imapPort} />
-                  <input type="hidden" name="smtpHost" value={f.smtpHost} />
-                  <input type="hidden" name="smtpPort" value={f.smtpPort} />
-                </>
-              )}
-
-              {etat.statut !== "vide" && (
-                <p
-                  role="status"
-                  className={cn(
-                    "rounded-xl px-3 py-2 text-[13px]",
-                    etat.statut === "ok"
-                      ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
-                      : "bg-destructive/10 text-destructive",
-                  )}
-                >
-                  {etat.message}
-                </p>
-              )}
-
-              <div className="mt-1 flex gap-2">
-                <Button type="submit" disabled={enCours} className="h-11 flex-1 rounded-xl">
-                  {enCours ? <Loader2 className="animate-spin" /> : <Mail />}
-                  {enCours ? "Connexion à la boîte…" : "Vérifier et brancher"}
-                </Button>
-                {comptes.length > 0 && (
-                  <Button type="button" variant="ghost" onClick={() => setOuvert(false)} className="h-11 rounded-xl">
-                    Annuler
-                  </Button>
-                )}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                La connexion est essayée avant l&apos;enregistrement : si elle échoue, rien n&apos;est
-                gardé.
-              </p>
-            </form>
+            </div>
           )}
         </section>
       </div>
     </main>
+  );
+}
+
+/**
+ * Ce qu'on lit avant d'avoir branché quoi que ce soit.
+ *
+ * Deux choses, et pas une de plus : **ce qu'on regarde en attendant** (des
+ * données d'exemple, pas une panne) et **par quelle boîte on commence**.
+ */
+function Amorce({ connecte }: { connecte: string | null }) {
+  return (
+    <div>
+      <p className="text-[15px] leading-relaxed">
+        Aucune boîte branchée. L&apos;app montre des données d&apos;exemple en attendant.
+      </p>
+      {connecte && (
+        <p className="mt-1.5 text-[13px] leading-relaxed text-muted-foreground">
+          Tu es entré avec <span className="font-medium text-foreground">{connecte}</span> — on
+          commence par celle-là.
+        </p>
+      )}
+    </div>
   );
 }
 
@@ -291,7 +145,10 @@ function Compte({ compte, espaces }: { compte: StoredAccount; espaces: StoredSpa
   return (
     <li className="rounded-2xl bg-muted/50 p-4 dark:bg-white/[0.06]">
       <div className="flex items-center gap-3">
-        <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-[var(--space-ink)] text-white">
+        {/* **L'accent remplit à 22 %, il n'est pas l'aplat** (règle du thème) :
+            en aplat avec un glyphe blanc, la tuile devenait illisible en
+            sombre, où `--space-ink` *vaut* l'accent — blanc sur teal vif. */}
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-[color-mix(in_oklch,var(--space-accent)_22%,transparent)] text-[var(--space-ink)]">
           <Mail className="size-4" />
         </span>
         <div className="min-w-0 flex-1">
@@ -312,11 +169,7 @@ function Compte({ compte, espaces }: { compte: StoredAccount; espaces: StoredSpa
         </Button>
       </div>
 
-      {erreur && (
-        <p role="alert" className="mt-3 rounded-lg bg-destructive/10 px-3 py-2 text-[13px] text-destructive">
-          {erreur}
-        </p>
-      )}
+      {erreur && <div className="mt-3"><Message statut="erreur" texte={erreur} /></div>}
 
       <Espaces compte={compte} espaces={espaces} />
 
@@ -352,199 +205,5 @@ function Compte({ compte, espaces }: { compte: StoredAccount; espaces: StoredSpa
         </div>
       )}
     </li>
-  );
-}
-
-/**
- * Les espaces d'un compte : quel dossier tient lieu de réception, et depuis
- * quelle adresse on y écrit.
- *
- * C'est ce qui manque à toutes les applications de courrier quand on a un
- * domaine personnalisé chez iCloud : la règle range le courrier dans un
- * dossier, et le dossier reste un dossier. Ici il devient une boîte, avec sa
- * couleur, ses onglets, son badge de non-lus et son expéditeur.
- */
-function Espaces({ compte, espaces }: { compte: StoredAccount; espaces: StoredSpace[] }) {
-  const [etat, action, enCours] = useActionState(ajouterEspace, VIDE);
-  const [dossiers, setDossiers] = useState<Dossier[] | null>(null);
-  const [erreur, setErreur] = useState<string | null>(null);
-  const [chargement, charger] = useTransition();
-
-  const ouvrir = () =>
-    charger(async () => {
-      setErreur(null);
-      const reponse = await listerDossiers(compte.id);
-      if ("erreur" in reponse) setErreur(reponse.erreur);
-      else setDossiers(reponse.dossiers);
-    });
-
-  /* Le premier espace créé emporte la réception avec lui : sans une vue sur
-     INBOX, le courrier du compte principal n'aurait plus d'espace. */
-  const premier = espaces.length === 0;
-
-  return (
-    <div className="mt-3 border-t pt-3">
-      <p className="text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
-        Espaces
-      </p>
-
-      <ul className="mt-2 flex flex-col gap-1">
-        {espaces.length === 0 && (
-          <li className="text-[13px] text-muted-foreground">
-            Toute la boîte dans un seul espace. Un dossier peut devenir une réception à part.
-          </li>
-        )}
-        {espaces.map((espace) => (
-          /* Deux lignes : sur un téléphone, « Milone Thierry Coworking ·
-             t.milone@coworkingcafe.fr » sur une seule se coupe au milieu du
-             dossier, et c'est justement ce qu'on vient vérifier. */
-          <li key={espace.id} className="flex items-start gap-2 text-[13px]">
-            <FolderInput className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />
-            <span className="min-w-0 flex-1">
-              <span className="block truncate font-medium">{espace.name}</span>
-              <span className="block truncate text-[11px] text-muted-foreground">
-                {espace.inboxPath} · {espace.identityEmail}
-              </span>
-            </span>
-            <button
-              type="button"
-              onClick={() => retirerEspace(espace.id)}
-              aria-label={`Retirer l'espace ${espace.name}`}
-              className="relative mt-0.5 shrink-0 text-muted-foreground after:absolute after:-inset-2 hover:text-destructive"
-            >
-              <Trash2 className="size-3.5" />
-            </button>
-          </li>
-        ))}
-      </ul>
-
-      {dossiers === null ? (
-        <Button
-          variant="ghost"
-          onClick={ouvrir}
-          disabled={chargement}
-          className="mt-2 h-9 w-full rounded-lg text-[13px]"
-        >
-          {chargement ? <Loader2 className="animate-spin" /> : <Plus />}
-          {chargement ? "Lecture des dossiers…" : "Ajouter un espace"}
-        </Button>
-      ) : (
-        <form action={action} className="mt-3 flex flex-col gap-3">
-          <input type="hidden" name="accountId" value={compte.id} />
-          {premier && <input type="hidden" name="principal" value={compte.email} />}
-          {premier && <input type="hidden" name="principalName" value={compte.label} />}
-
-          <label className="flex flex-col gap-1.5">
-            <span className="text-[13px] font-medium">Dossier qui sert de réception</span>
-            <select
-              name="inboxPath"
-              required
-              defaultValue=""
-              className="h-11 rounded-xl bg-muted/60 px-3 text-base outline-none ring-1 ring-transparent focus-visible:ring-ring/50 dark:bg-white/[0.07]"
-            >
-              <option value="" disabled>
-                Choisir un dossier…
-              </option>
-              {dossiers.map((d) => (
-                <option key={d.path} value={d.path}>
-                  {d.path}
-                  {d.unseen > 0 ? ` (${d.unseen} non lus)` : ""}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <Champ nom="name" label="Nom de l'espace" placeholder="Coworking" requis />
-          <Champ
-            nom="identityEmail"
-            label="Adresse d'envoi depuis cet espace"
-            type="email"
-            placeholder="t.milone@coworkingcafe.fr"
-            requis
-          />
-          <Champ nom="identityName" label="Nom affiché à l'envoi" placeholder="Thierry Milone" />
-
-          {premier && (
-            <p className="rounded-xl bg-muted/60 px-3 py-2 text-[13px] text-muted-foreground dark:bg-white/[0.06]">
-              La réception du compte ({compte.email}) devient un espace au passage, sinon son
-              courrier n&apos;en aurait plus.
-            </p>
-          )}
-
-          {erreur && (
-            <p role="alert" className="rounded-xl bg-destructive/10 px-3 py-2 text-[13px] text-destructive">
-              {erreur}
-            </p>
-          )}
-          {etat.statut !== "vide" && (
-            <p
-              role="status"
-              className={cn(
-                "rounded-xl px-3 py-2 text-[13px]",
-                etat.statut === "ok"
-                  ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
-                  : "bg-destructive/10 text-destructive",
-              )}
-            >
-              {etat.message}
-            </p>
-          )}
-
-          <div className="flex gap-2">
-            <Button type="submit" disabled={enCours} className="h-11 flex-1 rounded-xl">
-              {enCours ? <Loader2 className="animate-spin" /> : <FolderInput />}
-              Créer l&apos;espace
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => setDossiers(null)}
-              className="h-11 rounded-xl"
-            >
-              Annuler
-            </Button>
-          </div>
-        </form>
-      )}
-
-      {erreur && dossiers === null && (
-        <p role="alert" className="mt-2 rounded-lg bg-destructive/10 px-3 py-2 text-[13px] text-destructive">
-          {erreur}
-        </p>
-      )}
-    </div>
-  );
-}
-
-function Champ({
-  nom,
-  label,
-  type = "text",
-  placeholder,
-  valeur,
-  requis,
-}: {
-  nom: string;
-  label: string;
-  type?: string;
-  placeholder?: string;
-  valeur?: string;
-  requis?: boolean;
-}) {
-  return (
-    <label className="flex flex-col gap-1.5">
-      <span className="text-[13px] font-medium">{label}</span>
-      <input
-        name={nom}
-        type={type}
-        placeholder={placeholder}
-        defaultValue={valeur}
-        required={requis}
-        autoComplete="off"
-        spellCheck={false}
-        /* 16px : en dessous, iOS zoome sur le champ à la mise au point. */
-        className="h-11 rounded-xl bg-muted/60 px-3 text-base outline-none ring-1 ring-transparent focus-visible:ring-ring/50 dark:bg-white/[0.07]"
-      />
-    </label>
   );
 }

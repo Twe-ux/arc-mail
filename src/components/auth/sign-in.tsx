@@ -1,140 +1,152 @@
 "use client";
 
+import { ArrowRight, Loader2, MailCheck } from "lucide-react";
 import { useState } from "react";
 
 import { supabaseBrowser } from "@/lib/supabase/client";
 
 /**
- * Une carte posée sur le dégradé de Perso, et deux façons d'entrer.
+ * La porte : une adresse, un lien, et rien d'autre.
  *
- * Pas de mot de passe : Google identifie, ou un lien envoyé à une adresse. Le
- * mot de passe qui compte ici — celui de la boîte mail — se saisira plus tard,
- * dans l'app, une fois qu'on saura à qui il appartient.
+ * **« Continuer avec Google » a été retiré le 8 septembre 2026.** Il
+ * n'ouvrait aucune boîte — `signInWithOAuth` partait sans scopes, donc profil
+ * et e-mail —, et il portait le logo de la seule marque dont on branche aussi
+ * les boîtes, par un chemin qui n'a rien à voir (IMAP, mot de passe
+ * d'application). « Je me connecte avec Google mais mon courrier n'arrive
+ * pas » était la lecture normale de ce bouton, pas un malentendu.
  *
- * **Pourquoi un lien plutôt qu'un second fournisseur.** « Se connecter avec
- * Apple » demande le programme développeur payant, et n'ouvrirait aucune boîte
- * de plus : l'identité d'entrée dit seulement à qui appartiennent les comptes
- * rangés. Un lien par e-mail rend le même service — entrer sans compte Google
- * — pour n'importe quelle adresse, `@icloud.com` comprise, et sans rien à
- * configurer.
+ * La preuve que le dessin était fautif tenait dans son propre bas de carte :
+ * un paragraphe expliquait que le bouton ne faisait pas ce qu'il annonçait. Un
+ * bouton qui a besoin d'une note de bas de page est un mauvais bouton.
+ *
+ * **On garde le compte, et c'est un choix.** Mailspring se passe d'identité
+ * parce qu'il a le trousseau du système ; une app web n'a que le navigateur, et
+ * y ranger un mot de passe de boîte serait un recul. Le compte est ce qui
+ * permet de le garder chiffré côté serveur (`account_secrets`, AES-256-GCM lié
+ * à `userId:accountId`) → [fiche](../../../docs/features/comptes-et-secrets.md).
+ *
+ * Le lien vaut pour **n'importe quelle adresse**, `@gmail.com` comprise : ce
+ * qu'on perd en retirant Google est un raccourci, pas une porte.
  */
 export function SignIn({ erreur = null }: { erreur?: string | null }) {
-  const [pending, setPending] = useState<"google" | "lien" | null>(null);
+  const [pending, setPending] = useState(false);
   const [envoye, setEnvoye] = useState<string | null>(null);
   /* Ce que le retour rapporte est un message de Supabase, pas une phrase :
      il passe par la même traduction que les erreurs d'ici. */
   const [error, setError] = useState<string | null>(erreur ? lisible(erreur) : null);
 
-  const redirectTo = () => `${window.location.origin}/auth/callback`;
-
-  const google = async () => {
-    setPending("google");
-    setError(null);
-    const { error } = await supabaseBrowser().auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: redirectTo() },
-    });
-    if (error) {
-      setError(lisible(error.message));
-      setPending(null);
-    }
-  };
-
   const lien = async (form: FormData) => {
     const email = (form.get("email") ?? "").toString().trim().toLowerCase();
     if (!email) return;
-    setPending("lien");
+    setPending(true);
     setError(null);
     const { error } = await supabaseBrowser().auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: redirectTo() },
+      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
     });
-    setPending(null);
+    setPending(false);
     if (error) setError(lisible(error.message));
     else setEnvoye(email);
   };
 
   return (
-    <main className="flex min-h-dvh flex-col items-center justify-center p-4 [background:linear-gradient(135deg,#7c3aed_0%,#db2777_55%,#f97316_100%)]">
-      {/* Le même verre fumé que le bureau, pour que la porte appartienne déjà à l'app. */}
-      <div className="fixed inset-0 bg-[rgb(16_14_24/0.45)]" aria-hidden />
-      <div className="relative w-full max-w-sm rounded-[28px] bg-card p-7 text-card-foreground shadow-2xl ring-1 ring-black/[0.06] dark:ring-white/12">
-        <h1 className="text-[22px] font-bold tracking-tight">Arc Mail</h1>
-        <p className="mt-1.5 text-sm text-muted-foreground">
-          Connecte-toi pour retrouver tes espaces et tes comptes de messagerie.
-        </p>
+    /* Le voile de l'app, pas le dégradé de Perso recopié en dur. La porte garde
+       l'accent par défaut de `:root` : c'est la couleur d'Arc Mail au repos. */
+    <main className="ecran-hors-espace space-wash flex min-h-dvh flex-col items-center justify-center px-4 py-[max(1rem,var(--safe-top))]">
+      <div className="fenetre-carte w-full max-w-[400px] rounded-[28px] bg-card p-6 text-card-foreground md:p-7">
+        <h1 className="text-[26px] leading-tight font-bold tracking-[-0.02em]">Arc Mail</h1>
 
         {envoye ? (
-          /* Ce qui compte après l'envoi : où regarder, et dans quel navigateur
-             ouvrir. Le lien porte un code qui ne se vérifie qu'ici. */
-          <div className="mt-6">
-            <p className="rounded-xl bg-emerald-500/10 px-3.5 py-3 text-[13px] leading-relaxed text-emerald-700 dark:text-emerald-400">
-              Un lien vient de partir vers <span className="font-semibold">{envoye}</span>.
-              Ouvre-le <span className="font-semibold">depuis ce navigateur</span> : il se vérifie
-              là où il a été demandé.
-            </p>
-            <button
-              type="button"
-              onClick={() => setEnvoye(null)}
-              className="mt-3 text-[13px] font-medium text-muted-foreground underline underline-offset-2 hover:text-foreground"
-            >
-              Changer d&apos;adresse
-            </button>
-          </div>
+          <Envoye adresse={envoye} onChanger={() => setEnvoye(null)} />
         ) : (
           <>
-            <button type="button" onClick={google} disabled={pending !== null} className={`mt-6 ${BOUTON}`}>
-              <GoogleMark />
-              {pending === "google" ? "Ouverture…" : "Continuer avec Google"}
-            </button>
+            {/* **Ce que ça fait, avant de le faire.** Le paragraphe explicatif
+                vivait en bas de la carte, après les boutons, en 12 px gris :
+                il servait d'excuse. Il monte ici, en tête, parce qu'il n'y a
+                plus qu'un chemin et qu'on peut donc le décrire honnêtement. */}
+            <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">
+              Entre ton adresse : un lien de connexion t&apos;y attend. Pas de mot de passe à
+              choisir, pas de compte à créer.
+            </p>
 
-            {/* Un « ou » qui sépare vraiment : sans le trait, les deux moyens se
-                lisent comme une suite d'étapes. */}
-            <div className="my-4 flex items-center gap-3">
-              <span className="h-px flex-1 bg-border" />
-              <span className="text-xs text-muted-foreground">ou</span>
-              <span className="h-px flex-1 bg-border" />
-            </div>
-
-            <form action={lien} className="flex flex-col gap-2">
-              <input
-                name="email"
-                type="email"
-                required
-                autoComplete="email"
-                placeholder="prenom@icloud.com"
-                aria-label="Ton adresse e-mail"
-                /* 16px : en dessous, iOS zoome sur le champ à la mise au point. */
-                className="h-11 rounded-xl bg-muted/60 px-3.5 text-base outline-none ring-1 ring-transparent focus-visible:ring-ring/50 dark:bg-white/[0.07]"
-              />
+            <form action={lien} className="mt-6 flex flex-col gap-2.5">
+              <label className="flex flex-col gap-1.5">
+                <span className="text-[13px] font-medium">Ton adresse</span>
+                <input
+                  name="email"
+                  type="email"
+                  required
+                  autoFocus
+                  autoComplete="email"
+                  placeholder="prenom@icloud.com"
+                  /* 16 px : en dessous, iOS zoome sur le champ à la mise au point. */
+                  className="h-12 rounded-xl bg-muted/60 px-3.5 text-base outline-none ring-1 ring-transparent focus-visible:ring-2 focus-visible:ring-[var(--space-ink)] dark:bg-white/[0.07]"
+                />
+              </label>
               <button
                 type="submit"
-                disabled={pending !== null}
-                className="flex h-11 w-full items-center justify-center rounded-xl bg-muted text-[15px] font-semibold transition-[opacity,transform] ease-out active:scale-[0.98] active:duration-0 disabled:opacity-50 dark:bg-white/[0.12]"
+                disabled={pending}
+                /* La seule action de l'écran, donc la seule à porter la couleur :
+                   le dégradé de l'espace est réservé à ce qui agit. */
+                className="mt-1 flex h-12 w-full items-center justify-center gap-2 rounded-xl text-[15px] font-semibold text-white transition-[opacity,transform] ease-out [background:var(--space-gradient)] active:scale-[0.98] active:duration-0 disabled:opacity-50"
               >
-                {pending === "lien" ? "Envoi…" : "Recevoir un lien de connexion"}
+                {pending ? <Loader2 className="size-4 animate-spin" /> : null}
+                {pending ? "Envoi…" : "Recevoir mon lien"}
+                {!pending && <ArrowRight className="size-4" strokeWidth={2} />}
               </button>
             </form>
           </>
         )}
 
         {error && (
-          <p role="alert" className="mt-3 rounded-lg bg-destructive/10 px-3 py-2 text-[13px] text-destructive">
+          <p role="alert" className="mt-3 rounded-xl bg-destructive/10 px-3 py-2.5 text-[13px] leading-relaxed text-destructive">
             {error}
           </p>
         )}
 
-        <p className="mt-6 text-xs leading-relaxed text-muted-foreground">
-          Entrer ici ne donne accès à aucun message : ça sert à te reconnaître, et à savoir à qui
-          appartiennent les boîtes rangées. Les boîtes se branchent ensuite, une par une.
+        {/* **Ce que l'adresse d'entrée n'est pas.** Elle sert à te reconnaître,
+            et rien de plus : les boîtes se branchent ensuite, une par une, avec
+            leur propre mot de passe. Dire les deux choses à la porte évite la
+            question qui vient sinon au premier chargement — « pourquoi mon
+            courrier n'est-il pas là ? ». */}
+        <p className="mt-6 border-t pt-4 text-[13px] leading-relaxed text-muted-foreground">
+          Cette adresse ne sert qu&apos;à te reconnaître — elle n&apos;ouvre aucune boîte. Le
+          courrier arrive après, quand tu branches une boîte avec son mot de passe.
         </p>
       </div>
     </main>
   );
 }
 
-const BOUTON =
-  "flex h-11 w-full items-center justify-center gap-3 rounded-xl bg-foreground text-[15px] font-semibold text-background transition-[opacity,transform] ease-out active:scale-[0.98] active:duration-0 disabled:opacity-50";
+/**
+ * Le lien est parti : où regarder, et dans quel navigateur l'ouvrir.
+ *
+ * Le second point n'est pas un détail — le lien porte un code (PKCE) qui ne se
+ * vérifie que là où il a été demandé, et l'ouvrir depuis l'app Mail du
+ * téléphone quand on l'a demandé sur le bureau donne une erreur qui ne dit pas
+ * pourquoi.
+ */
+function Envoye({ adresse, onChanger }: { adresse: string; onChanger: () => void }) {
+  return (
+    <div className="mt-5">
+      <div className="flex items-start gap-3 rounded-xl bg-[color-mix(in_oklch,var(--space-accent)_14%,transparent)] px-3.5 py-3">
+        <MailCheck className="mt-0.5 size-5 shrink-0 text-[var(--space-ink)]" strokeWidth={1.75} />
+        <p className="min-w-0 text-[13px] leading-relaxed">
+          Un lien vient de partir vers <span className="font-semibold">{adresse}</span>. Ouvre-le{" "}
+          <span className="font-semibold">depuis ce navigateur</span> : il se vérifie là où il a
+          été demandé.
+        </p>
+      </div>
+      <button
+        type="button"
+        onClick={onChanger}
+        className="mt-3 text-[13px] font-medium text-muted-foreground underline underline-offset-2 hover:text-foreground"
+      >
+        Changer d&apos;adresse
+      </button>
+    </div>
+  );
+}
 
 /**
  * Les messages de Supabase, en français et actionnables.
@@ -162,18 +174,4 @@ function lisible(message: string): string {
     return "Cette façon de se connecter n'est pas activée : Supabase → Authentication → Providers.";
   }
   return `La connexion a échoué : ${message}`;
-}
-
-/* Le G officiel, en quatre chemins : une icône Lucide en trait ne ressemblerait
-   à rien d'identifiable, et c'est le seul endroit de l'app où une marque tierce
-   a sa place. */
-function GoogleMark() {
-  return (
-    <svg viewBox="0 0 48 48" className="size-5 shrink-0" aria-hidden>
-      <path fill="#4285F4" d="M45.1 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h11.8c-.5 2.7-2 5-4.4 6.6v5.5h7.1c4.1-3.8 6.6-9.4 6.6-16.1z" />
-      <path fill="#34A853" d="M24 46c6 0 11-2 14.6-5.4l-7.1-5.5c-2 1.3-4.5 2.1-7.5 2.1-5.8 0-10.7-3.9-12.4-9.1H4.3v5.7C7.9 41 15.4 46 24 46z" />
-      <path fill="#FBBC05" d="M11.6 28.1c-.4-1.3-.7-2.7-.7-4.1s.2-2.8.7-4.1v-5.7H4.3C2.8 17.1 2 20.4 2 24s.8 6.9 2.3 9.8l7.3-5.7z" />
-      <path fill="#EA4335" d="M24 10.8c3.3 0 6.2 1.1 8.5 3.3l6.3-6.3C35 4.1 30 2 24 2 15.4 2 7.9 7 4.3 14.2l7.3 5.7c1.7-5.2 6.6-9.1 12.4-9.1z" />
-    </svg>
-  );
 }

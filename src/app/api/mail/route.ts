@@ -11,6 +11,7 @@ import {
   unreadByFolder,
   withImap,
   writeThread,
+  type Chrono,
 } from "@/lib/mail/imap";
 import type { DraftInput, OutgoingMessage } from "@/lib/mail/provider";
 import { dossiersDe, versImap } from "@/lib/search/imap";
@@ -97,21 +98,39 @@ export async function POST(request: NextRequest) {
            montre que sa moitié reçue. Le chemin passe par `paths()` — un LIST
            de plus, mis en cache pour la requête. Inutile quand on lit
            « Envoyés » lui-même. */
+        /* **On mesure où passe le temps d'une lecture** (9 sept.). Les journaux
+           du tour de relève ont montré qu'un aller-retour vers iCloud coûte
+           trois à six dixièmes de seconde : une lecture en fait cinq (le `LIST`
+           des chemins, `SELECT` + `FETCH` du dossier, les deux mêmes pour
+           « Envoyés »), et c'est probablement là qu'est le temps — pas dans les
+           soixante enveloppes rapportées. Trois nombres, aucun contenu, une
+           ligne par lecture : de quoi décider si une lecture incrémentale
+           gagnerait quelque chose avant de l'écrire. */
+        const chrono: Chrono = {};
+        const debut = Date.now();
         const envoyes = body.folder === "sent" ? undefined : (await paths()).sent;
+        chrono.chemins = Date.now() - debut;
+        const dire = () =>
+          console.log(
+            `lecture : ${body.folder} · chemins ${chrono.chemins} ms · dossier ${chrono.dossier ?? "?"} ms` +
+              (chrono.envoyes === undefined ? "" : ` · envoyés ${chrono.envoyes} ms`) +
+              ` · ${chrono.fils ?? 0} fils · total ${Date.now() - debut} ms`,
+          );
 
         if (body.folder === "starred") {
           /* Ils gardent « inbox » comme dossier : ce sont les mêmes messages,
              et les marquer « starred » les ferait disparaître de la réception
              (`threadMatchesFolder` lit `t.folder`). */
-          return {
-            threads: await readFolder(client, reception, "inbox", {
-              flaggedOnly: true,
-              limit: body.limit,
-              deja: body.deja,
-              moi: account.email,
-              sentPath: envoyes,
-            }),
-          };
+          const favoris = await readFolder(client, reception, "inbox", {
+            flaggedOnly: true,
+            limit: body.limit,
+            deja: body.deja,
+            moi: account.email,
+            sentPath: envoyes,
+            chrono,
+          });
+          dire();
+          return { threads: favoris };
         }
         /* **« En pause » ne se demande pas au serveur.** Ce n'est pas un
            dossier — aucune boîte n'en a un —, c'est un état que le store tient
@@ -122,17 +141,18 @@ export async function POST(request: NextRequest) {
         /* Un dossier absent — les indésirables sur une boîte qui n'en a pas —
            est une liste vide, pas une erreur. */
         if (!path) return { threads: [] };
-        return {
-          /* Notre adresse est des deux côtés de tout notre courrier : sans
-             elle, la reprise par l'objet croirait voir un correspondant commun
-             entre deux messages qui n'en ont aucun (`groupIntoThreads`). */
-          threads: await readFolder(client, path, body.folder, {
-            limit: body.limit,
-            deja: body.deja,
-            moi: account.email,
-            sentPath: envoyes,
-          }),
-        };
+        /* Notre adresse est des deux côtés de tout notre courrier : sans elle,
+           la reprise par l'objet croirait voir un correspondant commun entre
+           deux messages qui n'en ont aucun (`groupIntoThreads`). */
+        const threads = await readFolder(client, path, body.folder, {
+          limit: body.limit,
+          deja: body.deja,
+          moi: account.email,
+          sentPath: envoyes,
+          chrono,
+        });
+        dire();
+        return { threads };
       }
 
       if (body.op === "search") {

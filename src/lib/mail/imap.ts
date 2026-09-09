@@ -565,12 +565,36 @@ async function lireEnvoyes(client: ImapFlow, path: string): Promise<Situe[]> {
 }
 
 /** Les derniers fils d'un dossier, du plus récent au plus ancien. */
+/**
+ * **Le temps de chaque moitié d'une lecture, pour savoir où il passe.**
+ *
+ * Les journaux du tour de relève ont appris une chose qu'on ne pouvait pas
+ * deviner : sur une vraie boîte, un **aller-retour** coûte trois à six
+ * dixièmes de seconde. Ce qui pèse dans une lecture n'est donc probablement pas
+ * le nombre d'enveloppes rapportées mais le nombre d'allers-retours — un
+ * `SELECT` et un `FETCH` par dossier, plus le `LIST` des chemins, plus les
+ * mêmes deux pour « Envoyés ». Avant de bâtir une lecture incrémentale qui
+ * économiserait des *octets*, on mesure : si le temps est dans les
+ * allers-retours, elle ne gagnerait rien.
+ *
+ * Trois nombres, aucun contenu, une ligne par lecture.
+ */
+export type Chrono = { chemins?: number; dossier?: number; envoyes?: number; fils?: number };
+
 export async function readFolder(
   client: ImapFlow,
   path: string,
   folder: DossierCible,
-  options: { flaggedOnly?: boolean; limit?: number; deja?: number; moi?: string; sentPath?: string } = {},
+  options: {
+    flaggedOnly?: boolean;
+    limit?: number;
+    deja?: number;
+    moi?: string;
+    sentPath?: string;
+    chrono?: Chrono;
+  } = {},
 ): Promise<Thread[]> {
+  const depart = Date.now();
   const lock = await client.getMailboxLock(path);
   let rendu = false;
   try {
@@ -607,9 +631,13 @@ export async function readFolder(
        la suite va lire « Envoyés ». */
     lock.release();
     rendu = true;
+    if (options.chrono) options.chrono.dossier = Date.now() - depart;
 
+    const avantEnvoyes = Date.now();
     const envoyes =
       options.sentPath && options.sentPath !== path ? await lireEnvoyes(client, options.sentPath) : [];
+    if (options.chrono && options.sentPath && options.sentPath !== path)
+      options.chrono.envoyes = Date.now() - avantEnvoyes;
 
     /* **Seuls les fils qui existent ici.** Fondre ajoute nos réponses aux fils
        de cette boîte ; un fil qui n'est *que* dans « Envoyés » n'a rien à faire
@@ -618,6 +646,7 @@ export async function readFolder(
     const threads = groupIntoThreads([...messages, ...envoyes], options.moi)
       .filter((g) => g.some((m) => !m.arcPath && propres.has(m.uid)))
       .map((g) => toThread(g, path, folder));
+    if (options.chrono) options.chrono.fils = threads.length;
     return threads.sort((a, b) => (a.messages.at(-1)!.date < b.messages.at(-1)!.date ? 1 : -1));
   } finally {
     if (!rendu) lock.release();

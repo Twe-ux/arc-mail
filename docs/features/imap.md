@@ -80,6 +80,12 @@ passe**.
 
 iCloud dit « Sent Messages », Gmail « [Gmail]/Messages envoyés », et cela change avec la langue du
 compte. Le serveur les annonce lui-même par les attributs **SPECIAL-USE** (`\Sent`, `\Drafts`,
+`\Trash`, `\Archive`) ; `INBOX` est la seule constante du protocole.
+
+Un dossier absent est une **liste vide, pas une erreur** : une boîte iCloud n'a pas d'« En pause ».
+
+**Favoris n'est pas un dossier mais un drapeau** : on cherche `\Flagged` dans la réception plutôt
+que d'ouvrir un chemin qui n'existe pas.
 
 ## Les non-lus des dossiers qu'on ne regarde pas
 
@@ -112,12 +118,6 @@ pour un chiffre.
   faire — c'est celui qu'on regarde, donc le local, et le fil vient d'en sortir.
 - Rien n'est **persisté** : un compte d'hier serait pire que pas de compte, et `loadSpace` le
   refait à chaque changement d'espace ou de dossier.
-`\Trash`, `\Archive`) ; `INBOX` est la seule constante du protocole.
-
-Un dossier absent est une **liste vide, pas une erreur** : une boîte iCloud n'a pas d'« En pause ».
-
-**Favoris n'est pas un dossier mais un drapeau** : on cherche `\Flagged` dans la réception plutôt
-que d'ouvrir un chemin qui n'existe pas.
 
 ## L'identifiant d'un fil
 

@@ -683,6 +683,10 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   identifiant. Le cache n'est **jamais une dépendance** (privé, refusé, vide : le réseau reprend), et
   la déconnexion efface le tout.
 - Une relecture de dossier **fond** les corps déjà connus (`replaceFolder`) au lieu de les jeter.
+- Une lecture de liste fait **cinq allers-retours** (chemins, dossier ×2, Envoyés ×2) et un
+  aller-retour vers iCloud coûte 0,3 à 0,6 s : c'est **là** qu'est le temps, pas dans les cent
+  enveloppes rapportées — donc une lecture incrémentale gagnerait des octets et rien d'autre.
+  `/api/mail` journalise les trois durées ; on décide sur ces nombres, pas sur l'intuition.
 
 **Indésirable** → [docs/features/indesirable.md](docs/features/indesirable.md)
 - `junk` est le **seul dossier qui peut ne pas exister** : `bySpecial("\\Junk")` sans repli (deviner

@@ -524,12 +524,33 @@ Ce sont des **messages entiers** en clair sur l'appareil, et non plus seulement 
 `useSignOut` appelle `viderCorps()` en même temps qu'il vide la liste.
 
 **Ce qu'il ne fait pas** : la liste, elle, est toujours relue en entier à l'ouverture (les soixante
-dernières enveloppes). C'est ce qui apprend ce qui est arrivé et ce qui a changé ailleurs, mais elle
-pourrait ne demander que la différence — `CONDSTORE`/`QRESYNC` (RFC 7162) rendent « ce qui a changé
-depuis », et à défaut un `FETCH FLAGS` sur la plage connue plus les UID au-dessus du dernier connu
-coûterait un aller-retour au lieu de soixante enveloppes. C'est le prochain cran, et il demande
-de garder un repère par dossier — `mail_watermarks` existe maintenant pour la relève du cron
-([notifications push](notifications-push.md)), il n'y aurait rien de plus à inventer.
+dernières enveloppes). C'est ce qui apprend ce qui est arrivé et ce qui a changé ailleurs.
+
+### Avant de la rendre incrémentale, on mesure (9 sept. 2026)
+
+Le cran suivant paraissait évident : ne demander que la différence — `CONDSTORE`/`QRESYNC`
+(RFC 7162) rendent « ce qui a changé depuis », et `mail_watermarks` existe déjà pour la relève.
+
+**Les journaux du tour de relève ont retourné l'hypothèse.** Sur la vraie boîte, les lignes se
+suivent à 313 ms, 576 ms, 1 s : un **aller-retour** vers iCloud coûte trois à six dixièmes de
+seconde. Or une lecture de liste en fait **cinq** — le `LIST` des chemins, `SELECT` + `FETCH` du
+dossier, `SELECT` + `FETCH` d'« Envoyés » — et rapporte cent enveloppes en une seule fois. Une
+lecture incrémentale économiserait donc des **octets**, pas des allers-retours : elle ne gagnerait
+rien de ce qu'on croyait lui demander.
+
+Deux directions restent, et elles ne se ressemblent pas :
+
+- **réduire les allers-retours** — mettre les chemins en cache sur la connexion gardée, ne relire
+  « Envoyés » que si son compteur a bougé. Mais la connexion est **froide** au moment qui compte
+  (l'ouverture de l'app), et un cache attaché à une connexion tiède ne sert que les lectures
+  suivantes, celles qui sont déjà rapides ;
+- **ne pas avoir besoin du réseau** — ce que font déjà les enveloppes persistées et le cache des
+  corps : la liste est à l'écran avant que la lecture parte.
+
+D'où la décision : `/api/mail` **journalise les trois durées** d'une lecture (`chemins`, `dossier`,
+`envoyés`, plus le nombre de fils) — aucun contenu, une ligne. On décide après avoir lu ces
+nombres-là sur une vraie boîte, pas avant. C'est la règle de la maison, appliquée à une
+optimisation plutôt qu'à un pixel.
 
 Et quand il n'y a vraiment rien à montrer — la toute première fois —, la liste affiche huit rangées
 grises à la forme des vraies plutôt qu'une carte vide, qui dirait « il n'y a rien » au lieu de « je

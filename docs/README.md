@@ -51,6 +51,8 @@ l'état du projet et ce qui reste à faire.
 
 - [Fournisseurs de mail](roadmap/fournisseurs-mail.md) — `MailProvider`, iCloud (IMAP + mot de
   passe d'application), Gmail, boîtes virtuelles par domaine, authentification de l'app
+- [Notifications push](roadmap/notifications-push.md) — ce qu'un cron Vercel peut, les six pièces à
+  poser, et les deux décisions qui viennent avant le code
 
 ## Skills du dépôt (`.claude/skills/`)
 

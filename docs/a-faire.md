@@ -183,12 +183,16 @@ Trois voies :
    notifications et exécute les réveils. C'est ce que fait Mailspring avec son moteur C++, en plus
    simple parce que nous n'avons pas de base locale à tenir.
 3. **Des tâches planifiées** (Vercel Cron) — un réveil toutes les *n* minutes. Ça suffit pour la
-   mise en pause et l'envoi différé, pas pour le push.
+   mise en pause et l'envoi différé, et **pour la notification** : ce qu'un cron ne donne pas,
+   c'est l'instantané, pas la notification → [fiche](roadmap/notifications-push.md).
 
 Rien ne se décide en écrivant du code : c'est un choix à faire, et il conditionne les quatre lignes
 qui suivent.
 
-- [ ] Push et notifications (`IDLE`, service worker, permission iOS).
+- [ ] **Push et notifications** — le plan est écrit ([fiche](roadmap/notifications-push.md)) : six
+      pièces à poser, un `STATUS (UIDNEXT)` par tour, et **deux décisions avant le code** — la
+      cadence que permet le forfait Vercel, et le fait qu'un travail de fond déchiffre les mots de
+      passe sans personne en face.
 - [ ] Mise en pause : un fil qui revient à l'heure dite.
 - [ ] Envoyer plus tard, et rappel de suivi (« personne n'a répondu depuis trois jours »).
 - [x] **Recherche côté serveur** (6 sept.) — le second compilateur, `MailProvider.search()`, l'op

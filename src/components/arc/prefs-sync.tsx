@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 
 import { enregistrerPreferences } from "@/app/preferences-actions";
+import type { Pause } from "@/lib/pause";
 import { PREF_KEYS, type Preferences } from "@/lib/preferences";
 import { useMail } from "@/lib/store";
 
@@ -38,7 +39,14 @@ const REPOS = 800;
  * au **prochain** chargement. Le premier sur un appareil neuf garde donc une
  * frame de thème clair — le prix d'un thème posé avant toute peinture.
  */
-export function PrefsSync({ initial }: { initial: Preferences }) {
+export function PrefsSync({
+  initial,
+  pauses,
+}: {
+  initial: Preferences;
+  /** Les promesses en cours, telles que la base les connaît. */
+  pauses: Record<string, Pause>;
+}) {
   /* Ce qu'on vient de poser soi-même : la première notification de `subscribe`
      est la conséquence de notre propre écriture, pas un choix de la personne,
      et la renvoyer ferait un aller-retour pour rien. */
@@ -55,13 +63,20 @@ export function PrefsSync({ initial }: { initial: Preferences }) {
         pose.current = true;
         useMail.setState(patch as Partial<ReturnType<typeof useMail.getState>>);
       }
+      /* **Les pauses aussi suivent le compte** (9 sept.). La base gagne, comme
+         pour les réglages : une promesse faite sur l'iPhone doit exister sur
+         le bureau. Elle **fusionne** au lieu de remplacer — une pause posée
+         sur cet appareil pendant que la page se montait serait sinon perdue,
+         et une base muette (hors ligne, erreur) ne doit rien effacer. */
+      if (Object.keys(pauses).length > 0)
+        useMail.setState((s) => ({ pauses: { ...pauses, ...s.pauses } }));
     };
 
     let arreter: (() => void) | undefined;
     if (useMail.persist.hasHydrated()) appliquer();
     else arreter = useMail.persist.onFinishHydration(appliquer);
     return () => arreter?.();
-  }, [initial]);
+  }, [initial, pauses]);
 
   useEffect(() => {
     let minuteur: ReturnType<typeof setTimeout> | undefined;

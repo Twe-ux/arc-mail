@@ -183,11 +183,19 @@ l'enregistrement du worker `v27` avec ses écouteurs, les deux rangées dans leu
 **le chemin d'échec** — une souscription que le serveur refuse est défaite dans le navigateur,
 plutôt que de laisser un appareil croire qu'il sera prévenu.
 
-## Ce que ça ne règle pas
+## La deuxième chose que le tour sait faire : réveiller (9 sept.)
 
-La **mise en pause** reste locale au navigateur ([fiche](../features/pause.md)) : la même relève
-pourrait la réveiller côté serveur, mais ça demande de porter `pauses` en base — c'est un autre
-chantier, pas un effet de bord de celui-ci.
+« En pause » portait **une date** — c'est ce qui la distinguait d'un rangement — et rien ne pouvait
+la tenir : le fil ne revenait qu'à la prochaine ouverture, sur le seul appareil où la pause avait
+été posée. Le tour existe maintenant ; il n'a qu'à regarder `wake <= now()`.
+
+La promesse a donc quitté `localStorage` pour `mail_pauses` ([fiche](pause.md)), le tour supprime la
+ligne échue et pousse « De retour · Claire ». **Supprimer avant de pousser** est délibéré : un envoi
+raté ne doit pas faire redire la même chose toutes les cinq minutes — le fil est de retour dans la
+liste dans les deux cas.
+
+Une personne sans notification n'est jamais relevée (c'est la borne du consentement) : ses pauses
+attendent alors le chemin local, qui n'a pas bougé.
 
 ## L'autre voie, toujours ouverte
 

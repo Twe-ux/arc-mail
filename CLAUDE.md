@@ -459,6 +459,8 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   pour corriger après coup.
 - Le contrôle est **une définition pour les deux surfaces** (`push-toggle.tsx`) et dit pourquoi il
   ne peut pas : « Dans l'app installée » sur iPhone hors PWA — la seule des trois qu'on peut lever.
+- Le tour **réveille aussi les pauses** échues (`mail_pauses`) : c'est la moitié qui manquait à
+  « En pause » → [fiche](docs/features/pause.md).
 - `VAPID_SUBJECT` est une **URL** (`mailto:`/`https:`), pas une adresse : `web-push` refuse au
   **premier envoi**, pas à la configuration. Le code préfixe ce qui a l'air d'une adresse.
 - **Un `catch` qui nomme une cause ne doit attraper que cette cause** : `setVapidDetails` jette, et
@@ -492,8 +494,14 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - Une pause porte **une date** — c'est ce qui la distingue d'un rangement. Cinq moments
   (`PAUSES`), chacun avec **son heure calculée à droite** ; un réveil est toujours dans le futur
   (« ce soir » passé 18 h vise demain).
-- **Pas de serveur à nous** : le retour se fait à l'ouverture et au `visibilitychange`, et
-  l'interface le dit (« Revient à l'ouverture d'Arc Mail, pas à la minute près »).
+- **Deux chemins de réveil** : local (`visibilitychange`, qui suffit seul et marche sans compte) et
+  le **tour de relève**, qui tient la promesse à l'heure dite — `mail_pauses` suit le compte, la
+  ligne échue est **supprimée avant** l'envoi (une notification perdue vaut mieux qu'une qui revient
+  toutes les cinq minutes). La base **suit, ne commande pas** : écriture ratée = pause locale, le
+  comportement d'avant. À l'arrivée elle **fusionne** (`{...base, ...local}`), elle ne remplace pas.
+- L'interface dit la promesse en **trois états** — sans compte, avec compte, avec notifications —
+  parce qu'il y en a trois ; une phrase qui promet ce que l'app ne fait pas est pire que pas de
+  phrase.
 - **« En pause » est un état, pas un dossier** : aucune boîte n'en a un (`moveThread(id,"snoozed")`
   répondait « Cette boîte n'a pas de dossier « snoozed » »). Le fil **ne bouge pas** ; `pauses` le
   retire de sa liste et le pose dans « En pause » (`threadMatchesFolder`, 3ᵉ paramètre). Réveiller,
@@ -503,7 +511,7 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   En pause — ils **agissent** depuis « Plus » — et gagne **Réception**, qui manquait.
 - `useVisibleThreads` reconstruit un état partiel : **`pauses` doit y être**, sinon la liste ne
   bouge pas quand on met un fil en pause.
-- Local, donc par navigateur — le fil reste dans sa boîte sur le serveur, et l'interface le dit.
+- Le fil reste dans sa boîte **sur le serveur de mail** : un autre client l'y voit toujours.
 - Une seule liste de moments (`PauseChoix`, deux tailles) pour les trois surfaces : sous-menu **à la
   place** du `⋯` sur bureau, troisième feuille sur téléphone, popover dans le volet.
 - La rangée d'un fil en pause porte **« Revient demain à 8 h »** devant ses étiquettes.

@@ -198,7 +198,9 @@ qui suivent.
       relève qui ne s'ouvre que sur les comptes d'une personne abonnée
       → [fiche](features/notifications-push.md). **Reste à faire côté Vercel** : `npm run vapid`,
       les quatre variables, et le premier abonnement depuis l'iPhone — c'est dans « à tester ».
-- [ ] Mise en pause : un fil qui revient à l'heure dite.
+- [x] **Mise en pause : un fil qui revient à l'heure dite** (9 sept.) — `mail_pauses` suit le
+      compte, et le tour de relève supprime la ligne échue puis notifie « De retour · … »
+      → [fiche](features/pause.md). Le fil ne bouge toujours pas sur le serveur.
 - [ ] Envoyer plus tard, et rappel de suivi (« personne n'a répondu depuis trois jours »).
 - [x] **Recherche côté serveur** (6 sept.) — le second compilateur, `MailProvider.search()`, l'op
       `search` de la route et le groupe « Toute la boîte » dans ⌘K → [fiche](features/recherche.md).

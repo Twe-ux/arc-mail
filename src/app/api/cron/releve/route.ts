@@ -179,8 +179,66 @@ async function tour() {
     }
   }
 
+  /* **Les pauses arrivées à échéance.** C'est la moitié qui manquait à « En
+     pause » : la promesse portait une date, et rien ne pouvait la tenir à
+     l'heure dite — le fil ne revenait qu'à la prochaine ouverture, sur le seul
+     appareil où la pause avait été posée. Le tour existe maintenant ; il n'a
+     qu'à regarder. */
+  const reveils = await reveiller(db, personnes, parPersonne);
+  notifications += reveils;
+
   dire(`fin — ${comptes} compte(s), ${dossiers} dossier(s), ${notifications} notification(s)`);
-  return NextResponse.json({ comptes, dossiers, notifications });
+  return NextResponse.json({ comptes, dossiers, notifications, reveils });
+}
+
+/**
+ * Rendre les fils dont l'heure est venue.
+ *
+ * **Réveiller, c'est oublier la promesse** — la règle de la fiche, ici aussi :
+ * la ligne est supprimée, et le fil réapparaît dans sa boîte au prochain
+ * regard, sur tous les appareils. La notification n'est que le messager.
+ *
+ * On **supprime avant de pousser**, et c'est délibéré : un envoi qui échoue ne
+ * doit pas faire redire la même chose au tour suivant. Une notification perdue
+ * vaut mieux qu'une notification qui revient toutes les cinq minutes — le fil,
+ * lui, est de retour dans la liste dans les deux cas.
+ */
+async function reveiller(
+  db: ReturnType<typeof supabaseAdmin>,
+  personnes: string[],
+  parPersonne: Map<string, Abonnement[]>,
+): Promise<number> {
+  const { data, error } = await db
+    .from("mail_pauses")
+    .select("user_id, thread_id, titre, objet")
+    .in("user_id", personnes)
+    .lte("wake", new Date().toISOString());
+  if (error) {
+    dire(`pauses illisibles — ${error.message}`);
+    return 0;
+  }
+  const dus = (data ?? []) as { user_id: string; thread_id: string; titre: string | null; objet: string | null }[];
+  if (dus.length === 0) return 0;
+
+  await db
+    .from("mail_pauses")
+    .delete()
+    .in("thread_id", dus.map((p) => p.thread_id))
+    .in("user_id", personnes);
+
+  let envoyees = 0;
+  for (const pause of dus) {
+    dire(`pause échue : ${pause.thread_id}`);
+    for (const abonnement of parPersonne.get(pause.user_id) ?? []) {
+      const envoi = await pousser(abonnement, {
+        titre: pause.titre ? `De retour · ${pause.titre}` : "Un message est de retour",
+        corps: pause.objet || "Il était en pause",
+      });
+      if (envoi.ok) envoyees += 1;
+      else dire(`réveil non poussé — ${envoi.raison ?? "sans raison donnée"}`);
+    }
+  }
+  return envoyees;
 }
 
 /**

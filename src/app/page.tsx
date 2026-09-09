@@ -4,6 +4,7 @@ import { AppShell } from "@/components/arc/app-shell";
 import { SpacesInit } from "@/components/arc/spaces-init";
 import { PrefsSync } from "@/components/arc/prefs-sync";
 import { SessionProvider, type Session } from "@/components/auth/session";
+import { lirePauses } from "@/lib/accounts/pauses";
 import { lirePreferences } from "@/lib/accounts/prefs";
 import { lireProfil } from "@/lib/accounts/profil";
 import { listAccounts, listSpaces } from "@/lib/accounts/server";
@@ -33,11 +34,12 @@ export default async function Home() {
      Le profil part **dans le même lot** : signer l'URL du visage est un
      aller-retour de plus vers Supabase, et l'attendre avant les trois autres
      l'ajoutait au temps du premier rendu au lieu de s'y fondre. */
-  const [comptes, vues, prefs, profil] = await Promise.all([
+  const [comptes, vues, prefs, profil, pauses] = await Promise.all([
     listAccounts(),
     listSpaces(),
     lirePreferences(),
     lireProfil(user),
+    lirePauses(),
   ]);
   /* Le visage vient de là : `avatar_url` était posé par « Continuer avec
      Google », qui n'existe plus — le champ était encore lu, plus jamais
@@ -50,7 +52,7 @@ export default async function Home() {
       {spaces && <SpacesInit spaces={spaces} />}
       {/* Les réglages suivent le compte : `localStorage` est par navigateur, et
           un lien de connexion ouvre volontiers l'autre. */}
-      <PrefsSync initial={prefs} />
+      <PrefsSync initial={prefs} pauses={pauses} />
       <AppShell />
     </SessionProvider>
   );

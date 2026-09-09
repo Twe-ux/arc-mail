@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { renommerEspace } from "./accounts/actions";
+import { enregistrerPause, oublierPause } from "@/app/pause-actions";
 import { fait } from "./folders";
 import { libellePause, type Pause } from "./pause";
 import { firstLine, formatFullDate } from "./format";
@@ -1393,6 +1394,18 @@ export const useMail = create<MailState>()(
       pauses: { ...s.pauses, [id]: { wake: wake.toISOString() } },
       selectedThreadId: s.selectedThreadId === id ? null : s.selectedThreadId,
     }));
+    /* **La base suit, elle ne commande pas.** Le geste est déjà fait à
+       l'écran ; l'écriture sert aux autres appareils et au tour de relève, qui
+       préviendra à l'heure dite. Ratée, la pause reste locale — le
+       comportement d'avant, dégradé et jamais cassé. L'enveloppe voyage avec :
+       la notification doit pouvoir s'écrire sans rouvrir la boîte. */
+    const dernier = t.messages[t.messages.length - 1];
+    void enregistrerPause({
+      thread_id: id,
+      wake: wake.toISOString(),
+      titre: dernier?.from.name || dernier?.from.email,
+      objet: t.subject,
+    }).catch(() => {});
     annulable(`En pause, revient ${libellePause(wake.toISOString())}`, Promise.resolve(true), () => {
       get().reprendre(id);
       toast("Annulé");
@@ -1400,12 +1413,14 @@ export const useMail = create<MailState>()(
   },
 
   /** Sortir un fil de la pause tout de suite — « Annuler », ou le réveil. */
-  reprendre: (id) =>
+  reprendre: (id) => {
     set((s) => {
       const reste = { ...s.pauses };
       delete reste[id];
       return { pauses: reste };
-    }),
+    });
+    void oublierPause([id]).catch(() => {});
+  },
 
   /**
    * **Ramener ce dont l'heure est passée.**
@@ -1429,6 +1444,9 @@ export const useMail = create<MailState>()(
       dus.forEach(([id]) => delete reste[id]);
       return { pauses: reste };
     });
+    /* La promesse est tenue : elle n'a plus à voyager. Le tour de relève
+       pourrait la réveiller à son tour et notifier deux fois. */
+    void oublierPause(dus.map(([id]) => id)).catch(() => {});
   },
 
   setLabels: (id, labels) => {

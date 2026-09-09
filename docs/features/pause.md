@@ -13,16 +13,37 @@ pour **ne pas** promettre de retour, parce qu'il n'y en avait pas.
 
 C'est le paquet « les fonctions annoncées qui n'ont rien derrière » de `docs/a-faire.md`.
 
-## Ce que le réveil sait faire, et ce qu'il ne sait pas
+## Ce que le réveil sait faire — et ce qu'il a appris le 9 septembre
 
-**Il n'y a pas de serveur à nous.** Rien ne peut ramener un fil à la seconde dite. Le retour se
-fait quand l'app s'ouvre ou **revient au premier plan** (`visibilitychange`) : un fil dont l'heure
-est passée pendant la nuit revient au premier regard du matin, ce qui est l'usage ; un fil mis en
-pause sur un appareil qu'on n'ouvre plus reste où il est.
+**Il n'y avait pas de serveur à nous.** Rien ne pouvait ramener un fil à la seconde dite : le
+retour se faisait quand l'app s'ouvrait ou **revenait au premier plan** (`visibilitychange`). Un
+fil dont l'heure passait pendant la nuit revenait au premier regard du matin — ce qui est l'usage —
+mais un fil mis en pause sur un appareil qu'on n'ouvre plus restait où il était, et la promesse ne
+tenait que dans le navigateur où elle avait été faite.
 
-C'est **écrit dans l'interface** — « Revient à l'ouverture d'Arc Mail, pas à la minute près », sous
-les cinq choix — plutôt que caché. La fonction qui manquait ne se remplace pas par une autre
-approximation muette.
+**Le tour de relève a changé les deux moitiés** ([fiche](notifications-push.md)). La promesse suit
+maintenant le compte (`mail_pauses`, une ligne par fil) : posée sur l'iPhone, elle existe sur le
+bureau. Et le tour la tient **à l'heure dite** — il regarde `wake <= now()`, supprime la ligne et
+notifie « De retour · Claire ».
+
+Trois choses n'ont pas changé, et c'est voulu :
+
+- **Le fil ne bouge toujours pas** sur le serveur : réveiller, c'est oublier la promesse.
+- `visibilitychange` reste le chemin local, et il suffit à lui seul : sans notifications, sans
+  compte, la pause marche comme avant.
+- **La base suit, elle ne commande pas.** Le store écrit d'abord chez lui ; une écriture ratée
+  laisse la pause **locale**, c'est-à-dire exactement le comportement d'avant. Dégradé, jamais
+  cassé.
+
+Le **réveil supprime la ligne avant de pousser**, et c'est délibéré : un envoi qui échoue ne doit
+pas faire redire la même chose toutes les cinq minutes. Une notification perdue vaut mieux qu'une
+notification qui revient ; le fil, lui, est de retour dans la liste dans les deux cas.
+
+C'est **écrit dans l'interface**, en trois états parce qu'il y en a trois : sans compte, « Écarté
+dans Arc Mail jusque-là ; il revient à l'ouverture » ; avec un compte, « sur tous vos appareils » ;
+et avec les notifications actives seulement, « notifié à l'heure dite ». Une phrase qui promet ce
+que l'app ne fait pas est pire que pas de phrase — et trois courtes valent mieux qu'une longue qui
+couvre tout. Mesuré : les trois tiennent sur **une ligne** dans la feuille du téléphone (345 px).
 
 `visibilitychange` plutôt qu'un minuteur : c'est le seul moment où l'on sait que quelqu'un revient
 regarder, et c'est exactement là qu'un fil doit être remonté. Un minuteur qui tourne dans un onglet
@@ -85,11 +106,19 @@ pause — le sélecteur pur était juste, l'état qu'on lui passait ne l'était 
 que rien ne se déplace. Persisté parce que c'est **la seule mémoire d'une promesse faite à
 quelqu'un** : perdue au rechargement, le fil resterait masqué sans plus rien pour le ramener.
 
-**Local, et c'est la limite connue.** Le courrier reste dans sa boîte sur le serveur : un autre
-client (Mail sur iPhone) le voit toujours dans sa réception, et une pause posée ici ne s'applique
-qu'ici. C'est ce que la ligne du bas de la carte dit en toutes lettres : « Écarté dans Arc Mail
-jusque-là ; il revient à l'ouverture. » Un mot-clé IMAP le ferait suivre — même décision que pour
-les étiquettes, et elle est dans `docs/a-faire.md`.
+**Et dans `mail_pauses`, côté base** (9 sept.) : `user_id`, `thread_id`, `wake`, plus **une copie**
+du nom de l'expéditeur et de l'objet. Cette copie est ce qui permet d'écrire la notification sans
+rouvrir la boîte : réveiller quelqu'un pour un `FETCH` de plus serait payer cher un nom qu'on
+connaissait déjà. Une ligne par promesse plutôt qu'un bloc dans `user_prefs`, parce que le tour
+interroge **par date** — ce qu'un `jsonb` ne sait pas faire.
+
+À l'arrivée, la base **fusionne** au lieu de remplacer (`{...base, ...local}`) : une pause posée
+sur cet appareil pendant que la page se montait serait sinon perdue, et une base muette — hors
+ligne, erreur — ne doit rien effacer.
+
+**Ce qui reste local au serveur de mail** : le courrier ne bouge pas de sa boîte, donc un autre
+client (Mail sur iPhone) le voit toujours dans sa réception. Un mot-clé IMAP le ferait suivre
+jusque-là — même décision que pour les étiquettes, et elle est dans `docs/a-faire.md`.
 
 ## Où on le prend
 
@@ -133,7 +162,8 @@ Sondes Playwright, bureau 1280×800 et téléphone 393×852 (insets 59/34), 0 er
 ## Reste ouvert
 
 - **Une date libre** (« Choisir… ») en sixième ligne.
-- **Faire suivre la pause d'un appareil à l'autre** : un mot-clé IMAP la porterait, et c'est la même
-  décision que pour les étiquettes (le serveur les accepte-t-il ?) → `docs/a-faire.md`.
+- **Faire suivre la pause jusqu'aux autres clients de mail** (Mail sur iPhone) : un mot-clé IMAP la
+  porterait, et c'est la même décision que pour les étiquettes (le serveur les accepte-t-il ?)
+  → `docs/a-faire.md`. D'un appareil Arc Mail à l'autre, c'est fait — `mail_pauses`.
 - Pas de pause depuis la liste (balayage ou menu long) : elle se prend depuis le fil ouvert ou le
   volet.

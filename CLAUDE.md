@@ -433,6 +433,28 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   `:has(:is(input,textarea,[contenteditable]):focus)` — **sans `[contenteditable]`, écrire levait le
   clavier sans que la feuille le sache**.
 
+**Notifications push** → [docs/features/notifications-push.md](docs/features/notifications-push.md)
+- `IDLE` demande une connexion ouverte, le serverless n'en a pas : c'est un **tour de relève**
+  (`/api/cron/releve`, `*/5` dans `vercel.json`), donc la notification sans l'instantané.
+- Un `STATUS (UIDNEXT)` par dossier — pas de `SELECT` —, `FETCH` seulement si le compteur a bougé,
+  et **`UIDVALIDITY` qui change ne notifie rien** : la boîte a été renumérotée, pas remplie. Le
+  repère avance **même quand rien n'est poussé**, sinon le tour suivant redit la même chose.
+- La relève ne s'ouvre que sur les comptes d'une personne **abonnée** : s'abonner **est** le
+  consentement à un travail de fond qui déchiffre un mot de passe sans personne en face. L'AAD est
+  reconstruit depuis la ligne, la route ne rend que des nombres, et sans `CRON_SECRET` elle n'existe
+  pas (503) — mauvais jeton, 401.
+- Une souscription est **par appareil** (`endpoint` unique, `upsert` dessus) ; `404`/`410` la
+  supprime, c'est le seul signal qu'Apple donne. `mail_watermarks` est **sans politique**, comme
+  `account_secrets`.
+- Chaque push montre une notification : iOS retire la permission à qui pousse en silence — donc
+  rien de neuf, rien d'envoyé. Le corps ne sort jamais de la relève ; la charge est chiffrée de
+  bout en bout, le relais ne lit rien.
+- **`navigator.serviceWorker.ready` ne se résout jamais** sans worker enregistré : lire un état
+  dessus laisse l'interface sur son état de départ. `getRegistration()` pour lire, `ready` seulement
+  pour corriger après coup.
+- Le contrôle est **une définition pour les deux surfaces** (`push-toggle.tsx`) et dit pourquoi il
+  ne peut pas : « Dans l'app installée » sur iPhone hors PWA — la seule des trois qu'on peut lever.
+
 **Barre du bas** → [docs/features/barre-du-bas.md](docs/features/barre-du-bas.md)
 - La barre est posée par-dessus la liste ; le défilant lui laisse `--nav-height` en bas, sinon le
   verre n'a rien à flouter.

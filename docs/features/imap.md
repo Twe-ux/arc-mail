@@ -528,7 +528,8 @@ dernières enveloppes). C'est ce qui apprend ce qui est arrivé et ce qui a chan
 pourrait ne demander que la différence — `CONDSTORE`/`QRESYNC` (RFC 7162) rendent « ce qui a changé
 depuis », et à défaut un `FETCH FLAGS` sur la plage connue plus les UID au-dessus du dernier connu
 coûterait un aller-retour au lieu de soixante enveloppes. C'est le prochain cran, et il demande
-de garder un repère par dossier — le même que la relève du cron.
+de garder un repère par dossier — `mail_watermarks` existe maintenant pour la relève du cron
+([notifications push](notifications-push.md)), il n'y aurait rien de plus à inventer.
 
 Et quand il n'y a vraiment rien à montrer — la toute première fois —, la liste affiche huit rangées
 grises à la forme des vraies plutôt qu'une carte vide, qui dirait « il n'y a rien » au lieu de « je

@@ -34,6 +34,7 @@ l'état du projet et ce qui reste à faire.
 - [IMAP](features/imap.md) — lire une vraie boîte : la route, les dossiers, les fils, l'hydratation
 - [Espaces](features/espaces.md) — d'où ils viennent, un dossier vécu comme une réception, la lecture par dossier, Favoris
 - [Indésirable](features/indesirable.md) — le seul dossier qui peut ne pas exister, et les deux gestes qui le remplissent et le vident
+- [Notifications push](features/notifications-push.md) — le tour de relève, le repère par dossier, et ce qu'un travail de fond a le droit de déchiffrer
 - [Données mock](features/donnees-mock.md) — le jeu de données et ses règles
 
 ## Audits
@@ -51,8 +52,6 @@ l'état du projet et ce qui reste à faire.
 
 - [Fournisseurs de mail](roadmap/fournisseurs-mail.md) — `MailProvider`, iCloud (IMAP + mot de
   passe d'application), Gmail, boîtes virtuelles par domaine, authentification de l'app
-- [Notifications push](roadmap/notifications-push.md) — ce qu'un cron Vercel peut, les six pièces à
-  poser, et les deux décisions qui viennent avant le code
 
 ## Skills du dépôt (`.claude/skills/`)
 

@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Bell,
   ChevronRight,
   LogOut,
   Moon,
@@ -20,6 +21,7 @@ import { useMail, useSpace, useSpaces } from "@/lib/store";
 import { PRESET_HUES, themeFromHue } from "@/lib/theme";
 import type { Space } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { PushControl } from "./push-toggle";
 import { BottomSheet, SheetCloseButton, SheetGroup, SheetRow, SheetScroller } from "./bottom-sheet";
 import { Segmented } from "./segmented";
 import { SPACE_ICONS, SpaceIcon } from "./space-icon";
@@ -211,6 +213,21 @@ export function MobileSettings() {
                     if ((v === "sombre") !== dark) toggleDark();
                   }}
                 />
+              </div>
+            </div>
+          </li>
+
+          {/* **Les notifications, une ligne comme les autres.** Le tour de
+              relève les pousse (`/api/cron/releve`) ; ici on ne fait que dire
+              oui, et sur quel appareil — une souscription Web Push est par
+              appareil, pas par compte. Hors app installée, iOS n'a pas l'API
+              du tout : la ligne le dit au lieu d'offrir une case morte. */}
+          <li className="group/row">
+            <div className="pl-4">
+              <div className="flex min-h-[50px] items-center gap-3 border-b border-black/[0.07] py-1.5 pr-4 group-last/row:border-0 dark:border-white/[0.09]">
+                <Bell className="size-5 shrink-0" strokeWidth={1.75} />
+                <span className="min-w-0 flex-1 truncate text-[15px]">Notifications</span>
+                <PushControl />
               </div>
             </div>
           </li>

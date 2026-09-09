@@ -90,6 +90,11 @@ est argumenté dans l'[audit du 6 septembre](audits/2026-09-06-clients-mail.md).
 Écrit, jamais vérifié sur une vraie boîte. Chaque ligne se solde par « vu marcher » ou par un
 correctif.
 
+- [ ] **Les notifications, de bout en bout** (9 sept.) — quatre variables dans Vercel
+      (`npm run vapid` les fabrique), la migration qui part seule à la fusion sur `main`, puis
+      « Activées » depuis l'iPhone **en app installée** et un message qu'on s'envoie. Ce qui n'a
+      pas pu être mesuré ici : un vrai service de push (Chromium éphémère n'a pas l'API) et une
+      vraie base → [fiche](features/notifications-push.md).
 - [x] **Envoyer** — vérifié depuis les boîtes iCloud (6 sept.) : le message part vraiment.
 - [ ] **La copie dans « Envoyés »** — l'`APPEND` qui suit le `SEND`. Le message part ; reste à
       confirmer qu'il se retrouve bien dans le dossier, une seule fois, avec ses pièces jointes.
@@ -182,17 +187,17 @@ Trois voies :
 2. **Un petit service à côté** (Fly, Railway, un VPS) qui tient `IDLE` par compte, pousse les
    notifications et exécute les réveils. C'est ce que fait Mailspring avec son moteur C++, en plus
    simple parce que nous n'avons pas de base locale à tenir.
-3. **Des tâches planifiées** (Vercel Cron) — un réveil toutes les *n* minutes. Ça suffit pour la
-   mise en pause et l'envoi différé, et **pour la notification** : ce qu'un cron ne donne pas,
-   c'est l'instantané, pas la notification → [fiche](roadmap/notifications-push.md).
+3. **Des tâches planifiées** (Vercel Cron) — **c'est la voie prise** (9 sept.) : un tour toutes les
+   cinq minutes, qui suffit pour la notification comme pour l'envoi différé. Ce qu'un cron ne donne
+   pas, c'est l'instantané → [fiche](features/notifications-push.md).
 
 Rien ne se décide en écrivant du code : c'est un choix à faire, et il conditionne les quatre lignes
 qui suivent.
 
-- [ ] **Push et notifications** — le plan est écrit ([fiche](roadmap/notifications-push.md)) : six
-      pièces à poser, un `STATUS (UIDNEXT)` par tour, et **deux décisions avant le code** — la
-      cadence que permet le forfait Vercel, et le fait qu'un travail de fond déchiffre les mots de
-      passe sans personne en face.
+- [x] **Push et notifications** (9 sept.) — les six pièces, un `STATUS (UIDNEXT)` par tour, et la
+      relève qui ne s'ouvre que sur les comptes d'une personne abonnée
+      → [fiche](features/notifications-push.md). **Reste à faire côté Vercel** : `npm run vapid`,
+      les quatre variables, et le premier abonnement depuis l'iPhone — c'est dans « à tester ».
 - [ ] Mise en pause : un fil qui revient à l'heure dite.
 - [ ] Envoyer plus tard, et rappel de suivi (« personne n'a répondu depuis trois jours »).
 - [x] **Recherche côté serveur** (6 sept.) — le second compilateur, `MailProvider.search()`, l'op
@@ -254,8 +259,8 @@ qui suivent.
 - [ ] **Ne relire que la différence** — la liste redemande les soixante dernières enveloppes à
       chaque ouverture. `CONDSTORE`/`QRESYNC` (RFC 7162) rendent « ce qui a changé depuis » ; à
       défaut, un `FETCH FLAGS` sur la plage connue plus les UID au-dessus du dernier connu. Demande
-      un repère par dossier — **le même** que la relève du cron
-      → [notifications push](roadmap/notifications-push.md).
+      un repère par dossier — **le même** que la relève du cron, qui existe désormais
+      (`mail_watermarks`) → [notifications push](features/notifications-push.md).
 
 ### Recherche
 

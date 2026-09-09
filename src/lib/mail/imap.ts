@@ -931,3 +931,64 @@ export async function readThread(
   messages.sort((a, b) => quand(a) - quand(b) || a.uid - b.uid);
   return await complet(messages, parsed.path, folder);
 }
+
+/**
+ * Ce qui est arrivé depuis le dernier passage, au prix le plus bas.
+ *
+ * C'est la lecture du **tour de relève** : pas une liste, pas des corps, juste
+ * « y a-t-il du neuf, et de qui ». Un `STATUS` d'abord — une commande, sans
+ * `SELECT` : le serveur rend `UIDNEXT` sans ouvrir la boîte. Si le compteur
+ * n'a pas bougé, on s'arrête là, et c'est le cas de la plupart des tours.
+ *
+ * **`UIDVALIDITY` qui change ne notifie rien.** La boîte a été renumérotée,
+ * pas remplie : les UID d'avant ne désignent plus rien, et tout comparer au
+ * repère annoncerait cent messages qui étaient déjà là. On repose le repère et
+ * on se tait — c'est le même garde-fou que le cache des corps, pour la même
+ * raison.
+ *
+ * Seuls les **non-lus** sont rendus : lire un message ailleurs (sur son
+ * téléphone, dans Mail) doit suffire à ne pas être prévenu deux fois.
+ */
+export type Nouveaute = { uid: number; de: string; nom: string; objet: string; date: string };
+
+export async function nouveautes(
+  client: ImapFlow,
+  path: string,
+  repere: { uidvalidity: number; uidnext: number } | null,
+): Promise<{ uidvalidity: number; uidnext: number; messages: Nouveaute[] }> {
+  const etat = await client.status(path, { uidNext: true, uidValidity: true });
+  const uidvalidity = Number(etat.uidValidity ?? 0);
+  const uidnext = Number(etat.uidNext ?? 0);
+  const vide = { uidvalidity, uidnext, messages: [] as Nouveaute[] };
+
+  /* Premier passage, boîte renumérotée, ou serveur avare de `STATUS` : on pose
+     le repère, on ne raconte rien. */
+  if (!uidnext || !repere || repere.uidvalidity !== uidvalidity) return vide;
+  if (uidnext <= repere.uidnext) return vide;
+
+  const lock = await client.getMailboxLock(path);
+  try {
+    const messages: Nouveaute[] = [];
+    /* `n:*` rend au moins un message même quand aucun ne correspond — c'est le
+       protocole. D'où la borne relue sur chaque UID. */
+    for await (const m of client.fetch(
+      `${repere.uidnext}:*`,
+      { uid: true, envelope: true, flags: true },
+      { uid: true },
+    )) {
+      if (m.uid < repere.uidnext) continue;
+      if (m.flags?.has("\\Seen")) continue;
+      const from = m.envelope?.from?.[0];
+      messages.push({
+        uid: m.uid,
+        de: from?.address ?? "",
+        nom: from?.name || from?.address || "Quelqu'un",
+        objet: m.envelope?.subject || "(sans objet)",
+        date: (m.envelope?.date ?? new Date()).toISOString(),
+      });
+    }
+    return { uidvalidity, uidnext, messages };
+  } finally {
+    lock.release();
+  }
+}

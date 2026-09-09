@@ -1,7 +1,7 @@
 /* Arc Mail service worker: caches the app shell so the PWA opens offline.
  * Navigations are network-first (fresh HTML when online, cached shell otherwise);
  * Next.js static assets are cache-first because their URLs are content-hashed. */
-const VERSION = "arc-mail-v26";
+const VERSION = "arc-mail-v27";
 const SHELL = ["/"];
 
 self.addEventListener("install", (event) => {
@@ -61,4 +61,50 @@ self.addEventListener("fetch", (event) => {
       ),
     );
   }
+});
+
+/* ── Les notifications ──────────────────────────────────────────────────
+ *
+ * Le tour de relève (`/api/cron/releve`) pousse une charge chiffrée de bout en
+ * bout : le relais d'Apple ou de Google n'a jamais lu ce qui suit.
+ *
+ * **Une notification visible à chaque push, sans exception.** iOS retire la
+ * permission à une app qui pousse en silence, et un `push` sans
+ * `showNotification` compte pour un silence — d'où le repli, qui n'arrive que
+ * si la charge est illisible. La relève, elle, ne pousse rien quand il n'y a
+ * rien. */
+self.addEventListener("push", (event) => {
+  let charge = {};
+  try {
+    charge = event.data ? event.data.json() : {};
+  } catch {
+    charge = {};
+  }
+  const titre = charge.titre || "Arc Mail";
+  event.waitUntil(
+    self.registration.showNotification(titre, {
+      body: charge.corps || "Du nouveau courrier",
+      icon: "/icons/icon-192.png",
+      badge: "/icons/icon-192.png",
+      /* Une seule notification d'Arc Mail à la fois : la suivante remplace la
+         précédente au lieu d'empiler une pile qu'on balaie sans lire. */
+      tag: "arc-mail",
+      renotify: true,
+      data: { espace: charge.espace || null },
+    }),
+  );
+});
+
+/* Rouvrir la fenêtre déjà ouverte plutôt qu'une seconde : quelqu'un qui touche
+ * la notification veut sa boîte, pas un onglet de plus. */
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((fenetres) => {
+      for (const fenetre of fenetres) {
+        if ("focus" in fenetre) return fenetre.focus();
+      }
+      return self.clients.openWindow("/");
+    }),
+  );
 });

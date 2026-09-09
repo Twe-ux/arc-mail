@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Bell,
   ChevronRight,
   Moon,
   Palette,
@@ -22,6 +23,7 @@ import { useMail, useSpace } from "@/lib/store";
 import { PRESET_HUES, themeFromHue } from "@/lib/theme";
 import type { Space } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { PushControl } from "./push-toggle";
 import { Segmented } from "./segmented";
 import { SPACE_ICONS, SpaceIcon } from "./space-icon";
 
@@ -259,6 +261,12 @@ export function AppearancePanel({
             />
           </Ligne>
         )}
+
+        {/* Le panneau dit la même chose que la feuille, avec les mêmes mots :
+            une définition (`PushControl`) pour les deux. */}
+        <Ligne icon={Bell} label="Notifications">
+          <PushControl size="sm" />
+        </Ligne>
 
         <Ligne icon={Rows3} label="Densité">
           <Segmented

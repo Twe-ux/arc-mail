@@ -90,6 +90,10 @@ est argumenté dans l'[audit du 6 septembre](audits/2026-09-06-clients-mail.md).
 Écrit, jamais vérifié sur une vraie boîte. Chaque ligne se solde par « vu marcher » ou par un
 correctif.
 
+- [ ] **Le saut d'« Envoyés »** (9 sept.) — une réponse écrite depuis Arc Mail doit rester dans son
+      fil après une relecture (l'envoi oublie le repère), et une réponse écrite depuis Mail doit
+      arriver **à la lecture suivante**. Le journal dit `envoyés sautés` quand le dossier n'est pas
+      rouvert. Non vérifiable en local : le mock n'a pas de second dossier.
 - [x] **Les notifications, de bout en bout** (9 sept.) — **vu marcher sur l'iPhone**, en app
       installée : « 1 personne abonnée, 2 comptes à ouvrir », « INBOX : 1 message neuf,
       1 appareil », et la notification arrivée. Deux défauts corrigés en chemin (`VAPID_SUBJECT`
@@ -258,11 +262,16 @@ qui suivent.
 - [x] **Les corps sont gardés d'une session à l'autre** (9 sept.) — IndexedDB à côté du store, un
       corps est immuable, l'enveloppe fait foi → [fiche](features/imap.md). Signalé : « on peut pas
       mettre les mails en cache pour qu'à chaque ouverture il y ait pas besoin de tout charger ».
-- [ ] **Ne relire que la différence** — la liste redemande les soixante dernières enveloppes à
-      chaque ouverture. `CONDSTORE`/`QRESYNC` (RFC 7162) rendent « ce qui a changé depuis » ; à
-      défaut, un `FETCH FLAGS` sur la plage connue plus les UID au-dessus du dernier connu. Demande
-      un repère par dossier — **le même** que la relève du cron, qui existe désormais
-      (`mail_watermarks`) → [notifications push](features/notifications-push.md).
+- [x] **Ne relire « Envoyés » que s'il a bougé** (9 sept.) — la mesure a tranché, et contre
+      l'intuition du matin : le dossier coûtait **1 239 ms sur 2 859**, 43 % d'une lecture. Le
+      client porte son repère (appris d'un `listFolders` déjà payé), le serveur saute le dossier, et
+      le store recolle ce qu'il a → [fiche IMAP](features/imap.md). **Reste à voir sur une vraie
+      boîte** : c'est dans « à tester ».
+- [ ] **Le reste de la différence** — les soixante enveloppes du dossier lu, elles, sont toujours
+      redemandées en entier. `CONDSTORE`/`QRESYNC` (RFC 7162) rendraient « ce qui a changé depuis »,
+      mais **la mesure dit que ça n'économiserait que des octets** : le `FETCH` est un seul
+      aller-retour, quelle que soit sa taille. À rouvrir seulement si le journal montre le contraire
+      sur un gros dossier.
 
 ### Recherche
 

@@ -5,6 +5,8 @@ import type {
   FolderUnread,
   MailProvider,
   OutgoingMessage,
+  PageFils,
+  RepereEnvoyes,
   ThreadPatch,
   ThreadQuery,
   SearchQuery,
@@ -55,16 +57,16 @@ export class HttpProvider implements MailProvider {
     return data;
   }
 
-  async listThreads(account: AccountRef, query: ThreadQuery): Promise<Thread[]> {
-    const { threads } = await this.call<{ threads: Thread[] }>({
+  async listThreads(account: AccountRef, query: ThreadQuery): Promise<PageFils> {
+    return this.call<PageFils>({
       op: "listThreads",
       accountId: account.id,
       folder: query.folder,
       inboxPath: query.inboxPath,
       limit: query.limit,
       deja: query.deja,
+      envoyes: query.envoyes,
     });
-    return threads;
   }
 
   async search(account: AccountRef, query: SearchQuery): Promise<Thread[]> {
@@ -79,13 +81,15 @@ export class HttpProvider implements MailProvider {
     return threads;
   }
 
-  async listFolders(account: AccountRef, opts?: { inboxPath?: string }): Promise<FolderUnread> {
-    const { counts } = await this.call<{ counts: FolderUnread }>({
+  async listFolders(
+    account: AccountRef,
+    opts?: { inboxPath?: string },
+  ): Promise<{ counts: FolderUnread; envoyes?: RepereEnvoyes }> {
+    return this.call<{ counts: FolderUnread; envoyes?: RepereEnvoyes }>({
       op: "folderCounts",
       accountId: account.id,
       inboxPath: opts?.inboxPath,
     });
-    return counts;
   }
 
   async getThread(account: AccountRef, id: string, messageIds?: string[]): Promise<Thread | null> {

@@ -690,10 +690,16 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   identifiant. Le cache n'est **jamais une dépendance** (privé, refusé, vide : le réseau reprend), et
   la déconnexion efface le tout.
 - Une relecture de dossier **fond** les corps déjà connus (`replaceFolder`) au lieu de les jeter.
-- Une lecture de liste fait **cinq allers-retours** (chemins, dossier ×2, Envoyés ×2) et un
-  aller-retour vers iCloud coûte 0,3 à 0,6 s : c'est **là** qu'est le temps, pas dans les cent
-  enveloppes rapportées — donc une lecture incrémentale gagnerait des octets et rien d'autre.
-  `/api/mail` journalise les trois durées ; on décide sur ces nombres, pas sur l'intuition.
+- Mesuré sur la vraie boîte : une lecture = chemins **51 ms**, dossier **1562**, **Envoyés 1239**,
+  total 2859. « Envoyés » coûte donc **43 %** d'une lecture pour une relecture secondaire — et
+  `/api/mail` journalise ces trois durées, c'est ce qui l'a montré (l'intuition disait l'inverse).
+- **« Envoyés » ne se relit que s'il a bougé** : le client porte son repère (appris de
+  `listFolders`, qui tourne déjà en parallèle — zéro aller-retour de plus), le serveur saute le
+  dossier et le dit (`sautEnvoyes`). **Une lecture ne peut retirer que de la boîte qu'elle a lue** :
+  le store recolle les messages d'ailleurs (`recoller`, le chemin se lit sur l'identifiant du fil).
+  On ne saute **que si on a de quoi recoller** (cache vide = on relit), un **envoi oublie le
+  repère** (sa propre réponse ne doit jamais manquer), et le repère a l'âge de la lecture d'avant —
+  une réponse écrite ailleurs arrive une lecture plus tard, prix assumé du non-aller-retour.
 
 **Indésirable** → [docs/features/indesirable.md](docs/features/indesirable.md)
 - `junk` est le **seul dossier qui peut ne pas exister** : `bySpecial("\\Junk")` sans repli (deviner

@@ -39,6 +39,40 @@ export type ThreadQuery = {
    * se répéter, et le store dédoublonne.
    */
   deja?: number;
+  /**
+   * **Où en était « Envoyés » la dernière fois qu'on a regardé.**
+   *
+   * Chaque lecture de liste relit les 40 derniers « Envoyés » pour fondre nos
+   * réponses dans les fils — et ça coûte **1 239 ms sur 2 859**, mesuré sur la
+   * vraie boîte : 43 % du temps d'une lecture, pour une lecture secondaire.
+   *
+   * Le client dit donc ce qu'il sait déjà (il l'apprend de `listFolders`, qui
+   * tourne en parallèle et ne coûte rien de plus). Si le compteur n'a pas
+   * bougé, le fournisseur **saute** « Envoyés » — deux allers-retours en
+   * moins — et le client garde les messages qu'il a.
+   *
+   * **Ce que ça coûte en échange** : le repère a l'âge de la dernière lecture,
+   * donc une réponse écrite ailleurs pendant ce temps arrive une lecture plus
+   * tard. Un envoi *depuis Arc Mail* efface le repère, lui : sa propre réponse
+   * ne doit jamais manquer.
+   */
+  envoyes?: RepereEnvoyes;
+};
+
+/** Où en est un dossier : de quoi savoir s'il a bougé sans l'ouvrir. */
+export type RepereEnvoyes = { uidvalidity: number; uidnext: number };
+
+/**
+ * Ce qu'une lecture de liste rend : les fils, et de quoi décider la prochaine.
+ *
+ * `sautEnvoyes` n'est pas un détail d'optimisation, c'est un **contrat de
+ * lecture** : il dit « je n'ai pas regardé Envoyés, ce que tu en sais reste
+ * vrai ». Sans lui, le store remplacerait la tranche du dossier par des fils
+ * amputés de leur moitié envoyée.
+ */
+export type PageFils = {
+  threads: Thread[];
+  sautEnvoyes?: boolean;
 };
 
 /** What the interface can change on a thread, in its own words — the provider translates. */
@@ -149,14 +183,17 @@ export type SearchQuery = {
 
 export interface MailProvider {
   /** Threads of one folder, newest first. */
-  listThreads(account: AccountRef, query: ThreadQuery): Promise<Thread[]>;
+  listThreads(account: AccountRef, query: ThreadQuery): Promise<PageFils>;
   /**
    * Les non-lus de **tous** les dossiers, en un appel.
    *
    * `inboxPath` pour la même raison que dans `ThreadQuery` : la « Réception »
    * d'un espace-vue est un autre dossier, et c'est son compte qu'il faut.
    */
-  listFolders(account: AccountRef, opts?: { inboxPath?: string }): Promise<FolderUnread>;
+  listFolders(
+    account: AccountRef,
+    opts?: { inboxPath?: string },
+  ): Promise<{ counts: FolderUnread; envoyes?: RepereEnvoyes }>;
   /** One thread with all its messages — a list may carry less than that. */
   /**
    * Un fil entier, corps compris.

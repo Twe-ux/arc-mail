@@ -112,6 +112,14 @@ export type MailState = {
   /** Spaces being read for the first time — nothing to show yet. Per space: a switch mid-read must not lie about the other one. */
   loading: Partial<Record<SpaceId, boolean>>;
   /**
+   * **Où en était « Envoyés »**, par espace, tel que la dernière lecture l'a
+   * appris. Persisté : c'est à l'ouverture de l'app que la lecture est la plus
+   * lente, et c'est donc là que sauter un dossier compte le plus — les
+   * enveloppes gardées (`enMemoire`) portent déjà les messages envoyés qu'on
+   * recollera.
+   */
+  envoyes: Partial<Record<SpaceId, { uidvalidity: number; uidnext: number }>>;
+  /**
    * Les non-lus **du serveur**, par espace puis par dossier.
    *
    * Une lecture ne rapporte qu'un dossier : compter ce qu'on a en mémoire
@@ -530,7 +538,44 @@ const hydrate = (before: Thread, full: Thread): Thread => ({
  * de remplacer une tranche qui n'existe pas — sans quoi ouvrir Favoris
  * effacerait la réception.
  */
-const replaceFolder = (threads: Thread[], spaceId: SpaceId, folder: FolderId, fresh: Thread[]) => {
+/**
+ * **Une lecture ne peut retirer que de la boîte qu'elle a lue.**
+ *
+ * Quand la lecture a sauté « Envoyés » (son compteur n'avait pas bougé), les
+ * fils qu'elle rend n'ont que leur moitié reçue. Ce n'est pas « ces messages
+ * ont disparu », c'est « je n'ai pas regardé là » — et le client, lui, les a
+ * encore. On les recolle donc, et on retrie par date.
+ *
+ * Le chemin du dossier lu **se lit sur le fil lui-même** : son identifiant est
+ * `chemin uid`, celui du dossier qu'on vient de lire. Rien à faire descendre
+ * depuis la route, et « ceux qui ne viennent pas d'ici » se reconnaissent sans
+ * rien deviner.
+ */
+const recoller = (frais: Thread, avant: Thread): Thread => {
+  /* `slice(0, -1)` sur un identifiant **sans espace** rendrait le nom amputé
+     de sa dernière lettre — un chemin qui ne correspond à rien, donc tous les
+     messages recollés. Un fournisseur qui ne nomme pas ses dossiers (le mock)
+     n'a de toute façon rien à recoller. */
+  const coupe = frais.id.lastIndexOf(" ");
+  if (coupe <= 0) return frais;
+  const chemin = frais.id.slice(0, coupe);
+  const siens = new Set(frais.messages.map((m) => m.id));
+  const ailleurs = avant.messages.filter((m) => !siens.has(m.id) && !m.id.startsWith(`${chemin} `));
+  if (ailleurs.length === 0) return frais;
+  return {
+    ...frais,
+    messages: [...frais.messages, ...ailleurs].sort((a, b) => (a.date < b.date ? -1 : 1)),
+  };
+};
+
+const replaceFolder = (
+  threads: Thread[],
+  spaceId: SpaceId,
+  folder: FolderId,
+  fresh: Thread[],
+  /** La lecture a sauté « Envoyés » : ce qui vient d'ailleurs a survécu. */
+  recollerAilleurs?: boolean,
+) => {
   const seen = new Set<string>();
   const uniques = fresh.filter((t) => (seen.has(t.id) ? false : (seen.add(t.id), true)));
 
@@ -543,7 +588,9 @@ const replaceFolder = (threads: Thread[], spaceId: SpaceId, folder: FolderId, fr
   const connus = new Map(threads.map((t) => [t.id, t]));
   const kept = uniques.map((t) => {
     const avant = connus.get(t.id);
-    return avant && avant.messages.some((m) => m.body) ? hydrate(t, avant) : t;
+    if (!avant) return t;
+    const complet = recollerAilleurs ? recoller(t, avant) : t;
+    return avant.messages.some((m) => m.body) ? hydrate(complet, avant) : complet;
   });
   const ids = new Set(kept.map((t) => t.id));
   if (folder === "starred") {
@@ -886,6 +933,14 @@ async function precharger(ids: string[]): Promise<void> {
   }
 }
 
+/** Une table indexée par espace, moins une clé. */
+function oublier<T>(table: Partial<Record<SpaceId, T>>, cle: SpaceId): Partial<Record<SpaceId, T>> {
+  if (!(cle in table)) return table;
+  const suite = { ...table };
+  delete suite[cle];
+  return suite;
+}
+
 /** Une table indexée par espace, dont une clé change de nom. */
 function renomme<T>(table: Partial<Record<SpaceId, T>>, de: SpaceId, vers: SpaceId) {
   if (!(de in table)) return table;
@@ -1119,6 +1174,7 @@ export const useMail = create<MailState>()(
   dark: false,
   threads: [],
   loading: {},
+  envoyes: {},
   folderCounts: {},
   boites: {},
   serverResults: [],
@@ -1160,17 +1216,29 @@ export const useMail = create<MailState>()(
          seule liste ; le reste arrive quand on y va. Les compteurs des autres
          dossiers, eux, viennent de `listFolders` juste en dessous — un `LIST`
          avec `STATUS`, pas six lectures. */
-      const fresh = await providerFor(account).listThreads(account, {
+      const page = await providerFor(account).listThreads(account, {
         folder,
         /* Quel dossier tient lieu de « Réception » **pour cet espace** : un
            compte iCloud en porte plusieurs, une par domaine. */
         inboxPath: spaceOf(spaceId).inboxPath,
         limit: PAGE,
+        /* **Ce qu'on sait d'« Envoyés »**, appris du `listFolders` de la
+           lecture d'avant. S'il n'a pas bougé, le serveur ne l'ouvre pas :
+           deux allers-retours et 1 239 ms de moins, mesurés.
+
+           **Et seulement si on a de quoi recoller** : sauter la lecture d'un
+           dossier dont on n'a rien en mémoire, ce n'est pas économiser un
+           aller-retour, c'est perdre la moitié envoyée des fils sans rien pour
+           la remettre. C'est exactement le cas d'un cache vidé. */
+        envoyes: get().threads.some((t) => t.spaceId === spaceId)
+          ? get().envoyes[spaceId]
+          : undefined,
       });
+      const fresh = page.threads;
       /* Two reads of the same space can cross; only the latest one may land. */
       if (loadTokens.get(spaceId) !== token) return;
       set((s) => ({
-        threads: replaceFolder(s.threads, spaceId, folder, stamp(spaceId, fresh)),
+        threads: replaceFolder(s.threads, spaceId, folder, stamp(spaceId, fresh), page.sautEnvoyes),
         loading: { ...s.loading, [spaceId]: false },
         error: null,
         /* **Une relecture repart de la première page.** Le serveur vient de
@@ -1184,12 +1252,17 @@ export const useMail = create<MailState>()(
          vaut mieux qu'un bandeau d'erreur pour un chiffre. */
       void providerFor(account)
         .listFolders(account, { inboxPath: spaceOf(spaceId).inboxPath })
-        .then((counts) => {
+        .then(({ counts, envoyes }) => {
           if (loadTokens.get(spaceId) !== token) return;
           set((s) => ({
             folderCounts: { ...s.folderCounts, [spaceId]: counts },
             /* Les clés, pas les valeurs : c'est la liste des boîtes. */
             boites: { ...s.boites, [spaceId]: Object.keys(counts) as FolderId[] },
+            /* Le repère pour la **prochaine** lecture. Il a donc l'âge de
+               celle-ci — c'est le prix de ne pas payer un aller-retour pour le
+               vérifier, et une réponse écrite ailleurs arrive une lecture plus
+               tard. */
+            envoyes: envoyes ? { ...s.envoyes, [spaceId]: envoyes } : s.envoyes,
           }));
         })
         .catch(() => {});
@@ -1666,11 +1739,12 @@ export const useMail = create<MailState>()(
     const token = loadTokens.get(spaceId) ?? 0;
     set({ chargeSuite: true });
     try {
-      const suite = await providerFor(account).listThreads(account, {
+      const { threads: suite } = await providerFor(account).listThreads(account, {
         folder: folderId,
         inboxPath: spaceOf(spaceId).inboxPath,
         limit: PAGE,
         deja: etat.demandes,
+        envoyes: get().envoyes[spaceId],
       });
       /* Une relecture a pu partir entre-temps — changement d'espace, tirage
          pour rafraîchir : sa page 1 fait autorité, la nôtre est périmée. */
@@ -2069,7 +2143,13 @@ export const useMail = create<MailState>()(
       })
       .then(
         (sent) => {
-          set((s) => ({ threads: [stampOne(d.spaceId, sent), ...s.threads] }));
+          set((s) => ({
+            threads: [stampOne(d.spaceId, sent), ...s.threads],
+            /* **Notre propre réponse ne doit jamais manquer.** Le repère
+               d'« Envoyés » sert à sauter sa relecture ; on vient d'y écrire,
+               donc on l'oublie et la prochaine lecture rouvrira le dossier. */
+            envoyes: oublier(s.envoyes, d.spaceId),
+          }));
           /* The send is final from here: a draft that will not delete is a
              leftover to warn about, never a reason to reopen the composer —
              that would be the second send waiting to happen. */
@@ -2199,6 +2279,7 @@ export const useMail = create<MailState>()(
           | "recent"
           | "threads"
           | "pauses"
+          | "envoyes"
         >;
       },
       /* Ce qui doit survivre à un rechargement : les préférences, et de quoi
@@ -2216,6 +2297,7 @@ export const useMail = create<MailState>()(
         vues: s.vues,
         recent: s.recent,
         boites: s.boites,
+        envoyes: s.envoyes,
         /* Une pause est une **promesse faite à quelqu'un** : perdue au
            rechargement, le fil resterait dans « En pause » pour toujours — ce
            qui était exactement l'état d'avant. */

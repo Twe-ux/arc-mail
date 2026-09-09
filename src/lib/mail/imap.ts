@@ -14,6 +14,7 @@ import { simpleParser, type ParsedMail } from "mailparser";
 
 import type { StoredAccount } from "@/lib/accounts/server";
 import { etiquetteDe, etiquettesDe, motCle } from "@/lib/etiquettes";
+import type { RepereEnvoyes } from "@/lib/mail/provider";
 import type { RechercheImap } from "@/lib/search/imap";
 import type { Contact, FolderId, Message, Thread, DossierCible } from "@/lib/types";
 import { apercuDe } from "./apercu";
@@ -218,8 +219,14 @@ function cheminsDepuis(list: ListResponse[]): Partial<Record<FolderId, string>> 
 export async function unreadByFolder(
   client: ImapFlow,
   inboxPath?: string,
-): Promise<Partial<Record<FolderId, number>>> {
-  const list = await client.list({ statusQuery: { unseen: true } });
+): Promise<{ counts: Partial<Record<FolderId, number>>; envoyes?: RepereEnvoyes }> {
+  /* **Le repère d'« Envoyés » voyage avec les non-lus**, et ne coûte rien de
+     plus : c'est le même `LIST`, avec deux valeurs de `STATUS` en plus. C'est
+     lui qui permettra à la lecture suivante de ne pas rouvrir « Envoyés »
+     pour rien — 1 239 ms sur 2 859, mesuré. */
+  const list = await client.list({
+    statusQuery: { unseen: true, uidNext: true, uidValidity: true },
+  });
   const unseen = new Map(list.map((f) => [f.path, f.status?.unseen ?? 0]));
   /* La « Réception » d'un espace-vue est un autre dossier : c'est son compte
      qu'il faut, pas celui d'`INBOX`. */
@@ -231,7 +238,16 @@ export async function unreadByFolder(
        absence, et le compte local vaut mieux qu'un chiffre inventé. */
     if (chemin && unseen.has(chemin)) comptes[id as FolderId] = unseen.get(chemin)!;
   }
-  return comptes;
+
+  const sent = chemins.sent && list.find((f) => f.path === chemins.sent);
+  const envoyes =
+    sent && sent.status?.uidNext
+      ? {
+          uidvalidity: Number(sent.status.uidValidity ?? 0),
+          uidnext: Number(sent.status.uidNext),
+        }
+      : undefined;
+  return { counts: comptes, envoyes };
 }
 
 /** Tous les dossiers de la boîte, pour choisir celui qui fera office de réception. */
@@ -591,6 +607,8 @@ export async function readFolder(
     deja?: number;
     moi?: string;
     sentPath?: string;
+    /** Le client dit où il en était : si « Envoyés » n'a pas bougé, on ne l'ouvre pas. */
+    sautEnvoyes?: boolean;
     chrono?: Chrono;
   } = {},
 ): Promise<Thread[]> {
@@ -633,11 +651,15 @@ export async function readFolder(
     rendu = true;
     if (options.chrono) options.chrono.dossier = Date.now() - depart;
 
+    /* **Deux allers-retours qu'on ne fait pas.** Mesuré sur la vraie boîte :
+       « Envoyés » coûte 1 239 ms sur 2 859 — 43 % du temps d'une lecture, pour
+       une lecture qui ne sert qu'à fondre nos propres réponses. Quand le
+       client sait que le dossier n'a pas bougé, il le dit, et on n'y touche
+       pas : ce qu'il a en mémoire reste vrai, et c'est lui qui le recolle. */
+    const relireEnvoyes = !!options.sentPath && options.sentPath !== path && !options.sautEnvoyes;
     const avantEnvoyes = Date.now();
-    const envoyes =
-      options.sentPath && options.sentPath !== path ? await lireEnvoyes(client, options.sentPath) : [];
-    if (options.chrono && options.sentPath && options.sentPath !== path)
-      options.chrono.envoyes = Date.now() - avantEnvoyes;
+    const envoyes = relireEnvoyes ? await lireEnvoyes(client, options.sentPath!) : [];
+    if (options.chrono && relireEnvoyes) options.chrono.envoyes = Date.now() - avantEnvoyes;
 
     /* **Seuls les fils qui existent ici.** Fondre ajoute nos réponses aux fils
        de cette boîte ; un fil qui n'est *que* dans « Envoyés » n'a rien à faire

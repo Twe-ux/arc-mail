@@ -13,7 +13,7 @@ import {
   writeThread,
   type Chrono,
 } from "@/lib/mail/imap";
-import type { DraftInput, OutgoingMessage } from "@/lib/mail/provider";
+import type { DraftInput, OutgoingMessage, RepereEnvoyes } from "@/lib/mail/provider";
 import { dossiersDe, versImap } from "@/lib/search/imap";
 import { parse } from "@/lib/search/parse";
 import { deleteDraftMessage, saveDraftMessage, sendMessage } from "@/lib/mail/smtp";
@@ -34,7 +34,16 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 type Body =
-  | { op: "listThreads"; accountId: string; folder: FolderId; inboxPath?: string; limit?: number; deja?: number }
+  | {
+      op: "listThreads";
+      accountId: string;
+      folder: FolderId;
+      inboxPath?: string;
+      limit?: number;
+      deja?: number;
+      /** Où en était « Envoyés » pour le client : s'il n'a pas bougé, on ne l'ouvre pas. */
+      envoyes?: RepereEnvoyes;
+    }
   | { op: "getThread"; accountId: string; id: string; messageIds?: string[] }
   | { op: "getThreads"; accountId: string; ids: string[] }
   | {
@@ -89,8 +98,7 @@ export async function POST(request: NextRequest) {
       /* Les non-lus de tous les dossiers, en un `LIST` avec `STATUS`. C'est
          le seul appel qui parle de dossiers qu'on ne regarde pas, et il ne
          sert qu'à ça : la lecture d'une liste, elle, n'en a pas besoin. */
-      if (body.op === "folderCounts")
-        return { counts: await unreadByFolder(client, body.inboxPath) };
+      if (body.op === "folderCounts") return unreadByFolder(client, body.inboxPath);
 
       if (body.op === "listThreads") {
         /* La « Réception » d'un espace n'est pas forcément `INBOX` : pour un
@@ -119,10 +127,21 @@ export async function POST(request: NextRequest) {
         const debut = Date.now();
         const envoyes = body.folder === "sent" ? undefined : (await paths()).sent;
         chrono.chemins = Date.now() - debut;
+        /* **Le client décide, pas nous.** Il connaît le repère d'« Envoyés »
+           par `listFolders`, qui tourne en parallèle de la lecture et ne coûte
+           rien de plus ; le comparer ici demanderait un aller-retour, ce qui
+           annulerait la moitié du gain. Son repère a donc l'âge de la lecture
+           d'avant : une réponse écrite ailleurs entre-temps arrive une lecture
+           plus tard, et un envoi depuis Arc Mail efface le repère. */
+        const saut = !!body.envoyes;
         const dire = () =>
           console.log(
             `lecture : ${body.folder} · chemins ${chrono.chemins} ms · dossier ${chrono.dossier ?? "?"} ms` +
-              (chrono.envoyes === undefined ? "" : ` · envoyés ${chrono.envoyes} ms`) +
+              (chrono.envoyes === undefined
+                ? saut
+                  ? " · envoyés sautés"
+                  : ""
+                : ` · envoyés ${chrono.envoyes} ms`) +
               ` · ${chrono.fils ?? 0} fils · total ${Date.now() - debut} ms`,
           );
 
@@ -136,10 +155,11 @@ export async function POST(request: NextRequest) {
             deja: body.deja,
             moi: account.email,
             sentPath: envoyes,
+            sautEnvoyes: saut,
             chrono,
           });
           dire();
-          return { threads: favoris };
+          return { threads: favoris, sautEnvoyes: saut };
         }
         /* **« En pause » ne se demande pas au serveur.** Ce n'est pas un
            dossier — aucune boîte n'en a un —, c'est un état que le store tient
@@ -158,10 +178,11 @@ export async function POST(request: NextRequest) {
           deja: body.deja,
           moi: account.email,
           sentPath: envoyes,
+          sautEnvoyes: saut,
           chrono,
         });
         dire();
-        return { threads };
+        return { threads, sautEnvoyes: saut };
       }
 
       if (body.op === "search") {

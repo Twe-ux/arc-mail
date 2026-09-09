@@ -11,6 +11,7 @@ import type {
   MailProvider,
   OutgoingMessage,
   SearchQuery,
+  PageFils,
   ThreadPatch,
   ThreadQuery,
 } from "./provider";
@@ -34,7 +35,7 @@ export class MockProvider implements MailProvider {
     this.threads = this.threads.map((t) => (t.id === id ? fn(t) : t));
   }
 
-  async listThreads(account: AccountRef, query: ThreadQuery): Promise<Thread[]> {
+  async listThreads(account: AccountRef, query: ThreadQuery): Promise<PageFils> {
     const spaceId = spaceOf(account);
     const inFolder = (t: Thread) =>
       query.folder === "starred" ? t.starred && t.folder !== "trash" : t.folder === query.folder;
@@ -44,12 +45,12 @@ export class MockProvider implements MailProvider {
        éprouver le chemin — la borne vient du store, pas d'ici. */
     const deja = query.deja ?? 0;
     const limit = query.limit ?? list.length;
-    return list.slice(deja, deja + limit);
+    return { threads: list.slice(deja, deja + limit) };
   }
 
   /* Le mock a tout en mémoire : il compte ce que le vrai serveur compterait,
      Favoris compris — ce qui, chez lui, ne coûte rien. */
-  async listFolders(account: AccountRef): Promise<FolderUnread> {
+  async listFolders(account: AccountRef): Promise<{ counts: FolderUnread }> {
     const spaceId = spaceOf(account);
     /* **Une clé présente veut dire « ce dossier existe », pas « il a des
        non-lus ».** C'est le contrat que la lecture IMAP tient déjà — elle
@@ -68,7 +69,10 @@ export class MockProvider implements MailProvider {
       comptes[t.folder] = (comptes[t.folder] ?? 0) + 1;
       if (t.starred && t.folder !== "trash") comptes.starred = (comptes.starred ?? 0) + 1;
     }
-    return comptes;
+    /* Pas de repère d'« Envoyés » : le mock n'a pas de second dossier à
+       relire, il rend déjà tout d'un coup. Le client ne sautera donc jamais
+       rien avec lui — et c'est juste. */
+    return { counts: comptes };
   }
 
   /**

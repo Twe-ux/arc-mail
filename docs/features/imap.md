@@ -526,7 +526,52 @@ Ce sont des **messages entiers** en clair sur l'appareil, et non plus seulement 
 **Ce qu'il ne fait pas** : la liste, elle, est toujours relue en entier à l'ouverture (les soixante
 dernières enveloppes). C'est ce qui apprend ce qui est arrivé et ce qui a changé ailleurs.
 
-### Avant de la rendre incrémentale, on mesure (9 sept. 2026)
+### La mesure a tranché : « Envoyés » coûte 43 % (9 sept. 2026, soir)
+
+Trois lectures sur la vraie boîte, par le journal :
+
+    lecture : inbox · chemins  51 ms · dossier 1562 ms · envoyés 1239 ms · 53 fils · total 2859 ms
+    lecture : inbox · chemins 387 ms · dossier  751 ms · envoyés 1137 ms ·  7 fils · total 2275 ms
+
+Le `LIST` des chemins ne coûte rien. Le dossier qu'on regarde coûte ce qu'il doit. Et **« Envoyés »
+coûte presque autant que lui** — 1 239 ms sur 2 859 — pour une lecture qui ne sert qu'à fondre nos
+propres réponses dans les fils.
+
+C'est **l'inverse de ce que je pensais le matin même** (voir la section suivante, gardée telle
+quelle) : je croyais que les allers-retours étaient irréductibles et qu'une lecture incrémentale
+n'économiserait que des octets. Deux allers-retours sur cinq étaient bel et bien évitables — pas en
+demandant moins, mais en **ne demandant pas du tout**.
+
+**Le client dit où il en était.** Il apprend le repère d'« Envoyés » (`UIDVALIDITY` + `UIDNEXT`) de
+`listFolders`, qui tourne déjà en parallèle de chaque lecture : deux valeurs de plus dans un `LIST`
+qu'on paie de toute façon, zéro aller-retour ajouté. La lecture suivante le renvoie ; si le
+compteur n'a pas bougé, le serveur **n'ouvre pas** le dossier et le dit (`sautEnvoyes`).
+
+**Une lecture ne peut retirer que de la boîte qu'elle a lue.** C'est l'invariant qui rend la chose
+sûre : les fils rendus n'ont alors que leur moitié reçue, et ce n'est pas « ces messages ont
+disparu » mais « je n'ai pas regardé là ». Le store les recolle depuis ce qu'il a
+(`recoller`), et retrie par date — le chemin du dossier lu **se lit sur l'identifiant du fil**
+(`chemin uid`), rien à faire descendre depuis la route.
+
+Trois garde-fous, dont deux sont des pièges rencontrés en écrivant :
+
+- **on ne saute que si on a de quoi recoller** : sauter la lecture d'un dossier dont on n'a rien en
+  mémoire n'économise pas un aller-retour, ça perd la moitié envoyée des fils sans rien pour la
+  remettre — le cas d'un cache vidé ;
+- **un envoi depuis Arc Mail oublie le repère** : sa propre réponse ne doit jamais manquer ;
+- `slice(0, lastIndexOf(" "))` sur un identifiant **sans espace** rend le nom amputé de sa dernière
+  lettre, donc un chemin qui ne correspond à rien, donc **tous** les messages recollés. Le mock,
+  qui n'a pas de dossiers, tombait dedans.
+
+**Ce que ça coûte, et c'est assumé** : le repère a l'âge de la lecture d'avant. Une réponse écrite
+depuis un autre client pendant ce temps arrive **une lecture plus tard**. Le vérifier au moment de
+la lecture demanderait un `STATUS`, c'est-à-dire un aller-retour, c'est-à-dire la moitié du gain.
+
+**Ce qui n'a pas pu être vérifié ici** : le chemin du saut lui-même. Le mock n'a pas de second
+dossier — il rend tout d'un coup —, il ne renvoie donc jamais `sautEnvoyes` et le recollage n'y
+s'exécute pas. Mesuré en revanche : zéro erreur de console et la liste intacte aux quatre captures.
+
+### Avant de la rendre incrémentale, on mesurait (le matin du 9 sept.)
 
 Le cran suivant paraissait évident : ne demander que la différence — `CONDSTORE`/`QRESYNC`
 (RFC 7162) rendent « ce qui a changé depuis », et `mail_watermarks` existe déjà pour la relève.

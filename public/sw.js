@@ -1,7 +1,7 @@
 /* Arc Mail service worker: caches the app shell so the PWA opens offline.
  * Navigations are network-first (fresh HTML when online, cached shell otherwise);
  * Next.js static assets are cache-first because their URLs are content-hashed. */
-const VERSION = "arc-mail-v27";
+const VERSION = "arc-mail-v28";
 const SHELL = ["/"];
 
 self.addEventListener("install", (event) => {
@@ -81,6 +81,19 @@ self.addEventListener("push", (event) => {
     charge = {};
   }
   const titre = charge.titre || "Arc Mail";
+  /* **La pastille de l'icône** (Badging API). Le nombre vient du tour de
+     relève, qui est le seul à connaître le total — l'app n'a en mémoire que
+     l'espace ouvert. Il vaut donc « ce qui n'est pas lu au moment où on te
+     prévient », et **ouvrir l'app l'efface** (`app-shell.tsx`) : un compteur
+     qui resterait faux après lecture serait pire que pas de compteur.
+     Facultatif partout : un navigateur sans l'API ne fait rien, sans erreur. */
+  if (typeof charge.badge === "number" && self.navigator && self.navigator.setAppBadge) {
+    try {
+      self.navigator.setAppBadge(charge.badge);
+    } catch {
+      /* Refusée, ou pas d'app installée : la notification suffit. */
+    }
+  }
   event.waitUntil(
     self.registration.showNotification(titre, {
       body: charge.corps || "Du nouveau courrier",
@@ -99,6 +112,13 @@ self.addEventListener("push", (event) => {
  * la notification veut sa boîte, pas un onglet de plus. */
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
+  if (self.navigator && self.navigator.clearAppBadge) {
+    try {
+      self.navigator.clearAppBadge();
+    } catch {
+      /* Rien à effacer. */
+    }
+  }
   event.waitUntil(
     self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((fenetres) => {
       for (const fenetre of fenetres) {

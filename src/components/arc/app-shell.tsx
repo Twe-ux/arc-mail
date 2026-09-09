@@ -6,7 +6,7 @@ import { useMediaQuery } from "@/hooks/use-media-query";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
-import { reprendreCorps, useMail, useSpace } from "@/lib/store";
+import { reprendreCorps, synchroniserPauses, useMail, useSpace } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { AttachmentPreview } from "./attachment";
 import { BackSwipe } from "./back-swipe";
@@ -82,7 +82,17 @@ export function AppShell() {
    * qu'elles ne soient revenues ne réveillerait rien. */
   useEffect(() => {
     const reveil = () => {
-      if (document.visibilityState === "visible") void useMail.getState().reveiller();
+      if (document.visibilityState !== "visible") return;
+      /* **Les promesses des autres appareils, puis celles qui sont échues.**
+         Dans cet ordre : une pause posée sur le téléphone doit d'abord exister
+         ici pour pouvoir y être réveillée. Et c'est le même moment — celui où
+         quelqu'un revient regarder. */
+      void synchroniserPauses().then(() => useMail.getState().reveiller());
+      /* **La pastille de l'icône s'efface à l'ouverture.** Elle dit « du
+         courrier est arrivé pendant que tu n'étais pas là » : le tour de
+         relève la pose avec le nombre qu'il connaît, revenir y répond. Un
+         compteur qui resterait faux après lecture serait pire que rien. */
+      navigator.clearAppBadge?.().catch(() => {});
     };
     const arreter = useMail.persist.hasHydrated()
       ? (reveil(), undefined)

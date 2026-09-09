@@ -1,6 +1,6 @@
 "use server";
 
-import { ecrirePause, oublierPauses, type PauseRangee } from "@/lib/accounts/pauses";
+import { ecrirePause, lirePauses, oublierPauses, type PauseRangee } from "@/lib/accounts/pauses";
 
 /**
  * Les deux gestes d'une pause, côté serveur.
@@ -15,4 +15,15 @@ export async function enregistrerPause(pause: PauseRangee): Promise<void> {
 
 export async function oublierPause(threadIds: string[]): Promise<void> {
   await oublierPauses(threadIds);
+}
+
+/**
+ * Relire les promesses en cours.
+ *
+ * Elles étaient lues **au chargement de la page seulement** : une pause posée
+ * sur le téléphone n'apparaissait sur le bureau qu'après un rechargement
+ * complet — c'est-à-dire jamais, dans l'usage. Signalé au premier test.
+ */
+export async function relirePauses(): Promise<Record<string, { wake: string }>> {
+  return lirePauses();
 }

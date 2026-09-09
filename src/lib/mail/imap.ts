@@ -991,10 +991,17 @@ const PAS_SURVEILLES = new Set([
   "\\Important",
 ]);
 
-export type EtatDossier = { path: string; nom: string; uidvalidity: number; uidnext: number };
+export type EtatDossier = {
+  path: string;
+  nom: string;
+  uidvalidity: number;
+  uidnext: number;
+  /** Les non-lus, pour la **pastille** de l'icône : le même `LIST` les rend déjà. */
+  nonlus: number;
+};
 
 export async function dossiersASurveiller(client: ImapFlow): Promise<EtatDossier[]> {
-  const list = await client.list({ statusQuery: { uidNext: true, uidValidity: true } });
+  const list = await client.list({ statusQuery: { uidNext: true, uidValidity: true, unseen: true } });
   return list
     .filter((f) => !f.flags?.has("\\Noselect"))
     .filter((f) => !(f.specialUse && PAS_SURVEILLES.has(f.specialUse)))
@@ -1003,6 +1010,7 @@ export async function dossiersASurveiller(client: ImapFlow): Promise<EtatDossier
       nom: f.name,
       uidvalidity: Number(f.status?.uidValidity ?? 0),
       uidnext: Number(f.status?.uidNext ?? 0),
+      nonlus: Number(f.status?.unseen ?? 0),
     }))
     /* Un serveur qui n'a pas répondu au `STATUS` d'un dossier ne donne rien à
        comparer : on le passe plutôt que de le traiter comme vide. */

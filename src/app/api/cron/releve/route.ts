@@ -135,6 +135,12 @@ async function tour() {
           { onConflict: "account_id,path" },
         );
 
+        /* **La pastille de l'icône.** Le même `LIST` a déjà rendu les non-lus de
+           chaque dossier surveillé : les additionner ne coûte rien, et c'est
+           le seul endroit qui connaisse le total — l'app, elle, n'a en mémoire
+           que l'espace ouvert. */
+        const badge = etats.reduce((n, e) => n + e.nonlus, 0);
+
         const neufs = etats.filter((e) => {
           const repere = reperes.get(e.path);
           return repere && repere.uidvalidity === e.uidvalidity && e.uidnext > repere.uidnext;
@@ -162,7 +168,7 @@ async function tour() {
             `${cible.account.label} · ${etat.nom} : ${messages.length} message(s) neufs, ${appareils.length} appareil(s)`,
           );
           for (const abonnement of appareils) {
-            const envoi = await pousser(abonnement, charge(messages, etat));
+            const envoi = await pousser(abonnement, { ...charge(messages, etat), badge });
             if (envoi.ok) notifications += 1;
             else dire(`envoi refusé — ${envoi.raison ?? "sans raison donnée"}`);
           }

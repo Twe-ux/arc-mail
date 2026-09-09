@@ -58,6 +58,15 @@ function configurer() {
 export type Charge = {
   titre: string;
   corps: string;
+  /**
+   * Le nombre à poser sur l'icône de l'app.
+   *
+   * Il vaut ce qu'il vaut **au moment où la notification part** : le tour
+   * compte les non-lus de tous les dossiers qu'il surveille, et le même `LIST`
+   * les rendait déjà. C'est la seule source ; l'app, elle, ne fait que
+   * l'effacer quand on l'ouvre — voir `sw.js`.
+   */
+  badge?: number;
   /** L'espace à ouvrir au clic, quand la notification en vient d'un. */
   espace?: string;
 };

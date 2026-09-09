@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { renommerEspace } from "./accounts/actions";
-import { enregistrerPause, oublierPause } from "@/app/pause-actions";
+import { enregistrerPause, oublierPause, relirePauses } from "@/app/pause-actions";
 import { fait } from "./folders";
 import { libellePause, type Pause } from "./pause";
 import { firstLine, formatFullDate } from "./format";
@@ -698,6 +698,49 @@ export const LOT = 10;
 
 /** Ceux qu'on ouvre en premier, demandés à part pour qu'ils arrivent d'abord. */
 const TETE = 3;
+
+/**
+ * **Les promesses, relues.**
+ *
+ * `mail_pauses` suit le compte, mais elle n'était lue **qu'au chargement de la
+ * page** : une pause posée sur le téléphone n'apparaissait sur le bureau
+ * qu'après un rechargement complet — donc jamais, dans l'usage. Signalé au
+ * premier test croisé. On relit au retour sur l'onglet, là où le réveil local
+ * regarde déjà.
+ *
+ * **La base fait autorité sur ce qui existe**, sinon une pause reprise sur un
+ * autre appareil reviendrait d'entre les morts à chaque synchronisation. Mais
+ * un geste fait **pendant** la lecture ne doit pas être écrasé : on compte les
+ * écritures locales avant et après, et on ne remplace en bloc que si personne
+ * n'a rien fait entre-temps.
+ */
+let ecrituresPause = 0;
+/**
+ * **Une écriture ratée retire son autorité à la base.**
+ *
+ * Sans ça, la règle ci-dessus se retournait : une pause que le serveur n'avait
+ * pas pu enregistrer disparaissait à la première synchronisation — la promesse
+ * était **perdue**, alors que le fallback promettait « locale, dégradée,
+ * jamais cassée ». Tant qu'une écriture est en échec, la base complète au lieu
+ * de remplacer ; une écriture réussie lui rend la main.
+ */
+let pausesDesyncees = false;
+
+export async function synchroniserPauses(): Promise<void> {
+  const avant = ecrituresPause;
+  let base: Record<string, Pause>;
+  try {
+    base = await relirePauses();
+  } catch {
+    /* Hors ligne, ou pas de compte : ce qu'on a en mémoire reste vrai. */
+    return;
+  }
+  useMail.setState((s) =>
+    ecrituresPause === avant && !pausesDesyncees
+      ? { pauses: base }
+      : { pauses: { ...base, ...s.pauses } },
+  );
+}
 
 /**
  * **Ce que le cache sait déjà, posé sans réseau.**
@@ -1400,12 +1443,19 @@ export const useMail = create<MailState>()(
        comportement d'avant, dégradé et jamais cassé. L'enveloppe voyage avec :
        la notification doit pouvoir s'écrire sans rouvrir la boîte. */
     const dernier = t.messages[t.messages.length - 1];
+    ecrituresPause += 1;
     void enregistrerPause({
       thread_id: id,
       wake: wake.toISOString(),
       titre: dernier?.from.name || dernier?.from.email,
       objet: t.subject,
-    }).catch(() => {});
+    })
+      .then(() => {
+        pausesDesyncees = false;
+      })
+      .catch(() => {
+        pausesDesyncees = true;
+      });
     annulable(`En pause, revient ${libellePause(wake.toISOString())}`, Promise.resolve(true), () => {
       get().reprendre(id);
       toast("Annulé");
@@ -1419,6 +1469,7 @@ export const useMail = create<MailState>()(
       delete reste[id];
       return { pauses: reste };
     });
+    ecrituresPause += 1;
     void oublierPause([id]).catch(() => {});
   },
 
@@ -1446,6 +1497,7 @@ export const useMail = create<MailState>()(
     });
     /* La promesse est tenue : elle n'a plus à voyager. Le tour de relève
        pourrait la réveiller à son tour et notifier deux fois. */
+    ecrituresPause += 1;
     void oublierPause(dus.map(([id]) => id)).catch(() => {});
   },
 

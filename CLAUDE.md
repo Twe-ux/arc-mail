@@ -459,6 +459,9 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   pour corriger après coup.
 - Le contrôle est **une définition pour les deux surfaces** (`push-toggle.tsx`) et dit pourquoi il
   ne peut pas : « Dans l'app installée » sur iPhone hors PWA — la seule des trois qu'on peut lever.
+- La **pastille de l'icône** vient du tour (`setAppBadge` dans `sw.js`, total des non-lus des
+  dossiers surveillés — lui seul le connaît) et **s'efface à l'ouverture** : un push muet pour la
+  corriger coûterait la permission iOS.
 - Le tour **réveille aussi les pauses** échues (`mail_pauses`) : c'est la moitié qui manquait à
   « En pause » → [fiche](docs/features/pause.md).
 - `VAPID_SUBJECT` est une **URL** (`mailto:`/`https:`), pas une adresse : `web-push` refuse au
@@ -494,6 +497,10 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - Une pause porte **une date** — c'est ce qui la distingue d'un rangement. Cinq moments
   (`PAUSES`), chacun avec **son heure calculée à droite** ; un réveil est toujours dans le futur
   (« ce soir » passé 18 h vise demain).
+- Les pauses se **relisent au `visibilitychange`** (`synchroniserPauses`), pas seulement au
+  chargement : sur un bureau déjà ouvert, une pause posée sur le téléphone n'arrivait jamais. La
+  base fait autorité **sauf** si une écriture locale a eu lieu pendant la lecture, ou si une
+  écriture a échoué — sinon une pause non enregistrée **disparaîtrait** au lieu de rester locale.
 - **Deux chemins de réveil** : local (`visibilitychange`, qui suffit seul et marche sans compte) et
   le **tour de relève**, qui tient la promesse à l'heure dite — `mail_pauses` suit le compte, la
   ligne échue est **supprimée avant** l'envoi (une notification perdue vaut mieux qu'une qui revient

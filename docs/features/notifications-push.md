@@ -77,6 +77,13 @@ seules choses qu'on est sûr de pouvoir montrer sur un écran verrouillé.
 souscription) : Apple relaie un bloc qu'il ne peut pas lire. C'est ce qui rend l'objet d'un mail
 acceptable dans une notification ; ça ne rendrait pas son corps acceptable pour autant.
 
+**La pastille de l'icône** (9 sept.) : le même `LIST` rend déjà les non-lus de chaque dossier
+surveillé, les additionner ne coûte rien, et le tour est **le seul à connaître le total** — l'app
+n'a en mémoire que l'espace ouvert. Le service worker la pose (`setAppBadge`), et **ouvrir l'app
+l'efface** : elle dit « du courrier est arrivé pendant que tu n'étais pas là », revenir y répond.
+Un compteur qui resterait faux après lecture serait pire que pas de compteur — et on ne peut pas le
+corriger en silence, puisqu'un push sans notification visible coûte la permission iOS.
+
 **Chaque push doit produire une notification visible.** iOS révoque la permission d'une app qui
 pousse en silence. Donc : rien de neuf, rien d'envoyé.
 

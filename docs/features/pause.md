@@ -35,6 +35,20 @@ Trois choses n'ont pas changé, et c'est voulu :
   laisse la pause **locale**, c'est-à-dire exactement le comportement d'avant. Dégradé, jamais
   cassé.
 
+**Relue au retour sur l'onglet, pas seulement au chargement** (9 sept., signalé au premier test
+croisé : « mise en pause sur iPhone, pas en pause sur desktop »). La base était lue par la page
+serveur, donc une fois, à froid : sur un bureau déjà ouvert, une pause posée ailleurs n'arrivait
+jamais. `synchroniserPauses()` la relit au `visibilitychange`, **avant** le réveil local — une
+promesse doit exister ici pour pouvoir y être tenue.
+
+Deux garde-fous, parce que « la base fait autorité » se retourne vite :
+
+- un geste fait **pendant** la lecture n'est pas écrasé (un compteur d'écritures comparé avant et
+  après ; s'il a bougé, la base complète au lieu de remplacer) ;
+- une écriture **ratée** retire son autorité à la base jusqu'à la suivante. Sans ça, une pause que
+  le serveur n'avait pas pu enregistrer **disparaissait** à la première synchronisation : la
+  promesse était perdue, alors que le repli annonçait « locale, dégradée, jamais cassée ».
+
 Le **réveil supprime la ligne avant de pousser**, et c'est délibéré : un envoi qui échoue ne doit
 pas faire redire la même chose toutes les cinq minutes. Une notification perdue vaut mieux qu'une
 notification qui revient ; le fil, lui, est de retour dans la liste dans les deux cas.

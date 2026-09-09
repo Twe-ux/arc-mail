@@ -129,6 +129,9 @@ correctif.
       une conversation de trois messages ou plus, y compris après un préchargement.
 - [ ] **Une vraie infolettre** — la mise à la largeur, les images retenues, le bandeau, sur un
       courrier qui n'est pas notre mock.
+- [x] **La connexion gardée, en production** (9 sept.) — deux `modify` identiques à quatre secondes
+      d'écart : 2 053 ms à froid, **640 ms à la reprise**. Le tableau de la fiche venait d'un
+      serveur de test ; c'est vu sur iCloud → [fiche IMAP](features/imap.md).
 - [ ] **Deux comptes en même temps** — le cache par empreinte d'identifiants, le changement
       d'espace, les espaces-vues sur le compte à domaines.
 - [ ] **Ce que les migrations viennent d'ouvrir** (appliquées le 6 sept.) : la section Espaces de

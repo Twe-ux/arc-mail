@@ -44,6 +44,20 @@ l'adresse, l'hôte et le mot de passe dans l'empreinte (jamais le mot de passe l
 passe faux n'hérite jamais d'une session déjà authentifiée — les deux dernières lignes du tableau
 sont ce test.
 
+**Vu marcher en production (9 sept.)**, ce que le tableau ci-dessus ne montrait que contre un
+serveur de test. Deux `modify` identiques à quatre secondes d'intervalle, sur la vraie boîte :
+
+    appel : modify · compte 263 ms · total 2053 ms      ← connexion neuve
+    appel : modify · compte 153 ms · total  640 ms      ← reprise
+
+Le même geste — marquer comme lu — coûte **trois fois moins** quand la connexion est reprise.
+L'écart, 1,4 s, c'est le prix d'arriver : DNS, TLS, `LOGIN` chez iCloud. Et il dit aussi où **n'est
+pas** le temps : `compte` (vérifier qui demande et déchiffrer le mot de passe, trois allers-retours
+vers Supabase) coûte 150 à 260 ms, soit le quart d'une écriture tiède et rien du tout d'une froide.
+
+`send` mesure 3 701 ms : SMTP puis `APPEND` dans « Envoyés », deux connexions et un message
+composé. C'est ce que ça coûte, et l'envoi est optimiste — personne ne l'attend.
+
 Trois précautions : on vérifie qu'elle répond (`NOOP`, abandonné à 1,5 s — une connexion morte peut
 ne jamais répondre), on ne la garde que 4 minutes, et **une connexion sur laquelle une commande a
 échoué ne retourne pas dans la table** : on ne sait pas dans quel état elle est, et la garder ferait

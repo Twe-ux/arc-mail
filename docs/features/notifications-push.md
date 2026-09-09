@@ -117,6 +117,27 @@ deux requêtes par empreinte d'identifiants ([IMAP](../features/imap.md)), donc 
 courrier pendant qu'un tour passe compte dans les mêmes quatre ou cinq. À une connexion par tour, on
 est loin du bord ; à un tour qui ouvrirait ses comptes en parallèle, on s'en approcherait pour rien.
 
+## Deux défauts trouvés sur le déploiement (9 sept.)
+
+Le premier tour vraiment complet a fait exactement ce qu'il fallait — une personne abonnée, deux
+comptes ouverts, quatre dossiers lus, un message neuf trouvé, un appareil visé — et **rien n'est
+arrivé sur le téléphone**. Le journal disait :
+
+    relève : Milone Thierry : injoignable — Vapid subject is not a valid URL. milone.thierry@gmail.com
+
+**`VAPID_SUBJECT` doit être une URL**, `mailto:` ou `https:` : c'est la RFC. Or ce qu'on tape dans
+une variable nommée « subject » qui attend une adresse, c'est une adresse. `web-push` la refuse
+alors net, et **au premier envoi seulement** — la configuration ne se plaint pas avant. Le code
+préfixe donc `mailto:` à ce qui a l'air d'une adresse ; `.env.example` continue de demander la
+forme juste.
+
+Le second est le mien, et il est plus intéressant : `setVapidDetails` **jette**, et je l'appelais
+**hors** du `try` de `pousser`. Son erreur remontait donc jusqu'au tour de relève, dont le seul
+filet est « cette boîte est injoignable » — **un défaut de configuration accusait le serveur
+IMAP**, et le journal envoyait chercher au mauvais endroit. Un `catch` qui nomme une cause doit
+n'attraper que cette cause-là. `pousser` rend maintenant sa raison plutôt qu'un booléen, et le
+journal l'écrit.
+
 ## Ce qui reste à vérifier sur un vrai appareil
 
 Tout ce qui demande un vrai service de push : Chromium en contexte éphémère n'a pas d'API Push du

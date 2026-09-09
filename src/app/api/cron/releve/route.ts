@@ -142,9 +142,9 @@ async function tour() {
             `${cible.account.label} · ${chemin} : ${vu.messages.length} message(s) neufs, ${appareils.length} appareil(s)`,
           );
           for (const abonnement of appareils) {
-            const ok = await pousser(abonnement, charge(vu.messages, cible.account.label));
-            if (ok) notifications += 1;
-            else dire("un envoi a échoué — souscription périmée, ou relais qui refuse");
+            const envoi = await pousser(abonnement, charge(vu.messages, cible.account.label));
+            if (envoi.ok) notifications += 1;
+            else dire(`envoi refusé — ${envoi.raison ?? "sans raison donnée"}`);
           }
         }
       });

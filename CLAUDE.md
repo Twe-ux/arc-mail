@@ -454,6 +454,12 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   pour corriger après coup.
 - Le contrôle est **une définition pour les deux surfaces** (`push-toggle.tsx`) et dit pourquoi il
   ne peut pas : « Dans l'app installée » sur iPhone hors PWA — la seule des trois qu'on peut lever.
+- `VAPID_SUBJECT` est une **URL** (`mailto:`/`https:`), pas une adresse : `web-push` refuse au
+  **premier envoi**, pas à la configuration. Le code préfixe ce qui a l'air d'une adresse.
+- **Un `catch` qui nomme une cause ne doit attraper que cette cause** : `setVapidDetails` jette, et
+  posé hors du `try` de `pousser` il faisait dire « boîte injoignable » à une clé mal écrite. Le
+  tour **journalise** chaque étape — sans ça, « personne d'abonné », « rien de neuf » et « la boîte
+  refuse » rendent le même 200 muet.
 
 **Barre du bas** → [docs/features/barre-du-bas.md](docs/features/barre-du-bas.md)
 - La barre est posée par-dessus la liste ; le défilant lui laisse `--nav-height` en bas, sinon le

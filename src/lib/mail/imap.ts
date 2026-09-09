@@ -933,6 +933,54 @@ export async function readThread(
 }
 
 /**
+ * **Tous les dossiers à surveiller, et leur compteur, en un aller-retour.**
+ *
+ * `LIST` avec `statusQuery` : le serveur rend les dossiers *et* leur `UIDNEXT`
+ * ensemble, comme il rend déjà leurs non-lus pour la barre. Un `STATUS` par
+ * dossier aurait coûté un aller-retour chacun ; celui-ci les donne tous, et
+ * c'est ce qui rend la surveillance de **tous** les dossiers aussi bon marché
+ * que celle de la seule réception.
+ *
+ * **Ce qu'on ne surveille pas** : les dossiers qui ne reçoivent pas de
+ * courrier de quelqu'un d'autre. Envoyés et Brouillons, c'est nous ; Corbeille
+ * et Archive, c'est nous qui rangeons ; Indésirables, c'est le filtre qui a
+ * déjà décidé que ça ne valait pas la peine — être prévenu de son spam serait
+ * exactement le contraire d'une notification. `\All` de Gmail contient
+ * *tout*, il doublerait chaque message.
+ *
+ * Reste la réception et les dossiers que la personne a créés : ceux où une
+ * règle du serveur dépose du courrier, et qui n'étaient prévenus par personne.
+ */
+const PAS_SURVEILLES = new Set([
+  "\\Sent",
+  "\\Drafts",
+  "\\Trash",
+  "\\Junk",
+  "\\Archive",
+  "\\All",
+  "\\Flagged",
+  "\\Important",
+]);
+
+export type EtatDossier = { path: string; nom: string; uidvalidity: number; uidnext: number };
+
+export async function dossiersASurveiller(client: ImapFlow): Promise<EtatDossier[]> {
+  const list = await client.list({ statusQuery: { uidNext: true, uidValidity: true } });
+  return list
+    .filter((f) => !f.flags?.has("\\Noselect"))
+    .filter((f) => !(f.specialUse && PAS_SURVEILLES.has(f.specialUse)))
+    .map((f) => ({
+      path: f.path,
+      nom: f.name,
+      uidvalidity: Number(f.status?.uidValidity ?? 0),
+      uidnext: Number(f.status?.uidNext ?? 0),
+    }))
+    /* Un serveur qui n'a pas répondu au `STATUS` d'un dossier ne donne rien à
+       comparer : on le passe plutôt que de le traiter comme vide. */
+    .filter((f) => f.uidnext > 0);
+}
+
+/**
  * Ce qui est arrivé depuis le dernier passage, au prix le plus bas.
  *
  * C'est la lecture du **tour de relève** : pas une liste, pas des corps, juste
@@ -953,20 +1001,15 @@ export type Nouveaute = { uid: number; de: string; nom: string; objet: string; d
 
 export async function nouveautes(
   client: ImapFlow,
-  path: string,
+  etat: EtatDossier,
   repere: { uidvalidity: number; uidnext: number } | null,
-): Promise<{ uidvalidity: number; uidnext: number; messages: Nouveaute[] }> {
-  const etat = await client.status(path, { uidNext: true, uidValidity: true });
-  const uidvalidity = Number(etat.uidValidity ?? 0);
-  const uidnext = Number(etat.uidNext ?? 0);
-  const vide = { uidvalidity, uidnext, messages: [] as Nouveaute[] };
+): Promise<Nouveaute[]> {
+  /* Premier passage, ou boîte renumérotée : on ne raconte rien. Le repère,
+     lui, est posé par l'appelant dans les deux cas. */
+  if (!repere || repere.uidvalidity !== etat.uidvalidity) return [];
+  if (etat.uidnext <= repere.uidnext) return [];
 
-  /* Premier passage, boîte renumérotée, ou serveur avare de `STATUS` : on pose
-     le repère, on ne raconte rien. */
-  if (!uidnext || !repere || repere.uidvalidity !== uidvalidity) return vide;
-  if (uidnext <= repere.uidnext) return vide;
-
-  const lock = await client.getMailboxLock(path);
+  const lock = await client.getMailboxLock(etat.path);
   try {
     const messages: Nouveaute[] = [];
     /* `n:*` rend au moins un message même quand aucun ne correspond — c'est le
@@ -987,7 +1030,7 @@ export async function nouveautes(
         date: (m.envelope?.date ?? new Date()).toISOString(),
       });
     }
-    return { uidvalidity, uidnext, messages };
+    return messages;
   } finally {
     lock.release();
   }

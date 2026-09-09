@@ -25,13 +25,17 @@ import type { StoredAccount } from "./server";
  * 3. **rien ne sort.** Cette fonction rend un mot de passe à un appelant qui
  *    tourne dans le même processus ; la route de relève, elle, ne répond
  *    jamais qu'avec des nombres.
+ *
+ * Les **dossiers** ne se lisent plus ici : le tour les demande au serveur
+ * (`dossiersASurveiller`), qui les rend tous avec leur compteur en un seul
+ * aller-retour. Ne surveiller que les réceptions des espaces laissait muet
+ * tout dossier qu'une règle du serveur remplit — et c'est justement là qu'on
+ * ne va pas regarder de soi-même.
  */
 export type CompteARelever = {
   userId: string;
   account: StoredAccount;
   password: string;
-  /** Les dossiers qui tiennent lieu de réception. Un espace-vue en ajoute un. */
-  chemins: string[];
 };
 
 type Row = {
@@ -81,17 +85,6 @@ export async function comptesARelever(userIds: string[]): Promise<CompteARelever
     ((secrets ?? []) as { account_id: string; sealed: string }[]).map((s) => [s.account_id, s.sealed]),
   );
 
-  const { data: espaces } = await db
-    .from("mail_spaces")
-    .select("account_id, inbox_path")
-    .in("account_id", ids);
-  const parCompte = new Map<string, Set<string>>();
-  for (const e of (espaces ?? []) as { account_id: string; inbox_path: string }[]) {
-    const set = parCompte.get(e.account_id) ?? new Set<string>();
-    set.add(e.inbox_path || "INBOX");
-    parCompte.set(e.account_id, set);
-  }
-
   const prets: CompteARelever[] = [];
   for (const r of lignes) {
     const scelle = scelles.get(r.id);
@@ -102,9 +95,6 @@ export async function comptesARelever(userIds: string[]): Promise<CompteARelever
     } catch {
       continue;
     }
-    /* Un compte sans espace enregistré a quand même une réception : c'est le
-       cas le plus courant, et l'oublier serait ne prévenir personne. */
-    const chemins = [...(parCompte.get(r.id) ?? new Set(["INBOX"]))];
     prets.push({
       userId: r.user_id,
       account: {
@@ -118,7 +108,6 @@ export async function comptesARelever(userIds: string[]): Promise<CompteARelever
         smtpPort: r.smtp_port,
       },
       password,
-      chemins,
     });
   }
   return prets;

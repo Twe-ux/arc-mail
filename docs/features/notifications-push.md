@@ -34,13 +34,33 @@ Aucune n'est facultative, et elles sont toutes là :
 
 Pour chaque compte **d'une personne qui a au moins un appareil abonné** :
 
-- un `STATUS (UIDNEXT UNSEEN)` sur la réception — **un** aller-retour, pas de `SELECT`, pas de
-  `FETCH` ;
-- si `UIDNEXT` n'a pas bougé, on ferme et on passe au suivant : zéro notification, zéro octet ;
+- un `LIST` avec `statusQuery` — **un** aller-retour pour **tous** les dossiers et leur `UIDNEXT`,
+  pas de `SELECT`, pas de `FETCH` ;
+- si aucun compteur n'a bougé, on ferme et on passe au suivant : zéro notification, zéro octet ;
 - sinon un `FETCH` des enveloppes entre le repère et `UIDNEXT` (`nouveautes`, dans `imap.ts`), et
   une notification : « Claire — Re: devis » pour un message, les noms pour deux, le compte au-delà.
   Une pile de sept notifications pour l'infolettre du matin est ce qui fait couper les
   notifications d'une app.
+
+### Tous les dossiers, pas seulement la réception (9 sept.)
+
+La première version ne relevait que la réception de chaque espace. Or ce qui distingue une boîte
+d'une messagerie, ce sont les **règles du serveur** : le courrier qu'iCloud dépose dans « Factures »
+n'était prévenu par personne — et c'est justement le dossier qu'on ne va pas regarder de soi-même.
+
+Ce qui rend la chose gratuite : `LIST` accepte un `statusQuery`, comme pour les non-lus de la barre.
+Le serveur rend **tous** les dossiers et leur `UIDNEXT` **en un aller-retour** — surveiller trente
+dossiers coûte donc exactement ce que coûtait la seule réception, là où trente `STATUS` auraient
+coûté trente allers-retours. Les repères suivent : une requête pour les lire tous, un `upsert` pour
+les reposer tous.
+
+**Ce qu'on ne surveille pas**, et c'est délibéré : Envoyés et Brouillons (c'est nous), Corbeille et
+Archive (c'est nous qui rangeons), **Indésirables** — être prévenu de son spam est exactement le
+contraire d'une notification —, et `\All` de Gmail, qui contient tout et doublerait chaque message.
+Reste la réception et les dossiers que la personne a créés.
+
+Le nom du dossier entre alors dans la notification, **sauf pour la réception** : « INBOX » sur un
+écran verrouillé ne dit rien à personne, « Factures » dit tout.
 
 Trois précautions dans `nouveautes` :
 

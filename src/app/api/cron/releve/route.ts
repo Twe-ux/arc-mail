@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 import { comptesARelever, personnesAbonnees } from "@/lib/accounts/releve";
-import { nouveautes, withImap, type Nouveaute } from "@/lib/mail/imap";
+import { dossiersASurveiller, nouveautes, withImap, type Nouveaute } from "@/lib/mail/imap";
 import { pousser, pushConfigure, type Abonnement } from "@/lib/push/serveur";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
@@ -98,51 +98,71 @@ async function tour() {
     comptes += 1;
     try {
       await withImap(cible.account, cible.password, async (client) => {
-        for (const chemin of cible.chemins) {
-          dossiers += 1;
-          const { data: repere } = await db
-            .from("mail_watermarks")
-            .select("uidvalidity, uidnext")
-            .eq("account_id", cible.account.id)
-            .eq("path", chemin)
-            .maybeSingle();
+        /* **Tous les dossiers, en un aller-retour**, et leurs repères en une
+           requête : une règle du serveur qui dépose du courrier dans un
+           dossier n'était prévenue par personne, et surveiller chaque dossier
+           par un `STATUS` aurait coûté un aller-retour chacun. */
+        const etats = await dossiersASurveiller(client);
+        if (etats.length === 0) {
+          dire(`${cible.account.label} : aucun dossier à surveiller`);
+          return;
+        }
+        const { data: lignes } = await db
+          .from("mail_watermarks")
+          .select("path, uidvalidity, uidnext")
+          .eq("account_id", cible.account.id)
+          .in("path", etats.map((e) => e.path));
+        const reperes = new Map(
+          ((lignes ?? []) as { path: string; uidvalidity: number; uidnext: number }[]).map((l) => [
+            l.path,
+            { uidvalidity: Number(l.uidvalidity), uidnext: Number(l.uidnext) },
+          ]),
+        );
 
-          const vu = await nouveautes(
-            client,
-            chemin,
-            repere ? { uidvalidity: Number(repere.uidvalidity), uidnext: Number(repere.uidnext) } : null,
+        /* Le repère avance **même quand rien n'est poussé** : un premier
+           passage, une boîte renumérotée ou un envoi raté ne doivent pas faire
+           raconter la même chose au tour suivant. Tous d'un coup — ce sont
+           les mêmes valeurs, qu'on ait notifié ou non. */
+        const vu = new Date().toISOString();
+        await db.from("mail_watermarks").upsert(
+          etats.map((e) => ({
+            account_id: cible.account.id,
+            path: e.path,
+            uidvalidity: e.uidvalidity,
+            uidnext: e.uidnext,
+            seen_at: vu,
+          })),
+          { onConflict: "account_id,path" },
+        );
+
+        const neufs = etats.filter((e) => {
+          const repere = reperes.get(e.path);
+          return repere && repere.uidvalidity === e.uidvalidity && e.uidnext > repere.uidnext;
+        });
+        dossiers += etats.length;
+        if (neufs.length === 0) {
+          const premiers = etats.filter((e) => !reperes.has(e.path)).length;
+          dire(
+            `${cible.account.label} : ${etats.length} dossier(s) surveillé(s), rien de neuf` +
+              (premiers ? ` (${premiers} repère(s) posé(s), premier passage)` : ""),
           );
+          return;
+        }
 
-          /* Le repère avance **même quand rien n'est poussé** : un premier
-             passage, une boîte renumérotée ou un envoi raté ne doivent pas
-             faire raconter la même chose au tour suivant. */
-          await db.from("mail_watermarks").upsert(
-            {
-              account_id: cible.account.id,
-              path: chemin,
-              uidvalidity: vu.uidvalidity,
-              uidnext: vu.uidnext,
-              seen_at: new Date().toISOString(),
-            },
-            { onConflict: "account_id,path" },
-          );
-
-          if (vu.messages.length === 0) {
-            /* Le cas le plus courant, et celui qu'on confond avec une panne :
-               le premier passage pose le repère sans rien annoncer. */
-            dire(
-              repere
-                ? `${cible.account.label} · ${chemin} : rien de neuf (uidnext ${vu.uidnext})`
-                : `${cible.account.label} · ${chemin} : repère posé à ${vu.uidnext}, premier passage`,
-            );
+        for (const etat of neufs) {
+          const messages = await nouveautes(client, etat, reperes.get(etat.path) ?? null);
+          if (messages.length === 0) {
+            /* Le compteur a bougé mais rien n'est à dire : du courrier déjà lu
+               ailleurs, ou un message qu'on vient d'écrire. */
+            dire(`${cible.account.label} · ${etat.nom} : compteur bougé, rien de non-lu`);
             continue;
           }
           const appareils = parPersonne.get(cible.userId) ?? [];
           dire(
-            `${cible.account.label} · ${chemin} : ${vu.messages.length} message(s) neufs, ${appareils.length} appareil(s)`,
+            `${cible.account.label} · ${etat.nom} : ${messages.length} message(s) neufs, ${appareils.length} appareil(s)`,
           );
           for (const abonnement of appareils) {
-            const envoi = await pousser(abonnement, charge(vu.messages, cible.account.label));
+            const envoi = await pousser(abonnement, charge(messages, etat));
             if (envoi.ok) notifications += 1;
             else dire(`envoi refusé — ${envoi.raison ?? "sans raison donnée"}`);
           }
@@ -170,19 +190,22 @@ async function tour() {
  * pile de sept notifications pour une infolettre du matin est ce qui fait
  * couper les notifications d'une app.
  */
-function charge(messages: Nouveaute[], boite: string) {
+function charge(messages: Nouveaute[], etat: { path: string; nom: string }) {
+  /* **Le dossier n'est dit que s'il n'est pas la réception.** « INBOX » sur un
+     écran verrouillé ne dit rien à personne ; « Factures » dit tout. */
+  const ou = etat.path === "INBOX" ? "" : ` · ${etat.nom}`;
   if (messages.length === 1)
-    return { titre: messages[0].nom, corps: messages[0].objet };
+    return { titre: `${messages[0].nom}${ou}`, corps: messages[0].objet };
   if (messages.length <= DETAIL_MAX)
     return {
-      titre: `${messages.length} nouveaux messages`,
+      titre: `${messages.length} nouveaux messages${ou}`,
       corps: messages.map((m) => m.nom).join(", "),
     };
   return {
-    titre: `${messages.length} nouveaux messages`,
+    titre: `${messages.length} nouveaux messages${ou}`,
     corps: `${messages
       .slice(0, DETAIL_MAX)
       .map((m) => m.nom)
-      .join(", ")} et ${messages.length - DETAIL_MAX} autres · ${boite}`,
+      .join(", ")} et ${messages.length - DETAIL_MAX} autres`,
   };
 }

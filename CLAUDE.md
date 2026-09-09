@@ -436,7 +436,12 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 **Notifications push** → [docs/features/notifications-push.md](docs/features/notifications-push.md)
 - `IDLE` demande une connexion ouverte, le serverless n'en a pas : c'est un **tour de relève**
   (`/api/cron/releve`, `*/5` dans `vercel.json`), donc la notification sans l'instantané.
-- Un `STATUS (UIDNEXT)` par dossier — pas de `SELECT` —, `FETCH` seulement si le compteur a bougé,
+- **Tous les dossiers sont surveillés**, pas seulement les réceptions : une règle du serveur qui
+  dépose dans « Factures » n'était prévenue par personne. `LIST` + `statusQuery` les rend **tous**
+  avec leur `UIDNEXT` en **un** aller-retour — trente dossiers au prix d'un. Sauf Envoyés,
+  Brouillons, Corbeille, Archive, **Indésirables** (être prévenu de son spam est le contraire d'une
+  notification) et `\All`. Le nom du dossier entre dans la notification, sauf pour la réception.
+- Pas de `SELECT` pour compter — `FETCH` seulement si le compteur a bougé,
   et **`UIDVALIDITY` qui change ne notifie rien** : la boîte a été renumérotée, pas remplie. Le
   repère avance **même quand rien n'est poussé**, sinon le tour suivant redit la même chose.
 - La relève ne s'ouvre que sur les comptes d'une personne **abonnée** : s'abonner **est** le

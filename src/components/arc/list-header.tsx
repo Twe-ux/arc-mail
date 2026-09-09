@@ -72,17 +72,28 @@ export function ListHeader() {
           {/* La sortie de la vue, contre son titre : sur téléphone les quatre
               pilules de dossiers sont l'autre chemin, mais aucune ne dit
               « revenir à la boîte entière » — elles en proposent une autre. */}
-          {vue && !selectionOn && (
+          {vue && (
             <button
               type="button"
               onClick={() => setFolder(folderId)}
               aria-label="Quitter la vue"
-              className="relative grid size-[30px] shrink-0 place-items-center rounded-full bg-[color-mix(in_oklch,var(--space-accent)_22%,transparent)] text-[var(--space-ink)] after:absolute after:-inset-1.5"
+              className={cn(
+                "relative grid size-[30px] shrink-0 place-items-center rounded-full bg-[color-mix(in_oklch,var(--space-accent)_22%,transparent)] text-[var(--space-ink)] after:absolute after:-inset-1.5",
+                selectionOn && "invisible",
+              )}
             >
               <X className="size-4" />
             </button>
           )}
-          {!selectionOn && <Segmented />}
+          {/* **`invisible`, jamais retiré du flux.** Ces trois cibles n'ont rien
+              à faire pendant une sélection — le filtre et le regroupement
+              changent la liste, donc la videraient ; quitter une vue aussi.
+              Mais les **retirer** faisait remonter toute la tête de 19 pt à
+              l'entrée en sélection et redescendre à la sortie : signalé sur
+              iPhone, « pas de décalage dans le header avec ou sans sélection ».
+              `visibility: hidden` garde la boîte, et sort quand même du parcours
+              du clavier et de l'arbre d'accessibilité. */}
+          <Segmented className={cn(selectionOn && "invisible")} />
         </div>
         <div className="mt-1 flex items-center gap-2">
           {/* `truncate` sur la ligne entière, et l'adresse en toutes lettres dans
@@ -99,16 +110,17 @@ export function ListHeader() {
                 qu'on croit fait. */}
             {enAttente > 0 && <> · {enAttente} en attente</>}
           </p>
-          {/* 30 px, la hauteur exacte du segmenté qui vivait ici avant lui. */}
+          {/* 30 px, la hauteur exacte du segmenté qui vivait ici avant lui —
+              et `invisible` en sélection, pour la même raison que lui. */}
           <button
             type="button"
-            hidden={selectionOn}
             onClick={() => setGroupBy(groupBy === "fil" ? "correspondant" : "fil")}
             aria-pressed={groupBy === "correspondant"}
             aria-label="Ranger par correspondant"
             className={cn(
               "relative grid size-[30px] shrink-0 place-items-center rounded-full text-muted-foreground transition-colors after:absolute after:-inset-1.5",
               groupBy === "correspondant" && "bg-foreground/10 text-foreground",
+              selectionOn && "invisible",
             )}
           >
             <Users className="size-4" />
@@ -212,7 +224,14 @@ function TuilesDossiers() {
  * panneau : c'est un groupe de boutons radio qu'un lecteur d'écran doit
  * annoncer.
  */
-export function Segmented({ tone = "glass" }: { tone?: "glass" | "muted" }) {
+export function Segmented({
+  tone = "glass",
+  className,
+}: {
+  tone?: "glass" | "muted";
+  /** `invisible` en sélection : il garde sa place sans se montrer (voir la tête). */
+  className?: string;
+}) {
   const unreadOnly = useMail((s) => s.unreadOnly);
   const setUnreadOnly = useMail((s) => s.setUnreadOnly);
   return (
@@ -222,6 +241,7 @@ export function Segmented({ tone = "glass" }: { tone?: "glass" | "muted" }) {
       className={cn(
         "flex shrink-0 rounded-full p-0.5 text-xs",
         tone === "glass" ? "bg-foreground/[0.06]" : "bg-muted",
+        className,
       )}
     >
       <Tab tone={tone} active={!unreadOnly} onClick={() => setUnreadOnly(false)}>

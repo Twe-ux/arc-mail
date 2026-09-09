@@ -94,6 +94,14 @@ dix, et son calque rouge sous une case cochée ne voudrait rien dire.
 
 ## Les barres
 
+**La tête de liste ne bouge pas d'un pixel.** Le filtre, le regroupement et la sortie de vue n'ont
+rien à faire pendant une sélection — les deux premiers changent la liste, donc la videraient ; la
+troisième aussi. Mais les **retirer** faisait remonter toute la tête de 19 pt à l'entrée en
+sélection et redescendre à la sortie : signalé sur iPhone, « pas de décalage dans le header avec ou
+sans sélection ». Ils passent donc en **`invisible`** — `visibility: hidden` garde la boîte, et sort
+quand même du parcours du clavier et de l'arbre d'accessibilité. Mesuré : **0 px** d'écart sur le
+titre, sur les pilules de dossiers et sur la première rangée.
+
 **Téléphone : la barre de sélection prend la place de la barre de navigation**, elle ne s'y ajoute
 pas. Le pouce a une seule place, et deux barres empilées auraient mis les actions du groupe
 au-dessus de la ligne où la main les cherche. Naviguer pendant qu'on sélectionne n'a de toute façon

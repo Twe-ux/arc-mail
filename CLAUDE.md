@@ -202,6 +202,8 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - Les deux barres **prennent la place**, elles ne s'ajoutent pas : la pill remplace la navigation
   (troisième emploi d'`action-pill`), et la barre du bureau remplace la 2ᵉ rangée de la tête —
   mesuré **0 px** d'écart, sinon la liste sautait sous le pointeur au premier ⌘-clic.
+- Sur téléphone, filtre, regroupement et sortie de vue passent en **`invisible`**, jamais retirés du
+  flux : les retirer faisait remonter la tête de 19 pt à l'entrée en sélection. Mesuré 0 px.
 - **Un geste, un toast** : `deplacer` est extrait de `moveThread` pour cela, chaque fil garde son
   dossier de départ, et l'annulation ne défait que ce qui est passé. `fait(folder, n)` écrit le
   libellé aux deux nombres.

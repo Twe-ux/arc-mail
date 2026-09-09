@@ -2,6 +2,21 @@
 
 Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérification.
 
+## 9 septembre 2026 — la tête de liste ne saute plus en sélection
+
+« Fais en sorte sur mobile qu'il n'y ait pas de décalage dans le header avec ou sans sélection. »
+
+Trois cibles de la tête n'ont rien à faire pendant une sélection : le filtre et le regroupement
+changent la liste, donc la videraient, et la sortie de vue aussi. Je les avais **retirées du flux** —
+et toute la tête remontait de 19 pt à l'entrée en sélection, puis redescendait à la sortie.
+
+`invisible` plutôt que rien : `visibility: hidden` garde la boîte, et sort quand même du parcours du
+clavier et de l'arbre d'accessibilité. On garde l'inutilisable hors de portée sans lui prendre sa
+place.
+
+Mesuré : **0 px** d'écart sur le titre, sur les pilules de dossiers et sur la première rangée, avec
+et sans sélection.
+
 ## 9 septembre 2026 — l'appui long n'était pas à nous
 
 « Sur mobile, pour sélectionner, pas d'appui long : juste en cliquant sur l'avatar, sinon ça

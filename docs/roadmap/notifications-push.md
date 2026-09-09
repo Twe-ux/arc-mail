@@ -87,9 +87,16 @@ elle n'y a pas installé l'app aussi — et qu'une souscription est **par appare
 
 ### 4. Une connexion IMAP par compte et par tour
 
-iCloud limite le nombre de connexions simultanées et ferme les bavardes. La relève doit être
-**séquentielle** par compte, avec un délai maximum par tour, et abandonner proprement plutôt que
-d'accumuler des sessions.
+Ce qui est documenté, c'est un plafond de connexions **simultanées** par compte — de l'ordre de
+quatre ou cinq chez iCloud, refusées à la connexion au-delà. Rien, en revanche, sur une fréquence
+d'interrogation : « iCloud ferme les bavardes » était une prudence de ma part, pas une mesure, et
+elle n'a pas sa place ici.
+
+Ce plafond-là suffit à commander la forme de la relève : **séquentielle**, une connexion à la fois,
+fermée dès le `STATUS` rendu. Et il est **partagé avec l'app** — nos connexions se gardent entre
+deux requêtes par empreinte d'identifiants ([IMAP](../features/imap.md)), donc quelqu'un qui lit son
+courrier pendant qu'un tour passe compte dans les mêmes quatre ou cinq. À une connexion par tour, on
+est loin du bord ; à un tour qui ouvrirait ses comptes en parallèle, on s'en approcherait pour rien.
 
 ## Ce que ça ne règle pas
 

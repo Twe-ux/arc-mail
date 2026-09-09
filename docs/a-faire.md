@@ -90,11 +90,11 @@ est argumenté dans l'[audit du 6 septembre](audits/2026-09-06-clients-mail.md).
 Écrit, jamais vérifié sur une vraie boîte. Chaque ligne se solde par « vu marcher » ou par un
 correctif.
 
-- [ ] **Les notifications, de bout en bout** (9 sept.) — quatre variables dans Vercel
-      (`npm run vapid` les fabrique), la migration qui part seule à la fusion sur `main`, puis
-      « Activées » depuis l'iPhone **en app installée** et un message qu'on s'envoie. Ce qui n'a
-      pas pu être mesuré ici : un vrai service de push (Chromium éphémère n'a pas l'API) et une
-      vraie base → [fiche](features/notifications-push.md).
+- [x] **Les notifications, de bout en bout** (9 sept.) — **vu marcher sur l'iPhone**, en app
+      installée : « 1 personne abonnée, 2 comptes à ouvrir », « INBOX : 1 message neuf,
+      1 appareil », et la notification arrivée. Deux défauts corrigés en chemin (`VAPID_SUBJECT`
+      qui doit être une URL, et un `catch` trop large qui accusait la boîte)
+      → [fiche](features/notifications-push.md).
 - [x] **Envoyer** — vérifié depuis les boîtes iCloud (6 sept.) : le message part vraiment.
 - [ ] **La copie dans « Envoyés »** — l'`APPEND` qui suit le `SEND`. Le message part ; reste à
       confirmer qu'il se retrouve bien dans le dossier, une seule fois, avec ses pièces jointes.

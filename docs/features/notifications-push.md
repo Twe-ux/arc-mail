@@ -138,14 +138,30 @@ IMAP**, et le journal envoyait chercher au mauvais endroit. Un `catch` qui nomme
 n'attraper que cette cause-là. `pousser` rend maintenant sa raison plutôt qu'un booléen, et le
 journal l'écrit.
 
-## Ce qui reste à vérifier sur un vrai appareil
+## Vu marcher (9 sept.)
 
-Tout ce qui demande un vrai service de push : Chromium en contexte éphémère n'a pas d'API Push du
-tout (« does not support the Push API in incognito mode »), et il n'y a pas de Supabase en local.
-Ce qui **a** été mesuré : les trois gardes de la route, l'enregistrement du worker `v27` avec ses
-écouteurs, les deux rangées dans leurs deux surfaces, et **le chemin d'échec** — une souscription
-que le serveur refuse est défaite dans le navigateur, plutôt que de laisser un appareil croire
-qu'il sera prévenu.
+Sur l'iPhone, en app installée, le tour de 12h30 :
+
+    relève : 1 personne(s) abonnée(s), 2 compte(s) à ouvrir
+    relève : Milone Thierry · INBOX : 1 message(s) neufs, 1 appareil(s)
+    relève : Milone Thierry · Milone Thierry CoworKing : rien de neuf (uidnext 648)
+    relève : Milone Thierry · Factures Coworking : rien de neuf (uidnext 12)
+
+…et la notification est arrivée.
+
+Une ligne rouge apparaît au même moment, et elle n'est pas la nôtre :
+`DeprecationWarning: url.parse() behavior is not standardized`. C'est `web-push` qui appelle
+`url.parse(subscription.endpoint)` dans ses propres sources (`web-push-lib.js`), au moment exact où
+il pousse — d'où sa place dans le journal, juste après la ligne qui annonce l'appareil. Node
+l'écrit sur `stderr`, Vercel la peint en rouge. Rien à corriger ici, et rien à taire : l'endpoint
+vient de la souscription du navigateur, pas d'une adresse qu'on aurait reçue.
+
+Ce qui n'a pas pu être mesuré en local, et que ce tour a soldé : Chromium en contexte éphémère n'a
+pas d'API Push du tout (« does not support the Push API in incognito mode »), et il n'y a pas de
+Supabase. Ce qui **avait** été mesuré avant le déploiement : les trois gardes de la route,
+l'enregistrement du worker `v27` avec ses écouteurs, les deux rangées dans leurs deux surfaces, et
+**le chemin d'échec** — une souscription que le serveur refuse est défaite dans le navigateur,
+plutôt que de laisser un appareil croire qu'il sera prévenu.
 
 ## Ce que ça ne règle pas
 

@@ -2,6 +2,31 @@
 
 Dans l'ordre. Le hash renvoie au commit, qui raconte la cause et la vérification.
 
+## 9 septembre 2026 — l'appui long n'était pas à nous
+
+« Sur mobile, pour sélectionner, pas d'appui long : juste en cliquant sur l'avatar, sinon ça
+présélectionne aussi du texte. »
+
+L'appui long a vécu une journée. Il paraissait le seul geste encore libre sur une rangée —
+l'horizontale appartient au balayage, la verticale au défilement — mais sur iPhone il ne nous
+appartient pas : le système y met sa propre sélection de texte, et le maintenir surlignait la moitié
+du message en même temps qu'il cochait. Un geste qu'on croit libre parce qu'on ne l'a pas encore
+pris, alors que le système l'avait déjà.
+
+**C'est donc l'avatar**, sur les deux plateformes : la convention de Gmail sur téléphone, et
+l'endroit où la case apparaît déjà au survol sur bureau.
+
+Et pour l'implémenter, une **zone** plutôt qu'un second bouton — le clic lu là où il tombe. Le
+bouton frère posé par-dessus l'avatar, livré hier, avait un défaut que je n'avais pas mesuré : il
+mangeait le `pointerdown`, donc un balayage parti de l'avatar n'atteignait plus le geste. Vérifié
+dans l'autre sens après correction : un balayage tactile depuis l'avatar mène la rangée à 182 px et
+archive.
+
+La rangée gagne au passage `select-none` et `-webkit-touch-callout: none`, **sur téléphone
+seulement** : iOS y proposait « Enregistrer l'image » sur l'avatar et surlignait le texte au moindre
+doigt qui s'attarde. Sur bureau la sélection reste — copier un objet depuis la liste est légitime à
+la souris.
+
 ## 8 septembre 2026 — la puce qui manquait, et le mode qui ne se fermait pas
 
 « Les étiquettes marchent — ajoute aussi dans la liste mail quand l'écran n'est pas en pleine

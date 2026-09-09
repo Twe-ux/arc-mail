@@ -45,11 +45,21 @@ export function ThreadRow({
   onArchive: () => void;
   onDelete: () => void;
 }) {
-  /* **La sélection multiple passe par la rangée elle-même**, pas par une case
-     à côté : un `<button>` dans un `<button>` est du HTML invalide (la règle
-     des cartes), et une case posée par-dessus l'avatar aurait eu une verticale
-     différente à chaque densité. En mode sélection, l'avatar **devient** la
-     case et toute la rangée bascule — c'est ce que fait Mail sur iPhone. */
+  /* **La sélection s'ouvre en touchant l'avatar**, et la rangée entière bascule
+     une fois dedans.
+   *
+   * L'appui long a vécu une journée. Sur iPhone il ne nous appartient pas : le
+   * système y met sa propre sélection de texte, et la maintenir sur une rangée
+   * surlignait la moitié du message en même temps qu'elle cochait — « pas
+   * d'appui long, juste en cliquant sur l'avatar, sinon ça présélectionne aussi
+   * du texte ». C'est aussi la convention de Gmail sur téléphone.
+   *
+   * **Une zone, pas un second bouton** : un `<button>` dans un `<button>` est
+   * du HTML invalide (la règle des cartes), et un bouton posé *à côté*, en
+   * frère de la rangée, mangeait le `pointerdown` — un balayage parti de
+   * l'avatar n'atteignait plus le geste. Le clic est donc lu à l'endroit où il
+   * est tombé (`[data-coche]`), et les événements du geste continuent d'aller
+   * là où ils allaient. */
   const selectionOn = useMail((s) => s.selectionOn);
   const coche = useMail((s) => s.selection.includes(thread.id));
   const basculer = useMail((s) => s.basculerSelection);
@@ -80,20 +90,6 @@ export function ThreadRow({
     right: { enabled: !enArchive && !selectionOn, run: onArchive },
     left: { enabled: !selectionOn, run: onDelete },
   });
-
-  /* **L'appui long entre en sélection.** L'horizontale appartient au balayage
-     et la verticale au défilement ; l'appui immobile est le seul geste encore
-     libre sur cette rangée, et c'est celui qu'iOS emploie pour la même chose.
-     450 ms, et **8 px de tolérance** : annuler au premier pixel rendait le
-     geste impossible à tenir sur un écran qu'on porte à la main. */
-  const long = useRef<number | null>(null);
-  const depart = useRef<{ x: number; y: number } | null>(null);
-  const annulerLong = () => {
-    if (long.current !== null) window.clearTimeout(long.current);
-    long.current = null;
-    depart.current = null;
-  };
-  useEffect(() => annulerLong, []);
 
   const last = thread.messages[thread.messages.length - 1];
   /* **Une vue ouverte, la rangée dit pourquoi elle est là.** C'est la règle de
@@ -170,12 +166,18 @@ export function ThreadRow({
         type="button"
         aria-current={active ? "true" : undefined}
         onClick={(e) => {
-          /* **Trois lectures d'un clic**, dans l'ordre où elles priment.
-             ⌘/Ctrl et Maj passent avant le mode : c'est ainsi qu'on entre en
+          /* **Quatre lectures d'un clic**, dans l'ordre où elles priment.
+             ⌘/Ctrl et Maj passent avant tout : c'est ainsi qu'on entre en
              sélection à la souris, sans avoir rien à armer d'abord. */
           if (e.metaKey || e.ctrlKey) return basculer(thread.id);
           if (e.shiftKey) return etendre(thread.id);
           if (selectionOn) return basculer(thread.id);
+          /* **L'avatar ouvre la sélection.** On lit où le clic est tombé plutôt
+             que d'y poser un second bouton : la rangée en est déjà un, et un
+             frère posé par-dessus mangerait le `pointerdown` du balayage. */
+          if ((e.target as HTMLElement).closest("[data-coche]")) {
+            return ouvrirSelection(thread.id);
+          }
           /* Le clic fantôme qu'iOS synthétise après un toucher retombe sur la
              vue qui vient de s'ouvrir, au même endroit — c'est-à-dire souvent
              sur « Répondre », et le clavier montait tout seul. */
@@ -184,25 +186,7 @@ export function ThreadRow({
         }}
         /* Avant le clic, et avant l'ouverture de la vue : les millisecondes du
            geste, prises sur l'attente. */
-        onPointerDown={(e) => {
-          onIntent();
-          if (e.pointerType !== "touch" || selectionOn) return;
-          depart.current = { x: e.clientX, y: e.clientY };
-          long.current = window.setTimeout(() => {
-            long.current = null;
-            /* Le clic que le doigt posera en se relevant ouvrirait la
-               conversation par-dessus la sélection qu'on vient d'ouvrir. */
-            swallowNextClick();
-            ouvrirSelection(thread.id);
-          }, 450);
-        }}
-        onPointerMove={(e) => {
-          const d = depart.current;
-          if (!d) return;
-          if (Math.abs(e.clientX - d.x) > 8 || Math.abs(e.clientY - d.y) > 8) annulerLong();
-        }}
-        onPointerUp={annulerLong}
-        onPointerCancel={annulerLong}
+        onPointerDown={onIntent}
         /* Au survol aussi, mais **après un temps d'arrêt** : un pointeur qui
            traverse la liste passe sur vingt rangées en une seconde, et sans ce
            délai il ferait descendre vingt messages. */
@@ -214,6 +198,12 @@ export function ThreadRow({
              largeur minimale de la colonne à 390 px, et la liste débordait en
              dessous. L'étoile se pose par-dessus, la date lui fait de la place
              au survol. */
+          /* **Pas de sélection de texte sur téléphone.** iOS surligne la
+             moitié d'un message dès qu'un doigt s'attarde sur une rangée, et
+             il propose « Enregistrer l'image » sur l'avatar : deux menus
+             système sur une cible qui n'attend qu'un appui. Sur bureau on la
+             garde — copier un objet depuis la liste est légitime à la souris. */
+          "max-md:select-none max-md:[-webkit-touch-callout:none]",
           "relative flex w-full cursor-pointer touch-pan-y items-start gap-3 bg-card px-4 py-3.5 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring/50 md:rounded-[10px] md:bg-transparent md:py-2.5 md:pr-3.5 md:pl-3 md:transition-colors md:group-data-[densite=compact]/liste:py-1.5",
           /* Deux lignes : la rangée reprend aussi 8 px de hauteur. 60 px en
              tout, la pastille de 40 et ses marges — au-dessus du minimum
@@ -252,21 +242,37 @@ export function ThreadRow({
           className="pointer-events-none absolute inset-x-2 inset-y-1 rounded-2xl bg-foreground/[0.07] opacity-0 transition-opacity duration-200 ease-out group-data-[press=true]/swipe:opacity-100 group-data-[press=true]/swipe:duration-0 md:hidden"
         />
         <span className="relative flex w-full items-start gap-3 transition-transform duration-200 ease-out group-data-[press=true]/swipe:scale-[0.985] group-data-[press=true]/swipe:duration-100 md:transition-none md:group-data-[large=true]/liste:items-center md:group-data-[large=true]/liste:gap-2.5">
-          {selectionOn ? (
-            <Coche coche={coche} />
-          ) : (
-            /* **Au survol, l'avatar cède la place à la case.** C'est la seule
-               chose qui annonce la sélection à la souris : le bouton de la tête
-               de liste existe, mais il est loin de la rangée qu'on vise, et
-               « le raccourci marche mais faut le connaître ». Le visage
-               s'efface, la case prend sa place au pixel près (elle est la sœur
-               de la rangée, pas son enfant — un `<button>` dans un `<button>`
-               est invalide, c'est la mécanique de l'étoile juste à côté). */
-            <ContactAvatar
-              contact={last.from}
-              className="mt-0.5 size-10 transition-opacity md:size-9 md:group-hover:opacity-0 md:group-data-[large=true]/liste:mt-0 md:group-data-[large=true]/liste:size-6"
-            />
-          )}
+          {/* **La zone de l'avatar est la porte de la sélection.** Elle porte
+              `data-coche` : le clic est lu à l'endroit où il tombe, sans second
+              bouton (invalide dans un bouton) et sans frère posé par-dessus
+              (qui mangerait le `pointerdown` du balayage).
+
+              Au survol, sur bureau, le visage cède la place à la case — c'est
+              ce qui annonce le mode à la souris. Sur téléphone rien ne change à
+              l'œil : c'est le geste qui est connu (Gmail fait pareil), et un
+              rond gris permanent sur chaque rangée coûterait plus qu'il ne
+              rendrait. */}
+          <span
+            data-coche
+            className="relative mt-0.5 size-10 shrink-0 md:size-9 md:group-data-[large=true]/liste:mt-0 md:group-data-[large=true]/liste:size-6"
+          >
+            {selectionOn ? (
+              <Coche coche={coche} />
+            ) : (
+              <>
+                <ContactAvatar
+                  contact={last.from}
+                  className="size-full transition-opacity md:group-hover:opacity-0"
+                />
+                <span
+                  aria-hidden
+                  className="absolute inset-0 hidden place-items-center rounded-full text-muted-foreground opacity-0 ring-1 ring-inset ring-black/15 transition-opacity md:grid md:group-hover:opacity-100 dark:ring-white/20"
+                >
+                  <Check className="size-[18px] md:group-data-[large=true]/liste:size-3.5" strokeWidth={2.5} />
+                </span>
+              </>
+            )}
+          </span>
           <span className="min-w-0 flex-1 md:group-data-[large=true]/liste:flex md:group-data-[large=true]/liste:items-center md:group-data-[large=true]/liste:gap-2.5">
             {/* L'expéditeur prend une colonne fixe en pleine largeur : c'est ce
                 qui aligne les objets les uns sous les autres, et sans cet
@@ -381,31 +387,6 @@ export function ThreadRow({
           </span>
         </span>
       </button>
-      {/* La case de sélection, sœur de la rangée comme l'étoile : posée sur
-          l'avatar, révélée au survol, **bureau seulement** — sur téléphone
-          c'est l'appui long qui ouvre le mode, et un rond permanent sur chaque
-          rangée y coûterait plus qu'il ne rendrait. */}
-      {!selectionOn && (
-        <button
-          type="button"
-          onClick={() => ouvrirSelection(thread.id)}
-          aria-label="Sélectionner cette conversation"
-          className={cn(
-            "absolute left-3 hidden place-items-center rounded-full opacity-0 transition-opacity md:grid",
-            /* La verticale de l'avatar, densité par densité : 10 + 2 en
-               confort, 6 + 2 en compact, centré en pleine largeur. */
-            "top-3 size-9 md:group-data-[densite=compact]/liste:top-2",
-            "md:group-data-[large=true]/liste:top-1/2 md:group-data-[large=true]/liste:size-6 md:group-data-[large=true]/liste:-translate-y-1/2",
-            "text-muted-foreground ring-1 ring-inset ring-black/15 hover:text-foreground dark:ring-white/20",
-            "group-hover:opacity-100 focus-visible:opacity-100",
-            /* Comme l'étoile : elle ne voyage pas avec la rangée, donc elle
-               s'efface pendant le balayage. */
-            "md:group-data-[side=left]/swipe:opacity-0 md:group-data-[side=right]/swipe:opacity-0",
-          )}
-        >
-          <Check className="size-[18px] md:group-data-[large=true]/liste:size-3.5" strokeWidth={2.5} />
-        </button>
-      )}
       <button
         type="button"
         onClick={onStar}
@@ -463,7 +444,7 @@ function Coche({ coche }: { coche: boolean }) {
     <span
       aria-hidden
       className={cn(
-        "mt-0.5 grid size-10 shrink-0 place-items-center rounded-full transition-colors md:size-9 md:group-data-[large=true]/liste:mt-0 md:group-data-[large=true]/liste:size-6",
+        "grid size-full place-items-center rounded-full transition-colors",
         coche
           ? "bg-[color-mix(in_oklch,var(--space-accent)_22%,transparent)] text-[var(--space-ink)]"
           : "text-transparent ring-1 ring-inset ring-black/15 dark:ring-white/20",

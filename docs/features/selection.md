@@ -35,29 +35,45 @@ frapperait des fils qu'on ne voit plus. Elle ne se persiste pas non plus — ell
 
 | | Entrer | Cocher | Sortir |
 |---|---|---|---|
-| Téléphone | **appui long** (450 ms, 8 px de tolérance) | appui sur la rangée | « Terminé », ou changer de dossier |
-| Bureau | **la case au survol de la rangée**, ⌘/Ctrl-clic, Maj-clic, ou le bouton de la tête | clic sur la rangée | ✕, `Échap` |
+| Téléphone | **toucher l'avatar** | appui sur la rangée | « Terminé », décocher tout, ou changer de dossier |
+| Bureau | **cliquer l'avatar** (la case y apparaît au survol), ⌘/Ctrl-clic, Maj-clic, ou le bouton de la tête | clic sur la rangée | ✕, `Échap`, décocher tout |
 | Clavier | `x` sur la conversation courante | `x`, ⌘A pour tout | `Échap` |
 
-**L'appui long est le seul geste encore libre** sur une rangée : l'horizontale appartient au
-balayage, la verticale au défilement. C'est aussi celui qu'iOS emploie pour la même chose. 8 px de
-tolérance parce qu'annuler au premier pixel rend le geste impossible à tenir sur un écran qu'on
-porte à la main ; et `swallowNextClick()` au moment où il prend, sinon le doigt qui se relève ouvre
-la conversation par-dessus la sélection qu'il vient d'ouvrir.
+**L'appui long a vécu une journée.** Il paraissait le seul geste encore libre sur une rangée —
+l'horizontale appartient au balayage, la verticale au défilement — mais sur iPhone il ne nous
+appartient pas : le système y met sa propre sélection de texte, et le maintenir surlignait la moitié
+du message en même temps qu'il cochait. « Pas d'appui long, juste en cliquant sur l'avatar, sinon ça
+présélectionne aussi du texte. »
+
+**C'est donc l'avatar**, sur les deux plateformes — la convention de Gmail sur téléphone, et
+l'endroit où la case apparaît déjà au survol sur bureau. Le mode s'ouvre en touchant un visage ; une
+fois dedans, toute la rangée bascule.
+
+La rangée porte au passage `select-none` et `-webkit-touch-callout: none` **sur téléphone
+seulement** : iOS y proposait « Enregistrer l'image » sur l'avatar et surlignait le texte au moindre
+doigt qui s'attarde — deux menus système sur une cible qui n'attend qu'un appui. Sur bureau la
+sélection de texte reste : copier un objet depuis la liste est légitime à la souris.
 
 **⌘A ne prend la main que dans le mode.** Hors sélection, c'est le « tout sélectionner » du
 navigateur, et le voler sur une page de courrier empêcherait de copier un message.
 
-**Au survol, l'avatar cède la place à la case** (8 sept., seconde passe). Le bouton de la tête ne
-suffisait pas : « pas très visible et pratique, le raccourci marche mais faut le connaître ». Il est
-loin de la rangée qu'on vise, et un mode qui ne s'annonce qu'à l'autre bout de l'écran ne s'annonce
-pas. La case est **la sœur de la rangée, pas son enfant** — un `<button>` dans un `<button>` est
-invalide —, exactement la mécanique de l'étoile posée à droite ; elle tombe **au pixel sur
-l'avatar** dans les quatre dispositions (mesuré : pleine largeur, colonne 360, confort et compact).
-Bureau seulement : sur téléphone l'appui long ouvre le mode, et un rond permanent sur chaque rangée
-y coûterait plus qu'il ne rendrait.
+**Au survol, sur bureau, l'avatar cède la place à la case** (8 sept., seconde passe). Le bouton de
+la tête ne suffisait pas : « pas très visible et pratique, le raccourci marche mais faut le
+connaître ». Il est loin de la rangée qu'on vise, et un mode qui ne s'annonce qu'à l'autre bout de
+l'écran ne s'annonce pas.
 
-Le bouton de la tête de liste reste : son infobulle donne les deux autres chemins. Il vit contre Synchroniser et le regroupement : les trois
+**Une zone, pas un second bouton.** La zone de l'avatar porte `data-coche`, et le clic est lu à
+l'endroit où il tombe (`e.target.closest`). Deux raisons, toutes deux découvertes à l'usage :
+
+1. Un `<button>` dans un `<button>` est du HTML invalide — la règle des cartes flottantes.
+2. Un bouton posé **à côté**, en frère de la rangée (la mécanique de l'étoile), mangeait le
+   `pointerdown` : un balayage parti de l'avatar n'atteignait plus le geste. Vérifié dans l'autre
+   sens après correction — un balayage tactile depuis l'avatar mène la rangée à 182 px et archive.
+
+Sur téléphone rien ne change à l'œil : c'est le geste qui est connu, et un rond gris permanent sur
+chaque rangée coûterait plus qu'il ne rendrait.
+
+Le bouton de la tête de liste reste : son infobulle donne les autres chemins. Il vit contre Synchroniser et le regroupement : les trois
 agissent sur la **liste entière**, pas sur une conversation.
 
 ## La rangée
@@ -126,8 +142,14 @@ Sondes Playwright, bureau 1280×800 et téléphone 393×852 (insets 59/34), 0 er
 - Supprimer trois : exactement ces trois quittent la liste, **un** toast
   (« 3 conversations mises à la corbeille · Annuler »), le mode se referme ; « Annuler » les
   ramène toutes les trois.
-- Appui long de 600 ms sur téléphone : le mode s'ouvre, le titre passe à « 1 sélectionnée », la
-  barre de sélection remplace la navigation, et **la conversation ne s'ouvre pas**.
+- Téléphone : appui sur l'avatar → le mode s'ouvre, « 1 sélectionnée », la barre de sélection
+  remplace la navigation et **la conversation ne s'ouvre pas** ; appui sur une seconde rangée → deux
+  cochées ; tout décocher → la barre s'en va ; hors sélection, appui sur le texte → la conversation
+  s'ouvre. `user-select` vaut `none`.
+- Un balayage tactile **parti de l'avatar** mène toujours la rangée (182 px) et archive : c'est ce
+  que le bouton frère avait cassé.
+- La zone `data-coche` tombe **exactement** sur l'avatar (297, 82, 24, 24) et le clic dessus ouvre
+  la sélection.
 
 ## Reste ouvert
 

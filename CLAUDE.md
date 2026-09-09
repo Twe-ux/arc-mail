@@ -189,11 +189,16 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - **L'avatar devient la case** et toute la rangée bascule : pas de `<button>` dans un `<button>`, et
   la case garde **exactement le gabarit de l'avatar** — plus petite, le texte sautait d'un cran.
   Le balayage se tait pendant la sélection.
-- Entrer : **appui long** (450 ms, 8 px de tolérance, `swallowNextClick`) sur téléphone ; sur bureau
-  **la case qui prend la place de l'avatar au survol** (sœur de la rangée comme l'étoile, alignée au
-  pixel dans les quatre dispositions), ⌘-clic, Maj-clic (plage dans l'ordre **affiché**) ou le bouton
-  de la tête ; `x` au clavier. **⌘A ne prend la main que dans le mode** — sinon c'est le « tout
-  sélectionner » du navigateur.
+- Entrer : **toucher l'avatar**, sur les deux plateformes (au survol il y devient une case sur
+  bureau) ; plus ⌘-clic, Maj-clic (plage dans l'ordre **affiché**), le bouton de la tête, `x` au
+  clavier. **L'appui long a été retiré** : sur iPhone il appartient au système, qui surlignait le
+  texte en même temps qu'il cochait. **⌘A ne prend la main que dans le mode** — sinon c'est le
+  « tout sélectionner » du navigateur.
+- La zone de l'avatar porte **`data-coche`** et le clic est lu où il tombe : ni `<button>` dans un
+  `<button>` (invalide), ni bouton frère posé par-dessus — celui-là mangeait le `pointerdown`, et un
+  balayage parti de l'avatar n'atteignait plus le geste.
+- La rangée est en `select-none` **sur téléphone seulement** : iOS y surligne le texte et propose
+  « Enregistrer l'image » sur l'avatar.
 - Les deux barres **prennent la place**, elles ne s'ajoutent pas : la pill remplace la navigation
   (troisième emploi d'`action-pill`), et la barre du bureau remplace la 2ᵉ rangée de la tête —
   mesuré **0 px** d'écart, sinon la liste sautait sous le pointeur au premier ⌘-clic.

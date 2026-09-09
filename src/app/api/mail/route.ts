@@ -61,10 +61,19 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Requête illisible." }, { status: 400 });
   }
 
+  /* **Chaque appel se nomme et se chronomètre.** Le panneau de Vercel donne la
+     durée d'une invocation sans dire de quelle opération il s'agit : une
+     lecture de liste et un préchargement de dix corps y ont la même tête, et
+     l'un bloque l'écran quand l'autre travaille derrière. Une ligne par appel,
+     l'opération et le total ; aucun contenu. */
+  const debutAppel = Date.now();
+  const compte = () => `${Date.now() - debutAppel} ms`;
+
   try {
     /* `accountCredentials` relit le compte avec les droits de la personne
        connectée : un identifiant qui n'est pas le sien ne rend rien. */
     const { account, password } = await accountCredentials(body.accountId);
+    const apresCompte = Date.now() - debutAppel;
 
     const result = await withImap(account, password, async (client) => {
       /* **Paresseux, et pour une raison mesurable** : `folderPaths` est un
@@ -253,12 +262,14 @@ export async function POST(request: NextRequest) {
       return { thread: await readThread(client, body.id, folder, body.messageIds) };
     });
 
+    console.log(`appel : ${body.op} · compte ${apresCompte} ms · total ${compte()}`);
     return NextResponse.json(result);
   } catch (error) {
     /* Le message d'IMAP tel quel : « Invalid credentials », « Mailbox does
        not exist » disent exactement quoi corriger, et le bandeau de la liste
        les montre. Rien de secret n'y transite. */
     const message = error instanceof Error ? error.message : String(error);
+    console.log(`appel : ${body.op} · échec après ${compte()} — ${message}`);
     return NextResponse.json({ error: message }, { status: 502 });
   }
 }

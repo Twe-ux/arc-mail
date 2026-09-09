@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { viderCorps } from "@/lib/mail/corps";
 import { useMail } from "@/lib/store";
 import { supabaseBrowser } from "@/lib/supabase/client";
 
@@ -14,9 +15,10 @@ import { supabaseBrowser } from "@/lib/supabase/client";
  * s'afficherait par-dessus une boîte encore montée.
  *
  * **Et la liste s'en va avec.** Les enveloppes sont gardées d'une session à
- * l'autre pour que la boîte s'ouvre tout de suite : ce sont des objets et des
- * expéditeurs en clair sur l'appareil. Le store enregistre à chaque écriture,
- * donc les vider ici suffit à les retirer du stockage.
+ * l'autre pour que la boîte s'ouvre tout de suite, les corps des messages lus
+ * le sont aussi (IndexedDB) : ce sont des messages en clair sur l'appareil. Le
+ * store enregistre à chaque écriture, donc les vider ici suffit pour les
+ * enveloppes ; le cache des corps, lui, a son propre effacement.
  *
  * Le geste est le même des deux côtés — menu du compte sur bureau, rangée de la
  * feuille sur téléphone —, donc il n'est écrit qu'ici.
@@ -27,6 +29,9 @@ export function useSignOut(): { partir: () => Promise<void>; enCours: boolean } 
   const partir = async () => {
     setEnCours(true);
     useMail.setState({ threads: [], recent: {}, selectedThreadId: null });
+    /* Les corps sont gardés à part, dans IndexedDB : vider le store ne les
+       emporte pas. */
+    await viderCorps();
     await supabaseBrowser().auth.signOut();
     router.push("/connexion");
     router.refresh();

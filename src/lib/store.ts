@@ -7,6 +7,7 @@ import { fait } from "./folders";
 import { libellePause, type Pause } from "./pause";
 import { firstLine, formatFullDate } from "./format";
 import { providerFor } from "./mail";
+import { garderCorps, lireCorps } from "./mail/corps";
 import type { FolderUnread } from "./mail/provider";
 import { FOLDERS, SPACES } from "./mock-data";
 import { resolveSpace } from "./theme";
@@ -698,6 +699,67 @@ export const LOT = 10;
 const TETE = 3;
 
 /**
+ * **Ce que le cache sait déjà, posé sans réseau.**
+ *
+ * Les corps vivent dans IndexedDB d'une session à l'autre (`mail/corps.ts`) :
+ * un message est immuable, le relire au serveur à chaque ouverture de l'app
+ * était la moitié de « il recharge tout ». On remplit donc d'abord avec ce
+ * qu'on a, et le réseau ne sert plus qu'à ce qui manque.
+ *
+ * Muet et sans conséquence : un cache absent ou refusé rend une table vide et
+ * tout continue comme avant.
+ */
+async function depuisCache(ids: string[]): Promise<void> {
+  const vises = new Set(ids);
+  const manquants = useMail
+    .getState()
+    .threads.filter((t) => vises.has(t.id))
+    .flatMap((t) => t.messages.filter((m) => !m.body));
+  if (manquants.length === 0) return;
+  const connus = await lireCorps(manquants);
+  if (connus.size === 0) return;
+  useMail.setState((s) => ({
+    threads: s.threads.map((t) =>
+      !vises.has(t.id) || !t.messages.some((m) => connus.has(m.id))
+        ? t
+        : { ...t, messages: t.messages.map((m) => ({ ...m, ...(connus.get(m.id) ?? {}) })) },
+    ),
+  }));
+}
+
+/**
+ * Garder les corps **tels qu'ils sont dans la liste**, pas tels que le
+ * fournisseur les a rendus.
+ *
+ * `hydrate` verse les corps dans les enveloppes déjà là et garde leur date et
+ * leur expéditeur : ce sont ceux-là que la relecture comparera. Enregistrer la
+ * version du fournisseur ferait échouer la vérification à chaque fois — un
+ * cache qui n'aurait jamais rien à rendre.
+ */
+function garder(ids: string[]): void {
+  const vises = new Set(ids);
+  for (const t of useMail.getState().threads) {
+    if (vises.has(t.id)) garderCorps(t.messages.filter((m) => m.body));
+  }
+}
+
+/**
+ * Ce que le cache connaît des fils déjà à l'écran, au réveil de l'app.
+ *
+ * Appelé après la réhydratation : les enveloppes sont revenues, les corps
+ * peuvent les rejoindre avant même que la lecture IMAP ne parte. C'est ce qui
+ * fait qu'un message lu hier s'ouvre sans attendre, et hors ligne.
+ */
+export async function reprendreCorps(): Promise<void> {
+  const état = useMail.getState();
+  const ids = état.threads
+    .filter((t) => t.spaceId === état.spaceId && threadMatchesFolder(t, état.folderId, état.pauses))
+    .slice(0, LOT)
+    .map((t) => t.id);
+  await depuisCache(ids);
+}
+
+/**
  * Va chercher le corps d'un fil, une seule fois.
  *
  * `bruyant` distingue les deux appelants : l'ouverture d'un message doit dire
@@ -715,12 +777,16 @@ async function remplir(id: string, bruyant: boolean): Promise<void> {
 
   enVol.add(id);
   try {
+    await depuisCache([id]);
+    const connu = useMail.getState().threads.find((t) => t.id === id);
+    if (connu?.messages.every((m) => m.body)) return;
     const account = accountOf(cible.spaceId);
     /* Le fournisseur ne connaît que l'identifiant du fil, qui est celui de son
        dernier message : on lui dit lesquels il porte. */
     const full = await providerFor(account).getThread(account, id, cible.messages.map((m) => m.id));
     if (full) {
       useMail.setState((s) => ({ threads: patchThread(s.threads, id, (t) => hydrate(t, full)) }));
+      garder([id]);
     }
   } catch (err: unknown) {
     if (bruyant) toast.error("Impossible d'ouvrir ce message", { description: describe(err) });
@@ -740,6 +806,8 @@ async function remplir(id: string, bruyant: boolean): Promise<void> {
  * Muet, comme tout préchargement : personne ne l'a demandé.
  */
 async function precharger(ids: string[]): Promise<void> {
+  /* Le cache d'abord : ce qu'il rend ne sera pas demandé au serveur. */
+  await depuisCache(ids);
   const état = useMail.getState();
   const cibles = ids
     .map((id) => état.threads.find((t) => t.id === id))
@@ -766,6 +834,7 @@ async function precharger(ids: string[]): Promise<void> {
         s.threads,
       ),
     }));
+    garder(pleins.map((t) => t.id));
   } catch {
     /* La vraie ouverture réessaiera, et parlera, elle. */
   } finally {

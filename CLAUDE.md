@@ -634,7 +634,13 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   identifiant de compte : la vérification en partage un) ; `NOOP` avant reprise, jamais après une
   erreur.
 - Les **enveloppes** des 150 derniers fils sont persistées (`enMemoire`) pour que la boîte s'ouvre
-  sans attendre ; corps et pièces jointes non, et la déconnexion efface le tout.
+  sans attendre ; les **corps** vivent à côté, dans IndexedDB (`mail/corps.ts`), jamais dans le
+  `partialize` — `localStorage` est synchrone et tient dans 5 Mo. Un corps est **immuable** : rien à
+  invalider, seulement à évincer (2 Mo par message, 20 Mo en tout, le plus anciennement écrit part).
+  Mais **l'enveloppe fait foi** — la date et l'expéditeur sont gardés avec le corps et vérifiés à la
+  relecture, sinon un `UIDVALIDITY` qui renumérote la boîte servirait un autre message sous le même
+  identifiant. Le cache n'est **jamais une dépendance** (privé, refusé, vide : le réseau reprend), et
+  la déconnexion efface le tout.
 - Une relecture de dossier **fond** les corps déjà connus (`replaceFolder`) au lieu de les jeter.
 
 **Indésirable** → [docs/features/indesirable.md](docs/features/indesirable.md)

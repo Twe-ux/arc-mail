@@ -477,6 +477,59 @@ avant la lecture, pas grâce à elle.
 Ce sont des objets et des expéditeurs en clair sur l'appareil : **la déconnexion les efface**
 (`SignOut` vide `threads` et `recent`, et le store enregistre à chaque écriture).
 
+### Et les corps aussi, mais ailleurs (9 sept. 2026)
+
+Signalé : « on peut pas mettre les mails en cache pour qu'à chaque ouverture il y ait pas besoin de
+tout charger ». La liste était gardée, pas son contenu : un message lu hier repartait au serveur à
+chaque session, et le préchargement de dix corps recommençait de zéro.
+
+Les corps vivent maintenant dans **IndexedDB** (`src/lib/mail/corps.ts`), à côté du store et jamais
+dedans. Pas dans le `partialize` : `localStorage` tient dans cinq mégaoctets, s'écrit de façon
+**synchrone** — le store enregistre à chaque frappe, il bloquerait le fil principal — et une seule
+infolettre avec ses images en `data:` le remplirait.
+
+**Un corps est immuable.** C'est ce qui rend ce cache simple : rien à invalider, seulement à
+évincer. Ce qui bouge — lu/non lu, favori, dossier, étiquettes — est dans l'enveloppe, relue à
+chaque lecture de liste.
+
+**L'enveloppe fait foi.** L'identifiant d'un message est `chemin uid`, et un `UIDVALIDITY` qui
+change renumérote la boîte : le même identifiant désignerait un autre message. Chaque entrée garde
+donc la **date et l'expéditeur** de son enveloppe, et celle qui ne leur correspond plus est jetée au
+lieu d'être servie — un mauvais corps sous un bon objet serait pire que pas de cache du tout.
+Vérifié à la mesure, et pas seulement par lecture : les dates du mock sont recalculées à chaque
+chargement, et le garde-fou a refusé toutes les entrées tant qu'elles bougeaient.
+
+Ce qui est écrit l'est **tel qu'il est dans la liste** (`garder`), pas tel que le fournisseur l'a
+rendu : `hydrate` verse les corps dans les enveloppes déjà là et garde *leur* date. Enregistrer la
+version du fournisseur ferait échouer la vérification à chaque fois.
+
+Trois branchements, et c'est tout : `remplir` et `precharger` consultent le cache **avant** le
+réseau, la réhydratation remplit les dix premiers fils du dossier ouvert (`reprendreCorps`, appelé
+après `persist.rehydrate()`), et le tout s'écrit quand un corps arrive.
+
+Bornes : 2 Mo par message (au-delà c'est une infolettre à images `data:`, elle se relit en une
+requête), 20 Mo et 600 entrées en tout. On évince le plus anciennement **écrit**, pas le plus
+anciennement lu : tenir un vrai LRU demanderait de réécrire un enregistrement d'un mégaoctet pour y
+changer une date. Les poids vivent dans un second magasin, minuscule, pour évincer sans relire les
+corps.
+
+Le cache **n'est jamais une dépendance** : navigation privée, IndexedDB refusé, magasin vide — tout
+rend une table vide et le réseau reprend son travail d'avant.
+
+Mesuré (fournisseur muet, cache plein) : le corps s'affiche quand même. Mesuré (cache vide, même
+fournisseur muet) : il ne s'affiche pas. C'est la seule preuve qui vaut — un corps qui apparaît
+alors que rien ne peut le fournir ne peut venir que du cache.
+
+Ce sont des **messages entiers** en clair sur l'appareil, et non plus seulement des objets :
+`useSignOut` appelle `viderCorps()` en même temps qu'il vide la liste.
+
+**Ce qu'il ne fait pas** : la liste, elle, est toujours relue en entier à l'ouverture (les soixante
+dernières enveloppes). C'est ce qui apprend ce qui est arrivé et ce qui a changé ailleurs, mais elle
+pourrait ne demander que la différence — `CONDSTORE`/`QRESYNC` (RFC 7162) rendent « ce qui a changé
+depuis », et à défaut un `FETCH FLAGS` sur la plage connue plus les UID au-dessus du dernier connu
+coûterait un aller-retour au lieu de soixante enveloppes. C'est le prochain cran, et il demande
+de garder un repère par dossier — le même que la relève du cron.
+
 Et quand il n'y a vraiment rien à montrer — la toute première fois —, la liste affiche huit rangées
 grises à la forme des vraies plutôt qu'une carte vide, qui dirait « il n'y a rien » au lieu de « je
 travaille ». Sans animation : un scintillement de deux secondes fatigue plus qu'il ne rassure.

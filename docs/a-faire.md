@@ -246,6 +246,17 @@ qui suivent.
 
 Ça marche ; ça mérite mieux.
 
+### Le courrier gardé
+
+- [x] **Les corps sont gardés d'une session à l'autre** (9 sept.) — IndexedDB à côté du store, un
+      corps est immuable, l'enveloppe fait foi → [fiche](features/imap.md). Signalé : « on peut pas
+      mettre les mails en cache pour qu'à chaque ouverture il y ait pas besoin de tout charger ».
+- [ ] **Ne relire que la différence** — la liste redemande les soixante dernières enveloppes à
+      chaque ouverture. `CONDSTORE`/`QRESYNC` (RFC 7162) rendent « ce qui a changé depuis » ; à
+      défaut, un `FETCH FLAGS` sur la plage connue plus les UID au-dessus du dernier connu. Demande
+      un repère par dossier — **le même** que la relève du cron
+      → [notifications push](roadmap/notifications-push.md).
+
 ### Recherche
 
 - [x] **Modifier la recherche d'une vue** (6 sept.) — double-clic dans la barre, crayon sur

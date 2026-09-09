@@ -6,7 +6,7 @@ import { useMediaQuery } from "@/hooks/use-media-query";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
-import { useMail, useSpace } from "@/lib/store";
+import { reprendreCorps, useMail, useSpace } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { AttachmentPreview } from "./attachment";
 import { BackSwipe } from "./back-swipe";
@@ -52,9 +52,13 @@ export function AppShell() {
 
   useKeyboardShortcuts();
 
-  // Persisted preferences come back after mount, so server and client agree on the first paint.
+  /* Persisted preferences come back after mount, so server and client agree on
+     the first paint. **Et les corps déjà connus avec eux** : les enveloppes
+     reviennent du stockage, le cache d'IndexedDB leur rend leur contenu, et le
+     premier message qu'on touche s'ouvre sans attendre la lecture IMAP — même
+     hors ligne. */
   useEffect(() => {
-    useMail.persist.rehydrate();
+    void Promise.resolve(useMail.persist.rehydrate()).then(() => reprendreCorps());
   }, []);
 
   /* Le courrier vient du fournisseur de l'espace, lu à l'arrivée et à chaque

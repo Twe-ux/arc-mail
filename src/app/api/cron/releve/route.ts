@@ -57,6 +57,14 @@ export async function GET(request: NextRequest) {
   }
 }
 
+/**
+ * **Le tour dit ce qu'il a fait.** Sans ça, « aucun appareil abonné », « rien
+ * de neuf » et « la boîte a refusé la connexion » rendent tous un 200 muet, et
+ * on ne peut que deviner. Aucun contenu dans ces lignes : des nombres, des
+ * chemins de dossiers et des raisons — jamais un expéditeur ni un objet.
+ */
+const dire = (message: string) => console.log(`relève : ${message}`);
+
 async function tour() {
   const db = supabaseAdmin();
   let comptes = 0;
@@ -64,7 +72,14 @@ async function tour() {
   let notifications = 0;
 
   const personnes = await personnesAbonnees();
+  if (personnes.length === 0) {
+    dire("aucun appareil abonné — rien à relever");
+    return NextResponse.json({ comptes: 0, dossiers: 0, notifications: 0 });
+  }
   const aRelever = await comptesARelever(personnes);
+  dire(`${personnes.length} personne(s) abonnée(s), ${aRelever.length} compte(s) à ouvrir`);
+  if (aRelever.length === 0)
+    dire("aucun compte lisible : soit rien de branché, soit un secret qui ne se déchiffre pas");
 
   /* Les appareils, une fois pour toutes : une personne en a souvent deux, et
      les relire par compte ferait une requête par boîte. */
@@ -112,20 +127,39 @@ async function tour() {
             { onConflict: "account_id,path" },
           );
 
-          if (vu.messages.length === 0) continue;
-          for (const abonnement of parPersonne.get(cible.userId) ?? []) {
+          if (vu.messages.length === 0) {
+            /* Le cas le plus courant, et celui qu'on confond avec une panne :
+               le premier passage pose le repère sans rien annoncer. */
+            dire(
+              repere
+                ? `${cible.account.label} · ${chemin} : rien de neuf (uidnext ${vu.uidnext})`
+                : `${cible.account.label} · ${chemin} : repère posé à ${vu.uidnext}, premier passage`,
+            );
+            continue;
+          }
+          const appareils = parPersonne.get(cible.userId) ?? [];
+          dire(
+            `${cible.account.label} · ${chemin} : ${vu.messages.length} message(s) neufs, ${appareils.length} appareil(s)`,
+          );
+          for (const abonnement of appareils) {
             const ok = await pousser(abonnement, charge(vu.messages, cible.account.label));
             if (ok) notifications += 1;
+            else dire("un envoi a échoué — souscription périmée, ou relais qui refuse");
           }
         }
       });
-    } catch {
-      /* Une boîte injoignable ne doit pas emporter le tour des autres. Rien à
-         dire ici : personne ne lit ce journal la nuit, et le repère n'a pas
-         bougé — le tour suivant reprendra où celui-ci s'est arrêté. */
+    } catch (error) {
+      /* Une boîte injoignable ne doit pas emporter le tour des autres — mais
+         elle doit se **voir** : avalée en silence, elle ressemblait trait pour
+         trait à « rien de neuf ». Le repère n'a pas bougé, le tour suivant
+         reprendra où celui-ci s'est arrêté. */
+      dire(
+        `${cible.account.label} : injoignable — ${error instanceof Error ? error.message : "erreur inconnue"}`,
+      );
     }
   }
 
+  dire(`fin — ${comptes} compte(s), ${dossiers} dossier(s), ${notifications} notification(s)`);
   return NextResponse.json({ comptes, dossiers, notifications });
 }
 

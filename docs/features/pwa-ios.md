@@ -192,18 +192,31 @@ Ce qui a été écarté avant d'y arriver, et qu'il est inutile de re-chercher :
   **retiré puis remis** : il amincit bien les glyphes sur les appareils Apple, mais il est là
   depuis le premier commit — il ne pouvait pas expliquer un « avant / après ».
 
-**Les trois leviers, si un jour ça gêne vraiment :**
+**Un aplat sous la barre d'état ne servait à rien** — piste proposée, mesurée, abandonnée le jour
+même. L'effet descend **plus bas que la bande sûre** : mesuré à 393×852 avec les insets 59/34,
+l'indicateur de pages est à **59–71 pt** et le titre à **75–101**, tous deux en dessous. Les 59 px
+du haut, eux, sont déjà vides — et flouter un dégradé lisse rend le même dégradé. Repeindre cette
+bande en aplat n'aurait donc rien touché de ce qui se voit.
 
-1. **Ne rien faire.** C'est le rendu de toutes les apps du système sur iOS 27 ; s'en écarter nous
-   ferait dépareiller au lieu de nous distinguer.
-2. **Repasser en `statusBarStyle: "default"`** : iOS pose alors sa propre bande opaque et la page
-   commence dessous. Plus de flou — mais plus de voile d'un bord à l'autre non plus,
-   `env(safe-area-inset-top)` tombe à zéro, et **il faut réinstaller la PWA** pour que le
-   changement prenne (même règle que `display_override`).
-3. **Peindre un aplat sous la barre d'état.** Un flou n'a d'effet que sur ce qu'il a à flouter :
-   une bande unie dans les 59 px du haut le rendrait invisible sans rien changer ailleurs. C'est
-   le seul levier qui ne coûte ni la mise en page ni une réinstallation — mais il coûte le
-   dégradé qui monte jusqu'à l'encoche.
+**Ce qu'on a fait : `statusBarStyle: "default"`** (10 sept. 2026). iOS reprend la bande du haut, la
+vue web commence en dessous, et il n'y a plus rien à nous à flouter là.
+
+- **La hauteur à l'écran ne bouge pas.** `env(safe-area-inset-top)` tombe à zéro, donc tout ce qui
+  lit `--safe-top` remonte de 59 pt **dans la vue web** — mais la vue web, elle, commence 59 pt
+  plus bas. Mesuré avant / après : titre 75 → 16, pilules 149 → 90, carte 199 → 140, feuille du
+  composeur 59 → 0, barre du bas inchangée. Exactement 59 partout, zéro erreur de console.
+- Les **sept endroits** qui lisent `--safe-top` (toast, porte, `/comptes`, feuille du composeur,
+  copie du voile du geste de retour, carte de pièce jointe, coque) le supportent : ils ne font que
+  perdre une réserve dont iOS s'occupe maintenant.
+- **Le prix** : la barre d'état ne suit **pas** `theme-color`. `default` la rend blanche à glyphes
+  noirs dans les deux thèmes ; `black` la rendrait noire dans les deux. Il n'y a pas de troisième
+  valeur — c'est un choix de goût, à revoir si le thème sombre s'en trouve mal.
+- **Il faut réinstaller la PWA** pour que le changement prenne, comme `display_override`.
+
+Reste le levier zéro, toujours valable : **ne rien faire**. C'est le rendu de toutes les apps du
+système sur iOS 27, et s'en écarter nous fait dépareiller au lieu de nous distinguer. On a tranché
+dans l'autre sens parce que le flou tombait sur le titre de la boîte, qui est la première chose
+qu'on lit.
 
 Sources : [WebKit in Safari 27 beta](https://webkit.org/blog/17967/news-from-wwdc26-webkit-in-safari-27-beta/) ·
 [Apply blur to iOS status bar in PWA](https://muffinman.io/blog/pwa-ios-status-bar-blur/) (la

@@ -22,11 +22,33 @@ export const metadata: Metadata = {
   title: APP_NAME,
   applicationName: APP_NAME,
   description: "Une boîte mail avec l'interface du navigateur Arc.",
-  // iOS reads these to launch the site as a full-screen app from the home screen.
+  /**
+   * iOS lit ceci pour lancer le site en app depuis l'écran d'accueil.
+   *
+   * **`default`, plus `black-translucent` (10 sept. 2026).** En translucide, la
+   * page passait **sous** la barre d'état : elle réservait les 59 pt du haut en
+   * voile vide, et depuis iOS 27 le système y pose son dégradé de flou — le
+   * « scroll edge effect » de Liquid Glass — sur ce que nous peignons là, pour
+   * garder ses glyphes lisibles. Il descend plus bas que la bande sûre : mesuré,
+   * l'indicateur de pages est à 59–71 pt et le titre à 75–101, tous deux dedans.
+   * Peindre un aplat dans les 59 px n'y changeait donc rien — ils sont déjà
+   * vides, et flouter un dégradé lisse rend le même dégradé.
+   *
+   * En `default`, iOS **reprend la bande du haut** : la vue web commence en
+   * dessous, il n'y a plus rien à nous à flouter là, et `env(safe-area-inset-top)`
+   * tombe à zéro — les sept endroits qui lisent `--safe-top` le supportent, ils
+   * ne font que perdre une réserve dont iOS s'occupe maintenant. **La hauteur à
+   * l'écran ne bouge pas** : notre tête commençait à 59 pt du bord, elle y reste.
+   *
+   * Le prix : la barre ne suit **pas** `theme-color` — elle est blanche à glyphes
+   * noirs, dans les deux thèmes. `black` la ferait noire dans les deux ; il n'y a
+   * pas de troisième choix. Et **changer ceci demande de réinstaller la PWA**,
+   * comme `display_override`.
+   */
   appleWebApp: {
     capable: true,
     title: APP_NAME,
-    statusBarStyle: "black-translucent",
+    statusBarStyle: "default",
   },
   formatDetection: { telephone: false },
 };

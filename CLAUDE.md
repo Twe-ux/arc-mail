@@ -246,6 +246,11 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   donc un prop `tooltip` et le pose lui-même.
 - En dev, le `nextjs-portal` couvre le **bas du rail** : le masquer avant tout test local.
 - Le regroupement par correspondant enclenché **se remplit** (accent 22 %, encre `--space-ink`).
+- Le **glyphe actif de la barre porte le poids, pas la couleur** (`TRAIT` : 1,75 au repos, 2,4 en
+  actif, une seule définition pour la barre et le rail) : la barre n'a qu'une encre, mesurée sur son
+  fond, et une seconde demanderait quatre mesures pour ce que la graisse donne gratuitement.
+- **Une vue ou une étiquette éteint la rangée du dossier** : elles en posent un sans être ce qu'on
+  regarde, et deux rangées allumées demandent de deviner laquelle commande la liste.
 - Ouvrir le troisième volet **réduit une barre attachée en rail** ; il fait 460 px à chaque
   ouverture, sa largeur a sa propre clé, et il porte un message **ou** un fichier.
 - **Écrire se pose sur la conversation** : un seul contenant sur bureau, un volet de 620 px ancré à

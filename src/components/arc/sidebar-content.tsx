@@ -49,6 +49,26 @@ export const TN = {
 } as const;
 
 /**
+ * **Le trait des glyphes de la barre.**
+ *
+ * L'actif gagne du poids comme son libellé gagne sa graisse : le même signal,
+ * dit deux fois sur la même rangée. À 2 partout — la valeur par défaut de
+ * lucide — la ligne allumée ne se distinguait que par son fond, et sur le
+ * voile clair ce fond vaut 13 % d'encre : l'icône y disait exactement la même
+ * chose que ses voisines.
+ *
+ * **Le poids plutôt que la couleur.** La barre n'a qu'une encre, mesurée sur
+ * son fond ; une seconde y demanderait quatre mesures (deux thèmes × deux
+ * fonds de bureau) pour un signal que la graisse donne gratuitement — et
+ * `--space-ink` est calculé pour les surfaces blanches de l'app, pas pour un
+ * dégradé.
+ *
+ * 1,75 au repos est le trait des rangées de feuilles : une seule grammaire de
+ * glyphe dans toute l'app.
+ */
+export const TRAIT = { actif: 2.4, repos: 1.75 } as const;
+
+/**
  * Le contenu de la barre attachée, du haut vers le bas.
  *
  * **Le bloc nom + adresse + palette a disparu** — deux doublons : le nom de
@@ -66,11 +86,13 @@ export function SidebarContent() {
   const folderId = useMail((s) => s.folderId);
   const setFolder = useMail((s) => s.setFolder);
   const inboxUnread = useMail((s) => selectUnreadCount(s, s.spaceId, "inbox"));
-  /* Une vue ouverte pose un dossier — celui qu'elle interroge —, donc sans ce
-     témoin deux lignes seraient allumées en même temps : le dossier et la vue.
-     C'est la vue qu'on regarde ; le dossier n'est que l'endroit où elle
-     cherche. */
-  const surUneVue = useMail((s) => s.vueId !== null);
+  /* Une vue **ou une étiquette** pose un dossier — celui qu'elle interroge —,
+     donc sans ce témoin deux lignes seraient allumées en même temps : le
+     dossier et elle. C'est elle qu'on regarde ; le dossier n'est que l'endroit
+     où elle cherche. Signalé le 10 sept. pour les étiquettes — « si je clique
+     sur une étiquette, réception ne doit plus être sélectionné » : le témoin
+     existait depuis les vues, il ne connaissait qu'elles. */
+  const detourne = useMail((s) => s.vueId !== null || s.etiquette !== null);
 
   return (
     <>
@@ -81,7 +103,7 @@ export function SidebarContent() {
           /* Le nom long, cherché dans la table **complète** : les épinglés sont
              quatre boîtes fixes, dont aucune n'est conditionnelle. */
           const name = FOLDERS.find((f) => f.id === id)?.name ?? id;
-          const active = id === folderId && !surUneVue;
+          const active = id === folderId && !detourne;
           const dot = id === "inbox" && inboxUnread > 0;
           return (
             <Tooltip key={id}>
@@ -96,7 +118,7 @@ export function SidebarContent() {
                     active ? TN.tileActive : TN.tile,
                   )}
                 >
-                  <Icon className="size-5" />
+                  <Icon className="size-5" strokeWidth={active ? TRAIT.actif : TRAIT.repos} />
                   {dot && <span className="absolute top-1.5 right-1.5 size-1.5 rounded-full bg-current" />}
                 </button>
               </TooltipTrigger>
@@ -113,7 +135,7 @@ export function SidebarContent() {
             key={f.id}
             icon={FOLDER_ICON[f.id]}
             name={f.name}
-            active={f.id === folderId && !surUneVue}
+            active={f.id === folderId && !detourne}
             folderId={f.id}
             onClick={() => setFolder(f.id)}
           />
@@ -205,12 +227,13 @@ function Etiquettes() {
             /* Re-cliquer l'étiquette ouverte la retire : la porte d'entrée est
                la porte de sortie, comme les deux cases d'un segmenté. */
             onClick={() => setEtiquette(active ? null : nom)}
+            aria-current={active ? "page" : undefined}
             className={cn(
               "flex h-8 items-center gap-2.5 rounded-lg px-2.5 text-sm transition-colors",
               active ? TN.itemActive : TN.item,
             )}
           >
-            <Tag className="size-4 shrink-0" />
+            <Tag className="size-4 shrink-0" strokeWidth={active ? TRAIT.actif : TRAIT.repos} />
             <span className="min-w-0 flex-1 truncate text-left">{nom}</span>
           </button>
         );
@@ -271,7 +294,7 @@ function Vues() {
           onClick={() => setSaisie(true)}
           className={cn("flex h-8 items-center gap-2.5 rounded-lg px-2.5 text-sm transition-colors", TN.item)}
         >
-          <Plus className="size-4 shrink-0" />
+          <Plus className="size-4 shrink-0" strokeWidth={TRAIT.repos} />
           <span className="min-w-0 flex-1 truncate text-left">Garder une recherche…</span>
         </button>
       )}
@@ -390,7 +413,7 @@ function VueRow({
           active ? "text-[var(--side-ink)]" : cn(TN.hover, "text-[var(--side-ink-soft)]"),
         )}
       >
-        <VUE_ICON className="size-4 shrink-0" />
+        <VUE_ICON className="size-4 shrink-0" strokeWidth={active ? TRAIT.actif : TRAIT.repos} />
         <span className="min-w-0 flex-1 truncate text-left">{vue.q}</span>
       </button>
       {count > 0 && (
@@ -436,7 +459,7 @@ function FolderRow({
       aria-current={active ? "page" : undefined}
       className={cn("flex h-8 items-center gap-2.5 rounded-lg px-2.5 text-sm transition-colors", active ? TN.itemActive : TN.item)}
     >
-      <Icon className="size-4 shrink-0" />
+      <Icon className="size-4 shrink-0" strokeWidth={active ? TRAIT.actif : TRAIT.repos} />
       <span className="min-w-0 flex-1 truncate text-left">{name}</span>
       {count > 0 && (
         <span className={cn("rounded-full px-1.5 text-[11px] font-semibold tabular-nums", TN.count)}>{count}</span>

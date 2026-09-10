@@ -383,3 +383,23 @@ brouillon, écrite la veille, n'a plus lieu d'être : elle réglait un conflit q
 Le clic dans un message reste une sélection de texte. La cible pour répondre est le **↩ au survol**,
 à côté de l'en-tête. L'en-tête d'une grappe détache toujours le message dans le volet. Sur téléphone
 il n'y a pas de volet : le ↩ y vise la barre du bas.
+
+## Le glyphe actif porte le poids (10 sept. 2026)
+
+Signalé : « mets en avant les icônes actives ». La rangée allumée avait son fond
+(`--side-fill-active`, 13 % d'encre sur le voile clair) et son libellé en `font-medium` — mais son
+icône était **exactement celle des voisines** : lucide dessine tout à `strokeWidth` 2 par défaut, et
+la barre n'ayant qu'une encre, rien ne la distinguait.
+
+**Le poids, pas la couleur.** `TRAIT` (`sidebar-content.tsx`) tient les deux valeurs en un seul
+endroit : **1,75 au repos, 2,4 en actif**. 1,75 est déjà le trait des rangées de feuilles — une
+seule grammaire de glyphe dans toute l'app —, et l'écart se lit sans rien ajouter à la palette.
+
+Une seconde couleur y aurait demandé **quatre mesures** (deux thèmes × deux fonds de bureau) pour un
+signal que la graisse donne gratuitement ; et `--space-ink` est calculé pour les surfaces blanches
+de l'app, pas pour un dégradé — c'est la règle « la sidebar n'a qu'une encre, mesurée là où elle est
+dessinée ».
+
+Vaut dans la barre attachée (tuiles épinglées, dossiers, vues, étiquettes) et dans le rail, où le
+glyphe est **tout ce qu'il y a** : 52 px, pas de libellé, donc le seul endroit où l'état devait se
+lire et ne se lisait pas.

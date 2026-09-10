@@ -162,6 +162,13 @@ existent parce qu'un message les porte — et un intitulé ne se pose pas au-des
 règle de la recherche, et la seule entorse assumée reste le groupe Vues, qui garde sa ligne
 « Garder une recherche… ».
 
+**Une étiquette éteint la rangée du dossier** (10 sept. — « si je clique sur une étiquette,
+réception ne doit plus être sélectionné »). Le témoin existait depuis les vues, qui posent elles
+aussi un dossier sans être ce qu'on regarde ; il ne connaissait qu'elles. Deux rangées allumées en
+même temps demandent de deviner laquelle commande la liste — c'est l'étiquette, le dossier n'est
+que l'endroit où elle cherche. Vaut dans les trois surfaces : barre attachée, rail (où l'étiquette
+ne se choisit pas, mais où elle peut être posée) et feuille du téléphone.
+
 `etiquette` n'est **jamais persistée** et se vide comme tout changement de liste (dossier, espace,
 vue) : elle décrit un écran, pas un goût.
 

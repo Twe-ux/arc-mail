@@ -9,7 +9,7 @@ import { FOLDER_ICON, VUE_ICON } from "@/lib/folders";
 import { selectUnreadCount, selectVueUnread, useMail, useSpaces, useFolders } from "@/lib/store";
 import type { FolderId, Vue } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { TN } from "./sidebar-content";
+import { TN, TRAIT } from "./sidebar-content";
 import { SpaceTile } from "./space-icon";
 import { AppearancePanel } from "./theme-picker";
 
@@ -38,6 +38,10 @@ export function SidebarRail() {
   const vues = useMail((s) => s.vues);
   const vueId = useMail((s) => s.vueId);
   const ouvrirVue = useMail((s) => s.ouvrirVue);
+  /* Le rail ne porte pas les étiquettes — elles se choisissent dans la barre
+     attachée ou la feuille — mais une étiquette **posée** détourne le dossier
+     ici aussi : le témoin suit l'état, pas la porte qui l'a ouvert. */
+  const detourne = useMail((s) => s.vueId !== null || s.etiquette !== null);
 
   return (
     <aside className="hidden w-[52px] shrink-0 flex-col items-center gap-2 py-2 text-[var(--side-ink)] md:flex">
@@ -72,7 +76,7 @@ export function SidebarRail() {
             key={f.id}
             id={f.id}
             name={f.name}
-            active={f.id === folderId && vueId === null}
+            active={f.id === folderId && !detourne}
             onClick={() => setFolder(f.id)}
           />
         ))}
@@ -113,7 +117,7 @@ export function SidebarRail() {
             aria-label="Apparence et réglages"
             className={cn("flex size-9 items-center justify-center rounded-lg transition-colors", TN.icon)}
           >
-            <Settings2 className="size-[18px]" />
+            <Settings2 className="size-[18px]" strokeWidth={TRAIT.repos} />
           </button>
         </AppearancePanel>
         <AccountMenu className={cn("size-9", TN.icon)} />
@@ -148,7 +152,7 @@ function RailFolder({
             active ? TN.itemActive : TN.item,
           )}
         >
-          <Icon className="size-[18px]" />
+          <Icon className="size-[18px]" strokeWidth={active ? TRAIT.actif : TRAIT.repos} />
           {/* Un point, pas un compteur : le rail n'a pas la largeur d'un
               nombre, et « il y a du neuf ici » est ce qu'on vient y lire. */}
           {count > 0 && <span className="absolute top-1.5 right-1.5 size-1.5 rounded-full bg-current" />}
@@ -177,7 +181,7 @@ function RailVue({ vue, active, onClick }: { vue: Vue; active: boolean; onClick:
             active ? TN.itemActive : TN.item,
           )}
         >
-          <VUE_ICON className="size-[18px]" />
+          <VUE_ICON className="size-[18px]" strokeWidth={active ? TRAIT.actif : TRAIT.repos} />
           {count > 0 && <span className="absolute top-1.5 right-1.5 size-1.5 rounded-full bg-current" />}
         </button>
       </TooltipTrigger>

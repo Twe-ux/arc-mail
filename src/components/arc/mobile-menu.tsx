@@ -46,6 +46,9 @@ export function MobileMenu() {
   const vueId = useMail((s) => s.vueId);
   const ouvrirVue = useMail((s) => s.ouvrirVue);
   const supprimerVue = useMail((s) => s.supprimerVue);
+  /* Une vue **ou une étiquette** pose un dossier : sans ce témoin, sa rangée et
+     celle du dossier seraient allumées ensemble. C'est elle qu'on regarde. */
+  const detourne = useMail((s) => s.vueId !== null || s.etiquette !== null);
   const enregistrerVue = useMail((s) => s.enregistrerVue);
   const selectedThreadId = useMail((s) => s.selectedThreadId);
   const selectThread = useMail((s) => s.selectThread);
@@ -79,7 +82,7 @@ export function MobileMenu() {
               key={f.id}
               id={f.id}
               name={f.name}
-              active={f.id === folderId && vueId === null}
+              active={f.id === folderId && !detourne}
               onClick={go(() => {
                 setFolder(f.id);
                 setCorrespondent(null);

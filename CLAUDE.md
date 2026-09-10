@@ -80,6 +80,10 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   `display_override` demande de réinstaller la PWA.
 - Un écran figé sur iPhone : d'abord tirer la liste vers le bas, ensuite fermer complètement
   l'app ; bumper `VERSION` de `sw.js` ne suffit jamais seul.
+- **Le flou du haut appartient à iOS 27**, pas à nous : son « scroll edge effect » floute ce que la
+  page peint sous la barre d'état (on est en `black-translucent`), et ses glyphes sont dessinés
+  par-dessus. Vérifié : rien dans notre chaîne d'ancêtres ne floute, et la même chose se voit sur
+  Kairos. Ne pas re-chercher — la fiche a les trois leviers et ce qui a été écarté.
 - On **mesure** en émulation (393×852, insets 59/34 en CDP) avant et après chaque correctif visuel.
 
 **Cartes flottantes** (menu, recherche) →

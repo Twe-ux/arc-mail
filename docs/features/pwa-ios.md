@@ -163,3 +163,50 @@ Le préréglage « iPhone 13 » de Playwright rapporte parfois 664 px de haut : 
 animation d'entrée dure 400 ms (500 avant le 4 sept.) et une mesure prise pendant qu'elle joue
 donne un décalage de quelques pixels qui ressemble à un bug. Un geste se vérifie en CDP (`Input.dispatchTouchEvent`), voir
 [Gestes](gestes.md).
+
+## Le flou du haut est celui d'iOS 27, pas le nôtre (10 sept. 2026)
+
+Signalé : « pourquoi le header est flou ? ça l'était pas avant », puis, la capture zoomée à
+l'appui : « c'est un flou safe area top », et surtout — **« je l'ai aussi sur Kairos et dans mes
+autres apps »**. C'est cette dernière phrase qui tranche : une cause commune à trois apps qui ne
+partagent pas une ligne de CSS n'est pas dans le CSS.
+
+**iOS 27 dessine un dégradé de flou dans la zone du haut**, sous l'heure et la batterie — le
+« scroll edge effect » de Liquid Glass, inauguré en 26 et étendu en 27. Safari le pose, Plans
+aussi, et une app installée depuis l'écran d'accueil en hérite : nous déclarons
+`statusBarStyle: "black-translucent"` (`layout.tsx`), donc la page **passe sous** la barre d'état
+et c'est notre peinture que le système floute pour garder ses glyphes lisibles. Les siens, eux,
+sont dessinés **par-dessus** l'effet : d'où une barre d'état franche au-dessus d'un titre mou,
+qui est exactement ce que la capture montre.
+
+Ce qui a été écarté avant d'y arriver, et qu'il est inutile de re-chercher :
+
+- **aucun `backdrop-filter` dans la tête de liste** — ses pilules sont un aplat
+  (`bg-foreground/[0.06]`), pas la classe `glass` ;
+- la **chaîne complète des ancêtres** du titre, énumérée dans le navigateur, ne porte ni
+  transformation, ni filtre, ni opacité, ni masque, ni `will-change` ;
+- le **balayage d'espace**, seul à écrire une transformation sur la colonne, atterrit exactement
+  sur 0 et l'efface (`animateSpring` pose `onFrame(to)` avant `onRest`) : il ne laisse pas de
+  calque composité derrière lui, la cause classique d'un texte qui bave sur iOS ;
+- `-webkit-font-smoothing: antialiased` (l'utilitaire `antialiased` de Tailwind sur `body`) a été
+  **retiré puis remis** : il amincit bien les glyphes sur les appareils Apple, mais il est là
+  depuis le premier commit — il ne pouvait pas expliquer un « avant / après ».
+
+**Les trois leviers, si un jour ça gêne vraiment :**
+
+1. **Ne rien faire.** C'est le rendu de toutes les apps du système sur iOS 27 ; s'en écarter nous
+   ferait dépareiller au lieu de nous distinguer.
+2. **Repasser en `statusBarStyle: "default"`** : iOS pose alors sa propre bande opaque et la page
+   commence dessous. Plus de flou — mais plus de voile d'un bord à l'autre non plus,
+   `env(safe-area-inset-top)` tombe à zéro, et **il faut réinstaller la PWA** pour que le
+   changement prenne (même règle que `display_override`).
+3. **Peindre un aplat sous la barre d'état.** Un flou n'a d'effet que sur ce qu'il a à flouter :
+   une bande unie dans les 59 px du haut le rendrait invisible sans rien changer ailleurs. C'est
+   le seul levier qui ne coûte ni la mise en page ni une réinstallation — mais il coûte le
+   dégradé qui monte jusqu'à l'encoche.
+
+Sources : [WebKit in Safari 27 beta](https://webkit.org/blog/17967/news-from-wwdc26-webkit-in-safari-27-beta/) ·
+[Apply blur to iOS status bar in PWA](https://muffinman.io/blog/pwa-ios-status-bar-blur/) (la
+note sur WebKit qui a changé la zone de la barre d'état des PWA autonomes) ·
+[iOS 27 beta 5, changements](https://forums.macrumors.com/threads/ios-27-beta-5-bug-fixes-changes-and-improvements.2486684/page-10).
+

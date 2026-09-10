@@ -122,3 +122,35 @@ Sonde Playwright, bureau 1280×800, 0 erreur de console :
 - **Renommer ou supprimer une étiquette** partout à la fois : aujourd'hui elle disparaît quand plus
   aucun message ne la porte.
 - Le filtre `avec:` de la recherche ne connaît pas encore les étiquettes.
+
+## Les étiquettes dans la barre (10 sept. 2026)
+
+Signalé : « concernant les étiquettes dans cette vue, peux-tu les mettre sous la sidebar ». Deux
+choses le demandaient.
+
+Elles vivaient **sur la rangée et nulle part ailleurs** : on voyait qu'un fil portait « Melvynx »,
+on ne pouvait pas demander à voir les Melvynx. Une étiquette qui ne sert qu'à décorer n'est pas une
+étiquette, c'est une couleur.
+
+Et sur une **colonne étroite** — la liste à 360 px, message ouvert — la puce tombait entre le nom et
+l'heure, là où il n'y a pas la place. Elle y reste (c'est elle qui dit pourquoi le fil est marqué),
+mais elle n'est plus le seul chemin.
+
+**Un groupe sous les vues**, sur les deux surfaces : la barre du bureau et la feuille Dossiers du
+téléphone. Icône `Tag` en trait, le nom, rien d'autre — pas de compte : un compte d'étiquette n'est
+juste que dans le dossier ouvert, et l'écrire à côté d'un nom qui ne dit pas « ici » serait un
+chiffre faux.
+
+**Ça filtre le dossier ouvert, ça n'ouvre pas une boîte.** Comme « Non lus », et pour la même
+raison : le dossier qu'on regarde est le seul dont on ait tous les fils. Une étiquette qui
+prétendrait ramasser toute la boîte ne rendrait que ce que les dossiers déjà visités ont laissé en
+mémoire — donc autre chose selon l'endroit d'où on l'ouvre, ce que la fiche des vues interdit déjà.
+Re-toucher celle qui est ouverte la retire : la porte d'entrée est la porte de sortie.
+
+**Le groupe n'existe que s'il y a des étiquettes.** Il n'y a pas de table d'étiquettes — elles
+existent parce qu'un message les porte — et un intitulé ne se pose pas au-dessus de rien. C'est la
+règle de la recherche, et la seule entorse assumée reste le groupe Vues, qui garde sa ligne
+« Garder une recherche… ».
+
+`etiquette` n'est **jamais persistée** et se vide comme tout changement de liste (dossier, espace,
+vue) : elle décrit un écran, pas un goût.

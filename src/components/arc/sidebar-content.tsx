@@ -2,14 +2,14 @@
 
 import { useState } from "react";
 
-import { Settings2, Plus, X, type LucideIcon } from "lucide-react";
+import { Settings2, Plus, Tag, X, type LucideIcon } from "lucide-react";
 
 import { AccountMenu } from "@/components/auth/account-menu";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { FOLDER_ICON, VUE_ICON } from "@/lib/folders";
 import { FOLDERS } from "@/lib/mock-data";
-import { selectUnreadCount, selectVueUnread, useMail, useFolders } from "@/lib/store";
+import { selectUnreadCount, selectVueUnread, useLabels, useMail, useFolders } from "@/lib/store";
 import type { FolderId, Vue } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { AppearancePanel } from "./theme-picker";
@@ -122,6 +122,8 @@ export function SidebarContent() {
 
       <Vues />
 
+      <Etiquettes />
+
       <Separator className={TN.sep} />
 
       <SidebarRecents />
@@ -156,6 +158,64 @@ export function SidebarContent() {
         </div>
       </div>
     </>
+  );
+}
+
+/**
+ * **Les étiquettes, sous les vues.**
+ *
+ * Elles vivaient **sur la rangée** et nulle part ailleurs : on voyait qu'un fil
+ * portait « Melvynx », on ne pouvait pas demander « montre-moi les Melvynx ».
+ * Et sur une colonne étroite — la liste à 360 px, message ouvert — la puce
+ * tombait entre le nom et l'heure, là où il n'y a pas la place. Signalé :
+ * « peux-tu les mettre sous la sidebar ».
+ *
+ * **Un filtre du dossier ouvert, pas une boîte.** Comme « Non lus », et pour la
+ * même raison : le dossier qu'on regarde est le seul dont on ait tous les
+ * fils. Prétendre ramasser une étiquette dans toute la boîte ne rendrait que ce
+ * que les dossiers déjà visités ont laissé en mémoire — donc autre chose selon
+ * l'endroit d'où on l'ouvre, ce que la fiche des vues interdit déjà.
+ *
+ * **Le groupe n'existe que s'il y a des étiquettes** : il n'y a pas de table
+ * d'étiquettes, elles existent parce qu'un message les porte. Un intitulé ne se
+ * pose pas au-dessus de rien.
+ */
+function Etiquettes() {
+  const labels = useLabels();
+  const etiquette = useMail((s) => s.etiquette);
+  const setEtiquette = useMail((s) => s.setEtiquette);
+  if (labels.length === 0) return null;
+
+  return (
+    <nav className="flex shrink-0 flex-col gap-0.5" aria-label="Étiquettes">
+      <p
+        className={cn(
+          "px-2.5 pt-1 pb-0.5 text-[11px] font-semibold tracking-wider uppercase",
+          TN.heading,
+        )}
+      >
+        Étiquettes
+      </p>
+      {labels.map((nom) => {
+        const active = nom === etiquette;
+        return (
+          <button
+            key={nom}
+            type="button"
+            /* Re-cliquer l'étiquette ouverte la retire : la porte d'entrée est
+               la porte de sortie, comme les deux cases d'un segmenté. */
+            onClick={() => setEtiquette(active ? null : nom)}
+            className={cn(
+              "flex h-8 items-center gap-2.5 rounded-lg px-2.5 text-sm transition-colors",
+              active ? TN.itemActive : TN.item,
+            )}
+          >
+            <Tag className="size-4 shrink-0" />
+            <span className="min-w-0 flex-1 truncate text-left">{nom}</span>
+          </button>
+        );
+      })}
+    </nav>
   );
 }
 

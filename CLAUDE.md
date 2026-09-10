@@ -489,6 +489,12 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   un sélecteur qui rend un tableau neuf **boucle**, la règle du dépôt, apprise à nouveau ici).
 - Pas de bouton « Enregistrer », le menu reste ouvert, la coche est à droite ; une définition
   (`EtiquettesChoix`) pour le sous-menu du `⋯` et la feuille du téléphone.
+- **Un groupe « Étiquettes » sous les vues**, dans la barre du bureau et la feuille du téléphone :
+  elles ne vivaient que sur la rangée, donc on voyait qu'un fil en portait une sans pouvoir demander
+  à les voir toutes. Il **filtre le dossier ouvert** (comme « Non lus » : c'est le seul dont on ait
+  tous les fils), re-toucher l'étiquette ouverte la retire, le groupe n'existe que s'il y en a, et
+  `etiquette` ne se persiste pas. **Pas de compte à côté du nom** — il ne serait juste que dans le
+  dossier ouvert.
 - La puce vit dans la ligne d'aperçu, **et sur la ligne du nom en densité compacte**, où cette ligne
   n'existe pas : sur une ligne à elle, la rangée passait de 53 à 77 px — la hauteur du confort, donc
   une densité qui ne compacte plus rien. Bureau seulement : sur téléphone « deux lignes » est un

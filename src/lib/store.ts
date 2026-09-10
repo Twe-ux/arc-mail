@@ -50,6 +50,18 @@ export type MailState = {
   /** Reading pane next to the list (Arc split view) or full width. */
   splitView: boolean;
   unreadOnly: boolean;
+  /**
+   * **L'étiquette regardée**, ou `null`.
+   *
+   * Elle filtre **le dossier ouvert**, comme « Non lus » et pour la même
+   * raison : c'est le seul dont on ait tous les fils. Un filtre qui
+   * prétendrait ramasser une étiquette dans toute la boîte ne rendrait que ce
+   * que les dossiers déjà visités ont laissé en mémoire — donc autre chose
+   * selon l'endroit d'où on l'a ouvert, ce que la fiche des vues interdit
+   * déjà. Jamais persistée : elle décrit un écran, pas un goût.
+   */
+  etiquette: string | null;
+  setEtiquette: (nom: string | null) => void;
   commandOpen: boolean;
   /** Mobile only: the sidebar drawer. */
   sidebarOpen: boolean;
@@ -1158,6 +1170,7 @@ export const useMail = create<MailState>()(
   pauses: {},
   splitView: true,
   unreadOnly: false,
+  etiquette: null,
   commandOpen: false,
   sidebarOpen: false,
   settingsOpen: false,
@@ -1282,7 +1295,7 @@ export const useMail = create<MailState>()(
   },
 
   setSpace: (spaceId) =>
-    set({ spaceId, folderId: "inbox", selectedThreadId: null, unreadOnly: false, vueId: null, selection: [], selectionOn: false, ancreSelection: null }),
+    set({ spaceId, folderId: "inbox", selectedThreadId: null, unreadOnly: false, vueId: null, etiquette: null, selection: [], selectionOn: false, ancreSelection: null }),
 
   /* **Choisir un dossier, c'est quitter la vue.** Les deux occupent la même
      liste : la laisser filtrée par une question qu'on ne voit plus, c'est une
@@ -1291,7 +1304,7 @@ export const useMail = create<MailState>()(
      gardée d'un dossier à l'autre, le prochain « Supprimer » aurait frappé
      des fils qu'on ne voit plus. Même raison pour l'espace et pour une vue. */
   setFolder: (folderId) =>
-    set({ folderId, selectedThreadId: null, vueId: null, selection: [], selectionOn: false, ancreSelection: null }),
+    set({ folderId, selectedThreadId: null, vueId: null, etiquette: null, selection: [], selectionOn: false, ancreSelection: null }),
 
   selectThread: (id) => {
     if (id === null) {
@@ -1666,6 +1679,11 @@ export const useMail = create<MailState>()(
      que le filtre vient de cacher. Même règle que le dossier. */
   setUnreadOnly: (unreadOnly) =>
     set({ unreadOnly, selection: [], selectionOn: false, ancreSelection: null }),
+
+  /* Comme tout changement de liste : la sélection se vide, elle porterait
+     sinon sur des fils qu'on ne voit plus. */
+  setEtiquette: (etiquette) =>
+    set({ etiquette, selectedThreadId: null, selection: [], selectionOn: false, ancreSelection: null }),
   setCommandOpen: (commandOpen) => set({ commandOpen }),
   setSidebarOpen: (sidebarOpen) => set((s) => ({ sidebarOpen, settingsOpen: sidebarOpen ? false : s.settingsOpen })),
   setSettingsOpen: (settingsOpen) => set((s) => ({ settingsOpen, sidebarOpen: settingsOpen ? false : s.sidebarOpen })),
@@ -1870,7 +1888,7 @@ export const useMail = create<MailState>()(
     const vue = get().vues.find((v) => v.id === id);
     if (!vue) return;
     const folderId = dossiersDe(parse(vue.q))[0] ?? "inbox";
-    set({ vueId: id, folderId, selectedThreadId: null, correspondent: null, unreadOnly: false, selection: [], selectionOn: false, ancreSelection: null });
+    set({ vueId: id, folderId, selectedThreadId: null, correspondent: null, unreadOnly: false, etiquette: null, selection: [], selectionOn: false, ancreSelection: null });
     void get().loadSpace(get().spaceId, folderId);
   },
   setPreview: (attachmentId) =>
@@ -2555,7 +2573,8 @@ export const selectVue = (s: MailState) => s.vues.find((v) => v.id === s.vueId);
  * téléphone et celle du bureau la posaient chacune de leur côté, et une vue
  * ouverte sous le titre « Boîte de réception » serait une liste qui ment.
  */
-export const selectListTitle = (s: MailState) => selectVue(s)?.q ?? selectFolder(s).name;
+export const selectListTitle = (s: MailState) =>
+  s.etiquette ?? selectVue(s)?.q ?? selectFolder(s).name;
 
 /**
  * Les **mots nus** de la vue ouverte, `""` quand on regarde un dossier.
@@ -2602,6 +2621,7 @@ export function selectVisibleThreads(s: MailState): Thread[] {
         t.spaceId === s.spaceId &&
         threadMatchesFolder(t, s.folderId, s.pauses) &&
         (arbre === null || correspond(arbre, t)) &&
+        (!s.etiquette || t.labels.includes(s.etiquette)) &&
         (!s.unreadOnly || t.unread),
     ),
   );
@@ -2669,6 +2689,7 @@ export function useVisibleThreads(): Thread[] {
   const spaceId = useMail((s) => s.spaceId);
   const folderId = useMail((s) => s.folderId);
   const unreadOnly = useMail((s) => s.unreadOnly);
+  const etiquette = useMail((s) => s.etiquette);
   const vues = useMail((s) => s.vues);
   const vueId = useMail((s) => s.vueId);
   /* **`pauses` en fait partie** : c'est lui qui retire un fil de sa liste et le
@@ -2676,7 +2697,17 @@ export function useVisibleThreads(): Thread[] {
      bougeait pas d'un pouce quand on mettait un fil en pause. */
   const pauses = useMail((s) => s.pauses);
   return useMemo(
-    () => selectVisibleThreads({ threads, spaceId, folderId, unreadOnly, vues, vueId, pauses } as MailState),
-    [threads, spaceId, folderId, unreadOnly, vues, vueId, pauses],
+    () =>
+      selectVisibleThreads({
+        threads,
+        spaceId,
+        folderId,
+        unreadOnly,
+        etiquette,
+        vues,
+        vueId,
+        pauses,
+      } as MailState),
+    [threads, spaceId, folderId, unreadOnly, etiquette, vues, vueId, pauses],
   );
 }

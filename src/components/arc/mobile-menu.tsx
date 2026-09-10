@@ -1,10 +1,17 @@
 "use client";
 
-import { Pencil, Plus, X } from "lucide-react";
+import { Pencil, Plus, Tag, X } from "lucide-react";
 import { useState } from "react";
 
 import { FOLDER_ICON, VUE_ICON } from "@/lib/folders";
-import { selectUnreadCount, selectVueUnread, useFolders, useMail, useRecentThreads } from "@/lib/store";
+import {
+  selectUnreadCount,
+  selectVueUnread,
+  useFolders,
+  useLabels,
+  useMail,
+  useRecentThreads,
+} from "@/lib/store";
 import type { FolderId, Vue } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { BottomSheet, SheetCloseButton, SheetGroup, SheetRow, SheetScroller } from "./bottom-sheet";
@@ -114,6 +121,13 @@ export function MobileMenu() {
           </SheetGroup>
         </Section>
 
+        {/* **Les étiquettes, après les vues et avant les récents.** Même
+            raison que sur bureau : elles ne vivaient que sur la rangée, donc on
+            voyait qu'un fil en portait une sans pouvoir demander à les voir
+            toutes. Le groupe n'existe que s'il y en a — il n'y a pas de table
+            d'étiquettes, elles existent parce qu'un message les porte. */}
+        <Etiquettes onChoisir={() => setOpen(false)} />
+
         <Section
           title="Aujourd'hui"
           action={
@@ -186,6 +200,46 @@ function Section({
       </div>
       {children}
     </section>
+  );
+}
+
+/**
+ * Les étiquettes de l'espace, en rangées de feuille.
+ *
+ * Elles **filtrent le dossier ouvert**, comme « Non lus » : c'est le seul dont
+ * on ait tous les fils, et une étiquette qui prétendrait ramasser toute la
+ * boîte ne rendrait que ce que les dossiers déjà visités ont laissé en
+ * mémoire. Re-toucher celle qui est ouverte la retire.
+ */
+function Etiquettes({ onChoisir }: { onChoisir: () => void }) {
+  const labels = useLabels();
+  const etiquette = useMail((s) => s.etiquette);
+  const setEtiquette = useMail((s) => s.setEtiquette);
+  if (labels.length === 0) return null;
+
+  return (
+    <Section title="Étiquettes">
+      <SheetGroup>
+        {labels.map((nom) => {
+          const active = nom === etiquette;
+          return (
+            <SheetRow
+              key={nom}
+              active={active}
+              onClick={() => {
+                setEtiquette(active ? null : nom);
+                onChoisir();
+              }}
+            >
+              <Tag className="size-5 shrink-0" strokeWidth={1.75} />
+              <span className={cn("min-w-0 flex-1 truncate text-[15px]", active && "font-medium")}>
+                {nom}
+              </span>
+            </SheetRow>
+          );
+        })}
+      </SheetGroup>
+    </Section>
   );
 }
 

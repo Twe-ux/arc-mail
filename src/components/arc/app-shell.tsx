@@ -168,7 +168,7 @@ export function AppShell() {
            ne sert à rien : `space-wash` y règne, et `.fond-bureau` ne peint
            qu'au-dessus de `md`. */
         data-fond={fondBureau}
-        className="space-wash fond-bureau fixed inset-0 flex flex-col pt-[calc(var(--safe-top)+var(--titlebar)+var(--sous-flou))] transition-[background] duration-500 md:flex-row md:gap-2 md:p-2 md:pt-[calc(0.5rem+var(--titlebar))]"
+        className="space-wash fond-bureau fixed inset-0 flex flex-col pt-[calc(var(--safe-top)+var(--titlebar))] transition-[background] duration-500 md:flex-row md:gap-2 md:p-2 md:pt-[calc(0.5rem+var(--titlebar))]"
         ref={coque}
         style={
           {

@@ -168,7 +168,11 @@ function PagesEspaces() {
   const spaceId = useMail((s) => s.spaceId);
   if (spaces.length < 2) return null;
   return (
-    <div className="flex justify-center gap-1.5 pb-1.5" aria-hidden>
+    /* `--sous-flou` s'ajoute sous la rangée, pas au-dessus : les points restent
+       où ils sont — dans le dégradé de flou d'iOS 27, qu'ils traversent en
+       pastilles à 35 % — et c'est le **titre** qui passe dessous. Zéro hors de
+       l'app installée. */
+    <div className="flex justify-center gap-1.5 pb-[calc(0.375rem+var(--sous-flou))]" aria-hidden>
       {spaces.map((sp) => {
         const actif = sp.id === spaceId;
         return (

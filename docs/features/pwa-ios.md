@@ -225,8 +225,7 @@ commande qui existe est `scrollEdgeEffectStyle` (`.soft` / `.hard`), et elle est
 — iOS 27 en a même changé le défaut de `.soft` à `.hard` pour les barres natives, ce qui est
 exactement le bouton qu'une page n'a pas.
 
-**On descend donc sous lui : `--sous-flou`, 28 px** (10 sept., demandé — « il faut mettre un peu de
-padding top pour faire descendre les textes sous le flou »).
+**On sort le titre de dessous lui : `--sous-flou`, 12 px** (10 sept.).
 
 La hauteur de l'effet a été **mesurée sur une capture d'iPhone en app installée**, pas estimée : on
 lit la netteté ligne par ligne — le plus grand saut entre deux pixels voisins sur la bande — et on
@@ -240,20 +239,28 @@ la compare aux glyphes de la barre d'état, dessinés *au-dessus* de l'effet, do
 | 90–95 | **208** | le bas du titre, franc |
 | 220+ | 224–227 | les rangées de la liste, franches |
 
-Le dégradé s'éteint donc **entre 85 et 90 pt**. Le premier élément peint étant à 59, la réserve vaut
-29 px — arrondie à **28**. En dessous, quelque chose reste dans le flou ; au-dessus, on paie du vide
-pour rien.
+Le dégradé s'éteint donc **entre 85 et 90 pt**.
+
+**Douze pixels, et sous les points — pas vingt-huit sur toute la coque.** La première version
+descendait *l'écran entier* de 28 px : le premier élément peint étant à 59, c'était le chiffre exact
+pour que même les points en sortent. Ça marchait, et ça coûtait un tiers de rangée sur chaque écran
+— rendu le soir même : « ça marche mais du coup c'est pas top ». L'écart ne se met donc plus
+qu'**entre l'indicateur de pages et le titre** : le titre passe la barre des 90 pt (mesuré : sa
+boîte va de 75 à **87**, ses hampes à ~91), les points restent dans le dégradé. Ce sont deux
+pastilles, pas du texte, et elles ont gagné du contraste pour ça (35 %).
+
+Mesuré : hors app installée rien ne bouge (points 59–65, titre 75, carte 199) ; dedans, seul ce qui
+suit les points descend de 12 (titre 87, pilules 161, carte 211).
+
+**Le mail ouvert garde son flou** : son en-tête n'a pas de rangée de points où glisser un écart, et
+lui donner 12 px de plus pour la même raison demanderait de le décider pour lui. À reprendre s'il
+gêne.
 
 Elle vaut **zéro partout sauf en app installée sur téléphone**
 (`@media (display-mode: standalone) and (width < 48rem)`) : dans Safari le système pose son dégradé
-sur *sa* barre et pas sur la page, la réserve n'y serait qu'une perte. Quatre surfaces la lisent —
-la coque (donc la liste, le mail ouvert, `/comptes`, la porte), la feuille du composeur, la carte de
-pièce jointe — et **une seule mesure les commande**. Vérifié : à 28 px tout descend d'exactement 28
-(points 59 → 87, titre 75 → 103, pilules 149 → 177, carte 199 → 227, feuille 59 → 87), la barre du
-bas ne bouge pas.
-
-**Elle ne se voit pas en émulation**, et c'est normal : Chromium n'y est pas en `display-mode:
-standalone`. Pour la mesurer, forcer `:root{--sous-flou:28px}` avec `addStyleTag`.
+sur *sa* barre et pas sur la page, l'écart n'y serait qu'un trou. **Elle ne se voit pas en
+émulation**, et c'est normal : Chromium n'y est pas en `display-mode: standalone`. Pour la mesurer,
+forcer `:root{--sous-flou:12px}` avec `addStyleTag`.
 
 **Ce qui tombe dedans, en revanche, est à nous.** C'est le seul levier, et il ne coûte pas un
 pixel : l'indicateur de pages est à **59–65 pt**, dans le cœur de l'effet, et ses points inactifs

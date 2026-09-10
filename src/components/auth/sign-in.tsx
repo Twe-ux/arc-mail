@@ -62,7 +62,7 @@ export function SignIn({ erreur = null }: { erreur?: string | null }) {
   return (
     /* Le voile de l'app, pas le dégradé de Perso recopié en dur. La porte garde
        l'accent par défaut de `:root` : c'est la couleur d'Arc Mail au repos. */
-    <main className="ecran-hors-espace space-wash flex min-h-dvh flex-col items-center justify-center px-4 py-[max(1rem,calc(var(--safe-top)+var(--sous-flou)))]">
+    <main className="ecran-hors-espace space-wash flex min-h-dvh flex-col items-center justify-center px-4 py-[max(1rem,var(--safe-top))]">
       <div className="fenetre-carte w-full max-w-[400px] rounded-[28px] bg-card p-6 text-card-foreground md:p-7">
         <h1 className="text-[26px] leading-tight font-bold tracking-[-0.02em]">Arc Mail</h1>
 

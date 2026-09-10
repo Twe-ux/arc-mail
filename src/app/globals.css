@@ -8,28 +8,31 @@
      much, and so a test can stand in for a notch the browser does not report. */
   --safe-top: env(safe-area-inset-top);
   /**
-   * Ce qu'il faut descendre pour passer **sous le flou d'iOS 27**.
+   * L'écart posé **sous l'indicateur de pages**, pour que le titre sorte du
+   * flou d'iOS 27.
    *
    * Le système pose un dégradé de flou dans le haut de l'écran — son « scroll
    * edge effect » — sur ce que la page peint sous la barre d'état. Sa hauteur
    * ne se règle pas (aucune API web ; `scrollEdgeEffectStyle` est UIKit et
    * SwiftUI), donc la seule sortie est de commencer plus bas.
    *
-   * **88 pt, mesuré** sur une capture d'iPhone en app installée : on lit la
-   * netteté ligne par ligne (le plus grand saut entre deux pixels voisins) et
-   * on la compare aux glyphes de la barre d'état, dessinés *au-dessus* de
-   * l'effet, donc francs. Barre d'état 20–35 pt : **210 à 230**. Nos points de
+   * **Il s'éteint entre 85 et 90 pt, mesuré** sur une capture d'iPhone en app
+   * installée : netteté ligne par ligne (le plus grand saut entre deux pixels
+   * voisins), comparée aux glyphes de la barre d'état, dessinés *au-dessus* de
+   * l'effet donc francs. Barre d'état 20–35 pt : **210 à 230**. Les points de
    * pagination à 59–65 : **3 à 5** — dissous. Le haut du titre à 75–85 :
-   * **43 à 97** — mou. Son bas à 90–95 : **208**. Le dégradé s'éteint donc
-   * entre 85 et 90.
+   * **43 à 97** — mou. Son bas à 90–95 : **208**.
    *
-   * Le premier élément peint est à 59 (la bande sûre), d'où **29 px** — arrondi
-   * à 28. En dessous, quelque chose reste dans le flou ; au-dessus, on paie du
-   * vide pour rien.
+   * **12 px, pas 28.** Descendre tout l'écran de 28 px sortait aussi les points
+   * du flou, mais coûtait un tiers de rangée à chaque écran — essayé le
+   * 10 sept., rendu le soir même : « ça marche mais du coup c'est pas top ».
+   * L'écart ne se met donc qu'**entre les points et le titre** : le titre passe
+   * la barre des 90 pt, les points restent dans le dégradé — ce sont deux
+   * pastilles, pas du texte, et ils ont gagné du contraste pour ça (35 %).
    *
    * **Seulement en app installée** (`display-mode: standalone`) : dans Safari
-   * le système pose son dégradé sur *sa* barre, pas sur la page, et cette
-   * réserve n'y serait qu'une perte. Zéro partout ailleurs.
+   * le système pose son dégradé sur *sa* barre, pas sur la page, et cet écart
+   * n'y serait qu'un trou. Zéro partout ailleurs.
    */
   --sous-flou: 0px;
   /* What the tint wash is laid over. In dark mode the page and the window take
@@ -313,7 +316,7 @@
    c'est-à-dire dans l'app installée, sur téléphone. */
 @media (display-mode: standalone) and (width < 48rem) {
   :root {
-    --sous-flou: 28px;
+    --sous-flou: 12px;
   }
 }
 

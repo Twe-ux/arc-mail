@@ -47,7 +47,7 @@ export function ComptesEcran({
   const premiere = comptes.length === 0;
 
   return (
-    <main className="ecran-hors-espace ecran-comptes space-wash min-h-dvh pt-[calc(var(--safe-top)+var(--sous-flou))]">
+    <main className="ecran-hors-espace ecran-comptes space-wash min-h-dvh pt-[var(--safe-top)]">
       <div className="mx-auto w-full max-w-2xl px-3 pt-3 pb-[max(1.5rem,env(safe-area-inset-bottom))] md:px-4 md:pt-8 md:pb-10">
         {/* **L'en-tête est sur le voile, pas dans la carte.** C'est la
             grammaire du téléphone : le grand titre vit au-dessus de la carte,

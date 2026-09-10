@@ -89,6 +89,10 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   `theme-color` vaut `#ffffff` / `#0f0f0f`, et le `theme_color` du manifeste ne la commande pas),
   et une bande crème au-dessus d'une app noire est pire que le flou. **Changer ceci demande de
   réinstaller la PWA.**
+- **La hauteur de la bande floue ne se règle pas** : dans Safari le système la pose sur *sa* barre,
+  limitée au premier bord ; en app installée il n'a que notre page et la dimensionne lui-même.
+  `scrollEdgeEffectStyle` est UIKit/SwiftUI seulement. **Ce qui tombe dedans est à nous** : les
+  points de l'indicateur de pages (59–65 pt, le cœur de l'effet) sont passés de 20 à **35 %**.
 - Trois pistes closes, à ne pas rouvrir : un aplat dans les 59 px du haut (l'effet descend jusqu'au
   titre — mesuré 59–71 pour les points, 75–101 pour le titre, et ces 59 px sont déjà vides) ; une
   meta posée par le script inline (iOS la lit **à l'installation**, dans le HTML servi, jamais

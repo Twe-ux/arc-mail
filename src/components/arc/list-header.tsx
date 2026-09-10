@@ -154,6 +154,14 @@ function titreSelection(n: number): string {
  * l'horizontale.
  *
  * Un seul espace : rien à indiquer, rien à afficher.
+ *
+ * **Les points inactifs sont à 35 %, pas à 20 % (10 sept. 2026).** Ils tombent
+ * à 59–65 pt, c'est-à-dire dans le cœur du dégradé de flou qu'iOS 27 pose sur
+ * le haut de l'écran — et c'est d'eux que la gêne a été signalée en premier :
+ * « les marqueurs de pagination sont flous ». Six points de haut à 20 % d'encre,
+ * passés dans un flou, ne sont plus qu'une trace. La hauteur de la bande floue
+ * ne nous appartient pas (aucune API web ne la commande) ; ce qui tombe dedans,
+ * si. C'est le seul levier, et il ne coûte pas un pixel.
  */
 function PagesEspaces() {
   const spaces = useSpaces();
@@ -168,7 +176,7 @@ function PagesEspaces() {
             key={sp.id}
             className={cn(
               "h-1.5 rounded-full transition-[width,background-color] duration-250",
-              actif ? "w-[18px] bg-[var(--space-accent)]" : "w-1.5 bg-foreground/20",
+              actif ? "w-[18px] bg-[var(--space-accent)]" : "w-1.5 bg-foreground/35",
             )}
           />
         );

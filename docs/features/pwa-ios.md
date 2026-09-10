@@ -217,6 +217,19 @@ bande crème au-dessus d'une app noire était **pire que le mal**. Revenus en `b
 pour une page ; `overscroll-behavior` ne parle pas de cet effet et iOS ne l'écoute pas de toute
 façon.
 
+**Sa hauteur ne nous appartient pas non plus** — demandé le 10 sept. : « ne peut-on pas le
+réduire ? sur Safari il est plus fin ». Il l'est, et pour une raison qui nous exclut : dans Safari
+le système pose son dégradé sur **sa propre barre**, limité au tout premier bord ; en app
+installée il n'a que notre page sur quoi le poser, et c'est lui qui le dimensionne. La seule
+commande qui existe est `scrollEdgeEffectStyle` (`.soft` / `.hard`), et elle est UIKit et SwiftUI
+— iOS 27 en a même changé le défaut de `.soft` à `.hard` pour les barres natives, ce qui est
+exactement le bouton qu'une page n'a pas.
+
+**Ce qui tombe dedans, en revanche, est à nous.** C'est le seul levier, et il ne coûte pas un
+pixel : l'indicateur de pages est à **59–65 pt**, dans le cœur de l'effet, et ses points inactifs
+faisaient 6 pt de haut à **20 %** d'encre — une trace, une fois floutée. Passés à **35 %** dans les
+deux thèmes. C'est d'eux que la gêne avait été signalée en premier.
+
 **Ce qu'on garde donc** : le voile d'un bord à l'autre, et le flou d'iOS 27 avec. Il est le rendu
 du système — Safari le fait, Plans le fait, toutes les apps le font, et c'est en le voyant sur
 Kairos qu'on a compris qu'il ne venait pas de nous. Un flou que tout le monde a se lit comme natif ;

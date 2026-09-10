@@ -25,40 +25,40 @@ export const metadata: Metadata = {
   /**
    * iOS lit ceci pour lancer le site en app depuis l'écran d'accueil.
    *
-   * **`default`, plus `black-translucent` (10 sept. 2026).** En translucide, la
-   * page passait **sous** la barre d'état : elle réservait les 59 pt du haut en
-   * voile vide, et depuis iOS 27 le système y pose son dégradé de flou — le
-   * « scroll edge effect » de Liquid Glass — sur ce que nous peignons là, pour
-   * garder ses glyphes lisibles. Il descend plus bas que la bande sûre : mesuré,
-   * l'indicateur de pages est à 59–71 pt et le titre à 75–101, tous deux dedans.
-   * Peindre un aplat dans les 59 px n'y changeait donc rien — ils sont déjà
-   * vides, et flouter un dégradé lisse rend le même dégradé.
+   * **`black-translucent`, et c'est un aller-retour du 10 sept. 2026.** Il n'y a
+   * que trois valeurs, et une seule laisse la page monter jusqu'à l'encoche :
+   * celle-ci. `default` pose une bande claire, `black` une bande noire, et
+   * **aucune des deux ne suit le thème** — mesuré sur l'appareil, `default` rend
+   * le même blanc cassé en clair et en sombre alors que `theme-color` vaut
+   * `#ffffff` d'un côté et `#0f0f0f` de l'autre : iOS l'ignore pour cette bande.
+   * Le `theme_color` du manifeste ne la commande pas davantage. Une bande crème
+   * au-dessus d'une app noire, c'est ce qu'on a essayé une soirée, et c'était
+   * pire que le mal.
    *
-   * En `default`, iOS **reprend la bande du haut** : la vue web commence en
-   * dessous, il n'y a plus rien à nous à flouter là, et `env(safe-area-inset-top)`
-   * tombe à zéro — les sept endroits qui lisent `--safe-top` le supportent, ils
-   * ne font que perdre une réserve dont iOS s'occupe maintenant. **La hauteur à
-   * l'écran ne bouge pas** : notre tête commençait à 59 pt du bord, elle y reste.
+   * **Le mal, lui, ne nous appartient pas.** Depuis iOS 27 le système pose son
+   * dégradé de flou dans le haut de l'écran — le « scroll edge effect » de
+   * Liquid Glass — sur ce que la page peint sous la barre d'état, pour garder
+   * ses glyphes lisibles. Safari le fait, Plans le fait, **toutes les apps le
+   * font** : c'est ce qui l'a identifié, la même chose se voyant sur Kairos. Il
+   * descend plus bas que la bande sûre (mesuré : l'indicateur de pages à
+   * 59–71 pt, le titre à 75–101, tous deux dedans), donc peindre un aplat dans
+   * les 59 px du haut n'y change rien — ils sont déjà vides, et flouter un
+   * dégradé lisse rend le même dégradé.
    *
-   * **La barre ne suit pas `theme-color`.** Mesuré sur l'appareil : elle rend le
-   * même blanc cassé en clair **et** en sombre, alors que `theme-color` vaut
-   * `#ffffff` d'un côté et `#0f0f0f` de l'autre — iOS l'ignore pour cette bande.
-   * Il n'y a donc que deux valeurs : `default` (bande claire, glyphes noirs) et
-   * `black` (bande noire, glyphes blancs). Aucune ne suit le thème.
+   * **Et il n'y a pas de sortie côté web.** `scrollEdgeEffectStyle` existe pour
+   * UIKit et SwiftUI, pas pour une page ; `overscroll-behavior` ne parle pas de
+   * ça et iOS ne l'écoute pas. Ne pas re-chercher : la fiche PWA garde les
+   * sources et tout ce qui a été écarté.
    *
-   * **Et elle ne peut pas suivre le thème.** Essayé le 10 sept. : le script inline
-   * préposait une meta `black` quand le thème sombre était posé, avant la
-   * première peinture. Réinstallé, testé : **rien**. iOS lit cette meta **à
-   * l'installation**, dans le HTML servi, pas au lancement et pas depuis le DOM
-   * — une meta écrite par un script arrive toujours trop tard. Le code est
-   * retiré ; ne pas le réessayer.
+   * On garde donc le voile d'un bord à l'autre et le flou qui va avec, parce
+   * qu'il est le rendu du système et non un défaut de l'app.
    *
    * **Changer ceci demande de réinstaller la PWA**, comme `display_override`.
    */
   appleWebApp: {
     capable: true,
     title: APP_NAME,
-    statusBarStyle: "default",
+    statusBarStyle: "black-translucent",
   },
   formatDetection: { telephone: false },
 };

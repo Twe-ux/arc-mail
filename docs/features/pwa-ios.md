@@ -192,38 +192,35 @@ Ce qui a été écarté avant d'y arriver, et qu'il est inutile de re-chercher :
   **retiré puis remis** : il amincit bien les glyphes sur les appareils Apple, mais il est là
   depuis le premier commit — il ne pouvait pas expliquer un « avant / après ».
 
-**Un aplat sous la barre d'état ne servait à rien** — piste proposée, mesurée, abandonnée le jour
-même. L'effet descend **plus bas que la bande sûre** : mesuré à 393×852 avec les insets 59/34,
-l'indicateur de pages est à **59–71 pt** et le titre à **75–101**, tous deux en dessous. Les 59 px
-du haut, eux, sont déjà vides — et flouter un dégradé lisse rend le même dégradé. Repeindre cette
-bande en aplat n'aurait donc rien touché de ce qui se voit.
+**Trois valeurs, une seule transparente.** `black-translucent` laisse la page monter jusqu'à
+l'encoche ; `default` pose une bande claire ; `black` une bande noire. Il n'y en a pas d'autre —
+`theme_color` du manifeste ne commande pas cette bande, et le `theme-color` du document non plus :
+mesuré sur l'appareil, `default` rend le **même blanc cassé en clair et en sombre** quand la meta
+vaut `#ffffff` d'un côté et `#0f0f0f` de l'autre.
 
-**Ce qu'on a fait : `statusBarStyle: "default"`** (10 sept. 2026). iOS reprend la bande du haut, la
-vue web commence en dessous, et il n'y a plus rien à nous à flouter là.
+**On a fait l'aller-retour en une soirée.** Passés en `default` pour échapper au flou : la hauteur
+à l'écran ne bougeait pas (mesuré avant / après, `--safe-top` à 59 puis à 0 : titre 75 → 16,
+pilules 149 → 90, carte 199 → 140, feuille du composeur 59 → 0, barre du bas inchangée — exactement
+59 pt partout, et la vue web commençant elle-même 59 pt plus bas, tout retombe à sa place), mais la
+bande crème au-dessus d'une app noire était **pire que le mal**. Revenus en `black-translucent`.
 
-- **La hauteur à l'écran ne bouge pas.** `env(safe-area-inset-top)` tombe à zéro, donc tout ce qui
-  lit `--safe-top` remonte de 59 pt **dans la vue web** — mais la vue web, elle, commence 59 pt
-  plus bas. Mesuré avant / après : titre 75 → 16, pilules 149 → 90, carte 199 → 140, feuille du
-  composeur 59 → 0, barre du bas inchangée. Exactement 59 partout, zéro erreur de console.
-- Les **sept endroits** qui lisent `--safe-top` (toast, porte, `/comptes`, feuille du composeur,
-  copie du voile du geste de retour, carte de pièce jointe, coque) le supportent : ils ne font que
-  perdre une réserve dont iOS s'occupe maintenant.
-- **La barre ne suit pas `theme-color`, c'est mesuré.** Sur l'appareil elle rend le **même blanc
-  cassé en clair et en sombre**, alors que `theme-color` vaut `#ffffff` d'un côté et `#0f0f0f` de
-  l'autre : iOS l'ignore pour cette bande. Il n'y a donc que deux valeurs, `default` (claire,
-  glyphes noirs) et `black` (noire, glyphes blancs), et **aucune ne suit le thème**. En sombre,
-  `default` pose une bande crème au-dessus d'une app noire — le pire des deux cas.
-- **Et elle ne peut pas suivre le thème.** Essayé : le script inline préposait une meta `black`
-  quand le thème sombre était posé, avant la première peinture, la première meta du document
-  gagnant. Réinstallé, testé sur l'appareil : **rien**. iOS lit cette meta **à l'installation**,
-  dans le HTML servi — pas au lancement, pas depuis le DOM ; une meta écrite par un script arrive
-  toujours trop tard. Code retiré, piste close, **ne pas la réessayer**.
-- **Il faut réinstaller la PWA** pour que le changement prenne, comme `display_override`.
+**Deux pistes essayées et closes**, à ne pas rouvrir :
 
-Reste le levier zéro, toujours valable : **ne rien faire**. C'est le rendu de toutes les apps du
-système sur iOS 27, et s'en écarter nous fait dépareiller au lieu de nous distinguer. On a tranché
-dans l'autre sens parce que le flou tombait sur le titre de la boîte, qui est la première chose
-qu'on lit.
+- **Un aplat sous la barre d'état.** L'effet descend plus bas que la bande sûre — mesuré à 393×852
+  avec les insets 59/34, l'indicateur de pages est à **59–71 pt** et le titre à **75–101**, tous
+  deux en dessous. Et ces 59 px sont déjà vides ; flouter un dégradé lisse rend le même dégradé.
+- **Une meta posée par le script inline.** Il préposait `black` en thème sombre, avant la première
+  peinture. Réinstallé, testé : **rien**. iOS lit `apple-mobile-web-app-status-bar-style` **à
+  l'installation**, dans le HTML servi — pas au lancement, pas depuis le DOM.
+
+**Et il n'y a pas de sortie côté web.** `scrollEdgeEffectStyle` existe pour UIKit et SwiftUI, pas
+pour une page ; `overscroll-behavior` ne parle pas de cet effet et iOS ne l'écoute pas de toute
+façon.
+
+**Ce qu'on garde donc** : le voile d'un bord à l'autre, et le flou d'iOS 27 avec. Il est le rendu
+du système — Safari le fait, Plans le fait, toutes les apps le font, et c'est en le voyant sur
+Kairos qu'on a compris qu'il ne venait pas de nous. Un flou que tout le monde a se lit comme natif ;
+une bande crème que personne n'a se lit comme un défaut.
 
 Sources : [WebKit in Safari 27 beta](https://webkit.org/blog/17967/news-from-wwdc26-webkit-in-safari-27-beta/) ·
 [Apply blur to iOS status bar in PWA](https://muffinman.io/blog/pwa-ios-status-bar-blur/) (la

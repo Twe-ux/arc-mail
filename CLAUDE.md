@@ -83,16 +83,16 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - **Le flou du haut appartient à iOS 27**, pas à nous : son « scroll edge effect » floute ce que la
   page peint sous la barre d'état, et ses glyphes sont dessinés par-dessus. Vérifié : rien dans
   notre chaîne d'ancêtres ne floute, et la même chose se voit sur Kairos. Ne pas re-chercher.
-- La barre d'état est donc en **`statusBarStyle: "default"`** : iOS reprend la bande du haut, il n'y
-  a plus rien à nous à flouter là, et **la hauteur à l'écran ne bouge pas** (`--safe-top` tombe à 0,
-  la vue web commence 59 pt plus bas — mesuré, tout descend d'exactement 59). Prix : la barre ne
-  suit pas `theme-color` (blanche dans les deux thèmes), et **changer ceci demande de réinstaller la
-  PWA**. Un aplat dans les 59 px du haut a été essayé sur le papier puis écarté : l'effet descend
-  jusqu'au titre (mesuré 59–71 pour les points, 75–101 pour le titre).
-- Cette bande **ne suit ni `theme-color` ni le thème** : mesuré, même blanc cassé dans les deux
-  thèmes quand la meta vaut `#ffffff` / `#0f0f0f` ; et une meta `black` posée par le script inline
-  avant la première peinture ne prend pas — iOS lit celle-là **à l'installation**, dans le HTML
-  servi, jamais depuis le DOM. Deux valeurs, `default` et `black`, et aucune ne suit le thème.
+- La barre d'état reste en **`black-translucent`** : c'est la seule des trois valeurs qui laisse le
+  voile monter jusqu'à l'encoche. `default` et `black` ont été essayées le 10 sept. et rendues — ni
+  l'une ni l'autre ne suit le thème (mesuré : même blanc cassé dans les deux thèmes quand
+  `theme-color` vaut `#ffffff` / `#0f0f0f`, et le `theme_color` du manifeste ne la commande pas),
+  et une bande crème au-dessus d'une app noire est pire que le flou. **Changer ceci demande de
+  réinstaller la PWA.**
+- Trois pistes closes, à ne pas rouvrir : un aplat dans les 59 px du haut (l'effet descend jusqu'au
+  titre — mesuré 59–71 pour les points, 75–101 pour le titre, et ces 59 px sont déjà vides) ; une
+  meta posée par le script inline (iOS la lit **à l'installation**, dans le HTML servi, jamais
+  depuis le DOM) ; et une sortie côté web (`scrollEdgeEffectStyle` est UIKit/SwiftUI seulement).
 - On **mesure** en émulation (393×852, insets 59/34 en CDP) avant et après chaque correctif visuel.
 
 **Cartes flottantes** (menu, recherche) →

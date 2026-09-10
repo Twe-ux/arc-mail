@@ -82,15 +82,25 @@ fabrique une nouvelle. Même mécanique que les libellés de Gmail, qui se déco
 
 Dans la ligne d'aperçu, avec la pause devant elle — c'est l'ordre du plus périssable au plus stable.
 
-**Sauf en densité compacte, où cette ligne n'existe pas** : la puce remonte alors sur la ligne du
-nom, calée à droite juste avant l'heure. Signalé le 8 sept. — « ajoute-les aussi dans la liste quand
-l'écran n'est pas en pleine largeur » : une étiquette n'est pas un morceau de l'aperçu, c'est un
-signal sur le fil, et elle n'a pas à payer le prix d'une densité.
+**Sauf en densité compacte, où cette ligne n'existe pas** : la puce descend alors au bout de la
+**ligne d'objet**, qui est la dernière — donc **sous la date**, exactement comme en confort où elle
+finit la ligne d'aperçu. Signalé le 8 sept. — « ajoute-les aussi dans la liste quand l'écran n'est
+pas en pleine largeur » : une étiquette n'est pas un morceau de l'aperçu, c'est un signal sur le
+fil, et elle n'a pas à payer le prix d'une densité.
 
-**Sur cette ligne-ci, pas sur une ligne à elle.** La première version lui donnait sa propre ligne
-sous l'objet : mesuré, la rangée passait de 53 à **77 px**, soit la hauteur du confort — une densité
-compacte qui ne compacte plus rien. Sur la ligne du nom elle coûte zéro pixel, cette ligne ayant de
-la place à revendre.
+**Elle a d'abord été posée sur la ligne du nom, et elle y flottait** (corrigé le 10 sept. —
+« pourquoi l'étiquette n'est pas sous la date ? »). Cause : **deux `ml-auto` sur une même rangée se
+partagent l'espace libre**, à parts égales. La puce se plaçait donc à mi-chemin entre le nom et
+l'heure, et son bord droit suivait la longueur du nom — mesuré de **505 à 538 px** sur huit rangées,
+quand la date tient une colonne à **615**. Une puce alignée sur rien ne dit plus « à droite, comme
+partout » : elle se lit comme une décoration posée au milieu du texte. Depuis, les deux bords droits
+sont à **615** sur toutes les rangées.
+
+**Pas une ligne à elle.** La première version lui donnait sa propre ligne sous l'objet : mesuré, la
+rangée passait de 53 à **77 px**, soit la hauteur du confort — une densité compacte qui ne compacte
+plus rien. Au bout de la ligne d'objet elle coûte toujours **zéro pixel** (rangée mesurée à 52 px
+avant comme après), et ce qu'elle prend en largeur, elle le prend à l'objet — comme en confort elle
+le prend à l'aperçu.
 
 Deux exemplaires, chacun caché dans les états de l'autre — c'est déjà ce que fait la date, pour la
 même raison : déplacer un élément d'une ligne à l'autre par le CSS demanderait de le sortir du bloc

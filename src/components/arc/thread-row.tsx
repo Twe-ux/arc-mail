@@ -313,28 +313,6 @@ export function ThreadRow({
               {thread.messages.length > 1 && (
                 <span className="shrink-0 text-xs text-muted-foreground tabular-nums">{thread.messages.length}</span>
               )}
-              {/* **Les puces remontent sur la ligne du nom en densité
-                  compacte.** La troisième ligne y disparaît, et les étiquettes
-                  disparaissaient avec elle : signalé le 8 sept., « ajoute-les
-                  aussi dans la liste quand l'écran n'est pas en pleine
-                  largeur ». Or une étiquette n'est pas un morceau de l'aperçu,
-                  c'est un signal sur le fil — elle n'a pas à payer le prix
-                  d'une densité.
-
-                  **Sur cette ligne-ci, pas sur une ligne à elle** : essayé, et
-                  mesuré à 77 px la rangée, soit la hauteur du confort — une
-                  densité compacte qui ne compacte plus rien. Ici elle coûte
-                  zéro pixel, la ligne du nom ayant de la place à revendre.
-                  `ml-auto` sur ce bloc : la date suit derrière, l'espace libre
-                  se met devant les deux.
-
-                  Deux exemplaires, chacun caché dans les états de l'autre :
-                  c'est déjà ce que fait la date juste en dessous, pour la même
-                  raison. Bureau seulement — sur téléphone « deux lignes » est
-                  un choix explicite, y ajouter une puce le rendrait faux. */}
-              <span className="ml-auto hidden shrink-0 items-center gap-1.5 md:group-data-[densite=compact]/liste:flex md:group-data-[large=true]/liste:hidden">
-                <Puces pause={pause?.wake} labels={thread.labels} />
-              </span>
               <time
                 dateTime={last.date}
                 suppressHydrationWarning
@@ -359,9 +337,36 @@ export function ThreadRow({
                 thread.unread ? "font-medium text-foreground" : "text-muted-foreground",
                 "md:group-data-[large=true]/liste:max-w-[46%] md:group-data-[large=true]/liste:shrink-0",
                 thread.unread && "md:group-data-[large=true]/liste:font-semibold",
+                /* En compact cette ligne est la dernière : elle devient une
+                   rangée pour recevoir les puces à son bout. */
+                "md:group-data-[densite=compact]/liste:flex md:group-data-[densite=compact]/liste:items-center md:group-data-[densite=compact]/liste:gap-2",
               )}
             >
-              <Surligne texte={thread.subject} requete={motsVue} />
+              <span className="truncate md:group-data-[densite=compact]/liste:min-w-0 md:group-data-[densite=compact]/liste:flex-1">
+                <Surligne texte={thread.subject} requete={motsVue} />
+              </span>
+              {/* **Les puces descendent au bout de la ligne d'objet en densité
+                  compacte** — sous la date, comme en confort où elles finissent
+                  la ligne d'aperçu. La ligne d'aperçu disparaît en compact et
+                  les étiquettes disparaissaient avec elle (signalé le 8 sept.) ;
+                  posées sur la ligne du nom, elles ont flotté entre le nom et la
+                  date jusqu'au 10 : **deux `ml-auto` sur une même rangée se
+                  partagent l'espace libre**, donc la puce se plaçait à mi-chemin
+                  et son bord droit dépendait de la longueur du nom — mesuré de
+                  505 à 538 px sur huit rangées, quand la date, elle, tient une
+                  colonne à 615. Une puce alignée sur rien ne dit plus « à droite,
+                  comme partout ».
+
+                  **Pas une ligne à elle** : essayé, mesuré à 77 px la rangée,
+                  soit la hauteur du confort — une densité compacte qui ne
+                  compacte plus rien. Ici elle coûte toujours zéro pixel, et ce
+                  qu'elle prend, elle le prend à l'objet, comme en confort elle
+                  le prend à l'aperçu. Bureau seulement — sur téléphone « deux
+                  lignes » est un choix explicite, y ajouter une puce le rendrait
+                  faux. */}
+              <span className="hidden shrink-0 items-center gap-1.5 md:group-data-[densite=compact]/liste:flex md:group-data-[large=true]/liste:hidden">
+                <Puces pause={pause?.wake} labels={thread.labels} />
+              </span>
             </span>
             <span className="mt-1 flex min-w-0 items-center gap-2 max-md:group-data-[lignes=2]/liste:hidden md:group-data-[densite=compact]/liste:hidden md:group-data-[large=true]/liste:mt-0 md:group-data-[large=true]/liste:flex-1">
               {/* L'aperçu, **ou le morceau qui a répondu** quand la vue a

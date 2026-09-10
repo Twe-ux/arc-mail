@@ -505,10 +505,12 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   une ligne à moitié cochée n'a pas d'inverse. La barre de sélection a donc une **cinquième** case,
   « Étiqueter » (236 px de verre, 14 px de marge à droite du rond sur 393), et la sélection **tient**
   après : une étiquette ne fait sortir personne de la liste.
-- La puce vit dans la ligne d'aperçu, **et sur la ligne du nom en densité compacte**, où cette ligne
-  n'existe pas : sur une ligne à elle, la rangée passait de 53 à 77 px — la hauteur du confort, donc
-  une densité qui ne compacte plus rien. Bureau seulement : sur téléphone « deux lignes » est un
-  choix explicite.
+- La puce vit **au bout de la dernière ligne, sous la date** : l'aperçu en confort, **l'objet en
+  compact** où l'aperçu n'existe pas. Sur une ligne à elle, la rangée passait de 53 à 77 px — la
+  hauteur du confort, donc une densité qui ne compacte plus rien ; sur la ligne du nom, elle
+  flottait — **deux `ml-auto` sur une rangée se partagent l'espace libre**, son bord droit suivait
+  donc la longueur du nom (mesuré 505 à 538 px quand la date tient une colonne à 615). Bureau
+  seulement : sur téléphone « deux lignes » est un choix explicite.
 
 **En pause** → [docs/features/pause.md](docs/features/pause.md)
 - Une pause porte **une date** — c'est ce qui la distingue d'un rangement. Cinq moments

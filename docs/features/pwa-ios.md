@@ -208,9 +208,18 @@ vue web commence en dessous, et il n'y a plus rien à nous à flouter là.
 - Les **sept endroits** qui lisent `--safe-top` (toast, porte, `/comptes`, feuille du composeur,
   copie du voile du geste de retour, carte de pièce jointe, coque) le supportent : ils ne font que
   perdre une réserve dont iOS s'occupe maintenant.
-- **Le prix** : la barre d'état ne suit **pas** `theme-color`. `default` la rend blanche à glyphes
-  noirs dans les deux thèmes ; `black` la rendrait noire dans les deux. Il n'y a pas de troisième
-  valeur — c'est un choix de goût, à revoir si le thème sombre s'en trouve mal.
+- **La barre ne suit pas `theme-color`, c'est mesuré.** Sur l'appareil elle rend le **même blanc
+  cassé en clair et en sombre**, alors que `theme-color` vaut `#ffffff` d'un côté et `#0f0f0f` de
+  l'autre : iOS l'ignore pour cette bande. Il n'y a donc que deux valeurs, `default` (claire,
+  glyphes noirs) et `black` (noire, glyphes blancs), et **aucune ne suit le thème**. En sombre,
+  `default` pose une bande crème au-dessus d'une app noire — le pire des deux cas.
+- **D'où le repli du script inline** : quand le thème sombre est posé, il **prépose une seconde
+  meta en `black`** avant la première peinture, et la première meta du document gagne. Si iOS relit
+  cette meta à chaque lancement, la bande suit le thème ; s'il ne la lit qu'à l'installation, rien
+  ne change et on reste sur `default` — le pire cas est donc l'état d'avant, jamais pire. Le thème
+  basculé **dans** l'app ne prendra qu'au lancement suivant, ce qui est le moment où ça compte.
+  **À confirmer sur l'appareil** ; si ça ne prend pas, le choix se réduit à une bande claire, une
+  bande noire, ou le retour à `black-translucent` avec le flou d'iOS 27.
 - **Il faut réinstaller la PWA** pour que le changement prenne, comme `display_override`.
 
 Reste le levier zéro, toujours valable : **ne rien faire**. C'est le rendu de toutes les apps du

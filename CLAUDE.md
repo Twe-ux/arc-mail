@@ -89,6 +89,10 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   suit pas `theme-color` (blanche dans les deux thèmes), et **changer ceci demande de réinstaller la
   PWA**. Un aplat dans les 59 px du haut a été essayé sur le papier puis écarté : l'effet descend
   jusqu'au titre (mesuré 59–71 pour les points, 75–101 pour le titre).
+- Cette bande **ne suit pas `theme-color`** (mesuré : même blanc cassé dans les deux thèmes, quand
+  la meta vaut `#ffffff` / `#0f0f0f`) — deux valeurs seulement, `default` et `black`. Le script
+  inline **prépose donc une meta `black` en thème sombre** : si iOS relit la meta au lancement, la
+  bande suit le thème ; sinon rien ne change. Le pire cas est l'état d'avant.
 - On **mesure** en émulation (393×852, insets 59/34 en CDP) avant et après chaque correctif visuel.
 
 **Cartes flottantes** (menu, recherche) →

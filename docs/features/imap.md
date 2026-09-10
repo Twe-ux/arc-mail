@@ -577,6 +577,21 @@ Trois garde-fous, dont deux sont des pièges rencontrés en écrivant :
   lettre, donc un chemin qui ne correspond à rien, donc **tous** les messages recollés. Le mock,
   qui n'a pas de dossiers, tombait dedans.
 
+**Le saut en entraîne un second, gratuit.** La première mesure d'après :
+
+    lecture : inbox · chemins 312 ms · dossier ? ms · envoyés sautés · 0 fils · total 535 ms
+
+`envoyés sautés` : la mécanique marche. Mais du coup **le `LIST` des chemins est devenu plus de la
+moitié de la lecture** — et il ne servait qu'à trouver le chemin d'« Envoyés ». Or la réception
+connaît le sien d'avance (c'est `inboxPath`). Quand on saute « Envoyés », on saute donc aussi le
+`LIST` : **un quatrième aller-retour** qui disparaît, et une lecture de réception qui n'en fait plus
+que deux — `SELECT` et `FETCH`. Les autres dossiers en ont toujours besoin pour se résoudre
+eux-mêmes.
+
+Cette ligne dit une autre chose au passage : `dossier ? ms` et `0 fils` veulent dire que
+`readFolder` est sorti **avant** de mesurer, sur `!total` ou `deja >= total` — un dossier vide, ou
+une page demandée au-delà de la fin.
+
 **Ce que ça coûte, et c'est assumé** : le repère a l'âge de la lecture d'avant. Une réponse écrite
 depuis un autre client pendant ce temps arrive **une lecture plus tard**. Le vérifier au moment de
 la lecture demanderait un `STATUS`, c'est-à-dire un aller-retour, c'est-à-dire la moitié du gain.

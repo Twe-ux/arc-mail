@@ -700,6 +700,10 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   On ne saute **que si on a de quoi recoller** (cache vide = on relit), un **envoi oublie le
   repère** (sa propre réponse ne doit jamais manquer), et le repère a l'âge de la lecture d'avant —
   une réponse écrite ailleurs arrive une lecture plus tard, prix assumé du non-aller-retour.
+- **Sauter « Envoyés » fait sauter le `LIST` avec lui** : il ne servait qu'à trouver son chemin, et
+  la réception connaît le sien (`inboxPath`). Mesuré : `chemins 312 ms` sur 535 — plus de la moitié
+  d'une lecture qui saute déjà. Une lecture de réception ne fait donc plus que **deux** allers-
+  retours, `SELECT` et `FETCH`.
 
 **Indésirable** → [docs/features/indesirable.md](docs/features/indesirable.md)
 - `junk` est le **seul dossier qui peut ne pas exister** : `bySpecial("\\Junk")` sans repli (deviner

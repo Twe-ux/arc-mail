@@ -125,7 +125,16 @@ export async function POST(request: NextRequest) {
            gagnerait quelque chose avant de l'écrire. */
         const chrono: Chrono = {};
         const debut = Date.now();
-        const envoyes = body.folder === "sent" ? undefined : (await paths()).sent;
+        /* **Et si on saute « Envoyés », le `LIST` ne sert plus à rien.**
+           Mesuré sur la vraie boîte, une fois le saut en place : `chemins
+           312 ms · envoyés sautés · total 535 ms` — le `LIST` était devenu
+           **plus de la moitié** de la lecture. Or il ne servait qu'à trouver
+           le chemin d'« Envoyés » : la réception, elle, connaît le sien
+           d'avance. Un quatrième aller-retour qui disparaît. Les autres
+           dossiers en ont toujours besoin pour se résoudre eux-mêmes, et le
+           demandent plus bas. */
+        const saut = !!body.envoyes;
+        const envoyes = body.folder === "sent" || saut ? undefined : (await paths()).sent;
         chrono.chemins = Date.now() - debut;
         /* **Le client décide, pas nous.** Il connaît le repère d'« Envoyés »
            par `listFolders`, qui tourne en parallèle de la lecture et ne coûte
@@ -133,7 +142,6 @@ export async function POST(request: NextRequest) {
            annulerait la moitié du gain. Son repère a donc l'âge de la lecture
            d'avant : une réponse écrite ailleurs entre-temps arrive une lecture
            plus tard, et un envoi depuis Arc Mail efface le repère. */
-        const saut = !!body.envoyes;
         const dire = () =>
           console.log(
             `lecture : ${body.folder} · chemins ${chrono.chemins} ms · dossier ${chrono.dossier ?? "?"} ms` +

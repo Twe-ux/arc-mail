@@ -92,7 +92,7 @@ export function AttachmentPreview() {
            dismiss fires before our gesture code sees the touch. */
         onPointerDownOutside={(e) => e.preventDefault()}
         onInteractOutside={(e) => e.preventDefault()}
-        className="inset-x-2 top-[calc(var(--safe-top)+0.5rem)] bottom-2 flex h-auto w-auto max-w-none flex-col gap-0 rounded-[36px] border-0 p-0 pb-3 shadow-2xl transition-none dark:bg-[#26262a] dark:ring-1 dark:ring-white/12"
+        className="inset-x-2 top-[calc(var(--safe-top)+var(--sous-flou)+0.5rem)] bottom-2 flex h-auto w-auto max-w-none flex-col gap-0 rounded-[36px] border-0 p-0 pb-3 shadow-2xl transition-none dark:bg-[#26262a] dark:ring-1 dark:ring-white/12"
       >
         <SheetTitle className="sr-only">{attachment.name}</SheetTitle>
         <SheetDescription className="sr-only">Pièce jointe de {message.from.name}</SheetDescription>

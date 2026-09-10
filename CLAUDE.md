@@ -91,8 +91,15 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   réinstaller la PWA.**
 - **La hauteur de la bande floue ne se règle pas** : dans Safari le système la pose sur *sa* barre,
   limitée au premier bord ; en app installée il n'a que notre page et la dimensionne lui-même.
-  `scrollEdgeEffectStyle` est UIKit/SwiftUI seulement. **Ce qui tombe dedans est à nous** : les
-  points de l'indicateur de pages (59–65 pt, le cœur de l'effet) sont passés de 20 à **35 %**.
+  `scrollEdgeEffectStyle` est UIKit/SwiftUI seulement.
+- **On descend sous lui : `--sous-flou`, 28 px**, actif seulement en `display-mode: standalone` sous
+  `md`. L'effet s'éteint entre **85 et 90 pt** — mesuré sur capture, netteté ligne par ligne contre
+  les glyphes de la barre d'état (barre 210–230 · nos points à 59–65 **3–5**, dissous · haut du titre
+  75–85 **43–97** · bas du titre 90–95 **208**) —, le premier élément peint est à 59, d'où 29 arrondi
+  à 28. **Quatre surfaces le lisent, une seule mesure** : coque, feuille du composeur, carte de pièce
+  jointe. Invisible en émulation (Chromium n'y est pas standalone) : forcer la variable pour mesurer.
+- Ce qui tombe quand même dedans est à nous : les points de l'indicateur de pages sont passés de 20
+  à **35 %**.
 - Trois pistes closes, à ne pas rouvrir : un aplat dans les 59 px du haut (l'effet descend jusqu'au
   titre — mesuré 59–71 pour les points, 75–101 pour le titre, et ces 59 px sont déjà vides) ; une
   meta posée par le script inline (iOS la lit **à l'installation**, dans le HTML servi, jamais

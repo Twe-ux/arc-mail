@@ -189,7 +189,7 @@ export function ComposeSheet({ draft }: { draft: ComposeDraft | null }) {
            lecteurs de la même mesure, une seule condition — sinon la barre
            rendait ses 34 px pendant le fantôme et sautait de 26 px à
            l'ouverture. */
-        className="inset-x-0 top-0 bottom-0 mt-[calc(var(--safe-top)+var(--vv-top,0px))] mb-[calc(0px-var(--vv-top,0px))] flex h-auto max-h-[100svh] w-auto max-w-none flex-col gap-0 rounded-t-[36px] border-0 p-0 pb-[var(--clavier)] shadow-[0_-8px_40px_rgb(0_0_0/0.28)] transition-none data-[state=open]:slide-in-from-bottom-8 data-[state=open]:duration-300 [--bas:max(0.5rem,calc(env(safe-area-inset-bottom)-12px))] [--clavier:0px] [&:has(:is(input,textarea,[contenteditable]):focus)]:[--bas:0.375rem] [&:has(:is(input,textarea,[contenteditable]):focus)]:[--clavier:var(--keyboard-inset,0px)] dark:bg-[#26262a] dark:ring-1 dark:ring-white/12"
+        className="inset-x-0 top-0 bottom-0 mt-[calc(var(--safe-top)+var(--sous-flou)+var(--vv-top,0px))] mb-[calc(0px-var(--vv-top,0px))] flex h-auto max-h-[100svh] w-auto max-w-none flex-col gap-0 rounded-t-[36px] border-0 p-0 pb-[var(--clavier)] shadow-[0_-8px_40px_rgb(0_0_0/0.28)] transition-none data-[state=open]:slide-in-from-bottom-8 data-[state=open]:duration-300 [--bas:max(0.5rem,calc(env(safe-area-inset-bottom)-12px))] [--clavier:0px] [&:has(:is(input,textarea,[contenteditable]):focus)]:[--bas:0.375rem] [&:has(:is(input,textarea,[contenteditable]):focus)]:[--clavier:var(--keyboard-inset,0px)] dark:bg-[#26262a] dark:ring-1 dark:ring-white/12"
       >
         {/* Le voile de l'espace, en haut de la feuille et lui seul : c'est ce
             qui la rattache à Arc Mail plutôt qu'à la feuille grise d'iOS.

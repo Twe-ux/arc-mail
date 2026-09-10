@@ -46,13 +46,12 @@ export const metadata: Metadata = {
    * Il n'y a donc que deux valeurs : `default` (bande claire, glyphes noirs) et
    * `black` (bande noire, glyphes blancs). Aucune ne suit le thème.
    *
-   * D'où le repli du script inline : il **prépose une seconde meta en `black`
-   * quand le thème sombre est posé**, avant la première peinture, et la première
-   * meta du document gagne. Si iOS relit cette meta à chaque lancement, la bande
-   * suit le thème ; s'il ne la lit qu'à l'installation, rien ne change et on
-   * reste sur `default` — le pire cas est donc l'état d'aujourd'hui. À vérifier
-   * sur l'appareil ; le thème basculé **dans** l'app ne prendra qu'au lancement
-   * suivant, ce qui est le moment où ça compte.
+   * **Et elle ne peut pas suivre le thème.** Essayé le 10 sept. : le script inline
+   * préposait une meta `black` quand le thème sombre était posé, avant la
+   * première peinture. Réinstallé, testé : **rien**. iOS lit cette meta **à
+   * l'installation**, dans le HTML servi, pas au lancement et pas depuis le DOM
+   * — une meta écrite par un script arrive toujours trop tard. Le code est
+   * retiré ; ne pas le réessayer.
    *
    * **Changer ceci demande de réinstaller la PWA**, comme `display_override`.
    */
@@ -90,7 +89,7 @@ export const viewport: Viewport = {
  * `colorScheme` goes with it, so the canvas the browser paints around us during
  * the navigation is dark too, not just our own background.
  */
-const THEME_SCRIPT = `try{var s=localStorage.getItem("arc-mail");var d=!!(s&&JSON.parse(s).state&&JSON.parse(s).state.dark);var e=document.documentElement;if(d)e.classList.add("dark");e.style.colorScheme=d?"dark":"light";var m=document.createElement("meta");m.name="theme-color";m.id="theme-color";m.content=d?"${PAGE_DARK}":"${PAGE_LIGHT}";document.head.prepend(m);if(d){var b=document.createElement("meta");b.name="apple-mobile-web-app-status-bar-style";b.content="black";document.head.prepend(b)}}catch(_){}`;
+const THEME_SCRIPT = `try{var s=localStorage.getItem("arc-mail");var d=!!(s&&JSON.parse(s).state&&JSON.parse(s).state.dark);var e=document.documentElement;if(d)e.classList.add("dark");e.style.colorScheme=d?"dark":"light";var m=document.createElement("meta");m.name="theme-color";m.id="theme-color";m.content=d?"${PAGE_DARK}":"${PAGE_LIGHT}";document.head.prepend(m)}catch(_){}`;
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (

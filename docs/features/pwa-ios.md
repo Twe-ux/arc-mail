@@ -213,13 +213,11 @@ vue web commence en dessous, et il n'y a plus rien à nous à flouter là.
   l'autre : iOS l'ignore pour cette bande. Il n'y a donc que deux valeurs, `default` (claire,
   glyphes noirs) et `black` (noire, glyphes blancs), et **aucune ne suit le thème**. En sombre,
   `default` pose une bande crème au-dessus d'une app noire — le pire des deux cas.
-- **D'où le repli du script inline** : quand le thème sombre est posé, il **prépose une seconde
-  meta en `black`** avant la première peinture, et la première meta du document gagne. Si iOS relit
-  cette meta à chaque lancement, la bande suit le thème ; s'il ne la lit qu'à l'installation, rien
-  ne change et on reste sur `default` — le pire cas est donc l'état d'avant, jamais pire. Le thème
-  basculé **dans** l'app ne prendra qu'au lancement suivant, ce qui est le moment où ça compte.
-  **À confirmer sur l'appareil** ; si ça ne prend pas, le choix se réduit à une bande claire, une
-  bande noire, ou le retour à `black-translucent` avec le flou d'iOS 27.
+- **Et elle ne peut pas suivre le thème.** Essayé : le script inline préposait une meta `black`
+  quand le thème sombre était posé, avant la première peinture, la première meta du document
+  gagnant. Réinstallé, testé sur l'appareil : **rien**. iOS lit cette meta **à l'installation**,
+  dans le HTML servi — pas au lancement, pas depuis le DOM ; une meta écrite par un script arrive
+  toujours trop tard. Code retiré, piste close, **ne pas la réessayer**.
 - **Il faut réinstaller la PWA** pour que le changement prenne, comme `display_override`.
 
 Reste le levier zéro, toujours valable : **ne rien faire**. C'est le rendu de toutes les apps du

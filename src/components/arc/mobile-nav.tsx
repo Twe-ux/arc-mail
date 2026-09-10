@@ -10,12 +10,16 @@ import {
   MoreHorizontal,
   Search,
   SquarePen,
+  Tag,
   Trash2,
 } from "lucide-react";
+import { useState } from "react";
 
 import { useMail, useSpace, useSpaces } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { ActionBar, Pill, PillCase, RoundButton } from "./action-pill";
+import { BottomSheet, SheetGroup, SheetScroller } from "./bottom-sheet";
+import { EtiquettesChoix } from "./etiquettes-menu";
 import { SPACE_ICONS } from "./space-icon";
 
 /**
@@ -44,8 +48,11 @@ export function MobileNav({ className }: { className?: string }) {
  * les cherche. Naviguer pendant qu'on sélectionne n'a de toute façon pas de
  * sens — changer d'espace ou de dossier vide la sélection.
  *
- * Quatre cases et le bouton rond, le gabarit des deux autres barres : tout
- * sélectionner, marquer comme lu, archiver, supprimer, puis « Terminé ». Les
+ * Cinq cases et le bouton rond : tout sélectionner, marquer comme lu,
+ * étiqueter, archiver, supprimer, puis « Terminé ». La cinquième est arrivée
+ * avec « Tout de … » — cocher tout ce qu'une personne a écrit ne servirait à
+ * rien si la barre ne savait qu'archiver et jeter. Mesuré : 5 × 44 + 16 de
+ * verre + 56 de bouton rond + les marges de 14 tiennent dans 393 px. Les
  * quatre premières sont éteintes tant que rien n'est coché — sauf « tout
  * sélectionner », qui est justement le moyen de cocher.
  */
@@ -62,6 +69,7 @@ function BarreSelection({ className }: { className?: string }) {
      d'état commun à basculer ; le bouton dit donc ce qu'il va faire, et il
      fait passer tout le monde du même côté. */
   const desNonLus = threads.some((t) => selection.includes(t.id) && t.unread);
+  const [tags, setTags] = useState(false);
 
   return (
     <nav aria-label="Sélection" className={cn("md:hidden", className)}>
@@ -78,6 +86,12 @@ function BarreSelection({ className }: { className?: string }) {
             onClick={() => marquerLus(selection, !desNonLus)}
           >
             {desNonLus ? <MailOpen strokeWidth={1.75} /> : <Mail strokeWidth={1.75} />}
+          </PillCase>
+          {/* **Étiqueter en groupe.** La feuille reste ouverte quand on coche
+              — on pose souvent deux étiquettes d'affilée — et la sélection
+              tient : une étiquette ne fait sortir personne de la liste. */}
+          <PillCase label="Étiqueter" disabled={vide} onClick={() => setTags(true)}>
+            <Tag strokeWidth={1.75} />
           </PillCase>
           <PillCase label="Archiver" disabled={vide} onClick={() => moveThreads(selection, "archive")}>
             <Archive strokeWidth={1.75} />
@@ -96,6 +110,19 @@ function BarreSelection({ className }: { className?: string }) {
           <Check strokeWidth={2.5} />
         </RoundButton>
       </ActionBar>
+
+      <BottomSheet
+        open={tags}
+        onOpenChange={setTags}
+        title="Étiqueter"
+        description="Poser une étiquette sur les conversations sélectionnées"
+      >
+        <SheetScroller>
+          <SheetGroup>
+            <EtiquettesChoix taille="sheet" ids={selection} />
+          </SheetGroup>
+        </SheetScroller>
+      </BottomSheet>
     </nav>
   );
 }

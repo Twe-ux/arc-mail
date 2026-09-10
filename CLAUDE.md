@@ -495,6 +495,16 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   tous les fils), re-toucher l'étiquette ouverte la retire, le groupe n'existe que s'il y en a, et
   `etiquette` ne se persiste pas. **Pas de compte à côté du nom** — il ne serait juste que dans le
   dossier ouvert.
+- **« Tout de … »** (`⋯` du bureau, feuille « Plus » du téléphone, après un filet) ne fait que
+  **remplir la sélection** avec les fils de la même personne (`enFace`, « Tout à … » depuis
+  Envoyés) : étiqueter, ranger, le toast et l'annulation existent déjà. Elle n'existe pas en
+  dessous de **deux** fils — à un seul, toucher l'avatar fait la même chose — et elle **ferme la
+  lecture** : c'est la liste qu'on regarde ensuite.
+- `EtiquettesChoix` prend **une liste d'identifiants** ; un fil est le cas où elle en compte un.
+  Sur plusieurs, la ligne a **trois états** (coche · tiret · rien) et **pose** au lieu de basculer —
+  une ligne à moitié cochée n'a pas d'inverse. La barre de sélection a donc une **cinquième** case,
+  « Étiqueter » (236 px de verre, 14 px de marge à droite du rond sur 393), et la sélection **tient**
+  après : une étiquette ne fait sortir personne de la liste.
 - La puce vit dans la ligne d'aperçu, **et sur la ligne du nom en densité compacte**, où cette ligne
   n'existe pas : sur une ligne à elle, la rangée passait de 53 à 77 px — la hauteur du confort, donc
   une densité qui ne compacte plus rien. Bureau seulement : sur téléphone « deux lignes » est un

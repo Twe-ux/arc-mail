@@ -5,6 +5,7 @@ import {
   ChevronRight,
   Clock,
   Forward,
+  ListChecks,
   Mail,
   MailOpen,
   Paperclip,
@@ -14,9 +15,10 @@ import {
   Trash2,
   type LucideIcon,
 } from "lucide-react";
+import { useMemo } from "react";
 
 import { FOLDER_ICON, signalement } from "@/lib/folders";
-import { selectAJunk, useMail } from "@/lib/store";
+import { selectAJunk, useMail, useMemeExpediteur } from "@/lib/store";
 import type { Thread, DossierCible } from "@/lib/types";
 import { BottomSheet, SheetGroup, SheetRow, SheetScroller } from "./bottom-sheet";
 import { EtiquettesChoix } from "./etiquettes-menu";
@@ -76,6 +78,12 @@ export function ThreadSheets({
   /* Sans dossier d'indésirables, ni la destination ni l'action n'ont où aller. */
   const aJunk = useMail(selectAJunk);
   const signaler = signalement(thread.folder);
+  /* Les fils de la même personne — `null` s'il n'y en a qu'un, et la rangée
+     n'existe alors pas : toucher l'avatar dans la liste fait déjà cela. */
+  const meme = useMemeExpediteur(thread.id);
+  /* Un tableau stable : le menu d'étiquettes le prend en dépendance. */
+  const seul = useMemo(() => [thread.id], [thread.id]);
+  const selectionnerFils = useMail((s) => s.selectionnerFils);
   /* La première pièce jointe du fil : ce que « Pièces jointes » ouvre. */
   const premierePiece = thread.messages.flatMap((m) => m.attachments ?? [])[0];
 
@@ -168,6 +176,29 @@ export function ThreadSheets({
               </SheetRow>
             )}
           </SheetGroup>
+          {/* **Un second groupe, parce que ce n'est plus la même chose.** Tout
+              ce qui précède agit sur la conversation ouverte ; cette rangée
+              revient à la liste avec tout ce que cette personne a écrit
+              déjà coché — et c'est la barre de sélection qui étiquette, range
+              et annule, comme elle le fait pour une sélection à la main. */}
+          {meme && (
+            <SheetGroup className="mt-3">
+              <SheetRow
+                onClick={() => {
+                  onSheet(null);
+                  selectionnerFils(meme.ids);
+                }}
+              >
+                <ListChecks className="size-5 shrink-0" strokeWidth={1.75} />
+                <span className="min-w-0 flex-1 truncate text-[15px]">
+                  Tout {thread.folder === "sent" ? "à" : "de"} {meme.nom}
+                </span>
+                <span className="shrink-0 text-[13px] tabular-nums text-muted-foreground">
+                  {meme.ids.length}
+                </span>
+              </SheetRow>
+            </SheetGroup>
+          )}
         </SheetScroller>
       </BottomSheet>
 
@@ -206,7 +237,7 @@ export function ThreadSheets({
       >
         <SheetScroller>
           <SheetGroup>
-            <EtiquettesChoix taille="sheet" threadId={thread.id} actuelles={thread.labels} />
+            <EtiquettesChoix taille="sheet" ids={seul} />
           </SheetGroup>
         </SheetScroller>
       </BottomSheet>

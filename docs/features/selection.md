@@ -169,7 +169,22 @@ Sondes Playwright, bureau 1280×800 et téléphone 393×852 (insets 59/34), 0 er
 
 ## Reste ouvert
 
-- Pas de « Ajouter aux favoris » ni de « Signaler comme indésirable » en groupe : quatre cases
-  tiennent dans la pill, une cinquième ne tient pas. À reprendre quand un menu `⋯` de sélection
-  aura une raison d'exister.
+- Pas de « Ajouter aux favoris » ni de « Signaler comme indésirable » en groupe. La pill en porte
+  **cinq** depuis le 10 septembre (étiqueter s'est ajoutée) — mesuré 236 px de verre, 14 px de
+  marge à droite du bouton rond sur 393 px — mais une sixième ne tient plus. À reprendre quand un
+  menu `⋯` de sélection aura une raison d'exister.
 - La sélection ne survit pas au rechargement, et c'est voulu.
+
+## Remplir la sélection d'un coup (10 sept. 2026)
+
+`selectionnerFils(ids)` coche une liste et ouvre le mode. Son seul appelant est « Tout de … »,
+la rangée qui prend tous les fils d'une même personne →
+[étiquettes](etiquettes.md#tout-ce-qui-vient-dune-personne-10-sept-2026). Le store reçoit une
+liste d'identifiants et rien d'autre : il n'a pas à savoir de qui elle vient.
+
+Il ferme la lecture (`selectedThreadId`, `third`) — la liste est ce qu'on regarde à partir de là —
+et pose l'ancre sur le dernier coché, pour qu'un Maj-clic qui suit parte de quelque part.
+
+La barre de sélection a gagné **« Étiqueter »**, sa cinquième case : cocher dix messages d'une
+personne ne servirait à rien si la barre ne savait qu'archiver et jeter. La sélection **reste**
+après — une étiquette ne fait sortir personne de la liste.

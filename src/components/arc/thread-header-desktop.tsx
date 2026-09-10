@@ -1,7 +1,7 @@
 "use client";
 
-import { Archive, ChevronLeft, Clock, Forward, type LucideIcon, Mail, MailOpen, MoreHorizontal, ReplyAll, ShieldAlert, Star, Tag, Trash2, X } from "lucide-react";
-import { useState } from "react";
+import { Archive, ChevronLeft, Clock, Forward, ListChecks, type LucideIcon, Mail, MailOpen, MoreHorizontal, ReplyAll, ShieldAlert, Star, Tag, Trash2, X } from "lucide-react";
+import { useMemo, useState } from "react";
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { EtiquettesChoix } from "./etiquettes-menu";
@@ -9,7 +9,7 @@ import { PauseChoix } from "./pause-menu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 import { signalement } from "@/lib/folders";
-import { selectAJunk, useMail } from "@/lib/store";
+import { selectAJunk, useMail, useMemeExpediteur } from "@/lib/store";
 import type { Thread, DossierCible } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { ContactAvatar } from "./contact-avatar";
@@ -55,6 +55,12 @@ export function ThreadHeaderDesktop({
   const toggleStar = useMail((s) => s.toggleStar);
   const aJunk = useMail(selectAJunk);
   const signaler = signalement(thread.folder);
+  /* « Tout de … » : la liste des fils de la même personne, ou rien s'il n'y en
+     a qu'un — la rangée n'existe alors pas. */
+  const meme = useMemeExpediteur(thread.id);
+  /* Un tableau stable : le menu d'étiquettes le prend en dépendance. */
+  const seul = useMemo(() => [thread.id], [thread.id]);
+  const selectionnerFils = useMail((s) => s.selectionnerFils);
   const [menu, setMenu] = useState(false);
   /* **Un sous-menu à la place du menu, pas à côté.** Un second popover ancré
      sur une rangée du premier se serait posé hors de la fenêtre une fois sur
@@ -134,7 +140,7 @@ export function ThreadHeaderDesktop({
               {/* Le menu **reste ouvert** : on pose souvent deux étiquettes
                   d'affilée, et se faire refermer entre les deux ferait
                   rouvrir le `⋯` à chaque fois. */}
-              <EtiquettesChoix threadId={thread.id} actuelles={thread.labels} />
+              <EtiquettesChoix ids={seul} />
             </>
           ) : pause ? (
             <>
@@ -207,6 +213,25 @@ export function ThreadHeaderDesktop({
               }}
             />
           )}
+          {/* **Ce qui suit ne porte plus sur cette conversation.** Le filet le
+              dit : au-dessus on agit sur ce qu'on lit, en dessous on prend
+              tout ce que cette personne a écrit — et c'est la sélection
+              multiple qui fera le reste, avec ses étiquettes, son rangement,
+              son toast et son annulation. */}
+          {meme && (
+            <>
+              <Filet />
+              <Rangee
+                icon={ListChecks}
+                label={`Tout ${thread.folder === "sent" ? "à" : "de"} ${meme.nom}`}
+                compte={meme.ids.length}
+                onClick={() => {
+                  setMenu(false);
+                  selectionnerFils(meme.ids);
+                }}
+              />
+            </>
+          )}
           </>
           )}
         </PopoverContent>
@@ -256,11 +281,14 @@ function Rangee({
   icon: Icon,
   label,
   raccourci,
+  compte,
   onClick,
 }: {
   icon: LucideIcon;
   label: string;
   raccourci?: string;
+  /** Un nombre à la place du raccourci, dans la même colonne de fin. */
+  compte?: number;
   onClick: () => void;
 }) {
   return (
@@ -272,6 +300,9 @@ function Rangee({
       <Icon className="size-4 shrink-0 text-muted-foreground" />
       <span className="min-w-0 flex-1 truncate">{label}</span>
       {raccourci && <span className="shrink-0 text-xs text-muted-foreground">{raccourci}</span>}
+      {compte !== undefined && (
+        <span className="shrink-0 text-xs tabular-nums text-muted-foreground">{compte}</span>
+      )}
     </button>
   );
 }

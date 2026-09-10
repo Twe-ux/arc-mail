@@ -122,6 +122,20 @@ const OPENERS = {
        `CLICK_VISIBLE`. */
     `[...document.querySelectorAll('button[aria-label^="Plus"]')].find((b) => b.offsetParent !== null)?.click()`,
   ],
+  /* **Tout ce qui vient de la même personne.** La Poste a deux fils dans la
+     réception Perso du mock (compté dans la vue par correspondant, pas
+     supposé) : c'est la seule condition pour que la rangée existe. */
+  "tout-de": [
+    CLICK_TEXT("Votre colis est en route"),
+    `[...document.querySelectorAll('button[aria-label^="Plus"]')].find((b) => b.offsetParent !== null)?.click()`,
+  ],
+  /* La suite du même geste : la sélection remplie, puis les étiquettes. */
+  "selection-etiquettes": [
+    CLICK_TEXT("Votre colis est en route"),
+    `[...document.querySelectorAll('button[aria-label^="Plus"]')].find((b) => b.offsetParent !== null)?.click()`,
+    CLICK_VISIBLE("Tout de La Poste"),
+    `[...document.querySelectorAll('button[aria-label="Étiqueter"]')].find((b) => b.offsetParent !== null)?.click()`,
+  ],
   /* Le fil qui porte des citations : c'est celui qui montre le repli et, en
      mode discussion, l'alternance des deux côtés. */
   discussion: [CLICK_TEXT("Tu as vu le vélo sur leboncoin ?")],
@@ -174,7 +188,7 @@ const OPENERS = {
 };
 
 /** Les écrans qui ne sont pas des cartes flottantes : rien à mesurer, mais à capturer partout. */
-const BOTH_SIZES = new Set(["fil", "discussion", "formes", "reponse-volet", "infolettre", "piece-jointe", "rail", "masquee", "volet-message", "composeur", "html-large", "correspondants", "correspondants-large", "indesirable", "indesirable-plus", "vide", "nouvel-espace"]);
+const BOTH_SIZES = new Set(["fil", "discussion", "formes", "reponse-volet", "infolettre", "piece-jointe", "rail", "masquee", "volet-message", "composeur", "html-large", "correspondants", "correspondants-large", "indesirable", "indesirable-plus", "vide", "nouvel-espace", "tout-de", "selection-etiquettes"]);
 
 const CARD = `(() => {
   const el = document.querySelector('[data-slot="sheet-content"], [data-slot="dialog-content"]');

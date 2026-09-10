@@ -251,6 +251,15 @@ export type MailState = {
   /** Maj-clic : de la dernière rangée touchée jusqu'à celle-ci, dans l'ordre affiché. */
   etendreSelection: (id: string) => void;
   toutSelectionner: () => void;
+  /**
+   * Cocher une liste de fils d'un coup, et entrer dans le mode.
+   *
+   * Le seul appelant d'aujourd'hui est « Tout de … » : le geste vise une
+   * personne, mais ce que le store reçoit est une liste d'identifiants — il
+   * n'a pas à savoir de qui elle vient. Ce qui suit — étiqueter, ranger, le
+   * toast, l'annulation — existe déjà.
+   */
+  selectionnerFils: (ids: string[]) => void;
   finSelection: () => void;
   /** Le même déplacement pour n fils, **un seul** toast et une seule annulation. */
   moveThreads: (ids: string[], folder: DossierCible) => void;
@@ -287,6 +296,19 @@ export type MailState = {
    * bruit. Un refus du serveur, lui, se voit — `commit` ramène le fil.
    */
   setLabels: (id: string, labels: string[]) => void;
+
+  /**
+   * **La même étiquette sur plusieurs fils — posée, pas basculée.**
+   *
+   * Dix fils dont trois portent « Factures » n'ont pas d'état commun à
+   * inverser : le menu dit ce qu'il va faire (les mettre tous d'accord) et
+   * `pose` porte cette décision. Chaque fil garde son propre appel — le
+   * fournisseur calcule la différence par message, et un fil qui porte déjà
+   * l'étiquette n'écrit rien.
+   *
+   * Pas de toast : cocher se défait en décochant, comme pour un seul fil.
+   */
+  etiqueterFils: (ids: string[], label: string, pose: boolean) => void;
   removeRecent: (id: string) => void;
   clearRecent: () => void;
   toggleSplit: () => void;
@@ -1601,6 +1623,19 @@ export const useMail = create<MailState>()(
     );
   },
 
+  etiqueterFils: (ids, label, pose) => {
+    const nom = label.trim();
+    if (!nom) return;
+    for (const id of ids) {
+      /* Relu à chaque tour : `setLabels` vient d'écrire dans `threads`. */
+      const t = get().threads.find((x) => x.id === id);
+      if (!t) continue;
+      const dedans = t.labels.includes(nom);
+      if (dedans === pose) continue;
+      get().setLabels(id, pose ? [...t.labels, nom] : t.labels.filter((l) => l !== nom));
+    }
+  },
+
   ouvrirSelection: (id) =>
     set((s) => ({
       selectionOn: true,
@@ -1663,6 +1698,26 @@ export const useMail = create<MailState>()(
        décocher la dernière rangée — la différence est celle de l'intention. */
     const toutes = visibles.length > 0 && visibles.every((v) => s.selection.includes(v));
     set({ selectionOn: true, selection: toutes ? [] : visibles, ancreSelection: null });
+  },
+
+  /**
+   * **La lecture se ferme.** Sur téléphone la liste est derrière le mail
+   * ouvert, et une sélection posée dessous ne se verrait qu'au retour ; sur
+   * bureau la liste tombe à 360 px à côté de la lecture, alors qu'on vient de
+   * demander un geste qui porte sur plusieurs rangées. Dans les deux cas, ce
+   * qu'on regarde maintenant est la liste.
+   *
+   * L'ancre est le dernier coché : un Maj-clic qui suit part de là.
+   */
+  selectionnerFils: (ids) => {
+    if (ids.length === 0) return;
+    set({
+      selectedThreadId: null,
+      third: null,
+      selectionOn: true,
+      selection: ids,
+      ancreSelection: ids[ids.length - 1],
+    });
   },
 
   finSelection: () => set({ selectionOn: false, selection: [], ancreSelection: null }),
@@ -2472,6 +2527,42 @@ function enFace(t: Thread, moi: string): Contact {
   const dernier = t.messages[t.messages.length - 1];
   if (dernier.from.email.toLowerCase() !== moi) return dernier.from;
   return dernier.to[0] ?? dernier.from;
+}
+
+/**
+ * Tout ce qui, dans la liste qu'on regarde, vient de la même personne.
+ *
+ * C'est la réponse à « et si toutes les adresses identiques prenaient aussi
+ * cette étiquette ? » — sans inventer ni règle qui tourne toute seule, ni
+ * action en masse de plus : la sélection multiple sait déjà étiqueter, ranger,
+ * marquer, et défaire. Ce geste-ci ne fait que **la remplir**.
+ *
+ * « La même personne » se lit avec `enFace`, comme la vue par correspondant :
+ * l'expéditeur du dernier message, ou le destinataire si c'est nous — sinon
+ * « Envoyés » ne désignerait jamais que soi.
+ *
+ * **Rien en dessous de deux fils** : à un seul, la rangée ferait ce que
+ * toucher l'avatar fait déjà, en trois clics de plus. Et rien non plus si le
+ * fil ouvert n'est pas dans la liste (un résultat de recherche qu'on n'a pas
+ * versé) : la sélection ne pourrait pas s'y voir.
+ */
+export function useMemeExpediteur(id: string | null): { nom: string; ids: string[] } | null {
+  const threads = useVisibleThreads();
+  const spaces = useMail((s) => s.spaces);
+  const spaceId = useMail((s) => s.spaceId);
+
+  return useMemo(() => {
+    if (!id) return null;
+    const cible = threads.find((t) => t.id === id);
+    if (!cible) return null;
+    const moi = (spaces.find((sp) => sp.id === spaceId)?.identity.email ?? "").toLowerCase();
+    const qui = enFace(cible, moi);
+    const cle = qui.email.toLowerCase();
+    if (!cle) return null;
+    const ids = threads.filter((t) => enFace(t, moi).email.toLowerCase() === cle).map((t) => t.id);
+    if (ids.length < 2) return null;
+    return { nom: qui.name || qui.email, ids };
+  }, [id, threads, spaces, spaceId]);
 }
 
 /**

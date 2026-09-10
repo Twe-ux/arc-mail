@@ -154,3 +154,48 @@ règle de la recherche, et la seule entorse assumée reste le groupe Vues, qui g
 
 `etiquette` n'est **jamais persistée** et se vide comme tout changement de liste (dossier, espace,
 vue) : elle décrit un écran, pas un goût.
+
+## Tout ce qui vient d'une personne (10 sept. 2026)
+
+Demandé le même jour : « est-il possible que toutes les adresses identiques prennent aussi cette
+étiquette ? », et « peut-on avoir un signet/dossier qui peut être créé pour les transférer
+automatiquement ou en un clic ? ». La seconde moitié de la seconde — la règle qui tourne toute
+seule — **n'est pas faite, et pas par oubli** : une règle côté client ne s'applique que quand
+l'app est ouverte, alors qu'iCloud+ range déjà à la réception, serveur allumé ou non ; et IMAP ne
+sait pas créer de règle. Promettre « automatiquement » depuis Arc Mail serait promettre « quand tu
+regardes », c'est-à-dire le contraire.
+
+Reste le reste, et il tient dans **une rangée**.
+
+**« Tout de … » — une action, pas deux.** Il aurait fallu « étiqueter tout de X » et « ranger tout
+de X », puis « marquer tout de X », puis leur toast, leur annulation, leurs libellés au pluriel.
+La sélection multiple sait déjà tout cela. La rangée ne fait donc que **la remplir** : elle coche
+les fils de la même personne, ouvre le mode, et rend la main. Ce qui suit — étiqueter, archiver,
+jeter, marquer, annuler — est ce qui existait hier.
+
+- Elle vit dans le `⋯` de la conversation (bureau) et dans la feuille « Plus » (téléphone),
+  **après un filet ou dans un second groupe** : au-dessus on agit sur ce qu'on lit, en dessous sur
+  ce que cette personne a écrit.
+- Le libellé porte le nom (« Tout de La Poste »), et le nombre à droite. Depuis « Envoyés » c'est
+  « Tout à … » : `enFace` y rend le destinataire, et « de » désignerait soi.
+- **Elle n'existe pas en dessous de deux fils** : à un seul, elle ferait ce que toucher l'avatar
+  fait déjà, en trois gestes de plus.
+- **La lecture se ferme.** Sur téléphone la liste est derrière le mail ouvert ; sur bureau elle
+  tombe à 360 px à côté de lui. Dans les deux cas, ce qu'on regarde maintenant est la liste.
+- « La même personne » se lit avec `enFace`, l'aide de la vue par correspondant — l'expéditeur du
+  dernier message, ou le destinataire si c'est nous.
+
+**Étiqueter en groupe.** La barre de sélection savait archiver, jeter et marquer ; elle ne savait
+pas étiqueter, et sans cela cocher les dix messages d'une personne ne menait nulle part. Une case
+`Tag` de plus dans les deux barres (popover sur bureau, feuille sur téléphone) — mesuré 236 px de
+verre et 14 px de marge à droite du bouton rond sur 393 px, la cinquième case tient.
+
+`EtiquettesChoix` prend maintenant **une liste d'identifiants** ; un fil est le cas où elle en
+compte un. Sur plusieurs, la ligne a **trois états** — tous la portent (coche), quelques-uns
+(tiret), aucun (rien) — et elle **pose** au lieu de basculer : une ligne à moitié cochée n'a pas
+d'inverse, donc le geste met tout le monde d'accord, et il faut qu'ils le soient pour la retirer.
+`etiqueterFils(ids, label, pose)` boucle sur `setLabels`, qui garde son écriture optimiste et son
+`commit` par fil : un refus du serveur ne ramène que le fil refusé.
+
+**La sélection tient après l'étiquetage** — contrairement à un rangement, une étiquette ne fait
+sortir personne de la liste, et on en pose souvent deux d'affilée.

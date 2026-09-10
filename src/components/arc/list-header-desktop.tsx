@@ -10,17 +10,22 @@ import {
   Search,
   Square,
   SquarePen,
+  Tag,
   Trash2,
   X,
   type LucideIcon,
 } from "lucide-react";
 
+import { useState } from "react";
+
 import { Kbd } from "@/components/ui/kbd";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { VUE_ICON } from "@/lib/folders";
 import { selectFolder, selectUnreadCount, selectVue, useMail, useSpace, useSpaces, useVisibleThreads, type SidebarMode } from "@/lib/store";
 import type { FolderId } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { EtiquettesChoix } from "./etiquettes-menu";
 import { EPINGLES, GroupByToggle, plural, Segmented } from "./list-header";
 import { SPACE_ICONS } from "./space-icon";
 import { SyncButton } from "./sync-button";
@@ -261,6 +266,7 @@ function BarreSelection() {
   const finSelection = useMail((s) => s.finSelection);
   const moveThreads = useMail((s) => s.moveThreads);
   const marquerLus = useMail((s) => s.marquerLus);
+  const [tags, setTags] = useState(false);
   const n = selection.length;
   const vide = n === 0;
   const desNonLus = threads.some((t) => selection.includes(t.id) && t.unread);
@@ -282,6 +288,33 @@ function BarreSelection() {
           {/* L'icône dit le résultat, pas l'état. */}
           {desNonLus ? <MailOpen className="size-4" /> : <Mail className="size-4" />}
         </CaseSelection>
+        {/* **Étiqueter en groupe**, la réponse à « et si toutes les adresses
+            identiques prenaient la même étiquette ? » : on coche la personne
+            depuis le `⋯` d'un de ses fils, puis on pose l'étiquette ici. La
+            sélection **reste** — une étiquette ne fait sortir personne de la
+            liste, contrairement à un rangement. L'ordre du gabarit est celui
+            de la fiche : `Tooltip > TooltipTrigger asChild > PopoverTrigger
+            asChild > bouton`, sinon le bouton devient muet. */}
+        <Popover open={tags} onOpenChange={setTags}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  disabled={vide}
+                  aria-label="Étiqueter"
+                  className={cn(CASE_SELECTION, "text-muted-foreground hover:text-foreground")}
+                >
+                  <Tag className="size-4" />
+                </button>
+              </PopoverTrigger>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">Étiqueter</TooltipContent>
+          </Tooltip>
+          <PopoverContent align="end" sideOffset={8} className="w-[246px] rounded-xl p-1">
+            <EtiquettesChoix ids={selection} />
+          </PopoverContent>
+        </Popover>
         <CaseSelection
           label="Archiver"
           disabled={vide}
@@ -305,6 +338,10 @@ function BarreSelection() {
   );
 }
 
+/** 30 px, rayon 8 : la mesure des cases de la barre de sélection, en un endroit. */
+const CASE_SELECTION =
+  "grid size-[30px] shrink-0 place-items-center rounded-lg transition-colors hover:bg-muted disabled:opacity-35 disabled:hover:bg-transparent";
+
 function CaseSelection({
   label,
   danger,
@@ -326,10 +363,7 @@ function CaseSelection({
           onClick={onClick}
           disabled={disabled}
           aria-label={label}
-          className={cn(
-            "grid size-[30px] shrink-0 place-items-center rounded-lg transition-colors hover:bg-muted disabled:opacity-35 disabled:hover:bg-transparent",
-            danger ? "text-destructive" : "text-muted-foreground hover:text-foreground",
-          )}
+          className={cn(CASE_SELECTION, danger ? "text-destructive" : "text-muted-foreground hover:text-foreground")}
         >
           {children}
         </button>

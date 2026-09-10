@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Plus, Tag } from "lucide-react";
+import { Check, Minus, Plus, Tag } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { useLabels, useMail } from "@/lib/store";
@@ -23,43 +23,63 @@ import { cn } from "@/lib/utils";
  * **Aucun bouton « Enregistrer »** : chaque ligne bascule et part tout de
  * suite. Cocher se défait en décochant — un geste qui est son propre inverse
  * n'a pas besoin d'être validé, ni d'un « Annuler ».
+ *
+ * **Un fil ou dix, c'est le même menu.** Il reçoit une liste d'identifiants,
+ * et « un seul » n'est que le cas où elle en compte un — sinon la sélection
+ * multiple aurait eu son propre menu d'étiquettes, à tenir à jour à côté de
+ * celui-ci. Sur plusieurs fils la ligne a **trois états** : tous la portent
+ * (coche), quelques-uns (tiret), aucun (rien) ; et elle **pose** au lieu de
+ * basculer — une ligne à moitié cochée n'a pas d'inverse, donc le geste met
+ * tout le monde d'accord, et il faut qu'ils le soient pour la retirer.
  */
 export function EtiquettesChoix({
-  threadId,
-  actuelles,
+  ids,
   taille = "menu",
 }: {
-  threadId: string;
-  actuelles: string[];
+  /** Les fils visés. Mémoïser le tableau côté appelant : il est en dépendance. */
+  ids: string[];
   /** `sheet` : la feuille du téléphone. `menu` : le popover du bureau. */
   taille?: "menu" | "sheet";
 }) {
   const connues = useLabels();
-  const setLabels = useMail((s) => s.setLabels);
+  const threads = useMail((s) => s.threads);
+  const etiqueterFils = useMail((s) => s.etiqueterFils);
   const [neuve, setNeuve] = useState("");
   const sheet = taille === "sheet";
 
-  /* Celles du fil d'abord, puis les autres : ce qu'on vient de poser ne doit
+  /* Combien des fils visés portent chaque étiquette. `n` est le nombre de
+     fils retrouvés, pas la longueur d'`ids` : un identifiant qui n'est plus
+     dans la liste ne doit pas rendre « toutes » impossible à atteindre. */
+  const { compte, n } = useMemo(() => {
+    const cibles = threads.filter((t) => ids.includes(t.id));
+    const compte = new Map<string, number>();
+    for (const t of cibles) for (const l of t.labels) compte.set(l, (compte.get(l) ?? 0) + 1);
+    return { compte, n: cibles.length };
+  }, [threads, ids]);
+
+  const etat = (label: string): "aucun" | "partie" | "toutes" => {
+    const c = compte.get(label) ?? 0;
+    return c === 0 ? "aucun" : c === n ? "toutes" : "partie";
+  };
+
+  /* Celles des fils d'abord, puis les autres : ce qu'on vient de poser ne doit
      pas sauter à l'autre bout de la liste au moment où on le pose. */
   const liste = useMemo(() => {
-    const tout = new Set([...actuelles, ...connues]);
+    const tout = new Set([...compte.keys(), ...connues]);
     return [...tout].sort((a, b) => {
-      const ma = actuelles.includes(a) ? 0 : 1;
-      const mb = actuelles.includes(b) ? 0 : 1;
+      const ma = compte.has(a) ? 0 : 1;
+      const mb = compte.has(b) ? 0 : 1;
       return ma - mb || a.localeCompare(b, "fr");
     });
-  }, [actuelles, connues]);
+  }, [compte, connues]);
 
-  const basculer = (label: string) =>
-    setLabels(
-      threadId,
-      actuelles.includes(label) ? actuelles.filter((l) => l !== label) : [...actuelles, label],
-    );
+  /* Une ligne à moitié cochée se complète, elle ne se vide pas : c'est le sens
+     du geste quand on vient de sélectionner dix messages d'une même personne. */
+  const basculer = (label: string) => etiqueterFils(ids, label, etat(label) !== "toutes");
 
   const ajouter = () => {
     const nom = neuve.trim();
-    if (!nom || actuelles.includes(nom)) return setNeuve("");
-    setLabels(threadId, [...actuelles, nom]);
+    etiqueterFils(ids, nom, true);
     setNeuve("");
   };
 
@@ -76,7 +96,8 @@ export function EtiquettesChoix({
         </p>
       )}
       {liste.map((label) => {
-        const mise = actuelles.includes(label);
+        const ou = etat(label);
+        const mise = ou !== "aucun";
         return (
           <button
             key={label}
@@ -94,15 +115,24 @@ export function EtiquettesChoix({
             />
             <span className="min-w-0 flex-1 truncate">{label}</span>
             {/* La coche à droite, pas une case à gauche : la ligne dit
-                l'étiquette, la coche dit si elle est posée. */}
-            <Check
-              className={cn(
-                "shrink-0 text-[var(--space-ink)] transition-opacity",
-                sheet ? "size-5" : "size-4",
-                mise ? "opacity-100" : "opacity-0",
-              )}
-              strokeWidth={2.5}
-            />
+                l'étiquette, la coche dit si elle est posée. Le tiret dit
+                « quelques-uns » — la marque des cases à trois états, qui vaut
+                mieux qu'une coche pâle dont on ne sait pas ce qu'elle promet. */}
+            {ou === "partie" ? (
+              <Minus
+                className={cn("shrink-0 text-[var(--space-ink)]", sheet ? "size-5" : "size-4")}
+                strokeWidth={2.5}
+              />
+            ) : (
+              <Check
+                className={cn(
+                  "shrink-0 text-[var(--space-ink)] transition-opacity",
+                  sheet ? "size-5" : "size-4",
+                  mise ? "opacity-100" : "opacity-0",
+                )}
+                strokeWidth={2.5}
+              />
+            )}
           </button>
         );
       })}

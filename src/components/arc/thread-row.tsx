@@ -247,14 +247,20 @@ export function ThreadRow({
               bouton (invalide dans un bouton) et sans frère posé par-dessus
               (qui mangerait le `pointerdown` du balayage).
 
-              Au survol, sur bureau, le visage cède la place à la case — c'est
-              ce qui annonce le mode à la souris. Sur téléphone rien ne change à
-              l'œil : c'est le geste qui est connu (Gmail fait pareil), et un
-              rond gris permanent sur chaque rangée coûterait plus qu'il ne
-              rendrait. */}
+              Au survol **de l'avatar lui-même**, sur bureau, le visage cède la
+              place à la case. C'était au survol de la *rangée* : en glissant le
+              long de la liste, chaque visage se changeait en coche au passage —
+              « visuellement c'est dérangeant », et c'est juste : ce qui bouge
+              annonce une action qu'on n'est pas en train de faire. La case ne
+              se montre donc que quand le pointeur est sur elle (`group/coche`),
+              là où le clic la déclenche.
+
+              Sur téléphone rien ne change à l'œil : c'est le geste qui est
+              connu (Gmail fait pareil), et un rond gris permanent sur chaque
+              rangée coûterait plus qu'il ne rendrait. */}
           <span
             data-coche
-            className="relative mt-0.5 size-10 shrink-0 md:size-9 md:group-data-[large=true]/liste:mt-0 md:group-data-[large=true]/liste:size-6"
+            className="group/coche relative mt-0.5 size-10 shrink-0 md:size-9 md:group-data-[large=true]/liste:mt-0 md:group-data-[large=true]/liste:size-6"
           >
             {selectionOn ? (
               <Coche coche={coche} />
@@ -262,11 +268,11 @@ export function ThreadRow({
               <>
                 <ContactAvatar
                   contact={last.from}
-                  className="size-full transition-opacity md:group-hover:opacity-0"
+                  className="size-full transition-opacity md:group-hover/coche:opacity-0"
                 />
                 <span
                   aria-hidden
-                  className="absolute inset-0 hidden place-items-center rounded-full text-muted-foreground opacity-0 ring-1 ring-inset ring-black/15 transition-opacity md:grid md:group-hover:opacity-100 dark:ring-white/20"
+                  className="absolute inset-0 hidden place-items-center rounded-full text-muted-foreground opacity-0 ring-1 ring-inset ring-black/15 transition-opacity md:grid md:group-hover/coche:opacity-100 dark:ring-white/20"
                 >
                   <Check className="size-[18px] md:group-data-[large=true]/liste:size-3.5" strokeWidth={2.5} />
                 </span>

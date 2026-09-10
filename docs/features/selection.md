@@ -62,6 +62,14 @@ la tête ne suffisait pas : « pas très visible et pratique, le raccourci march
 connaître ». Il est loin de la rangée qu'on vise, et un mode qui ne s'annonce qu'à l'autre bout de
 l'écran ne s'annonce pas.
 
+**Au survol de l'avatar, pas de la rangée** (9 sept.). C'était le survol de la *rangée* qui
+retournait le visage : en glissant le long de la liste, chaque avatar se changeait en coche au
+passage. « Visuellement c'est dérangeant » — et c'est juste : ce qui bouge annonce une action qu'on
+n'est pas en train de faire, et une liste de visages qui clignote en coches pendant qu'on la
+parcourt est du bruit. La case ne se montre donc que quand le pointeur est **sur elle**
+(`group/coche`), là où le clic la déclenche. Mesuré : opacité **0** en survolant le texte de la
+rangée, **1** en survolant l'avatar.
+
 **Une zone, pas un second bouton.** La zone de l'avatar porte `data-coche`, et le clic est lu à
 l'endroit où il tombe (`e.target.closest`). Deux raisons, toutes deux découvertes à l'usage :
 

@@ -189,8 +189,9 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - **L'avatar devient la case** et toute la rangée bascule : pas de `<button>` dans un `<button>`, et
   la case garde **exactement le gabarit de l'avatar** — plus petite, le texte sautait d'un cran.
   Le balayage se tait pendant la sélection.
-- Entrer : **toucher l'avatar**, sur les deux plateformes (au survol il y devient une case sur
-  bureau) ; plus ⌘-clic, Maj-clic (plage dans l'ordre **affiché**), le bouton de la tête, `x` au
+- Entrer : **toucher l'avatar**, sur les deux plateformes (sur bureau la case n'apparaît qu'au
+  survol de **l'avatar**, jamais de la rangée : chaque visage se changeait en coche au passage du
+  pointeur, et ce qui bouge annonce une action qu'on n'est pas en train de faire) ; plus ⌘-clic, Maj-clic (plage dans l'ordre **affiché**), le bouton de la tête, `x` au
   clavier. **L'appui long a été retiré** : sur iPhone il appartient au système, qui surlignait le
   texte en même temps qu'il cochait. **⌘A ne prend la main que dans le mode** — sinon c'est le
   « tout sélectionner » du navigateur.

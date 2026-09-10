@@ -145,6 +145,9 @@ export async function POST(request: NextRequest) {
         const dire = () =>
           console.log(
             `lecture : ${body.folder} · chemins ${chrono.chemins} ms · dossier ${chrono.dossier ?? "?"} ms` +
+              (chrono.select === undefined
+                ? ""
+                : ` (select ${chrono.select} · fetch ${chrono.fetch ?? "?"})`) +
               (chrono.envoyes === undefined
                 ? saut
                   ? " · envoyés sautés"

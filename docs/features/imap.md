@@ -592,6 +592,24 @@ Cette ligne dit une autre chose au passage : `dossier ? ms` et `0 fils` veulent 
 `readFolder` est sorti **avant** de mesurer, sur `!total` ou `deja >= total` — un dossier vide, ou
 une page demandée au-delà de la fin.
 
+**Et une fois les deux sauts en place, tout le temps est dans le dossier :**
+
+    lecture : inbox · chemins 0 ms · dossier 3491 ms · envoyés sautés · 58 fils · total 3497 ms
+
+`chemins 0` : les deux sauts marchent, la lecture ne fait plus que ses deux allers-retours. Mais
+`dossier` varie du simple au quintuple pour la **même** fenêtre de soixante messages — 751, 1 562,
+3 491 ms. Ce n'est donc pas le nombre de fils.
+
+Deux causes possibles, et elles n'appellent pas le même geste : **ouvrir** une grosse boîte
+(`SELECT`, dont le coût suit la taille du dossier, et sur lequel on ne peut rien) ou **lire les
+enveloppes** (`FETCH`). Et le `FETCH` porte un suspect : `ENVELOPE_QUERY` demande aussi l'**aperçu**
+de chaque message (`bodyParts` partiel sur `TEXT`), ce qui force le serveur à ouvrir soixante corps
+au lieu de rendre soixante en-têtes. Si c'est lui, il y a un choix à faire — l'aperçu dans la liste
+vaut-il une à deux secondes ? — et il ne se tranche pas sans le nombre.
+
+Les deux sont donc **comptés à part** (`select` et `fetch` dans le journal). Même méthode qu'à
+chaque étape de cette journée : on mesure d'abord, on décide ensuite.
+
 **Ce que ça coûte, et c'est assumé** : le repère a l'âge de la lecture d'avant. Une réponse écrite
 depuis un autre client pendant ce temps arrive **une lecture plus tard**. Le vérifier au moment de
 la lecture demanderait un `STATUS`, c'est-à-dire un aller-retour, c'est-à-dire la moitié du gain.

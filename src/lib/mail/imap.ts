@@ -595,7 +595,15 @@ async function lireEnvoyes(client: ImapFlow, path: string): Promise<Situe[]> {
  *
  * Trois nombres, aucun contenu, une ligne par lecture.
  */
-export type Chrono = { chemins?: number; dossier?: number; envoyes?: number; fils?: number };
+export type Chrono = {
+  chemins?: number;
+  dossier?: number;
+  /** Ouvrir la boîte (`SELECT`) et lire les enveloppes (`FETCH`), séparément. */
+  select?: number;
+  fetch?: number;
+  envoyes?: number;
+  fils?: number;
+};
 
 export async function readFolder(
   client: ImapFlow,
@@ -614,6 +622,13 @@ export async function readFolder(
 ): Promise<Thread[]> {
   const depart = Date.now();
   const lock = await client.getMailboxLock(path);
+  /* **`SELECT` et `FETCH` comptés à part.** Une fois les deux autres
+     allers-retours supprimés, `dossier` **est** la lecture — et il varie du
+     simple au quintuple (751, 1562, 3491 ms) pour la même fenêtre de soixante
+     messages. Ouvrir une grosse boîte et en lire l'aperçu ne coûtent pas la
+     même chose, et on ne peut pas agir sur les deux de la même façon. */
+  if (options.chrono) options.chrono.select = Date.now() - depart;
+  const avantFetch = Date.now();
   let rendu = false;
   try {
     const box = client.mailbox;
@@ -649,7 +664,10 @@ export async function readFolder(
        la suite va lire « Envoyés ». */
     lock.release();
     rendu = true;
-    if (options.chrono) options.chrono.dossier = Date.now() - depart;
+    if (options.chrono) {
+      options.chrono.fetch = Date.now() - avantFetch;
+      options.chrono.dossier = Date.now() - depart;
+    }
 
     /* **Deux allers-retours qu'on ne fait pas.** Mesuré sur la vraie boîte :
        « Envoyés » coûte 1 239 ms sur 2 859 — 43 % du temps d'une lecture, pour

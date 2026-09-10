@@ -124,7 +124,18 @@
     color-scheme: dark;
   }
   body {
-    @apply bg-background text-foreground antialiased;
+    /* **Pas de `antialiased`.** Il posait `-webkit-font-smoothing: antialiased`,
+       qui sur les appareils Apple **amincit** les glyphes au lieu de les lisser
+       — c'est un héritage de la mode Retina, pas un réglage de netteté. Sur du
+       texte foncé posé sur du blanc opaque (la carte de la liste) la perte ne
+       se voit pas ; sur le **voile teinté** de la tête de liste, où le contraste
+       est déjà plus faible, elle se lit comme du flou. Signalé le 10 sept. :
+       « le header est flou », et sur la capture zoomée « Tous », posé sur sa
+       pastille blanche, est net à côté de « Non lus », posé sur la piste
+       translucide — c'est la signature du fond, pas celle du texte.
+       Sans la règle, les appareils Apple reprennent leur rendu par défaut, plus
+       épais ; ailleurs (Windows, Android, Linux) elle n'avait aucun effet. */
+    @apply bg-background text-foreground;
     /* `vh`, not `dvh` and not a percentage: the standalone rule below has to
        be able to grow past the viewport. */
     min-height: 100vh;

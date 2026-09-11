@@ -99,6 +99,10 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   28 px sur toute la coque ont été essayés puis rendus le même soir : ils sortaient aussi les points
   mais coûtaient un tiers de rangée par écran. Les points restent donc dans le flou — deux pastilles,
   pas du texte. Invisible en émulation (Chromium n'y est pas standalone) : forcer la variable.
+- **Le mail ouvert a la sienne, `--sous-flou-lecture`, 20 px** : la réserve n'est pas une constante,
+  c'est **une ligne d'arrivée** — sa ligne part de 67 quand le titre de la liste part de 75, donc
+  12 d'un côté, 20 de l'autre, et les deux posent leur premier texte au **même 87 pt**. Sa boîte
+  grandit d'autant : ses 56 px sont exactement 44 + 2 + 10, un `pt` seul écrasait les cases.
 - Ce qui tombe quand même dedans est à nous : les points de l'indicateur de pages sont passés de 20
   à **35 %**.
 - Trois pistes closes, à ne pas rouvrir : un aplat dans les 59 px du haut (l'effet descend jusqu'au

@@ -153,7 +153,23 @@ export function ThreadView({ className }: { className?: string }) {
           suite : arrivé au bout d'une infolettre, l'en-tête sautait. Un repère
           qui bouge quand on ne défile plus coûte plus que les pixels qu'il
           rend. */}
-      <div className="flex h-14 shrink-0 items-center gap-1 px-5 pt-0.5 pb-2.5 md:hidden">
+      {/* `--sous-flou` **s'ajoute au `pt`**, il ne remplace pas les 2 px : la
+          même mesure que sous l'indicateur de pages de la liste, pour la même
+          raison — sans elle l'en-tête tombe dans le dégradé de flou d'iOS 27
+          (mesuré sur capture : son texte à 75–92 pt, et l'effet s'éteint entre
+          85 et 90).
+
+          **`--sous-flou-lecture`, pas `--sous-flou`** : cette ligne part 8 pt
+          plus haut que le titre de la liste (67 contre 75, mesuré), donc il lui
+          faut 20 là où l'autre prend 12. La réserve n'est pas une constante,
+          c'est une **ligne d'arrivée** — les deux surfaces posent leur premier
+          texte au **même 87 pt**, juste sous l'extinction du dégradé. Et les
+          deux valent zéro hors de l'app installée.
+
+          **La boîte grandit d'autant** : ses 56 px sont exactement 44 + 2 + 10,
+          donc un `pt` seul aurait écrasé les deux cases au lieu de les
+          descendre. Zéro hors de l'app installée. */}
+      <div className="flex h-[calc(3.5rem+var(--sous-flou-lecture))] shrink-0 items-center gap-1 px-5 pt-[calc(0.125rem+var(--sous-flou-lecture))] pb-2.5 md:hidden">
         <button
           type="button"
           onClick={() => selectThread(null)}

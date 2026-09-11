@@ -252,9 +252,16 @@ pastilles, pas du texte, et elles ont gagné du contraste pour ça (35 %).
 Mesuré : hors app installée rien ne bouge (points 59–65, titre 75, carte 199) ; dedans, seul ce qui
 suit les points descend de 12 (titre 87, pilules 161, carte 211).
 
-**Le mail ouvert garde son flou** : son en-tête n'a pas de rangée de points où glisser un écart, et
-lui donner 12 px de plus pour la même raison demanderait de le décider pour lui. À reprendre s'il
-gêne.
+**Le mail ouvert a la sienne : `--sous-flou-lecture`, 20 px** (11 sept. — « supprime le flou pour
+mail ouvert, ajoute un peu de padding top »). Vingt et non douze, parce que **la réserve n'est pas
+une constante : c'est une ligne d'arrivée.** Les deux têtes ne partent pas d'aussi haut — le titre
+de la liste est à 75 pt, la ligne « dossier · n sur N » du mail ouvert à 67 —, donc l'une prend 12
+et l'autre 20, et toutes deux posent leur premier texte au **même 87 pt**, juste sous l'extinction
+du dégradé.
+
+Sa boîte grandit d'autant : ses 56 px sont exactement 44 + 2 + 10, donc un `padding-top` seul aurait
+**écrasé les deux cases** au lieu de les descendre. Vérifié — le bouton de retour fait 44 avant
+comme après.
 
 Elle vaut **zéro partout sauf en app installée sur téléphone**
 (`@media (display-mode: standalone) and (width < 48rem)`) : dans Safari le système pose son dégradé

@@ -30,11 +30,20 @@
    * la barre des 90 pt, les points restent dans le dégradé — ce sont deux
    * pastilles, pas du texte, et ils ont gagné du contraste pour ça (35 %).
    *
+   * **Deux valeurs, une seule ligne d'arrivée.** La réserve n'est pas une
+   * constante : c'est « commencer à 87 pt ». Les deux têtes de téléphone n'y
+   * partent pas d'aussi haut — le titre de la liste est à 75, la ligne du mail
+   * ouvert à 67 —, donc l'une prend **12** et l'autre **20**, et toutes deux
+   * posent leur premier texte au même endroit.
+   *
    * **Seulement en app installée** (`display-mode: standalone`) : dans Safari
    * le système pose son dégradé sur *sa* barre, pas sur la page, et cet écart
-   * n'y serait qu'un trou. Zéro partout ailleurs.
+   * n'y serait qu'un trou. Zéro partout ailleurs, donc rien à retrancher au
+   * cas par cas.
    */
   --sous-flou: 0px;
+  /** La même chose pour l'en-tête du mail ouvert. Voir `--sous-flou`. */
+  --sous-flou-lecture: 0px;
   /* What the tint wash is laid over. In dark mode the page and the window take
      the same ground, so the strip under the bottom bar reads as more of the
      list rather than a darker band below it. */
@@ -317,6 +326,7 @@
 @media (display-mode: standalone) and (width < 48rem) {
   :root {
     --sous-flou: 12px;
+    --sous-flou-lecture: 20px;
   }
 }
 

@@ -377,6 +377,19 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - **Deux surfaces** (`enveloppe`) : un message sans couleurs à lui prend l'encre de l'app dans un
   cadre transparent ; tout le reste garde la **feuille blanche** du courrier, parce que ces couleurs
   ont été écrites pour du blanc. La couleur ne décide que du fond, jamais de la place.
+- **La forme est dite au cadre, il n'en juge plus** : `forme: Enveloppe` est obligatoire et les trois
+  appelants la passent entière. Facultative, « rien » valait `feuille` **et** `document`, et le cadre
+  re-décidait à la mesure sur **un seul `<table>`** quand `enveloppe` en demande trois — un mot avec
+  signature partait sur le canevas de 600 px et s'affichait en `scale(0,512)`, 7,7 px de texte entre
+  deux voisins à 15. Marge et canevas suivent la forme ; les trois indices lus dans le cadre ne font
+  plus que **préciser** un document, ils n'en fabriquent plus.
+- **La feuille blanche ne se lève qu'en sombre** : en clair la surface de l'app est déjà blanche
+  (`oklch(1 0 0)`), la feuille n'y ajoutait qu'un filet et 16 px de retrait — un message décalé de
+  ses voisins pour rien. En sombre elle est nécessaire, et porte alors le **même rayon qu'une bulle**
+  sur les deux plateformes. Un `document` garde la sienne dans les deux thèmes.
+- Le cadre écrit le **même interligne que le fil** (1,65 ; 1,55 pour un document, qui apporte sa mise
+  en page). Écart assumé sur bureau, où le fil descend à 14 px : le cadre ne lit pas nos points de
+  rupture.
 - L'objet **appartient au fil**, plus à son premier message.
 - Le plancher de hauteur d'un cadre est **24 px, pas 80** : il datait de la marge de 16, et il
   ajoutait 23 px de vide sous un message court (mesuré : cadre 80, enveloppe 57).

@@ -123,13 +123,58 @@ plat n'en distingue plus que deux :
 | Ce que le message porte | Sa surface |
 | --- | --- |
 | Du texte, ou du HTML sans couleurs à lui | Le **cadre transparent**, encre de l'app, dans la gouttière |
-| Ses couleurs (`feuille`) | La **feuille blanche** du courrier, dans la gouttière |
-| Une vraie mise en page (`document`) | La feuille blanche, **pleine largeur** |
+| Ses couleurs (`feuille`) | Le cadre transparent **en clair**, une carte blanche **en sombre**, dans la gouttière |
+| Une vraie mise en page (`document`) | La feuille blanche, **pleine largeur**, dans les deux thèmes |
 
 La règle qui les sépare est la **largeur**, jamais la couleur : une signature tient dans 400 px, une
 infolettre est écrite pour 600 et plus. La première version disqualifiait un message dès qu'il
 portait un tableau ou un `color:` — c'est-à-dire dès qu'il avait une signature professionnelle, et
 un transfert d'une personne à une autre devenait une dalle au milieu d'une conversation.
+
+### La forme est dite au cadre, il n'en juge plus
+
+Elle était **facultative** : `MessageBody` recevait `bulle` ou rien, et « rien » valait à la fois
+`feuille` et `document`. Le cadre re-décidait donc lui-même lequel des deux il tenait, à la mesure,
+sur trois indices dont **un seul `<table>`** — quand `enveloppe` en demande trois, précisément parce
+que toute signature professionnelle en porte un. Résultat mesuré sur le message de Sophie (un mot,
+une signature) : marge tombée à 0, message posé sur le canevas de 600 px et réduit à
+**`scale(0,512)`** — 15 px de texte affichés à 7,7 — dans un cadre de 58 px, entre deux voisins à
+15 px. Le même message écrit par deux clients différents n'avait pas la même taille de texte.
+
+`forme: Enveloppe` est donc **obligatoire** et les trois appelants la passent entière
+(`message-card`, `third-pane` — qui ne passait rien et prenait donc la feuille d'un document —,
+`compose-pane`). Le cadre en déduit tout le reste, et rien d'autre n'en décide :
+
+| | Marge du cadre | Canevas de 600 | Surface |
+| --- | --- | --- | --- |
+| `bulle` | 0 | non | aucune |
+| `feuille` | 0 en clair, 16 en sombre | non | carte blanche en sombre seulement |
+| `document` | 16, puis 0 s'il apporte sa mise en page | oui | feuille pleine largeur |
+
+Les trois indices de la mise en page (plus large que l'écran, fond peint sur `body`, bâti sur des
+tableaux) restent lus **dans** le cadre, mais ils ne font plus que préciser un `document` — ils ne
+peuvent plus en fabriquer un.
+
+### La feuille blanche ne se lève qu'en sombre
+
+En thème clair, la surface de l'app **est** blanche (`--background: oklch(1 0 0)`) : la feuille y
+peignait du blanc sur du blanc, et tout ce qu'elle ajoutait était un filet et seize pixels de
+retrait — un message décalé de ses voisins pour rien. Ce qui la justifie, c'est le fond sombre : un
+noir de signature écrit pour du blanc n'y survit pas. Elle se lève donc là, et là seulement, avec le
+**même rayon qu'une bulle** (12) sur les deux plateformes — elle n'en avait que sur bureau, et sur
+téléphone un message à couleurs posait un rectangle blanc à angles vifs arrêté net au bord de
+l'écran. Un `document` garde la sienne dans les deux thèmes : sa mise en page est écrite pour une
+page blanche.
+
+### Le même interligne que le fil
+
+Le cadre écrivait `15px/1.55` quand le fil écrit `15px/1.65` : deux messages voisins, l'un en texte
+simple (rendu par la page) et l'autre en HTML (rendu par le cadre), n'avaient pas la même
+respiration — 1,5 px par ligne, assez pour qu'on voie que « ça change d'un mail à l'autre » sans
+savoir dire quoi. Une bulle et une feuille prennent donc **1,65** ; un `document` garde `1,55`, il
+apporte sa propre mise en page. Reste un écart assumé sur bureau, où le fil descend à 14 px quand le
+cadre tient 15 : le cadre est un autre document, il ne lit pas nos points de rupture, et le corriger
+demanderait de reconstruire son `srcDoc` à chaque passage de 768 px.
 
 Les couleurs écrites en dur dans la feuille du cadre (`#ededef`, `#7fabf5`, `#b9b9be`, `#5c5c66`,
 comme `#fff` et `#0b57d0` avant elles) sont l'exception assumée aux tokens : elles vivent là où les

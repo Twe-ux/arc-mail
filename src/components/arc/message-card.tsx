@@ -67,12 +67,12 @@ export function MessageCard({
   const openThird = useMail((s) => s.openThird);
   const detache = useMail((s) => s.third?.kind === "message" && s.third.messageId === message.id);
 
+  /* **Deux surfaces, trois places.** Un message sans couleurs à lui prend
+     l'encre de l'app, dans la gouttière. Tout le reste garde la feuille blanche
+     du courrier, parce que ces couleurs ont été écrites pour du blanc ; et seul
+     un document la garde **en pleine largeur**. La forme part entière au cadre,
+     qui n'en juge plus. */
   const forme = enveloppe(message.html);
-  /* **Deux surfaces, pas trois.** Un message sans couleurs à lui prend l'encre
-     de l'app, dans la gouttière. Tout le reste garde la feuille blanche du
-     courrier, parce que ces couleurs ont été écrites pour du blanc ; et un
-     document la garde **en pleine largeur**. */
-  const feuille = forme !== "bulle";
   const pleineLargeur = forme === "document";
 
   return (
@@ -174,14 +174,18 @@ export function MessageCard({
           message={message}
           sujet={sujet}
           dark={dark}
-          /* `bulle` rend le cadre transparent et lui donne l'encre de l'app ;
-             sans forme, il garde la feuille blanche du courrier. */
-          forme={feuille ? undefined : "bulle"}
+          /* **Les trois formes passent entières.** Le cadre en déduisait deux
+             de la seule absence de prop, et re-jugeait ensuite la troisième
+             lui-même : une conversation à signature partait sur le canevas des
+             infolettres. */
+          forme={forme}
           className={cn(
             "mt-1.5 block text-[15px] leading-[1.65] whitespace-pre-wrap md:text-sm md:leading-[1.6]",
             /* Le texte simple borne **sa propre longueur de ligne** : la colonne
                ne le fait plus, et 200 caractères par ligne ne se lisent pas. */
-            !feuille && "max-w-[68ch]",
+            /* Seul un document s'affranchit de la ligne : une feuille est une
+               bulle, elle en a la largeur. */
+            !pleineLargeur && "max-w-[68ch]",
           )}
         />
         {message.attachments && message.attachments.length > 0 && (

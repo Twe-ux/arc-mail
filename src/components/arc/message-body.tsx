@@ -4,7 +4,7 @@ import { ImageOff, MoreHorizontal } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import type { TouchRelaye } from "@/hooks/use-edge-swipe-back";
-import { couperCitation } from "@/lib/fil";
+import { couperCitation, type Enveloppe } from "@/lib/fil";
 import type { Message } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useRelaisRetour } from "./back-swipe";
@@ -39,14 +39,26 @@ export function MessageBody({
   sujet?: string;
   className?: string;
   /**
-   * Sous quelle forme le message est posé (`enveloppe`).
+   * Sous quelle forme le message est posé (`enveloppe`), et **elle est
+   * obligatoire**.
    *
    * `bulle` : le cadre devient **transparent** et prend l'encre de l'app — la
    * bulle est la surface. `feuille` : il est dans une bulle lui aussi, mais
    * garde son **fond blanc et son encre d'origine**, parce que ses couleurs ont
-   * été écrites pour du blanc. Absent : la feuille pleine largeur d'avant.
+   * été écrites pour du blanc. `document` : la feuille pleine largeur, posée
+   * sur le canevas des courriers.
+   *
+   * Elle était facultative, et l'absence valait « feuille pleine largeur » : un
+   * `feuille` et un `document` arrivaient donc ici sous le même visage, et le
+   * cadre re-décidait lui-même lequel des deux il tenait — sur un seul
+   * `<table>`, quand `enveloppe` en demande trois. Une signature dans un
+   * tableau suffisait à poser un mot de deux lignes sur 600 px et à le réduire
+   * à **`scale(0,512)`** — mesuré sur téléphone : 15 px de texte affichés à 7,7,
+   * entre deux voisins à 15. Le même message, écrit par deux clients
+   * différents, n'avait pas la même taille de texte. **Le cadre reçoit la
+   * forme, il n'en juge plus.**
    */
-  forme?: "bulle" | "feuille";
+  forme: Enveloppe;
   /** Le thème courant : un cadre est un autre document, nos variables n'y vont pas. */
   dark?: boolean;
 }) {
@@ -136,12 +148,24 @@ const MARGE = 16;
 /**
  * La feuille du cadre.
  *
- * **En bulle, elle n'est plus une feuille** : fond transparent, encre de
- * l'app. Un cadre est un autre document — nos variables CSS n'y entrent pas —,
+ * **Hors carte, elle n'est plus une feuille** : fond transparent, encre de
+ * l'app — c'est le cas d'une bulle, et celui d'une feuille en thème clair, où
+ * la surface de l'app est déjà blanche. Un cadre est un autre document — nos
+ * variables CSS n'y entrent pas —,
  * donc le thème lui est dit, il ne se devine pas : `prefers-color-scheme`
  * répondrait celui du système, et le nôtre est un réglage de l'app.
  */
-const feuille = (transparent: boolean, dark: boolean) => `
+const feuille = (carte: boolean, dark: boolean, forme: Enveloppe) => {
+  const transparent = !carte;
+  /* **Le même interligne que l'app**, pour tout ce qui est une conversation.
+     Le cadre écrivait 1,55 quand le fil écrit 1,65 : deux messages voisins,
+     l'un en texte simple (rendu par la page) et l'autre en HTML (rendu par le
+     cadre), n'avaient pas la même respiration — 1,5 px par ligne, assez pour
+     qu'on voie que « ça change d'un mail à l'autre » sans savoir dire quoi.
+     Un document garde le sien : il apporte sa propre mise en page, et la
+     nôtre n'a rien à y dire. */
+  const inter = forme === "document" ? 1.55 : 1.65;
+  return `
   :root { color-scheme: ${transparent && dark ? "dark" : "light"}; }
   html, body {
     margin: 0;
@@ -149,7 +173,7 @@ const feuille = (transparent: boolean, dark: boolean) => `
     color: ${transparent && dark ? "#ededef" : "#111"};
   }
   body {
-    font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font: 15px/${inter} -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     overflow-wrap: anywhere;
     /* L'horizontale appartient au geste de retour, pas au cadre. Le panorama
        vertical continue de remonter au défilant de la page ; ce qu'on perd est
@@ -181,6 +205,7 @@ const feuille = (transparent: boolean, dark: boolean) => `
   }
   .arc-cit:hover { background: ${transparent && dark ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.12)"}; }
 `;
+};
 
 /**
  * Les garde-fous, **posés après le message**.
@@ -222,17 +247,22 @@ const garde = (marge: number) => `
    rapporter la hauteur (le cadre ne sait pas se dimensionner), rendre les
    images quand on les demande, et **relayer les touchers** — un cadre les garde
    pour lui, et le geste de retour n'existait donc pas sur un message HTML. */
-const script = (marge: number, canevas: number) => `
+const script = (marge: number, canevas: number, doc: boolean) => `
   (function () {
     var MARGE = ${marge};
     /* La page pour laquelle les courriers sont ecrits, depuis toujours.
-       **Zero dans une bulle** : le canevas sert a rendre une infolettre a la
-       taille pour laquelle elle est ecrite, puis a la reduire. Une bulle fait
-       230 px sur un telephone — poser une signature sur 600 et reduire a 0,38
-       donnait un message a la loupe (mesure : la signature de Sophie illisible
-       dans sa bulle). Ce qui rentre dans une bulle n'a pas de mise en page a
-       preserver, par definition (voir enveloppe). */
+       **Zero hors document** : le canevas sert a rendre une infolettre a la
+       taille pour laquelle elle est ecrite, puis a la reduire. Un message de
+       conversation fait 230 a 330 px sur un telephone — poser une signature sur
+       600 et reduire a 0,38 donnait un message a la loupe (mesure : la
+       signature de Sophie illisible dans sa bulle). Ce qui n'est pas un
+       document n'a pas de mise en page a preserver, par definition (voir
+       enveloppe). */
     var CANEVAS = ${canevas};
+    /* **Seul un document peut perdre sa marge et passer sur le canevas.** La
+       forme est decidee avant la peinture, sur la chaine ; ce qui suit ne fait
+       que la preciser. */
+    var DOC = ${doc ? "true" : "false"};
     var SUJET = __SUJET__;
     var fit = document.getElementById("arc-fit");
     var occupe = false;
@@ -282,10 +312,14 @@ const script = (marge: number, canevas: number) => `
            les deux premieres regles ne le voyaient pas.
 
          Reste avec sa marge le courrier en HTML simple, quelques paragraphes
-         sans mise en page : la, du texte viendrait coller au bord. */
+         sans mise en page : la, du texte viendrait coller au bord.
+
+         **Les trois ne sont consultees que sur un document** : un seul
+         <table> suffit a les faire parler, et toute signature professionnelle
+         en porte un. */
       var fond = getComputedStyle(document.body).backgroundColor;
       var neutre = !fond || fond === "rgba(0, 0, 0, 0)" || fond === "transparent" || fond === "rgb(255, 255, 255)";
-      var misEnPage = naturel > dispo + 1 || !neutre || !!fit.querySelector("table");
+      var misEnPage = DOC && (naturel > dispo + 1 || !neutre || !!fit.querySelector("table"));
       if (misEnPage) {
         poser(0);
         dispo = fit.offsetWidth;
@@ -563,9 +597,25 @@ function CorpsHtml({
   html: string;
   bloquees: number;
   sujet: string;
-  forme?: "bulle" | "feuille";
+  forme: Enveloppe;
   dark?: boolean;
 }) {
+  /* **La feuille blanche n'existe qu'en sombre.** En clair, la surface de
+     l'app *est* blanche (`--background: oklch(1 0 0)`) : le cadre y peignait du
+     blanc sur du blanc, et tout ce qu'il ajoutait était un filet et seize
+     pixels de retrait — un message décalé de ses voisins pour rien. Ce qui
+     justifie la feuille, c'est le fond sombre : un noir de signature écrit pour
+     du blanc n'y survit pas. Elle se lève donc là, et là seulement.
+     Un document, lui, garde la sienne dans les deux thèmes : il apporte sa mise
+     en page, et elle est écrite pour une page blanche. */
+  const carte = forme === "document" || (forme === "feuille" && Boolean(dark));
+  /* **La marge et le canevas suivent la forme**, et rien d'autre. Ils se
+     lisaient sur la seule presence de `forme`, qui ne distinguait pas une
+     feuille d'un document : une conversation se retrouvait sur le canevas des
+     infolettres. Hors carte, la marge est zéro — le texte s'aligne alors sur
+     celui de ses voisins, qui n'ont pas de cadre. */
+  const marge = carte ? MARGE : 0;
+  const canevas = forme === "document" ? 600 : 0;
   const cadre = useRef<HTMLIFrameElement>(null);
   const [hauteur, setHauteur] = useState(220);
   /* La largeur que le message demande. `null` tant qu'on ne sait pas : le cadre
@@ -583,7 +633,7 @@ function CorpsHtml({
     () =>
       `<!doctype html><html><head><meta charset="utf-8">` +
       `<meta name="viewport" content="width=device-width,initial-scale=1">` +
-      `<style>${feuille(forme === "bulle", Boolean(dark))}</style></head>` +
+      `<style>${feuille(carte, Boolean(dark), forme)}</style></head>` +
       `<body><div id="arc-fit">${html}</div>` +
       /* Après le message, pas avant : le `<style>` d'une infolettre est dans le
          corps, et à importance égale c'est l'ordre qui tranche. */
@@ -593,12 +643,13 @@ function CorpsHtml({
          balise. */
       /* En bulle, la marge du cadre est **zero** : c'est la bulle qui la donne,
          et deux rembourrages l'un dans l'autre feraient un message perdu au
-         milieu de sa propre pastille. */
-      `<style>${garde(forme ? 0 : MARGE)}</style><script>${script(forme ? 0 : MARGE, forme ? 0 : 600).replace(
+         milieu de sa propre pastille. Une feuille, elle, est une carte : son
+         texte ne colle pas au blanc. */
+      `<style>${garde(marge)}</style><script>${script(marge, canevas, forme === "document").replace(
         "__SUJET__",
         JSON.stringify(sujet).replace(/<\//g, "<\\/"),
       )}<\/script></body></html>`,
-    [html, sujet, forme, dark],
+    [html, sujet, forme, carte, marge, canevas, dark],
   );
 
   useEffect(() => {
@@ -660,8 +711,16 @@ function CorpsHtml({
         /* **En bulle, plus de feuille** : la bulle est la surface, et une
            feuille blanche dedans redonnerait le cadre dans le cadre que la
            fiche interdit depuis le premier jour. */
-        /* La bulle porte déjà la surface — la sienne, ou celle du courrier. */
-        forme ? "" : "bg-white md:mt-4 md:rounded-xl md:ring-1 md:ring-black/[0.08]",
+        /* **Une feuille est une bulle qui a gardé sa peau** — donc le même
+           rayon, sur les deux plateformes. Elle n'en avait que sur bureau : sur
+           téléphone, un message à couleurs posait un rectangle blanc à angles
+           vifs, arrêté net au bord de l'écran, à côté de voisins transparents.
+           C'est la fiche qui le disait déjà : « même rayon, même largeur, même
+           côté qu'une bulle ordinaire ». Et elle ne se lève qu'en sombre. */
+        carte && forme === "feuille" && "rounded-xl bg-white ring-1 ring-black/[0.08]",
+        /* Le document, lui, **est** la feuille de la carte sur téléphone : à
+           bord perdu, sans anneau, un seul cadre. */
+        forme === "document" && "bg-white md:mt-4 md:rounded-xl md:ring-1 md:ring-black/[0.08]",
       )}
     >
       {bloquees > 0 && !montrees && (
@@ -670,9 +729,9 @@ function CorpsHtml({
         <div
           className={cn(
             "flex items-center gap-2 border-b px-3 py-2 text-[13px]",
-            forme === "bulle"
-              ? "border-foreground/10 text-muted-foreground"
-              : "border-black/[0.06] bg-[#f6f6f7] text-[#444]",
+            carte
+              ? "border-black/[0.06] bg-[#f6f6f7] text-[#444]"
+              : "border-foreground/10 text-muted-foreground",
           )}
         >
           <ImageOff className="size-4 shrink-0" />
@@ -685,9 +744,9 @@ function CorpsHtml({
             onClick={montrer}
             className={cn(
               "shrink-0 rounded-full px-3 py-1 font-medium",
-              forme === "bulle"
-                ? "bg-foreground/[0.08] text-foreground hover:bg-foreground/[0.13]"
-                : "bg-white text-[#0b57d0] shadow-[0_0_0_1px_rgb(0_0_0/0.08)]",
+              carte
+                ? "bg-white text-[#0b57d0] shadow-[0_0_0_1px_rgb(0_0_0/0.08)]"
+                : "bg-foreground/[0.08] text-foreground hover:bg-foreground/[0.13]",
             )}
           >
             Afficher
@@ -708,7 +767,7 @@ function CorpsHtml({
         /* `max-w-full` fait le reste : la largeur demandée est un souhait, la
            bulle et sa borne de 76 % ont le dernier mot. */
         className="block w-full max-w-full border-0"
-        style={{ height: hauteur, width: forme && largeur ? largeur : undefined }}
+        style={{ height: hauteur, width: forme !== "document" && largeur ? largeur : undefined }}
       />
     </div>
   );

@@ -91,7 +91,7 @@ export function ComposePane({ draft }: { draft: ComposeDraft }) {
                  garde sa feuille, sinon il prend l'encre de l'app. Le forcer en
                  transparent rendrait invisible un message qui déclare son noir
                  sur un fond sombre. */
-              forme={enveloppe(cite.html) === "bulle" ? "bulle" : undefined}
+              forme={enveloppe(cite.html)}
               className="mt-1.5 ms-[38px] block max-w-[68ch] text-sm leading-[1.6] whitespace-pre-wrap text-muted-foreground"
             />
           </div>

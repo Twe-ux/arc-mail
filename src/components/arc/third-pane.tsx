@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { enveloppe } from "@/lib/fil";
 import { formatFullDate } from "@/lib/format";
 import { signalement } from "@/lib/folders";
 import { selectAJunk, useMail, usePreview, useThirdMessage } from "@/lib/store";
@@ -85,6 +86,7 @@ function ModeMessage() {
   const moveThread = useMail((s) => s.moveThread);
   const snoozeThread = useMail((s) => s.snoozeThread);
   const toggleUnread = useMail((s) => s.toggleUnread);
+  const dark = useMail((s) => s.dark);
   const aJunk = useMail(selectAJunk);
   const [pause, setPause] = useState(false);
 
@@ -169,6 +171,12 @@ function ModeMessage() {
           <MessageBody
             message={message}
             sujet={thread.subject}
+            dark={dark}
+            /* **Un message se lit pareil partout** : c'est `enveloppe` qui
+               décide de sa forme, ici comme dans le fil. Le volet ne passait
+               rien, et tout message y prenait donc la feuille pleine largeur
+               d'un document. */
+            forme={enveloppe(message.html)}
             className="mt-3 block text-sm leading-[1.7] whitespace-pre-wrap"
           />
         </div>

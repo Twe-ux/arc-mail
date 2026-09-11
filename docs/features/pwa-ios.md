@@ -129,7 +129,20 @@ documents. Mesuré, bundles retardés de 2,5 s : la classe et le fond sombre son
 
 `sw.js` fait du **réseau d'abord pour la navigation** (HTML frais quand on est en ligne, coquille
 en cache sinon) et du cache d'abord pour `/_next/static/` (URL hachées). `VERSION` sert à purger
-les anciens caches à l'activation — à bumper quand la coquille change.
+les anciens caches à l'activation.
+
+**Et c'est aussi ce qui fait arriver un correctif dans l'app installée.** Une PWA installée n'a ni
+barre d'adresse ni bouton de rechargement : le seul chemin est `versionFraiche()` (tirer la liste
+vers le bas), et elle ne recharge que si `registration.update()` trouve un worker à **installer** —
+donc seulement si `sw.js` a changé d'octets. Un déploiement qui ne touche pas ce fichier ne peut
+donc pas atteindre l'appareil : l'iPhone continue de faire tourner l'ancien bundle indéfiniment.
+
+C'est ce qui s'est passé le 11 septembre : trois correctifs de lecture poussés sans bump, un
+déploiement Vercel correct, le bundle neuf servi à qui arrivait par le navigateur — et une capture
+prise **après** le déploiement identique **au pixel** (même empreinte SHA-256) à celle prise avant.
+Ce n'était ni le correctif ni la personne : c'était `VERSION` resté à `v28`.
+
+**Tout changement qui doit se voir sur l'appareil bumpe `VERSION`.**
 
 Beaucoup de retours « collé en bas, coins carrés » sur iPhone se sont révélés être une **PWA
 reprise depuis l'arrière-plan** (WebView suspendue, jamais rechargée) et non un cache : le rendu
@@ -140,7 +153,8 @@ dans l'ordre :
 2. Demander de **tirer la liste vers le bas** (relit le courrier, et récupère un déploiement s'il y en a un).
 3. Sinon, fermer complètement l'app (la faire disparaître du multitâche), pas juste la mettre en
    arrière-plan ; en dernier recours réinstaller.
-4. Bumper `VERSION` ne change rien tant que l'app n'a pas fait une vraie navigation réseau.
+4. Bumper `VERSION` est **nécessaire** (sans lui le tirage ne recharge rien) mais ne suffit pas
+   tant que l'app n'a pas fait une vraie navigation réseau.
 
 Une capture qui montre le rond noir « N » (dev indicator de Next.js) vient d'un serveur `next
 dev`, pas d'un déploiement.

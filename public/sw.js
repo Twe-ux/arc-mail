@@ -1,7 +1,13 @@
 /* Arc Mail service worker: caches the app shell so the PWA opens offline.
  * Navigations are network-first (fresh HTML when online, cached shell otherwise);
  * Next.js static assets are cache-first because their URLs are content-hashed. */
-const VERSION = "arc-mail-v28";
+/* **Ce numero est ce qui fait arriver un correctif dans l'app installee.**
+ * `versionFraiche()` (thread-list.tsx) ne recharge la page que si `update()`
+ * trouve un worker a installer — donc seulement si CE fichier a change. Trois
+ * correctifs de lecture sont partis sans y toucher : le deploiement etait bon,
+ * le bundle neuf servi, et l'iPhone continuait de faire tourner l'ancien.
+ * A bumper avec tout changement qui doit se voir sur l'appareil. */
+const VERSION = "arc-mail-v29";
 const SHELL = ["/"];
 
 self.addEventListener("install", (event) => {

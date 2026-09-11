@@ -80,6 +80,11 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   `display_override` demande de réinstaller la PWA.
 - Un écran figé sur iPhone : d'abord tirer la liste vers le bas, ensuite fermer complètement
   l'app ; bumper `VERSION` de `sw.js` ne suffit jamais seul.
+- **Mais sans ce bump, rien n'arrive du tout** : `versionFraiche()` ne recharge que si `update()`
+  trouve un worker à installer, donc seulement si `sw.js` a **changé d'octets**. Trois correctifs de
+  lecture sont partis sans y toucher — déploiement bon, bundle neuf servi, iPhone qui continuait de
+  faire tourner l'ancien, et une capture d'après le déploiement identique **au pixel** à celle
+  d'avant. Tout changement qui doit se voir sur l'appareil bumpe `VERSION`.
 - **Le flou du haut appartient à iOS 27**, pas à nous : son « scroll edge effect » floute ce que la
   page peint sous la barre d'état, et ses glyphes sont dessinés par-dessus. Vérifié : rien dans
   notre chaîne d'ancêtres ne floute, et la même chose se voit sur Kairos. Ne pas re-chercher.

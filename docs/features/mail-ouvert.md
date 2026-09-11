@@ -175,6 +175,26 @@ téléphone un message à couleurs posait un rectangle blanc à angles vifs arr�
 l'écran. Un `document` garde la sienne dans les deux thèmes : sa mise en page est écrite pour une
 page blanche.
 
+### iOS gonflait le texte du cadre, et lui seul
+
+**C'est la cause de tout le reste.** Le « text autosizing » de WebKit agrandit le texte des blocs
+qu'il juge trop étroits, d'un facteur qui dépend de la structure du document — donc **différent d'un
+courrier à l'autre**. La page, elle, ne l'a jamais subi : Tailwind pose `-webkit-text-size-adjust:
+100%` dans son preflight. Le cadre est un **autre document, écrit à la main** : pas de preflight,
+donc pas cette ligne.
+
+Mesuré sur la vraie boîte, sur une capture où notre interface est juste (titre 19 px et nom 15 px
+aux bonnes tailles) : **93 px d'appareil par ligne** dans le cadre, là où il déclare `15px/1,55`,
+soit 69,75 — un facteur **1,33**.
+
+Et c'est ce qui l'a caché si longtemps : le **canevas de 600 px compensait le gonflement par
+accident** (1,33 × 0,655 ≈ 0,87, presque juste). Retirer le canevas d'un courrier qui tient a donc
+mis le gonflement à nu — d'où le « c'est pire maintenant » qui a mené ici. La règle est écrite deux
+fois : dans la feuille de base, et **après le message en `!important`**, parce que le `<style>` d'une
+infolettre arrive après le nôtre et pourrait rendre le courrier à iOS.
+
+**Invisible en émulation** : Chromium ne fait pas d'autosizing. C'est une mesure d'appareil.
+
 ### Le même interligne que le fil
 
 Le cadre écrivait `15px/1.55` quand le fil écrit `15px/1.65` : deux messages voisins, l'un en texte

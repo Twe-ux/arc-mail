@@ -167,6 +167,19 @@ const feuille = (carte: boolean, dark: boolean, forme: Enveloppe) => {
   const inter = forme === "document" ? 1.55 : 1.65;
   return `
   :root { color-scheme: ${transparent && dark ? "dark" : "light"}; }
+  /* **iOS gonfle le texte d'un document qui ne le lui interdit pas.** Son
+     « text autosizing » agrandit les blocs qu'il juge trop etroits, d'un
+     facteur qui depend de la structure du courrier — donc different d'un mail
+     a l'autre. La page, elle, ne l'a jamais subi : Tailwind pose cette ligne
+     dans son preflight. Le cadre est un autre document, ecrit a la main : il
+     n'avait pas de preflight, donc pas cette ligne. Mesure sur la vraie boite :
+     93 px d'appareil par ligne la ou le cadre declare 15/1,55, soit 69,75 —
+     un facteur **1,33**, quand notre interface de la meme capture est juste.
+     Invisible en emulation : Chromium ne fait pas d'autosizing. */
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
   html, body {
     margin: 0;
     background: ${transparent ? "transparent" : "#fff"};
@@ -225,6 +238,12 @@ const feuille = (carte: boolean, dark: boolean, forme: Enveloppe) => {
 const garde = (marge: number) => `
   html {
     box-sizing: border-box !important;
+    /* Reecrit apres le message et en !important : le <style> d'une infolettre
+       arrive apres le notre, et un text-size-adjust: auto de sa part rendrait le
+       courrier a iOS. Voir la feuille de base pour la mesure.
+       (Pas d'accent grave ici : ce bloc vit dans un litteral gabarit.) */
+    -webkit-text-size-adjust: 100% !important;
+    text-size-adjust: 100% !important;
     padding: ${marge}px !important;
     /* Le cadre ne defile jamais : il est dimensionne sur son contenu et c'est
        la page qui defile. Sans cela, le contenu mis a l'echelle laisserait

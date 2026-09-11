@@ -394,6 +394,14 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - Le cadre écrit le **même interligne que le fil** (1,65 ; 1,55 pour un document, qui apporte sa mise
   en page). Écart assumé sur bureau, où le fil descend à 14 px : le cadre ne lit pas nos points de
   rupture.
+- **`text-size-adjust: 100%` dans le cadre, deux fois** (feuille de base, puis après le message en
+  `!important`) : sans elle iOS gonfle le texte du cadre — d'un facteur qui dépend de la structure du
+  courrier, donc différent d'un mail à l'autre. **C'est la cause de « les mises en page changent d'un
+  mail à l'autre ».** La page ne l'a jamais subi, Tailwind la pose dans son preflight ; le cadre est
+  un autre document, écrit à la main, sans preflight. Mesuré : 93 px d'appareil par ligne pour un
+  `15px/1,55` déclaré (69,75) — facteur **1,33**. Le canevas de 600 px le compensait par accident
+  (1,33 × 0,655 ≈ 0,87), ce qui l'a caché. **Invisible en émulation**, Chromium ne fait pas
+  d'autosizing.
 - L'objet **appartient au fil**, plus à son premier message.
 - Le plancher de hauteur d'un cadre est **24 px, pas 80** : il datait de la marge de 16, et il
   ajoutait 23 px de vide sous un message court (mesuré : cadre 80, enveloppe 57).

@@ -154,15 +154,18 @@ une signature) : marge tombée à 0, message posé sur le canevas de 600 px et r
 (`message-card`, `third-pane` — qui ne passait rien et prenait donc la feuille d'un document —,
 `compose-pane`). Le cadre en déduit tout le reste, et rien d'autre n'en décide :
 
-| | Marge du cadre | Canevas de 600 | Surface |
+| | Marge du cadre | Canevas | Surface |
 | --- | --- | --- | --- |
 | `bulle` | 0 | non | aucune |
 | `feuille` | 0 en clair, 16 en sombre | non | carte blanche en sombre seulement |
-| `document` | 16, puis 0 s'il apporte sa mise en page | oui | feuille pleine largeur |
+| `document` | 0 | **oui, toujours** — sa largeur déclarée, 600 par défaut | feuille pleine largeur |
 
-Les trois indices de la mise en page (plus large que l'écran, fond peint sur `body`, bâti sur des
-tableaux) restent lus **dans** le cadre, mais ils ne font plus que préciser un `document` — ils ne
-peuvent plus en fabriquer un.
+**Le cadre ne juge plus rien.** Les trois indices qu'il lisait après la peinture (plus large que
+l'écran, fond peint, un `<table>`) ont disparu, comme la condition « seulement s'il déborde » qui
+leur a succédé une journée : toutes décidaient après coup ce qu'`enveloppe` avait décidé avant, et
+toutes se sont trompées sur le même courrier — un mot d'affaires à signature d'entreprise, rendu à
+l'échelle 1, dont le logo et les coordonnées prenaient la moitié de la hauteur de l'écran. Un
+document apporte une page : il se lit comme une page, posé puis réduit, ce que fait Mail d'iOS.
 
 ### La feuille blanche ne se lève qu'en sombre
 

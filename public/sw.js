@@ -7,7 +7,7 @@
  * correctifs de lecture sont partis sans y toucher : le deploiement etait bon,
  * le bundle neuf servi, et l'iPhone continuait de faire tourner l'ancien.
  * A bumper avec tout changement qui doit se voir sur l'appareil. */
-const VERSION = "arc-mail-v29";
+const VERSION = "arc-mail-v30";
 const SHELL = ["/"];
 
 self.addEventListener("install", (event) => {

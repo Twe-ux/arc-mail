@@ -4,7 +4,7 @@ import { ImageOff, MoreHorizontal } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import type { TouchRelaye } from "@/hooks/use-edge-swipe-back";
-import { couperCitation, type Enveloppe } from "@/lib/fil";
+import { couperCitation, type Enveloppe, largeurDeclaree } from "@/lib/fil";
 import type { Message } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useRelaisRetour } from "./back-swipe";
@@ -266,7 +266,7 @@ const garde = (marge: number) => `
    rapporter la hauteur (le cadre ne sait pas se dimensionner), rendre les
    images quand on les demande, et **relayer les touchers** — un cadre les garde
    pour lui, et le geste de retour n'existait donc pas sur un message HTML. */
-const script = (marge: number, canevas: number, doc: boolean) => `
+const script = (marge: number, canevas: number) => `
   (function () {
     var MARGE = ${marge};
     /* La page pour laquelle les courriers sont ecrits, depuis toujours.
@@ -278,10 +278,6 @@ const script = (marge: number, canevas: number, doc: boolean) => `
        document n'a pas de mise en page a preserver, par definition (voir
        enveloppe). */
     var CANEVAS = ${canevas};
-    /* **Seul un document peut perdre sa marge et passer sur le canevas.** La
-       forme est decidee avant la peinture, sur la chaine ; ce qui suit ne fait
-       que la preciser. */
-    var DOC = ${doc ? "true" : "false"};
     var SUJET = __SUJET__;
     var fit = document.getElementById("arc-fit");
     var occupe = false;
@@ -296,87 +292,37 @@ const script = (marge: number, canevas: number, doc: boolean) => `
        texte long se replie deja (overflow-wrap) et les images sont bornees.
        La transformation est visuelle : la boite de mise en page garde sa
        hauteur entiere, donc c'est le rectangle **transforme** qu'on mesure. */
-    /* La marge du cadre, posee en ligne et en !important : elle bat la feuille
-       de garde, qui l'est aussi. */
     var marge = MARGE;
-    var poser = function (px) {
-      marge = px;
-      document.documentElement.style.setProperty("padding", px + "px", "important");
-    };
 
     var dire = function () {
       if (occupe) return;
       occupe = true;
       fit.style.width = "";
       fit.style.transform = "";
-      poser(MARGE);
       /* La largeur disponible se lit sur l'enveloppe elle-meme : un bloc remplit
          la boite de contenu de son parent, ou que vive la marge — la notre sur
          html, celle que l'infolettre se donne sur body. Mesurer la fenetre
          obligeait a deviner ou etaient passes les pixels. */
       var dispo = fit.offsetWidth;
       var naturel = Math.max(fit.scrollWidth, dispo);
-      /* **Un courrier qui apporte sa mise en page ne paie pas notre marge.**
-         Elle lui coute de la largeur — 8 % de taille de texte sur un tableau de
-         600 px reduit a un telephone de 393 — et elle se voit comme un lisere
-         blanc tout autour de son fond. Trois facons de reconnaitre qu'il en
-         apporte une, et il fallait les trois :
-
-         - il est **plus large que l'ecran**, donc deja reduit ;
-         - il **peint son propre fond** sur body ;
-         - il **est bati sur des tableaux**, ce que fait toute infolettre : elle
-           porte alors ses propres marges, et les notres s'ajoutent aux siennes.
-           C'est ce cas-la qui restait — le courrier GoDaddy est responsive
-           (jamais reduit) et pose son gris sur une table, pas sur body, donc
-           les deux premieres regles ne le voyaient pas.
-
-         Reste avec sa marge le courrier en HTML simple, quelques paragraphes
-         sans mise en page : la, du texte viendrait coller au bord.
-
-         **Le troisieme indice a change.** C'etait « il y a un <table> quelque
-         part » ; or toute signature professionnelle en porte un, et un simple
-         mot d'une personne perdait donc sa marge. On regarde maintenant si le
-         courrier **peint son fond pres de la racine** — body, ou l'un des trois
-         premiers contenants de la chaine des premiers enfants. Une infolettre
-         pose son gris la (le courrier GoDaddy le met sur sa table exterieure,
-         pas sur body) ; une signature, jamais : elle vient apres les
-         paragraphes, donc jamais sur cette chaine. */
-      var neutreFond = function (c) {
-        return !c || c === "rgba(0, 0, 0, 0)" || c === "transparent" || c === "rgb(255, 255, 255)";
-      };
-      var peint = !neutreFond(getComputedStyle(document.body).backgroundColor);
-      var noeud = fit.firstElementChild;
-      for (var p = 0; !peint && noeud && p < 3; p++) {
-        peint = !neutreFond(getComputedStyle(noeud).backgroundColor);
-        noeud = noeud.firstElementChild;
-      }
-      var misEnPage = DOC && (naturel > dispo + 1 || peint);
-      if (misEnPage) {
-        poser(0);
-        dispo = fit.offsetWidth;
-        naturel = Math.max(fit.scrollWidth, dispo);
-      }
       /* **Le canevas des courriers, puis la reduction** — ce que fait Mail
-         d'iOS. Un courrier mis en page est ecrit pour une page de 600 px ;
-         rendu sur les 393 d'un telephone, ses regles pour petit ecran prennent
-         la main et il s'affiche en gros caracteres, bien plus gros que le meme
-         courrier chez Apple, qui le pose sur 600 et le reduit. Deux courriers
-         voisins n'avaient alors pas la meme taille de texte, et aucun n'avait
-         celle de l'app. On le pose donc sur le canevas quand l'ecran est plus
-         etroit, et l'echelle fait le reste.
-         **Seulement s'il deborde vraiment.** Un courrier qui tient dans
-         l'ecran n'a aucune mise en page a preserver : le poser sur 600 puis le
-         reduire ne fait que rapetisser son texte. Mesure sur la vraie boite,
-         deux courriers d'affaires voisins : 58 px d'appareil par ligne d'un
-         cote, 95 de l'autre — un rapport de 0,61, qui est 393/600. Le premier
-         n'avait pour toute mise en page qu'une signature a logo, large de
-         340 px : il tenait, et il s'affichait quand meme a 10 px quand son
-         voisin s'affichait a 16. Prix assume : une infolettre *responsive*, qui
-         tient elle aussi, garde desormais sa typographie de petit ecran — celle
-         que son auteur a ecrite, et celle que les autres clients montrent.
-         Le HTML simple n'y passe pas non plus : 15 px reduits a 0,65 ne se
-         lisent plus, et un texte sans mise en page n'a pas de largeur a lui. */
-      if (CANEVAS && naturel > dispo + 1 && dispo < CANEVAS) {
+         d'iOS. Un courrier mis en page est ecrit pour une page ; rendu sur les
+         393 d'un telephone, ses regles pour petit ecran prennent la main et il
+         s'affiche en gros caracteres, bien plus gros que le meme courrier chez
+         Apple, qui le pose sur sa page et le reduit.
+
+         **Tout document y passe, qu'il deborde ou non, et le cadre ne juge
+         plus.** Il a porte trois indices (plus large que l'ecran, fond peint,
+         un <table> quelque part) puis deux, puis une condition « seulement s'il
+         deborde » : toutes decidaient apres la peinture ce que la forme avait
+         deja decide avant, et toutes se sont trompees sur le meme courrier — un
+         mot d'affaires a signature d'entreprise. Rendu a l'echelle 1, son logo
+         et ses coordonnees prenaient la moitie de la hauteur de l'ecran. Il
+         apporte une page, il se lit comme une page.
+
+         Le HTML simple n'y passe pas : CANEVAS vaut zero hors document, et
+         15 px reduits a 0,65 ne se lisent plus. */
+      if (CANEVAS && dispo < CANEVAS) {
         fit.style.width = CANEVAS + "px";
         naturel = Math.max(fit.scrollWidth, CANEVAS);
       }
@@ -655,8 +601,22 @@ function CorpsHtml({
      feuille d'un document : une conversation se retrouvait sur le canevas des
      infolettres. Hors carte, la marge est zéro — le texte s'aligne alors sur
      celui de ses voisins, qui n'ont pas de cadre. */
-  const marge = carte ? MARGE : 0;
-  const canevas = forme === "document" ? 600 : 0;
+  /* **Un document ne paie pas notre marge** : il apporte sa page, et nos 16 px
+     lui coutent de la largeur puis se voient comme un lisere blanc autour de son
+     fond. Elle est a la carte — la feuille blanche en sombre — et a elle seule. */
+  const marge = forme === "document" ? 0 : carte ? MARGE : 0;
+  /* **Un document va sur le canevas parce qu'il est un document**, pas parce
+     qu'il déborde. La condition « seulement s'il déborde » raisonnait sur la
+     largeur alors que la forme avait déjà répondu : un courrier qui apporte sa
+     page se lit **comme une page** — posée, puis réduite, ce que fait Mail
+     d'iOS —, et une signature d'entreprise rendue à l'échelle 1 sur un téléphone
+     prend la moitié de l'écran.
+     **Et le canevas est la page que le courrier se donne**, plus un 600 pour
+     tous : écrit pour 500, il n'a pas à être réduit comme s'il en demandait 600.
+     600 reste le repli quand il ne déclare rien — c'est la page des courriers
+     depuis toujours. */
+  const declaree = largeurDeclaree(html);
+  const canevas = forme === "document" ? (declaree >= 500 ? declaree : 600) : 0;
   const cadre = useRef<HTMLIFrameElement>(null);
   const [hauteur, setHauteur] = useState(220);
   /* La largeur que le message demande. `null` tant qu'on ne sait pas : le cadre
@@ -686,7 +646,7 @@ function CorpsHtml({
          et deux rembourrages l'un dans l'autre feraient un message perdu au
          milieu de sa propre pastille. Une feuille, elle, est une carte : son
          texte ne colle pas au blanc. */
-      `<style>${garde(marge)}</style><script>${script(marge, canevas, forme === "document").replace(
+      `<style>${garde(marge)}</style><script>${script(marge, canevas).replace(
         "__SUJET__",
         JSON.stringify(sujet).replace(/<\//g, "<\\/"),
       )}<\/script></body></html>`,

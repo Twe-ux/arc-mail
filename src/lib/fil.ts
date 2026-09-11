@@ -112,8 +112,14 @@ export function couperCitation(texte: string): { visible: string; citation: stri
  */
 export type Enveloppe = "bulle" | "feuille" | "document";
 
-/** La plus grande largeur que le message se donne, en pixels. */
-function largeurDeclaree(html: string): number {
+/**
+ * La plus grande largeur que le message se donne, en pixels.
+ *
+ * Elle sert deux fois : à reconnaître un document, et à **choisir son canevas**
+ * — la page sur laquelle on le pose avant de le réduire. Un courrier écrit pour
+ * 500 px n'a pas à être réduit comme s'il en demandait 600.
+ */
+export function largeurDeclaree(html: string): number {
   let max = 0;
   for (const m of html.matchAll(/width\s*[:=]\s*["']?\s*(\d{3,})/gi)) {
     const px = Number(m[1]);

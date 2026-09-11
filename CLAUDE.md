@@ -740,15 +740,18 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - `modify` écrit les drapeaux (`\Seen`, `\Flagged`) et déplace ; le déplacement passe en dernier, et
   il **rend l'identifiant d'après** (`uidMap` du `MOVE`) : le store renomme le fil, ou le retire si
   le serveur n'a pas dit où — un UID de dossier ne survit pas au déplacement.
-- La marge du cadre (16 px) **tombe à zéro pour un courrier qui apporte sa mise en page** — plus
-  large que l'écran, ou **fond peint près de la racine** (`body` ou les trois premiers contenants de
-  la chaîne des premiers enfants) ; seul le HTML simple la garde. « Un `<table>` quelque part » a été
-  retiré : toute signature d'entreprise en porte trois.
-- Ce même courrier est posé sur le **canevas de 600 px** puis réduit, comme le fait Mail d'iOS —
-  **mais seulement s'il déborde vraiment**. Un courrier qui tient n'a pas de mise en page à
-  préserver, et le réduire ne fait que rapetisser son texte : mesuré sur la vraie boîte, deux
-  courriers d'affaires voisins à **58 px d'appareil par ligne contre 95** (rapport 0,61 = 393/600).
-  Prix assumé : une infolettre responsive garde sa typographie de petit écran.
+- La marge du cadre (16 px) **tombe à zéro pour un document**, et c'est la **forme** qui le dit, pas
+  le cadre ; seul le reste la garde, et c'est pour le HTML simple qu'elle existe.
+- **Le cadre ne juge plus rien** : il a porté trois indices (plus large que l'écran, fond peint sur
+  `body`, un `<table>` quelque part), puis deux, puis « seulement s'il déborde » — toutes décidaient
+  **après la peinture** ce qu'`enveloppe` avait décidé avant, et toutes se sont trompées sur le même
+  courrier d'affaires à signature. Parties.
+- **Tout document est posé sur le canevas puis réduit**, comme le fait Mail d'iOS, qu'il déborde ou
+  non : il apporte une page, il se lit comme une page. « Seulement s'il déborde » a été essayé une
+  journée et rendu — le courrier tenait, était rendu à l'échelle 1, et sa signature prenait la moitié
+  de la hauteur de l'écran.
+- **Le canevas est la page que le courrier se donne** (`largeurDeclaree`), pas un 600 pour tous :
+  écrit pour 500, il n'a pas à être réduit comme s'il en demandait 600. 600 est le repli.
 - Envoyer, c'est SMTP **puis** un `APPEND` dans « Envoyés » — un seul message composé pour les deux ;
   Gmail range déjà lui-même, on n'y ajoute rien. Une réponse porte `In-Reply-To` et `References`.
 - Un brouillon s'écrit avant que l'ancien ne parte ; le retirer, c'est la corbeille, pas `EXPUNGE`.

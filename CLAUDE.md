@@ -377,6 +377,10 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
 - **Deux surfaces** (`enveloppe`) : un message sans couleurs à lui prend l'encre de l'app dans un
   cadre transparent ; tout le reste garde la **feuille blanche** du courrier, parce que ces couleurs
   ont été écrites pour du blanc. La couleur ne décide que du fond, jamais de la place.
+- **Un document se reconnaît à la page qu'il se donne**, jamais à ses tableaux : plus de
+  20 000 caractères, largeur déclarée ≥ 500, `bgcolor=`, `background(-color):`. La règle des trois
+  tableaux est tombée — une signature d'entreprise en pose trois, et le courrier le plus courant du
+  monde professionnel partait pleine largeur et réduit.
 - **La forme est dite au cadre, il n'en juge plus** : `forme: Enveloppe` est obligatoire et les trois
   appelants la passent entière. Facultative, « rien » valait `feuille` **et** `document`, et le cadre
   re-décidait à la mesure sur **un seul `<table>`** quand `enveloppe` en demande trois — un mot avec
@@ -724,10 +728,14 @@ Une ligne chacune ; la fiche a la mesure et le pourquoi.
   il **rend l'identifiant d'après** (`uidMap` du `MOVE`) : le store renomme le fil, ou le retire si
   le serveur n'a pas dit où — un UID de dossier ne survit pas au déplacement.
 - La marge du cadre (16 px) **tombe à zéro pour un courrier qui apporte sa mise en page** — plus
-  large que l'écran, ou fond sur `body`, ou bâti sur des tableaux ; seul le HTML simple la garde.
-- Ce même courrier est posé sur le **canevas de 600 px** puis réduit, comme le fait Mail d'iOS :
-  sinon ses règles pour petit écran le rendent en gros caractères, et deux courriers voisins n'ont
-  pas la même taille de texte.
+  large que l'écran, ou **fond peint près de la racine** (`body` ou les trois premiers contenants de
+  la chaîne des premiers enfants) ; seul le HTML simple la garde. « Un `<table>` quelque part » a été
+  retiré : toute signature d'entreprise en porte trois.
+- Ce même courrier est posé sur le **canevas de 600 px** puis réduit, comme le fait Mail d'iOS —
+  **mais seulement s'il déborde vraiment**. Un courrier qui tient n'a pas de mise en page à
+  préserver, et le réduire ne fait que rapetisser son texte : mesuré sur la vraie boîte, deux
+  courriers d'affaires voisins à **58 px d'appareil par ligne contre 95** (rapport 0,61 = 393/600).
+  Prix assumé : une infolettre responsive garde sa typographie de petit écran.
 - Envoyer, c'est SMTP **puis** un `APPEND` dans « Envoyés » — un seul message composé pour les deux ;
   Gmail range déjà lui-même, on n'y ajoute rien. Une réponse porte `In-Reply-To` et `References`.
 - Un brouillon s'écrit avant que l'ancien ne parte ; le retirer, c'est la corbeille, pas `EXPUNGE`.

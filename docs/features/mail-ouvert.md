@@ -131,6 +131,15 @@ infolettre est écrite pour 600 et plus. La première version disqualifiait un m
 portait un tableau ou un `color:` — c'est-à-dire dès qu'il avait une signature professionnelle, et
 un transfert d'une personne à une autre devenait une dalle au milieu d'une conversation.
 
+**La règle des trois tableaux est tombée à son tour.** Elle disait : « un signataire en pose un,
+parfois deux, jamais trois ». Faux — une signature d'entreprise, c'est un tableau pour le logo, un
+pour le filet, un pour les coordonnées, et le courrier le plus courant d'une boîte professionnelle
+passait donc pleine largeur *et* sur le canevas de 600 px. Elle ne manque à aucune vraie infolettre :
+elles sont toutes bâties sur une table à largeur déclarée, ou peignent un fond — les deux règles
+au-dessus les prennent déjà. Restent donc quatre indices, tous portant sur la **page** que le
+courrier se donne : plus de 20 000 caractères, une largeur déclarée ≥ 500, un `bgcolor=`, un
+`background(-color):`.
+
 ### La forme est dite au cadre, il n'en juge plus
 
 Elle était **facultative** : `MessageBody` recevait `bulle` ou rien, et « rien » valait à la fois

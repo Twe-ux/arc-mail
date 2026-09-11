@@ -128,14 +128,21 @@ export function enveloppe(html: string | undefined): Enveloppe {
   /* **Une mise en page se voit à sa largeur.** Une signature tient dans 400 px,
      une infolettre est écrite pour 600 et plus — c'est le seul signe qui
      sépare vraiment les deux. Trois autres l'accompagnent, chacun suffisant :
-     un fond peint (une intention de mise en page, jamais une signature), un
-     poids qu'aucun message tapé n'atteint, et trois tableaux ou plus — un
-     signataire en pose un, parfois deux, jamais trois. */
+     un fond peint (une intention de mise en page, jamais une signature) et un
+     poids qu'aucun message tapé n'atteint.
+
+     **« Trois tableaux ou plus » a été retiré** : on le croyait hors de portée
+     d'un signataire, et c'est faux — une signature d'entreprise, c'est un
+     tableau pour le logo, un pour le filet, un pour les coordonnées. Un mot
+     d'une personne à une autre partait donc pleine largeur et sur le canevas
+     de 600 px : mesuré sur la vraie boîte, 58 px d'appareil par ligne contre
+     95 pour son voisin. Et la règle ne manque à aucune vraie infolettre : elles
+     sont **toutes** bâties sur une table à largeur déclarée, ou peignent un
+     fond — les deux règles au-dessus les prennent déjà. */
   if (html.length > 20_000) return "document";
   if (largeurDeclaree(html) >= 500) return "document";
   if (/bgcolor=/i.test(html)) return "document";
   if (/background(?:-color)?\s*:/i.test(html)) return "document";
-  if ((html.match(/<table[\s>]/gi)?.length ?? 0) >= 3) return "document";
 
   /* **La couleur ne décide plus de la forme, seulement du fond.** Un message
      qui a écrit ses couleurs les a écrites pour du blanc.

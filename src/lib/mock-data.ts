@@ -717,6 +717,31 @@ Le délai de réalisation est de 3 semaines à partir de la validation.
 Bien à vous,
 Marc Lefèvre`,
       },
+      /* **Le document qui tient dans l'écran**, et il manquait : quelques
+         paragraphes, puis une signature d'entreprise — logo, filet,
+         coordonnées, clause de confidentialité — dont une cellule porte un
+         `bgcolor`. Ce fond peint en fait un « document » pour `enveloppe`, qui
+         lit la chaîne ; mais **rien là-dedans ne dépasse l'écran** (la
+         signature fait 340 px). Mesuré sur la vraie boîte avant correctif :
+         58 px d'appareil par ligne contre 95 pour son voisin, parce qu'il était
+         posé sur le canevas de 600 px et réduit à 0,585. C'est le cas qui
+         prouve les deux règles du cadre : le canevas **seulement s'il déborde**,
+         et la marge perdue seulement si le fond est peint **près de la racine**
+         — celui-ci l'a sous trois paragraphes, il garde donc ses 16 px. */
+      {
+        from: marc,
+        to: [ME.pro],
+        hoursAgo: 0.2,
+        body: `Bonjour,
+
+Vous trouverez en pièce jointe la facture correspondant au complément.
+
+Bien à vous
+
+Marc Lefèvre
+Atelier Lefèvre — Strasbourg`,
+        html: `<div>Bonjour,</div><div><br></div><div>Vous trouverez en pièce jointe la facture correspondant au complément.</div><div><br></div><div>Bien à vous</div><div><br></div><table cellpadding="0" cellspacing="0"><tr><td bgcolor="#f4f4f5" style="padding:12px 16px 12px 12px;border-right:1px solid #d0d0d0"><table><tr><td style="font:700 22px/1 Helvetica,Arial,sans-serif;letter-spacing:-1px">ATELIER<br>L&amp;F</td></tr></table></td><td style="padding-left:16px"><table><tr><td style="font-size:13px"><b>Marc Lefèvre</b><br><span style="color:#666">03 88 75 06 42</span><br><a href="mailto:marc@atelier-lefevre.fr">marc@atelier-lefevre.fr</a><br><br><span style="font-size:11px;color:#888">ATELIER LEFÈVRE<br>17 rue du Vieux Marché aux Grains<br>67000 Strasbourg</span></td></tr></table></td></tr></table><div style="margin-top:14px;font-size:9px;color:#999">Ce courriel est strictement réservé à l'usage de la personne à qui il est adressé et peut contenir de l'information privilégiée et confidentielle. Toute divulgation ou copie de ce courriel est strictement prohibée.</div>`,
+      },
     ],
     { unread: true, labels: ["Travaux"] },
   ),

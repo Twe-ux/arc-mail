@@ -302,26 +302,42 @@ contre 0,652) — et elle se voit comme un liseré blanc tout autour de son fond
 reconnaître qu'il en apporte une, et il a fallu les trois :
 
 1. il est **plus large que l'écran**, donc déjà réduit ;
-2. il **peint son fond sur `body`** — le `<style>` d'une infolettre arrive après le nôtre ;
-3. il **est bâti sur des tableaux**, ce que fait toute infolettre : elle porte alors ses propres
-   marges, et les nôtres s'ajoutent aux siennes.
+2. il **peint son fond près de la racine** — sur `body`, ou sur l'un des trois premiers contenants
+   de la chaîne des premiers enfants.
 
-Le troisième cas est celui qui a résisté à deux correctifs : le courrier GoDaddy est *responsive*
-(il tient dans 393 px, donc jamais réduit) et pose son gris **sur une table**, pas sur `body`.
+Le second cas a résisté à deux correctifs : le courrier GoDaddy est *responsive* (il tient dans
+393 px, donc jamais réduit) et pose son gris **sur sa table extérieure**, pas sur `body` — d'où la
+descente de trois niveaux.
+
+**Le troisième indice a été retiré.** C'était « il y a un `<table>` quelque part », et on le croyait
+hors de portée d'un signataire. C'est faux : une signature d'entreprise, c'est un tableau pour le
+logo, un pour le filet, un pour les coordonnées. Un mot d'une personne à une autre perdait donc sa
+marge et partait sur le canevas. Le fond peint près de la racine dit la même chose sans se tromper :
+une infolettre peint là, une signature jamais — elle vient après les paragraphes, donc jamais sur
+cette chaîne.
 
 Reste avec sa marge le courrier en **HTML simple** — quelques paragraphes sans mise en page —, où du
-texte viendrait sinon coller au bord. Les quatre cas sont vérifiés au banc.
+texte viendrait sinon coller au bord. Les cas sont vérifiés au banc.
 
 **Le canevas des courriers, puis la réduction.** Un courrier mis en page est écrit pour une page de
 **600 px** ; rendu sur les 393 d'un téléphone, ce sont ses règles pour petit écran qui prennent la
 main et il s'affiche en gros caractères — un titre de 32 px reste à 32 px. Mail d'iOS, lui, le pose
 sur 600 et réduit : le même titre y fait 21 px. Deux courriers voisins n'avaient donc pas la même
-taille de texte chez nous, et aucun n'avait celle de l'app. On pose donc tout courrier mis en page
-sur le canevas de 600 px dès que l'écran est plus étroit, et l'échelle fait le reste — mesuré :
-32 px rendus à **21**, qu'il soit responsive ou bâti sur 600.
+taille de texte chez nous, et aucun n'avait celle de l'app. On pose donc le courrier mis en page
+sur le canevas de 600 px quand l'écran est plus étroit, et l'échelle fait le reste — mesuré :
+32 px rendus à **21**.
 
-Le HTML simple n'y passe pas : 15 px réduits à 0,655 ne se lisent plus, et un texte sans mise en
-page n'a pas de largeur à lui.
+**Mais seulement s'il déborde vraiment.** Un courrier qui tient dans l'écran n'a aucune mise en page
+à préserver : le poser sur 600 puis le réduire ne fait que rapetisser son texte. Mesuré sur la vraie
+boîte, deux courriers d'affaires voisins de la même boîte : **58 px d'appareil par ligne d'un côté,
+95 de l'autre** — un rapport de 0,61, qui est 393/600. Le premier n'avait pour toute mise en page
+qu'une signature à logo, large de 340 px : il tenait, et il s'affichait quand même à 10 px quand son
+voisin s'affichait à 16. Prix assumé : une infolettre *responsive*, qui tient elle aussi, garde
+désormais la typographie de petit écran que son auteur lui a écrite — celle que les autres clients
+montrent.
+
+Le HTML simple n'y passe pas non plus : 15 px réduits à 0,655 ne se lisent plus, et un texte sans
+mise en page n'a pas de largeur à lui.
 
 **Le préheader ne s'écrit pas deux fois.** Une infolettre commence par la ligne que les listes de
 mail montrent en aperçu, et elle répète presque toujours l'objet : on se retrouvait avec le titre en

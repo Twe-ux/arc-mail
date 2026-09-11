@@ -314,12 +314,24 @@ const script = (marge: number, canevas: number, doc: boolean) => `
          Reste avec sa marge le courrier en HTML simple, quelques paragraphes
          sans mise en page : la, du texte viendrait coller au bord.
 
-         **Les trois ne sont consultees que sur un document** : un seul
-         <table> suffit a les faire parler, et toute signature professionnelle
-         en porte un. */
-      var fond = getComputedStyle(document.body).backgroundColor;
-      var neutre = !fond || fond === "rgba(0, 0, 0, 0)" || fond === "transparent" || fond === "rgb(255, 255, 255)";
-      var misEnPage = DOC && (naturel > dispo + 1 || !neutre || !!fit.querySelector("table"));
+         **Le troisieme indice a change.** C'etait « il y a un <table> quelque
+         part » ; or toute signature professionnelle en porte un, et un simple
+         mot d'une personne perdait donc sa marge. On regarde maintenant si le
+         courrier **peint son fond pres de la racine** — body, ou l'un des trois
+         premiers contenants de la chaine des premiers enfants. Une infolettre
+         pose son gris la (le courrier GoDaddy le met sur sa table exterieure,
+         pas sur body) ; une signature, jamais : elle vient apres les
+         paragraphes, donc jamais sur cette chaine. */
+      var neutreFond = function (c) {
+        return !c || c === "rgba(0, 0, 0, 0)" || c === "transparent" || c === "rgb(255, 255, 255)";
+      };
+      var peint = !neutreFond(getComputedStyle(document.body).backgroundColor);
+      var noeud = fit.firstElementChild;
+      for (var p = 0; !peint && noeud && p < 3; p++) {
+        peint = !neutreFond(getComputedStyle(noeud).backgroundColor);
+        noeud = noeud.firstElementChild;
+      }
+      var misEnPage = DOC && (naturel > dispo + 1 || peint);
       if (misEnPage) {
         poser(0);
         dispo = fit.offsetWidth;
@@ -333,9 +345,19 @@ const script = (marge: number, canevas: number, doc: boolean) => `
          voisins n'avaient alors pas la meme taille de texte, et aucun n'avait
          celle de l'app. On le pose donc sur le canevas quand l'ecran est plus
          etroit, et l'echelle fait le reste.
-         Le HTML simple n'y passe pas : 15 px reduits a 0,65 ne se lisent plus,
-         et un texte sans mise en page n'a pas de largeur a lui. */
-      if (CANEVAS && misEnPage && dispo < CANEVAS) {
+         **Seulement s'il deborde vraiment.** Un courrier qui tient dans
+         l'ecran n'a aucune mise en page a preserver : le poser sur 600 puis le
+         reduire ne fait que rapetisser son texte. Mesure sur la vraie boite,
+         deux courriers d'affaires voisins : 58 px d'appareil par ligne d'un
+         cote, 95 de l'autre — un rapport de 0,61, qui est 393/600. Le premier
+         n'avait pour toute mise en page qu'une signature a logo, large de
+         340 px : il tenait, et il s'affichait quand meme a 10 px quand son
+         voisin s'affichait a 16. Prix assume : une infolettre *responsive*, qui
+         tient elle aussi, garde desormais sa typographie de petit ecran — celle
+         que son auteur a ecrite, et celle que les autres clients montrent.
+         Le HTML simple n'y passe pas non plus : 15 px reduits a 0,65 ne se
+         lisent plus, et un texte sans mise en page n'a pas de largeur a lui. */
+      if (CANEVAS && naturel > dispo + 1 && dispo < CANEVAS) {
         fit.style.width = CANEVAS + "px";
         naturel = Math.max(fit.scrollWidth, CANEVAS);
       }

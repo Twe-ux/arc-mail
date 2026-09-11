@@ -142,6 +142,11 @@ const OPENERS = {
   /* Le fil qui porte la **feuille blanche** : un mot, puis une signature en
      couleur — le courrier le plus courant du monde professionnel. */
   formes: [CLICK_TEXT("Planning des événements de septembre")],
+  /* Le courrier d'affaires a signature riche : un fond peint dans sa
+     signature, donc un « document » pour `enveloppe`, mais il tient dans
+     l'ecran. C'est le cas qui prouve qu'un document ne va sur le canevas de
+     600 px que s'il deborde. */
+  affaires: [CLICK_TEXT("Devis aménagement salle de réunion")],
   /* Répondre depuis une bulle : le composeur ouvre le volet de droite. Le ↩ est
      transparent au repos (il se révèle au survol) mais bien dans le DOM. */
   "reponse-volet": [
@@ -188,7 +193,7 @@ const OPENERS = {
 };
 
 /** Les écrans qui ne sont pas des cartes flottantes : rien à mesurer, mais à capturer partout. */
-const BOTH_SIZES = new Set(["fil", "discussion", "formes", "reponse-volet", "infolettre", "piece-jointe", "rail", "masquee", "volet-message", "composeur", "html-large", "correspondants", "correspondants-large", "indesirable", "indesirable-plus", "vide", "nouvel-espace", "tout-de", "selection-etiquettes"]);
+const BOTH_SIZES = new Set(["fil", "discussion", "formes", "affaires", "reponse-volet", "infolettre", "piece-jointe", "rail", "masquee", "volet-message", "composeur", "html-large", "correspondants", "correspondants-large", "indesirable", "indesirable-plus", "vide", "nouvel-espace", "tout-de", "selection-etiquettes"]);
 
 const CARD = `(() => {
   const el = document.querySelector('[data-slot="sheet-content"], [data-slot="dialog-content"]');
